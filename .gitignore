@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vite/
+*.log
+vite.log
+vite.err.log
+.DS_Store
+qa/screenshots/*.png
+!qa/screenshots/.gitkeep

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="铁肺迷城 IRONLUNG MAZE — 一场在会重组的沉没潜艇里、靠声呐与呼吸计数逃生的心灵恐怖分支叙事 roguelite。" />
+    <title>铁肺迷城 IRONLUNG MAZE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Noto+Serif+SC:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- 声呐背景层：标题画面的动态底图 -->
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+    <!-- 主游戏画布：Canvas2D 场景 → WebGL2 后处理 -->
+    <canvas id="scene-canvas" aria-hidden="true"></canvas>
+    <canvas id="post-canvas" aria-hidden="true"></canvas>
+    <!-- DOM UI 层 -->
+    <div id="ui-root"></div>
+    <!-- 面罩玻璃覆层：划痕与反光，纯装饰 -->
+    <div id="visor" aria-hidden="true"></div>
+
+    <noscript>
+      <div style="padding: 4rem; color: #d8d2c4; font-family: monospace">
+        KYRIE-9 需要 JavaScript 才能维持生命支持。
+      </div>
+    </noscript>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
