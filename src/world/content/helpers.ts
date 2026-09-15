@@ -182,4 +182,6 @@ export const D = {
   d123: [1, 2, 3] as const,
   d234: [2, 3, 4] as const,
   d345: [3, 4, 5] as const,
+  d1234: [1, 2, 3, 4] as const,
+  d2345: [2, 3, 4, 5] as const,
 };
