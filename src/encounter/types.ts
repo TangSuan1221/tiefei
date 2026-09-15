@@ -265,6 +265,11 @@ export interface EncounterRuntime extends EncounterState {
   /** 连续静默回合数 —— 对付 THE LISTENER 的唯一硬指标 */
   silentStreak: number;
 
+  /** defId → 当前认知档位。引擎在 begin() 时从账本快照，跨档时刷新 */
+  cogTier: Record<ID, 0 | 1 | 2 | 3>;
+  /** 认知账本。观察 / 尸检类动作要写回它，这是跨轮回进度的落点 */
+  ledger: import('./cognition').CognitionLedger;
+
   log: string[];
   actionUse: Record<ID, number>;
   /** 上一次动作的实际呼吸成本，用于噪音衰减计算 */

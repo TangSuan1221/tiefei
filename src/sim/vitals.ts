@@ -267,8 +267,10 @@ export class VitalsEngine implements VitalsSystem {
 
   private tickThermal(dt: number, amb: AmbientConditions): void {
     const T = TUNING.temp;
-    const envT = lerp(amb.temperature, T.waterTemp, clamp01(amb.flooding));
-    const cool = T.coolInAir * (1 + clamp01(amb.flooding) * (T.floodMultiplier - 1));
+    // 只有真正浸到身体的水才带走热量，所以水位要先过一个指数曲线（见 tuning 里的说明）。
+    const wet = Math.pow(clamp01(amb.flooding), T.floodExponent);
+    const envT = lerp(amb.temperature, T.waterTemp, wet);
+    const cool = T.coolInAir * (1 + wet * (T.floodMultiplier - 1));
     // 产热受疲劳压制；而且体温已高于正常时不再产热，避免在温暖舱室里烧到 40°C。
     const warm = this.v.coreTemp < T.normal
       ? T.metabolicWarm * (1 - (this.v.fatigue / 100) * T.fatigueWarmPenalty)

@@ -32,6 +32,7 @@ import {
 
 // 副作用导入：各 slot 在模块顶层自行注册
 import '../src/game/ab/sonar';
+import '../src/game/ab/threat';
 
 const OUT_DIR = join(process.cwd(), 'qa', 'ab');
 

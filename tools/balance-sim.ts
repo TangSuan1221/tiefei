@@ -160,9 +160,11 @@ class MockWorld implements WorldSystem {
     const flooded = arche === 'flooded';
     const deep = arche === 'void' || arche === 'moonpool';
     return {
-      flooding: flooded ? this.rng.float(0.88, 1) : clamp01(this.rng.float(-0.35, 0.28) + deckIdx * 0.12),
+      // 淹水必须是**地点**而不是天气：绝大多数舱室是干的，积水区才是真正的没顶。
+      flooding: flooded ? this.rng.float(0.9, 1) : clamp01(this.rng.float(-0.5, 0.22) + deckIdx * 0.07),
       pressure: 1 + depth / 10.06,
-      temperature: clamp(14 - deckIdx * 2.1 + this.rng.float(-2, 2), 1, 20),
+      // 密闭壳体保温，所以舱内远高于舷外水温；越深越冷只是因为供暖早就停了。
+      temperature: clamp(17 - deckIdx * 1.5 + this.rng.float(-2, 2), 2, 22),
       airQuality: clamp01(this.rng.float(0.45, 1) - deckIdx * 0.06 - (flooded ? 0.35 : 0)),
       noiseFloor: this.rng.float(0, 0.4),
       presence: clamp01(this.rng.float(-0.25, 0.5) + deckIdx * 0.14 + (deep ? 0.3 : 0)),
@@ -252,9 +254,15 @@ interface RunResult {
   peakInfection: number;
 }
 
-/** 完成一层甲板所需的"信息点"。越深越多——越往下你越不知道自己在哪。 */
+/**
+ * 完成一层甲板所需的"信息点"。越深越多——越往下你越不知道自己在哪。
+ * 唯独月池层反而最短：那里没有什么可查的，只有一条出路和一个正在压扁你的深度。
+ * 它必须能在内爆倒计时（约 121 呼吸）内跑完，否则最后一层等于必死。
+ */
+const DECK_REQUIREMENT = [30, 38, 46, 52, 28];
+
 function deckRequirement(deck: number): number {
-  return 30 + deck * 7;
+  return DECK_REQUIREMENT[clamp(deck, 0, 4)];
 }
 
 function runOne(seed: number, spec: StrategySpec): RunResult {
@@ -307,7 +315,9 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
     const oxyFrac = v.oxygen / v.oxygenMax;
 
     if (hunt > 0) {
-      action = spec.rush > 0.6 ? 'flee' : 'hide';
+      // 憋不住的时候躲是自杀：强制大喘气会把追猎窗口重新点燃。没气就只能跑。
+      const canHide = v.co2 < TUNING.co2.forcedGaspAt - 16;
+      action = spec.rush > 0.6 || !canHide ? 'flee' : 'hide';
     } else if (submerged) {
       action = 'swim';
     } else if (v.trauma > 55 && items.med > 0) {
@@ -355,20 +365,30 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
       case 'rest': base = BREATH.REST; noise = 0; exertion = 0; break;
       case 'ritual': base = BREATH.RITUAL; noise = 5; exertion = 0.2; break;
       case 'descend': base = BREATH.OPEN_DOOR + BREATH.STEP; noise = 4; exertion = 0.5; break;
-      case 'swim': base = BREATH.STEP * 1.6; noise = 3; gain = 0.9; exertion = 0.85; holding = spec.hold > 0.2; break;
+      // 没顶的舱室：任何有理智的人都会屏息。真正的危险不是"忘了憋气"，
+      // 而是**带着已经很高的 CO2 下水**——holdBreath() 会直接拒绝，于是你在水里呼吸。
+      case 'swim': base = BREATH.STEP * 1.6; noise = 3; gain = 0.9; exertion = 0.85; holding = true; break;
       case 'hide': base = BREATH.LOOK * 3; noise = 0; exertion = 0.05; holding = true; break;
       case 'flee': base = BREATH.STEP * 2; noise = 8; exertion = 1; break;
       default: base = BREATH.INTERACT; noise = 1; exertion = 0.2; break;
     }
 
-    // 潜行型在非水下也会屏息通过高风险房间。
+    /*
+     * 屏息的决策模型 —— 这正是 GDD §4.1 想要的那个微观决策，所以模拟里的"玩家"
+     * 必须像真人一样会算：一次动作要花 base 个呼吸，屏息期间 CO2 约 +5.5/呼吸，
+     * 所以只有 co2 + 5.5×base 还够不到 80 时，憋过这个动作才是划算的。
+     * 第三轮模拟里没有这一步，"玩家"会憋着气做一次 6 呼吸的搜刮，
+     * 必然在动作中途强制大喘气（噪音 25），于是屏息流的死因 80% 是聆听者。
+     */
+    const holdHeadroom = v.co2 + 5.5 * base < TUNING.co2.forcedGaspAt;
+    if (holding && (v.co2 >= spec.releaseAt || (!submerged && !holdHeadroom))) holding = false;
     if (!holding && spec.hold > 0.5 && room.ambient.presence > 0.35 &&
-        v.co2 < spec.releaseAt && action !== 'rest') {
+        holdHeadroom && action !== 'rest') {
       holding = true;
     }
 
     if (holding) vitals.holdBreath();
-    else if (vitals.holdingBreath && v.co2 >= spec.releaseAt) vitals.release();
+    else if (vitals.holdingBreath) vitals.release();
 
     // —— 道具与仪式（不消耗呼吸预算之外的东西）
     handleItems(action, vitals, items, flags);
@@ -401,8 +421,8 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
       const fidelity = vitals.derived('sonarFidelity');
       const artifact = (1 - fidelity) * (1 + veracity.corruption * 2);
       if (rng.next() < artifact) {
-        knowledge -= 1.6;                      // 走错路，白跑
-        vitals.shock(4, 'sound');
+        knowledge -= 1.2;                      // 走错路，白跑
+        vitals.shock(2.5, 'sound');
         veracity.shouldFabricate(rng, 'impossible-geometry');
       } else {
         knowledge += 2.4 * fidelity;
@@ -435,11 +455,11 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
     // ────────────────────────────────────────────────────────────────
     if (hunt > 0) {
       hunt -= cost;
-      const escape = clamp01(0.06 + vitals.derived('stealth') * 0.11 - emitted * 0.012);
+      const escape = clamp01(0.10 + vitals.derived('stealth') * 0.16 - emitted * 0.010);
       if (rng.next() < escape) hunt = 0;
       else if (hunt <= 0) {
         // 被追上。大多数时候是重伤而不是即死——即死太廉价，重伤才会让后面的路难走。
-        if (rng.bool(0.32)) {
+        if (rng.bool(0.3)) {
           vitals.kill('listener');
         } else {
           vitals.injure(rng.float(18, 44));
@@ -452,10 +472,11 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
       room.noise *= 0.4;
     }
 
-    // 密封破损：深处的压差会咬掉你的余量，这是 implosion 的主要来源。
-    if (room.ambient.pressure > 100 && rng.bool(0.02 + deck * 0.01)) {
+    // 密封破损：深处的压差会咬掉你的余量。它只是给内爆加速，不该自己就是主死因——
+    // 第二轮模拟里这个事件过于频繁，一个人就把内爆推到了 54% 的死因占比。
+    if (room.ambient.pressure > 120 && rng.bool(0.006 + deck * 0.004)) {
       flags.set(TUNING.pressure.ratingFlag,
-        Math.max(60, flags.getNum(TUNING.pressure.ratingFlag, TUNING.pressure.suitRating) - rng.float(8, 26)));
+        Math.max(130, flags.getNum(TUNING.pressure.ratingFlag, TUNING.pressure.suitRating) - rng.float(4, 14)));
     }
 
     // 导演 tick（它也会在 relief 相里给玩家喘息室，这里体现为注视感下降）

@@ -82,6 +82,33 @@ export interface SimPlayer {
   hunter: number;
   /** 追击者对玩家位置的置信度 0..1 */
   hunterAwareness: number;
+  /** 威胁模型的私有状态。不同威胁模型往这里存自己的东西 */
+  threatState: Record<string, number>;
+}
+
+/**
+ * 威胁模型 —— 第二个可被盲测替换的轴。
+ * 它决定"外面的东西如何逼近你"，以及玩家能读到多少预兆。
+ */
+export interface ThreatModel {
+  id: string;
+  /** 推进一回合 */
+  tick(p: SimPlayer, w: SimWorld, spent: number, skill: number, rng: Rng): ThreatTick;
+  /**
+   * 玩家此刻能读出的"它离我多近" 0..1。
+   * 返回 -1 表示玩家完全无从判断 —— 这会直接摧毁失败可归因性。
+   */
+  readable(p: SimPlayer, w: SimWorld): number;
+}
+
+export interface ThreatTick {
+  killed: boolean;
+  /** 本回合是否产生了玩家可感知的预警（用于计意外率） */
+  warned: boolean;
+  /** 死亡是否可被玩家复盘归因 */
+  attributable: boolean;
+  /** 对张力的贡献 0..1 */
+  pressure: number;
 }
 
 export function newPlayer(world: SimWorld): SimPlayer {
@@ -95,8 +122,120 @@ export function newPlayer(world: SimWorld): SimPlayer {
     noise: 0,
     hunter: -1,
     hunterAwareness: 0,
+    threatState: {},
   };
 }
+
+// ---------------------------------------------------------------------------
+// 威胁模型 A：阈值召唤（GDD §4.3 的原始设计）
+// ---------------------------------------------------------------------------
+
+/**
+ * 噪音累计过线 → 它被召唤 → 开始搜索你。
+ * 在被召唤之前，玩家得不到任何关于"我还剩多少余量"的反馈，
+ * 这是它的结构性弱点。
+ */
+export const thresholdThreat: ThreatModel = {
+  id: 'threat-threshold',
+  tick(p, w, spent, skill, rng) {
+    let warned = false;
+    if (p.hunter < 0) {
+      if (p.noise > 22) {
+        p.hunter = farthestFrom(w, p.at);
+        p.hunterAwareness = 0.4;
+        warned = true;
+      }
+      return { killed: false, warned, attributable: false, pressure: 0 };
+    }
+
+    p.hunterAwareness = clamp01(p.hunterAwareness + p.noise * 0.012 - 0.03 * spent);
+    for (let s = 0; s < Math.floor(spent / 4); s++) {
+      p.hunter =
+        rng.next() < p.hunterAwareness ? stepToward(w, p.hunter, p.at) : rng.pick(w.adj[p.hunter]);
+    }
+
+    if (p.hunter === p.at) {
+      p.fear = Math.min(100, p.fear + 34);
+      if (rng.next() > 0.55 + skill * 0.38) {
+        // 是否可归因取决于玩家当时是否有理由知道自己在冒险
+        return { killed: true, warned: true, attributable: p.noise > 18, pressure: 1 };
+      }
+      p.hunter = rng.pick(w.adj[p.at]);
+      p.hunterAwareness *= 0.5;
+      return { killed: false, warned: true, attributable: false, pressure: 1 };
+    }
+    return {
+      killed: false,
+      warned: false,
+      attributable: false,
+      pressure: 0.18 * p.hunterAwareness + 0.1,
+    };
+  },
+  readable(p, w) {
+    // 召唤之前完全读不到；召唤之后也只在它很近时才有感觉
+    if (p.hunter < 0) return -1;
+    const d = hops(w, p.hunter, p.at);
+    return d <= 2 ? clamp01(1 - d / 3) : -1;
+  },
+};
+
+// ---------------------------------------------------------------------------
+// 威胁模型 B：连续逼近
+// ---------------------------------------------------------------------------
+
+/**
+ * 没有"召唤"这个离散事件。噪音持续喂养一个 presence 值，
+ * presence 决定它与你的距离，而这个距离**始终对玩家可读**
+ *（船体传来的声音方位、管道里的震动强度）。
+ *
+ * 赌注：把威胁从"突然出现的开关"变成"一直在收紧的绳子"，
+ * 应该同时提升失败可归因性（你一直看得见它在逼近）与张力曲线质量
+ *（有连续的松紧，而不是平静与死亡的二值跳变）。
+ */
+export const gradientThreat: ThreatModel = {
+  id: 'threat-gradient',
+  tick(p, w, spent, skill, rng) {
+    const prev = p.threatState.presence ?? 0;
+    // 噪音喂养，静默偿还；偿还比喂养慢，所以噪音债是会累积的
+    const presence = clamp01(prev + p.noise * 0.0042 * spent - 0.0065 * spent);
+    p.threatState.presence = presence;
+
+    // presence 直接映射成它与玩家的跳数距离
+    const wantDist = Math.max(0, Math.round((1 - presence) * 7));
+    if (p.hunter < 0) {
+      p.hunter = farthestFrom(w, p.at);
+    }
+    const curDist = hops(w, p.hunter, p.at);
+    if (curDist > wantDist) {
+      for (let s = 0; s < Math.max(1, Math.floor(spent / 3)); s++) {
+        p.hunter = stepToward(w, p.hunter, p.at);
+        if (hops(w, p.hunter, p.at) <= wantDist) break;
+      }
+    } else if (curDist < wantDist && rng.bool(0.5)) {
+      p.hunter = rng.pick(w.adj[p.hunter]);
+    }
+    p.hunterAwareness = presence;
+
+    // 只有"它更近了"才值得报警。每次档位变动都响会把预警变成背景噪音，
+    // 玩家很快就学会无视它 —— 那样可读性就名存实亡了。
+    const warned = Math.floor(presence * 7) > Math.floor(prev * 7);
+
+    if (hops(w, p.hunter, p.at) === 0) {
+      p.fear = Math.min(100, p.fear + 34);
+      if (rng.next() > 0.5 + skill * 0.42) {
+        // presence 一路可读，所以走到这一步的死亡**总是**可归因
+        return { killed: true, warned: true, attributable: true, pressure: 1 };
+      }
+      p.threatState.presence = presence * 0.55;
+      p.hunter = rng.pick(w.adj[p.at]);
+      return { killed: false, warned: true, attributable: false, pressure: 1 };
+    }
+    return { killed: false, warned, attributable: false, pressure: presence };
+  },
+  readable(p) {
+    return p.threatState.presence ?? 0;
+  },
+};
 
 export interface SenseOption {
   id: string;
@@ -124,6 +263,8 @@ export interface DecisionContext {
   /** 氧气余量比例 */
   oxyFrac: number;
   hunterNear: boolean;
+  /** 玩家读到的威胁逼近程度 0..1；-1 表示无从判断 */
+  threatReadout: number;
 }
 
 const MOVE_BREATHS = 2;
@@ -134,6 +275,7 @@ export function runTrial(
   mech: SensingMechanic,
   rng: Rng,
   skill: number,
+  threat: ThreatModel = thresholdThreat,
 ): TrialTrace {
   const p = newPlayer(world);
   const trace: TrialTrace = {
@@ -162,7 +304,8 @@ export function runTrial(
       rng,
       unknownNearby: countUnknownWithin(p, world, 3),
       oxyFrac: p.oxygen / p.oxygenMax,
-      hunterNear: p.hunter >= 0 && hops(world, p.hunter, p.at) <= 2,
+      hunterNear: threat.readable(p, world) > 0.55,
+      threatReadout: threat.readable(p, world),
     };
 
     // ---- 构造本回合的全部选项：感知与移动争夺同一份氧气 ----
@@ -257,33 +400,12 @@ export function runTrial(
     p.noise = Math.max(0, p.noise - 0.8 * spent);
     p.fear = clamp(p.fear - 0.25 * spent, 0, 100);
 
-    if (p.hunter < 0 && p.noise > 22) {
-      // 从离玩家最远的房间出发 —— 它来了，但你还有时间
-      p.hunter = farthestFrom(world, p.at);
-      p.hunterAwareness = 0.4;
-      trace.surprises.push(elapsed);
-    }
-    if (p.hunter >= 0) {
-      p.hunterAwareness = clamp01(p.hunterAwareness + p.noise * 0.012 - 0.03 * spent);
-      // 它比玩家慢，而且只有在有把握时才直奔 —— 否则乱走
-      const stepsThisTurn = Math.floor(spent / 4);
-      for (let s = 0; s < stepsThisTurn; s++) {
-        p.hunter =
-          rng.next() < p.hunterAwareness
-            ? stepToward(world, p.hunter, p.at)
-            : rng.pick(world.adj[p.hunter]);
-      }
-      if (p.hunter === p.at) {
-        p.fear = Math.min(100, p.fear + 34);
-        // 高技巧玩家更可能脱身；低技巧玩家在这里结束
-        if (rng.next() > 0.55 + skill * 0.38) {
-          trace.cause = 'listener';
-          trace.hadIdentifiableMistake = elapsed - lastMistakeAt < 60 || p.noise > 18;
-          break;
-        }
-        p.hunter = rng.pick(world.adj[p.at]);
-        p.hunterAwareness *= 0.5;
-      }
+    const tick = threat.tick(p, world, spent, skill, rng);
+    if (tick.warned) trace.surprises.push(elapsed);
+    if (tick.killed) {
+      trace.cause = 'listener';
+      trace.hadIdentifiableMistake = tick.attributable || elapsed - lastMistakeAt < 60;
+      break;
     }
 
     const oxyFrac = p.oxygen / p.oxygenMax;
@@ -291,7 +413,7 @@ export function runTrial(
     if (everBehind && oxyFrac > 0.45) trace.recovered = true;
 
     trace.tension.push(
-      clamp01((p.fear / 100) * 0.42 + (1 - oxyFrac) * 0.3 + (p.hunter >= 0 ? 0.18 * p.hunterAwareness + 0.1 : 0)),
+      clamp01((p.fear / 100) * 0.42 + (1 - oxyFrac) * 0.3 + tick.pressure * 0.28),
     );
 
     if (p.at === world.exit) {
@@ -322,16 +444,28 @@ function wastedBreathsDetected(trace: TrialTrace): boolean {
 function moveUtility(to: number, ctx: DecisionContext): number {
   const { p, w, skill, rng } = ctx;
   const known = p.belief[to] >= 0;
-  const risk = known ? p.belief[to] : 0.45;
 
-  // 知道出口就朝出口走；不知道就朝"信息前沿"走
-  const progress = p.knowsExit
-    ? (w.distToExit[p.at] - w.distToExit[to]) * 0.9
-    : frontierValue(p, w, to) * 0.55;
+  /*
+   * 未知房间是真正的未知：玩家看不见门后面，也数不出它通向几条路。
+   * 之前让玩家能读到未探明房间的出度，等于偷偷给了他一张地图 ——
+   * 那会让声呐变得可有可无，整个实验就失去意义了。
+   */
+  const risk = known ? p.belief[to] : 0.58;
 
-  // 被追时远离追击者的价值陡增
+  const progress = known
+    ? p.knowsExit
+      ? (w.distToExit[p.at] - w.distToExit[to]) * 0.9
+      : frontierValue(p, w, to) * 0.55
+    : // 没有信息时，"走进黑暗"只有一个笼统的探索价值，而且是盲赌
+      0.42;
+
+  // 逃离只在玩家**读得到**威胁时才可能发生 —— 读不到的威胁无法被躲开，
+  // 这正是两个威胁模型在技巧表达度上应当拉开差距的地方
+  const readout = ctx.threatReadout;
   const flee =
-    p.hunter >= 0 ? (hops(w, p.hunter, to) - hops(w, p.hunter, p.at)) * p.hunterAwareness * 1.5 : 0;
+    readout > 0 && p.hunter >= 0
+      ? (hops(w, p.hunter, to) - hops(w, p.hunter, p.at)) * readout * 1.5 * (0.45 + skill * 1.1)
+      : 0;
 
   // 技巧高的玩家更准确地折算风险，也更少乱走
   const noise = rng.float(0, 1.3 * (1 - skill) + 0.08);
@@ -341,15 +475,19 @@ function moveUtility(to: number, ctx: DecisionContext): number {
 function restUtility(ctx: DecisionContext): number {
   const { p, skill, rng } = ctx;
   // 休息只有在恐惧高且不被追时才划算 —— 这是一个真实的取舍，不是保底选项
-  const value = (p.fear / 100) * 2.4 - (p.hunter >= 0 ? p.hunterAwareness * 3 : 0) - (1 - ctx.oxyFrac) * 1.8;
+  const value =
+    (p.fear / 100) * 2.4 - Math.max(0, ctx.threatReadout) * 3 - (1 - ctx.oxyFrac) * 1.8;
   return value * (0.4 + skill * 1.2) + rng.float(0, 0.9 * (1 - skill));
 }
 
-/** 往这个方向走能打开多少未知 */
+/**
+ * 往这个方向走能打开多少未知。
+ * 只在 `to` 已被感知过时才可调用 —— 否则玩家就凭空得到了门后的拓扑。
+ */
 function frontierValue(p: SimPlayer, w: SimWorld, to: number): number {
   let unknown = 0;
   for (const n of w.adj[to]) if (p.belief[n] < 0) unknown++;
-  return unknown + (p.belief[to] < 0 ? 1.5 : 0);
+  return unknown;
 }
 
 function classifyMove(p: SimPlayer, w: SimWorld, to: number): string {
