@@ -109,6 +109,30 @@ export function makeImpulse(
   return buf;
 }
 
+/**
+ * 一间房的脉冲响应。
+ *
+ * 房间越大，尾巴越长、越暗、金属染色越少 —— 三米的检修间和三十米的货舱
+ * 不该是同一条尾巴，而这是玩家判断「我这台摄像头伸进了多大一个空间」的
+ * 唯一线索（全息屏的分辨率低到看不出体积）。
+ *
+ * 进水的房间：声速在水里快三倍但衰减慢，听感上是尾巴更长、高频几乎全没。
+ */
+export function makeRoomImpulse(
+  ctx: AudioContext,
+  rng: Rng,
+  sizeMeters: number,
+  flooded: boolean,
+): AudioBuffer {
+  const m = clamp(sizeMeters, 1.5, 60);
+  // 尾长按尺度的立方根走（体积 ∝ size³，Sabine 的尾长 ∝ V / A ∝ size）
+  const tail = clamp(0.22 + m * 0.085, 0.3, 4.2) * (flooded ? 1.45 : 1);
+  // 小房间衰减指数高 = 尾巴掉得快
+  const decay = clamp(7.2 - m * 0.16, 2.0, 7.2) * (flooded ? 0.82 : 1);
+  const metallic = clamp((flooded ? 0.35 : 0.9) - m * 0.012, 0.12, 0.95);
+  return makeImpulse(ctx, rng, tail, decay, metallic);
+}
+
 // ----------------------------------------------------------------------------
 // 节点工厂
 // ----------------------------------------------------------------------------

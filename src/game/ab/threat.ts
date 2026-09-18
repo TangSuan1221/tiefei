@@ -4,7 +4,9 @@ import {
   gradientThreat,
   reveal,
   runTrial,
+  senseOption,
   thresholdThreat,
+  type ActionSpec,
   type DecisionContext,
   type SenseOption,
   type SensingMechanic,
@@ -23,14 +25,14 @@ import {
 
 // 固定变量：两个变体使用完全相同的声呐机制
 const FIXED_SONAR: SenseOption[] = [
-  { id: 'sonar:passive', breaths: 2, noise: 0, radius: 1, fidelity: 0.35 },
-  { id: 'sonar:chirp', breaths: 4, noise: 9, radius: 3, fidelity: 0.8 },
-  { id: 'sonar:boom', breaths: 7, noise: 28, radius: 7, fidelity: 0.98 },
+  senseOption({ id: 'sonar:passive', breaths: 2, noise: 0, radius: 1, fidelity: 0.35 }),
+  senseOption({ id: 'sonar:chirp', breaths: 4, noise: 9, radius: 3, fidelity: 0.8 }),
+  senseOption({ id: 'sonar:boom', breaths: 7, noise: 28, radius: 7, fidelity: 0.98 }),
 ];
 
 function senseUtility(o: SenseOption, ctx: DecisionContext): number {
-  const { p, skill, rng, unknownNearby, oxyFrac, hunterNear } = ctx;
-  const reach = Math.min(unknownNearby, o.radius * 2.1);
+  const { p, skill, rng, infoDeficit, oxyFrac, hunterNear } = ctx;
+  const reach = Math.min(infoDeficit, o.radius * 2.1);
   const infoGain = reach * o.fidelity * (p.knowsExit ? 0.55 : 1.15);
   const noiseRisk =
     o.noise * (hunterNear ? 0.26 : Math.max(0, ctx.threatReadout) * 0.2 + 0.062) * (0.35 + skill * 1.55);
@@ -39,12 +41,29 @@ function senseUtility(o: SenseOption, ctx: DecisionContext): number {
   return infoGain - noiseRisk - breathCost + bias + rng.float(0, 1.5 * (1 - skill) + 0.1);
 }
 
+function describe(o: SenseOption): ActionSpec {
+  return {
+    id: o.id,
+    kind: 'mode',
+    attrs: {
+      呼吸: o.breaths.toFixed(2),
+      噪音: o.noise.toFixed(2),
+      半径: String(o.radius),
+      保真度: o.fidelity.toFixed(3),
+      僵直拍: String(o.commitTurns),
+      主瓣: o.direction >= 0 ? '定向' : '全向',
+      附加区间宽度: o.confidence.toFixed(2),
+    },
+  };
+}
+
 const fixedMechanic: SensingMechanic = {
   options: () => FIXED_SONAR,
-  apply(opt, p, w, rng) {
-    reveal(p, w, p.at, opt.radius, opt.fidelity, rng);
+  apply(opt, ctx) {
+    reveal(ctx.p, ctx.w, ctx.p.at, opt.radius, opt.fidelity, opt.confidence, ctx.rng);
   },
   utility: senseUtility,
+  catalog: () => FIXED_SONAR.map(describe),
 };
 
 function makeVariant(id: string, name: string, thesis: string, threat: ThreatModel): MechanicVariant {
@@ -55,6 +74,7 @@ function makeVariant(id: string, name: string, thesis: string, threat: ThreatMod
     run(rng, skill) {
       return runTrial(buildWorld(rng.fork('world')), fixedMechanic, rng.fork('play'), skill, threat);
     },
+    catalog: () => fixedMechanic.catalog(),
   };
 }
 

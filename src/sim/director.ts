@@ -100,6 +100,8 @@ export class Director implements DirectorSystem {
   private spawnsOrdered = 0;
   /** 上一次 tick 时房间的噪音，用来判断"玩家刚刚弄出了动静"。 */
   private lastNoise = 0;
+  /** 本局达到过的最高强度。调参时用它判断"喘息相到底有没有被触发过"。 */
+  private peakIntensity = 0;
 
   private readonly decayPerBreath = Math.pow(0.5, 1 / TUNING.director.profileHalfLife);
 
@@ -115,8 +117,11 @@ export class Director implements DirectorSystem {
     return this.phase;
   }
 
-  get stats(): { reliefs: number; spawns: number; credits: number } {
-    return { reliefs: this.reliefsGranted, spawns: this.spawnsOrdered, credits: this.credits };
+  get stats(): { reliefs: number; spawns: number; credits: number; peakIntensity: number } {
+    return {
+      reliefs: this.reliefsGranted, spawns: this.spawnsOrdered,
+      credits: this.credits, peakIntensity: this.peakIntensity,
+    };
   }
 
   configureBestiary(table: readonly { id: ID; minDeck: number; weight: number; stealthy: boolean }[]): void {
@@ -141,18 +146,28 @@ export class Director implements DirectorSystem {
 
     this._tension = damp(this._tension, stress, D.tensionLambda, dt);
 
-    // 强度是"玩家被压了多久"的积分，不是"现在多可怕"。
-    // 它只在张力高于地板线时增长——这条线定义了什么叫"高压"。
-    if (this._tension > D.intensityFloor) {
+    /*
+     * 强度是"玩家被压了多久"的积分，不是"现在多可怕"。
+     * 它只在张力高于地板线时增长——这条线定义了什么叫"高压"。
+     *
+     * 喘息相里必须完全停止积分，否则就是一场必输的拔河：
+     * 积分速度是 (tension-0.24)×0.06，典型 tension 0.45 时约 0.0126/呼吸，
+     * 而 reliefDrain 只有 0.012/呼吸。净值为正，于是导演一旦进入喘息相就再也出不来，
+     * 一整局只有 1 次喘息室。喘息相的定义本来就是"这段时间不算在压力账上"。
+     */
+    if (this.phase === 'relief') {
+      // runPhase 会按 reliefDrain 主动排空，这里不叠加任何东西。
+    } else if (this._tension > D.intensityFloor) {
       this._intensity = clamp01(this._intensity + (this._tension - D.intensityFloor) * D.intensityGain * dt);
     } else {
       this._intensity = clamp01(this._intensity - D.intensityDecay * dt * (1 - this._tension));
     }
 
+    this.peakIntensity = Math.max(this.peakIntensity, this._intensity);
     this.credits = Math.min(D.creditCap, this.credits + D.creditPerBreath * dt);
 
     const orders: DirectorOrder[] = [];
-    this.runPhase(ctx, orders);
+    this.runPhase(ctx, dt, orders);
     this.emitAmbience(ctx, orders);
     if (this.phase !== 'relief') {
       this.maybeSpawn(ctx, orders);
@@ -179,12 +194,13 @@ export class Director implements DirectorSystem {
       w.co2 * (v.co2 / 100) +
       w.san * (1 - clamp01(v.san / Math.max(1, v.sanMax))) +
       w.trauma * (v.trauma / 100) +
-      w.noise * noise,
+      w.noise * noise +
+      w.presence * clamp01(room?.ambient.presence ?? 0),
     );
   }
 
   /** 张力曲线状态机 —— 这段代码就是本作的"节奏感"。 */
-  private runPhase(ctx: DirectorContext, orders: DirectorOrder[]): void {
+  private runPhase(ctx: DirectorContext, dt: number, orders: DirectorOrder[]): void {
     const D = TUNING.director;
     const now = ctx.breathsElapsed;
 
@@ -212,11 +228,13 @@ export class Director implements DirectorSystem {
         break;
 
       case 'relief':
+        // 喘息相里主动把强度往下拽，而且**必须按呼吸数积分**。
+        // 早期版本漏了 dt 且用的是 intensityDecay×0.6（每 tick 仅 0.0018），
+        // 从 0.9 排空要 333 次 tick —— 导演在第一次喘息之后就再也出不来了，
+        // 一整局只有 1 次喘息室。这条曲线是"节奏"的全部，错一个因子就没有节奏。
+        this._intensity = Math.max(0, this._intensity - D.reliefDrain * dt);
         if (now >= this.phaseUntil && this._intensity <= D.relaxTo) {
           this.phase = 'build';
-        } else if (this._intensity > D.relaxTo) {
-          // 喘息相里主动把强度往下拽：玩家需要的是真的松一口气，不是"稍微少一点压"。
-          this._intensity = Math.max(0, this._intensity - D.intensityDecay * 0.6);
         }
         break;
 

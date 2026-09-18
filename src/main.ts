@@ -3,6 +3,9 @@ import { TitleBackground } from './game/titlebg';
 import { SaveManager } from './game/save';
 import { seedToCoords } from './core/rng';
 import { formatDepth } from './core/util';
+import { installGmApi } from './pod/view/gm';
+
+installGmApi();
 
 /**
  * 引导入口。职责只有三件：起背景、起标题画面、在玩家按下"下潜"时
@@ -29,13 +32,13 @@ function renderTitle(): void {
   uiRoot.innerHTML = `
     <div class="title-screen">
       <div>
-        <div class="title-mark">深潜器 KYRIE-9 · 生命支持终端</div>
+        <div class="title-mark">深潜器 KYRIE-9 · 三号逃生舱</div>
         <h1 class="title-cn">铁肺迷城</h1>
         <div class="title-en">Ironlung&nbsp;Maze</div>
         <p class="title-tag">
-          <span>船外不是水。</span>
-          <span>你唯一的眼睛是声呐，而<em>声呐会发出声音</em>。</span>
-          <span>你唯一的时钟，是自己的呼吸。</span>
+          <span>千米以下。逃生舱无法上浮。</span>
+          <span>声呐只给回波。几何在全息屏上。五秒片子给颜色、周期、和那个红点的名字。</span>
+          <span>唯一的活路是油井作业区的逃生电梯。</span>
         </p>
       </div>
       <nav class="menu" id="menu"></nav>
@@ -147,9 +150,14 @@ async function enterGame(resume: boolean): Promise<void> {
         return;
       }
     } catch (err) {
+      // 内容自检（重复节点 id、悬空引用、房间/道具覆盖不全）会在这里抛出。
+      // 这是有意的快速失败，但报错必须说清是什么坏了 —— 早先这里吞掉了真实
+      // 原因，只留下一句"仍在整合中"，排查时完全没有指向性。
+      const msg = err instanceof Error ? err.message : String(err);
       replaceLastLog(log, `${label} … 失败`, 'bad');
-      appendLog(log, String(err instanceof Error ? err.message : err), 'bad');
-      appendLog(log, '游戏会话模块尚未接入，仍在整合中。', 'pending');
+      appendLog(log, msg, 'bad');
+      appendLog(log, '这是一个内容或装配错误，不是缺失模块。详情见浏览器控制台。', 'pending');
+      console.error('[boot] 会话启动失败', err);
       document.querySelector('.title-screen')?.classList.remove('fade-out');
       return;
     }

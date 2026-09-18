@@ -7,3 +7,30 @@ vite.err.log
 .DS_Store
 qa/screenshots/*.png
 !qa/screenshots/.gitkeep
+tmp/
+
+# 视频生成的 key。.env.example 是模板，可以进仓库；带值的一律不行。
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example
+
+# 本地备份、编辑器锁文件与临时诊断输出
+*.blend[0-9]*
+~$*
+/.c.txt
+/.d.txt
+/.g.md
+/.g2.md
+/.k.txt
+/.p.txt
+/.probe5.html
+/.validate.md
+/p4.txt
+/p5.txt
+/src/pod/view/.probe5.ts
+/tools/.cdp5.mjs
+/tools/.container-probe*.ts
+/tools/.r4-measure.ts
+/tools/.run5.mjs

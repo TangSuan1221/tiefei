@@ -476,7 +476,9 @@ export const HAB_ROOMS: readonly RoomVariant[] = [
     id: 'rv.airlock.decompression-cell',
     archetype: 'airlock',
     name: '减压舱·门从外面顶住了',
-    decks: D.d234,
+    // D2–D4 的权重表里 airlock 权重极低，这个变体实际抽不到；
+    // 减压舱在逃生筒层和潜水层同样说得通，所以开放到全部甲板
+    decks: D.all,
     weight: 8,
     ambient: { airQuality: 0.46, noiseFloor: 0.06, presence: 0.38, temperature: 8 },
     props: [

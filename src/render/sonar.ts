@@ -32,6 +32,24 @@ export interface SonarContact {
   label?: string;
 }
 
+/**
+ * 近场阴影地图的一个扇区。
+ *
+ * 和 SonarContact 不同：回波是扫描线扫过才亮一下的**事件**，阴影是一直在那儿的
+ * **地形**。近距离上声呐给不出细节，只给得出「这个方向上这一段被东西占着」——
+ * 所以它画出来就该是一块说不清边界的暗斑，而不是一条干净的弧。
+ */
+export interface SonarShadow {
+  /** 方位，弧度。0 = 正前 */
+  bearing: number;
+  arc: number;
+  /** 阴影内缘 / 外缘，0..1 归一化到屏幕半径 */
+  near: number;
+  far: number;
+  /** 浓度 0..1 */
+  density: number;
+}
+
 export interface SonarScopeOptions {
   /** 磷光余辉半衰期（秒）。真设备约 2–4 s */
   persistence?: number;
@@ -73,6 +91,8 @@ export class SonarScope {
   gain = 1;
 
   contacts: SonarContact[] = [];
+  /** 近场阴影地图。空数组 = 远场模式，屏上只有回波 */
+  shadows: SonarShadow[] = [];
 
   readonly persistence: number;
   readonly revolution: number;
@@ -162,10 +182,13 @@ export class SonarScope {
     for (const c of this.contacts) {
       const base = c.bearing - Math.PI / 2;
       const half = Math.max(0.012, c.arc * 0.5);
+      if (!Number.isFinite(base) || !Number.isFinite(half)) continue;
       // 把接触点的角度归到扫描区间附近
       let a = base;
-      while (a < a0 - Math.PI) a += TAU;
-      while (a > a0 + Math.PI) a -= TAU;
+      let hops = 0;
+      while (a < a0 - Math.PI && hops++ < 8) a += TAU;
+      hops = 0;
+      while (a > a0 + Math.PI && hops++ < 8) a -= TAU;
       if (a + half < a0 || a - half > a1) continue;
 
       const rr = clamp01(c.range) * R;
@@ -247,6 +270,43 @@ export class SonarScope {
   // ==========================================================================
 
   /**
+   * 近场阴影：一圈说不清边界的暗斑，拼出舱体周围这块地方的形状。
+   *
+   * 关键是**不能画得太干净**。真设备在近距离上分辨率很差，边界是糊的，
+   * 而且会随着水里的东西轻轻晃。画成一圈整齐的扇形就变成了棋盘格，
+   * 那是策略游戏的地图，不是一台泡在海底的雷达。
+   */
+  private drawShadows(ctx: CanvasRenderingContext2D, R: number, time: number): void {
+    if (!this.shadows.length || this.gain <= 0.02) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    for (const s of this.shadows) {
+      // 呼吸：每个扇区用自己的相位轻轻晃，整张图就不会像贴图
+      const wob = Math.sin(time * 0.6 + s.bearing * 3.1) * 0.012;
+      const r0 = Math.max(0, (s.near + wob) * R);
+      const r1 = Math.max(r0 + R * 0.01, (s.far + wob) * R);
+      const a = s.bearing - Math.PI / 2;
+      const half = s.arc * 0.62; // 相邻扇区互相压边，缝就糊掉了
+      const alpha = s.density * 0.30 * this.gain * (0.82 + this.energy * 0.4);
+      if (alpha < 0.004) continue;
+
+      const grad = ctx.createRadialGradient(0, 0, r0, 0, 0, r1);
+      grad.addColorStop(0, phosphor(0.30, 0));
+      grad.addColorStop(0.42, phosphor(0.44 + s.density * 0.3, alpha));
+      grad.addColorStop(1, phosphor(0.26, 0));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, r1, a - half, a + half);
+      ctx.arc(0, 0, r0, a + half, a - half, true);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  /**
    * 把整块屏画到目标 ctx。(cx,cy) 是屏心，R 是可视半径（不含金属圈）。
    */
   draw(ctx: CanvasRenderingContext2D, cx: number, cy: number, R: number, time: number): void {
@@ -275,6 +335,9 @@ export class SonarScope {
       ctx.drawImage(this.grat, -R, -R, R * 2, R * 2);
       ctx.globalAlpha = 1;
     }
+
+    // --- 近场阴影地图（在回波下面：它是底图，不是目标） ---
+    this.drawShadows(ctx, R, time);
 
     // --- 磷光层 ---
     ctx.globalCompositeOperation = 'lighter';

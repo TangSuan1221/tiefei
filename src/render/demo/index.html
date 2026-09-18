@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>铁肺迷城 · 表现层演示 / IRONLUNG MAZE — Presentation Sandbox</title>
+    <meta name="color-scheme" content="dark" />
+    <link rel="stylesheet" href="/src/styles/demo.css" />
+  </head>
+  <body>
+    <div id="stage"><canvas id="out"></canvas></div>
+
+    <button id="toggle" title="显示/隐藏调试面板 (H)">☰</button>
+    <aside id="panel"></aside>
+
+    <div id="readout"></div>
+
+    <div id="hint">
+      点 击 启 动
+      <small>需要一次用户手势才能开启 WebAudio。之后按 H 收起面板。</small>
+    </div>
+
+    <script type="module" src="./demo.ts"></script>
+  </body>
+</html>

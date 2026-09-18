@@ -173,8 +173,10 @@ export const ENCOUNTERS: readonly EncounterPreset[] = [
     escapable: false,
     noiseThreshold: 100,
     startPhase: 'contact',
-    initialAwareness: 0.7,
-    initialBand: 'adjacent',
+    // 原本是 0.7 / adjacent，实测死亡率 76%：玩家还没按第一个键就已经在挨打了。
+    // 关门房间可以很致命，但必须先给一个回合让人看清它站在哪
+    initialAwareness: 0.55,
+    initialBand: 'near',
     intro: '门在你身后合上了，是他关的。圣物室只有一道门。',
   },
   {

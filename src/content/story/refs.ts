@@ -37,6 +37,24 @@ export const ITEM_REFS: readonly ExternalRef[] = [
   { id: 'lime', owner: 'items', note: '碱石灰。制氧链的第一环。' },
   { id: 'magnesium', owner: 'items', note: '镁条。一次性强光。巨大噪音。' },
   { id: 'tooth', owner: 'items', note: '一颗牙。零号舱里捡到的，是你的。' },
+  { id: 'rebreather', owner: 'items', note: '从月池绳子上拉起来的空呼吸器。带子是扣好的。' },
+  { id: 'sedative', owner: 'items', note: '镇静剂。医务室里唯一被领空的药。' },
+  { id: 'otoscope', owner: 'items', note: '耳镜。十九套里的一套，刻着编号。' },
+  { id: 'clapper', owner: 'items', note: '铜钟的钟舌。被人卸下来用干布包好，等最后一个。' },
+  { id: 'pen.warm', owner: 'items', note: '空白页里夹的那支笔。永远是温的。' },
+  { id: 'consent.blank', owner: 'items', note: '空白同意书。只差签名，边角被捏软了。' },
+];
+
+/** 结局解锁的元进度 ID（game 层的 meta 存档） */
+export const META_REFS: readonly ExternalRef[] = [
+  { id: 'meta.first-exit', owner: 'game', note: '第一次逃出。解锁开局可选携带一件锚定物。' },
+  { id: 'meta.weld', owner: 'game', note: '缄默结局。解锁开局知道补板在哪。' },
+  { id: 'meta.apostasy', owner: 'game', note: '叛教结局。解锁圣物室的门不再需要仪式锁。' },
+  { id: 'meta.hymn', owner: 'game', note: '入会结局。解锁点名表，可在 UI 里看到自己的编号。' },
+  { id: 'meta.trunk-plug', owner: 'game', note: '铁肺结局。解锁维生总管的第二十个接口。' },
+  { id: 'meta.zero-berth', owner: 'game', note: '零号结局。解锁零号舱在图纸上的位置。' },
+  { id: 'meta.pen', owner: 'game', note: '真结局。解锁"停笔"：任何一轮都可以在月池停手。' },
+  { id: 'meta.eighth-column', owner: 'game', note: '真结局。解锁记录表第八栏的表头，从此它有名字。' },
 ];
 
 /** 叙事引用到的敌人定义 ID */
@@ -51,6 +69,7 @@ export const ENCOUNTER_REFS: readonly ExternalRef[] = [
   { id: 'enc.listener-stalk', owner: 'encounter', note: '噪音超阈值后的潜行相。' },
   { id: 'enc.choir-rise', owner: 'encounter', note: '打断合唱的代价。' },
   { id: 'enc.crawler-pipe', owner: 'encounter', note: '爬行管道中的遭遇。' },
+  { id: 'enc.hymn-hunter', owner: 'encounter', note: '主动声呐打了两次之后。它知道你在数。' },
 ];
 
 /** 叙事施加的状态效果 ID */
@@ -104,6 +123,23 @@ export const SFX_REFS: readonly ExternalRef[] = [
   { id: 'listener.near', owner: 'audio', note: '它在隔壁。' },
   { id: 'teeth.count', owner: 'audio', note: '牙齿碰撞。' },
   { id: 'lamp.filament', owner: 'audio', note: '灯丝。' },
+  { id: 'pump.reverse', owner: 'audio', note: '泵在反向排水。低频抽吸，节律不齐。' },
+  { id: 'sonar.paper', owner: 'audio', note: '声呐走纸机一格一格地吐。' },
+  { id: 'sonar.ping', owner: 'audio', note: '主动声呐。全船都听得见，这是最贵的一次出声。' },
+  { id: 'water.still', owner: 'audio', note: '平得像玻璃的水面。近乎无声，只有极低的空腔共鸣。' },
+  { id: 'water.ring', owner: 'audio', note: '水面起圈。圈心不在你脚下。' },
+  { id: 'water.swallow', owner: 'audio', note: '水灌进喉咙的那一下。' },
+  { id: 'deep.answer', owner: 'audio', note: '下面回了一下。比船体应力更低、更短。' },
+  { id: 'deep.hum', owner: 'audio', note: '断电之后才听得见的那个低频。一直都在。' },
+  { id: 'bell.dead', owner: 'audio', note: '拉钟绳，没有响。只有绳子和铜壁的摩擦。' },
+  { id: 'bell.real', owner: 'audio', note: '装回钟舌之后的那一声。整条船都听见了，包括外面。' },
+  { id: 'light.hum', owner: 'audio', note: '礼拜堂照明合闸。镇流器的嗡声。' },
+  { id: 'metal.drag', owner: 'audio', note: '补板在甲板上拖动。' },
+  { id: 'trunk.hiss', owner: 'audio', note: '维生总管的接口漏气。' },
+  { id: 'rack.close', owner: 'audio', note: '零号舱的架子合上。衬布被拉平的声音。' },
+  { id: 'pod.release', owner: 'audio', note: '逃生舱释放机构。爆栓。' },
+  { id: 'pod.ascend', owner: 'audio', note: '上浮。水压从外壳上一层层松开。' },
+  { id: 'pen.stop', owner: 'audio', note: '笔尖停在纸上不动的那种安静。' },
 ];
 
 /**
@@ -126,3 +162,4 @@ export const STATUS_IDS: ReadonlySet<string> = new Set(STATUS_REFS.map((r) => r.
 export const DOOR_IDS: ReadonlySet<string> = new Set(DOOR_REFS.map((r) => r.id));
 export const SFX_IDS: ReadonlySet<string> = new Set(SFX_REFS.map((r) => r.id));
 export const EXTERNAL_FLAG_IDS: ReadonlySet<string> = new Set(EXTERNAL_FLAGS.map((r) => r.id));
+export const META_IDS: ReadonlySet<string> = new Set(META_REFS.map((r) => r.id));

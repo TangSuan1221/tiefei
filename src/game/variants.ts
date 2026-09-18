@@ -58,20 +58,37 @@ export const METRIC_WEIGHTS: Record<keyof MechanicMetrics, number> = {
   surprise: 0.7,
 };
 
-export function scoreMetrics(m: MechanicMetrics): number {
+export function scoreMetrics(m: MechanicMetrics, exclude: (keyof MechanicMetrics)[] = []): number {
   let sum = 0;
   let wsum = 0;
   for (const k of Object.keys(METRIC_WEIGHTS) as (keyof MechanicMetrics)[]) {
+    if (exclude.includes(k)) continue;
     sum += m[k] * METRIC_WEIGHTS[k];
     wsum += METRIC_WEIGHTS[k];
   }
-  return sum / wsum;
+  return wsum > 0 ? sum / wsum : 0;
+}
+
+/**
+ * 剔除饱和指标后的总分。
+ *
+ * 上一轮两个变体的意外率同为 1.000，贡献了总分的 8.5% 却提供**零区分度**，
+ * 于是 0.032 的总分差里有相当一部分只是被这一项稀释出来的
+ *（判定书 §2）。收窄评分带之后它不再必然饱和，但对比时仍应同时给出两个总分。
+ */
+export function scoreWithoutSurprise(m: MechanicMetrics): number {
+  return scoreMetrics(m, ['surprise']);
 }
 
 /** 一次模拟产出的原始轨迹，指标由它推导而来 */
 export interface TrialTrace {
-  /** 每个决策点上，玩家（策略原型）实际可选的行动数与最终选择 */
-  decisions: { options: number; chosen: string }[];
+  /**
+   * 每个决策点上，玩家（策略原型）实际可选的行动数、最终选择，以及它花掉的呼吸数。
+   *
+   * `spent` 是这一轮补上的：没有它，任何按条数算的占比在
+   * "一次感知一条"与"一次感知八拍"之间都不守恒。
+   */
+  decisions: { options: number; chosen: string; spent?: number }[];
   /** 逐时间片的张力采样 0..1 */
   tension: number[];
   /** 玩家未预期事件发生的时间点 */
@@ -82,7 +99,21 @@ export interface TrialTrace {
   duration: number;
   /** 死亡原因，'' 表示存活 */
   cause: string;
-  /** 死亡前 5 个决策是否包含一个"明显的错误"（可归因性的来源） */
+  /**
+   * 可指认的具体误判台账（判定书附录 2、3）。
+   *
+   * 旧模型只有一个布尔值，而且它是按"声呐行动占比 > 28%"算出来的 ——
+   * 那个口径在**奖励坏设计**：招牌机制越被滥用，可归因分越高。
+   * 现在每一次玩家事后能指着说"我这一步错了"的事件都进这个台账，
+   * 报告按 kind 汇总，可归因性由台账推导而来。
+   */
+  mistakes: { at: number; kind: string; note: string }[];
+  /**
+   * 行为事件计数。用来回答"那件工具到底有没有被用起来"这类问题 ——
+   * 光看行动占比看不出"这一记脉冲是在掩蔽窗口里放的还是窗口外放的"。
+   */
+  events: Record<string, number>;
+  /** 死亡是否可被玩家复盘归因（由 mistakes 台账推导） */
   hadIdentifiableMistake: boolean;
   /** 本局中曾陷入劣势（任一关键资源 < 20%）后又恢复到 > 50% */
   recovered: boolean;
@@ -101,6 +132,15 @@ export interface MechanicVariant {
    * 用来测量技巧表达度；同一 skill 下多次运行测量方差。
    */
   run(rng: Rng, skill: number): TrialTrace;
+  /**
+   * 行动目录 —— 报告渲染匿名化属性表时用。
+   *
+   * 上一轮的报告正文通过行动 ID 直接泄露了两个变体的形态
+   *（`sonar:charge1..8` 对 `sonar:passive/chirp/boom` —— 判定书自己指出了这一点）。
+   * 有了目录，报告可以只给"甲-A1 / 呼吸 4 / 噪音 9 / 半径 3 …"这样的纯数值行，
+   * 不暴露任何语义化命名。
+   */
+  catalog?(): { id: string; kind: 'mode' | 'beat'; attrs: Record<string, string> }[];
 }
 
 /** 一组待比较的变体。同一 slot 下的变体互斥，只有一个会进入最终游戏。 */
@@ -152,21 +192,28 @@ export function deriveMetrics(traces: readonly TrialTrace[]): MechanicMetrics {
 /**
  * 香农熵，按选择的行动归一化到该局面下的最大可能熵。
  * 这是检测"统治性解法"最直接的手段：只要有一个行动被压倒性地选，熵就塌了。
+ *
+ * 分布按**呼吸时间**加权，不按行动条数。
+ * 条数口径在这里和在占比那里坏得一模一样：把一次感知拆成八拍的形态，
+ * 它的附属拍会在分布里出现八次，于是"决策多样"变成了"动作颗粒细"。
+ * 两种形态唯一守恒的公共单位是时间 —— 一局就是一串呼吸，问的是这串呼吸
+ * 被分给了几种不同的事。缺少 `spent` 的旧轨迹退回按条数计（每条记 1 呼吸）。
  */
 function computeDecisionEntropy(traces: readonly TrialTrace[]): number {
-  const counts = new Map<string, number>();
+  const weight = new Map<string, number>();
   let total = 0;
   let optionSum = 0;
   for (const t of traces) {
     for (const d of t.decisions) {
-      counts.set(d.chosen, (counts.get(d.chosen) ?? 0) + 1);
-      optionSum += d.options;
-      total++;
+      const w = Math.max(0.0001, d.spent ?? 1);
+      weight.set(d.chosen, (weight.get(d.chosen) ?? 0) + w);
+      optionSum += d.options * w;
+      total += w;
     }
   }
   if (total === 0) return 0;
   let h = 0;
-  for (const c of counts.values()) {
+  for (const c of weight.values()) {
     const p = c / total;
     h -= p * Math.log2(p);
   }
@@ -224,7 +271,14 @@ function computeTensionShape(traces: readonly TrialTrace[]): number {
   return counted > 0 ? scoreSum / counted : 0;
 }
 
-/** 意外率的理想区间是每 100 呼吸 1.5–4 次；太少无聊，太多变噪音。 */
+/**
+ * 意外率。
+ *
+ * 旧评分带 1.5–4 次/百呼吸太宽：上一轮两个变体同时拿 1.000，
+ * 这一项占 8.5% 的权重却提供零区分度（判定书附录 4）。
+ * 现在把满分带收到 2.0–3.0，两侧用陡得多的斜率，
+ * 并且 model.ts 那一侧已经按时间点去重，不再让一个事件被三处代码各记一遍。
+ */
 function computeSurprise(traces: readonly TrialTrace[]): number {
   let rateSum = 0;
   let counted = 0;
@@ -235,26 +289,53 @@ function computeSurprise(traces: readonly TrialTrace[]): number {
   }
   if (counted === 0) return 0;
   const rate = rateSum / counted;
-  if (rate >= 1.5 && rate <= 4) return 1;
-  if (rate < 1.5) return Math.max(0, rate / 1.5);
-  return Math.max(0, 1 - (rate - 4) / 6);
+  if (rate >= 2 && rate <= 3) return 1;
+  if (rate < 2) return Math.max(0, 1 - (2 - rate) / 1.3);
+  return Math.max(0, 1 - (rate - 3) / 1.8);
 }
 
 /** 用中等技巧到高技巧之间的提升斜率近似"可学习性" */
+/**
+ * 可学习性：低→高的那份收益，**有多少在中段就已经拿到了**。
+ *
+ * 旧定义是"高技巧组比中技巧组活得更久"。那是一把坏尺子，而且坏在方向上：
+ * 本作的胜利条件是**逃出去**，不是待得久。一个高手 300 呼吸就出舱，
+ * 一个新手在里面转 430 呼吸然后死掉 —— 旧公式会判前者"没学到东西"。
+ * 实测两个变体在这一项上同时拿 0.000，和上一轮意外率同时拿 1.000 是同一个毛病：
+ * 0.90 的权重、零区分度（判定书附录 4 的同类缺陷，这里一并修）。
+ *
+ * 新定义问的是学习曲线的**形状**：
+ *   `(中 - 低) / (高 - 低)`
+ * 接近 1 说明收益全在前半段 —— 上手那几小时就能摸到，但再往上就没东西可练了（天花板太低）；
+ * 接近 0 说明只有最顶端才有回报 —— 中间是一段没有反馈的墙（劝退）。
+ * 0.55–0.85 是舒适带：前期有明确回报，后期仍有可挖的精度。
+ */
 function computeLearnability(traces: readonly TrialTrace[]): number {
   const n = traces.length;
+  const lo = traces.slice(0, Math.floor(n / 3));
   const mid = traces.slice(Math.floor(n / 3), Math.ceil((n * 2) / 3));
   const hi = traces.slice(Math.ceil((n * 2) / 3));
-  if (mid.length === 0 || hi.length === 0) return 0;
-  const m = mid.reduce((s, t) => s + t.duration, 0) / mid.length;
-  const h = hi.reduce((s, t) => s + t.duration, 0) / hi.length;
-  if (m <= 0) return 0;
-  return Math.min(1, Math.max(0, (h - m) / m / 0.55));
+  if (lo.length === 0 || mid.length === 0 || hi.length === 0) return 0;
+  const rate = (g: readonly TrialTrace[]) => g.filter((t) => t.survived).length / g.length;
+  const l = rate(lo);
+  const m = rate(mid);
+  const h = rate(hi);
+  // 总落差太小的时候这个比值没有意义 —— 技巧表达度那一项会单独惩罚它
+  if (h - l < 0.04) return 0;
+  const front = Math.min(1, Math.max(0, (m - l) / (h - l)));
+  if (front >= 0.55 && front <= 0.85) return 1;
+  if (front < 0.55) return front / 0.55;
+  return Math.max(0, 1 - (front - 0.85) / 0.3);
 }
 
 /**
  * 只统计**真正的岔路** —— 可选项 ≤ 2 的局面（走廊尽头只能前进）不算决策。
  * 把它们算进来会让任何线性关卡看起来都决策密集。
+ *
+ * 口径：分子是**行动条数**，分母是**呼吸时间**。这里的条数不是笔误 ——
+ * 这一项问的就是"单位时间里要做几个选择"，一个选择无论花一口气还是四口气都只是一个选择。
+ * 它与占比类指标的区别在于：占比的分子分母必须是同一个单位，否则不守恒；
+ * 速率的分子分母本来就是两个单位。
  */
 function computeDecisionDensity(traces: readonly TrialTrace[]): number {
   let sum = 0;

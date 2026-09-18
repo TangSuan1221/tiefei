@@ -37,6 +37,7 @@ import {
   sfx,
   shake,
   silence,
+  take,
 } from '../../narrative/dsl';
 
 export const PROLOGUE_NODES: readonly NarrativeNode[] = [
@@ -56,7 +57,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'pro.wake.listen',
         label: '先不动。听。',
         cost: 2,
-        effects: [setf('did.listened-first'), sfx('hull.tick'), san(2)],
+        effects: [sfx('hull.tick'), san(2)],
         goto: 'pro.listen',
       }),
       c({
@@ -65,7 +66,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         requires: off('did.woke'),
         gateMode: 'lie',
         goto: 'pro.seated',
-      }),
+      })
     ],
   },
   {
@@ -81,7 +82,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         effects: [setf('did.count-breaths'), addf('count.breaths-counted', 8), mark('listening', 1)],
         goto: 'pro.counted',
       }),
-      go('pro.listen.up', '够了。坐起来。', 'pro.seated'),
+      go('pro.listen.up', '够了。坐起来。', 'pro.seated')
     ],
   },
   {
@@ -97,11 +98,12 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         effects: [addf('count.breaths-counted', 8), mark('listening', 1), fear(6)],
         goto: 'pro.seated',
       }),
-      silence('pro.counted.stop', 'pro.seated', '停下。'),
+      silence('pro.counted.stop', 'pro.seated', '停下。')
     ],
   },
   {
     id: 'pro.seated',
+    onEnter: [setf('did.sat-up')],
     text: '你坐起来。头顶三十公分是舱顶。左手边是一块补板，新焊的，焊缝还粗。\n右手边是你的面罩支架，空的——面罩已经在你脸上。',
     tags: ['hub'],
     choices: [
@@ -114,7 +116,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         requires: all(on('did.checked-mask'), on('did.read-plate')),
         gateMode: 'disable',
         goto: 'pro.hatch',
-      }),
+      })
     ],
   },
   {
@@ -131,7 +133,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'pro.plate.trace',
         label: '用手指顺着刻痕走一遍。',
         cost: 1,
-        effects: [setf('did.traced-scratches'), san(-3)],
+        effects: [san(-3), setf('did.touched-plate')],
         goto: 'pro.plate.hand',
       }),
       c({
@@ -143,7 +145,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         effects: [loud(3)],
         goto: 'pro.plate.under',
       }),
-      go('pro.plate.leave', '不看了。', 'pro.seated'),
+      go('pro.plate.leave', '不看了。', 'pro.seated')
     ],
   },
   {
@@ -155,7 +157,6 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
       c({
         id: 'pro.plate.hand.accept',
         label: '很多人都是右手。',
-        effects: [setf('did.dismissed-scratches')],
         goto: 'pro.seated',
       }),
       c({
@@ -164,7 +165,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         effects: [addf('count.breaths-counted', 3), mark('listening', 1), setf('did.count-breaths')],
         goto: 'pro.plate.tally',
-      }),
+      })
     ],
   },
   {
@@ -181,7 +182,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         effects: [setf('did.carved-eighteenth'), mark('listening', 1), san(-6), loud(4), sfx('pen.scratch')],
         goto: 'pro.plate.carved',
       }),
-      silence('pro.plate.tally.stop', 'pro.seated'),
+      silence('pro.plate.tally.stop', 'pro.seated')
     ],
   },
   {
@@ -201,9 +202,8 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
       c({
         id: 'pro.plate.under.word',
         label: '"样本"。',
-        effects: [setf('did.noticed-sample-word')],
         goto: 'pro.plate.word',
-      }),
+      })
     ],
   },
   {
@@ -215,27 +215,26 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
     id: 'pro.mask',
     text: '面罩密封良好。压力表指针在抖，但抖得很规律。\n内侧有一小片水汽，位置在你左眼下方。每次呼气都一样。',
     corruptedText: cor([40, '面罩密封良好。内侧的水汽不是你呼的——它在你吸气的时候变大。']),
-    onEnter: [setf('did.checked-mask')],
+    onEnter: [setf('did.checked-mask'), setf('did.wore-mask')],
     choices: [
       c({
         id: 'pro.mask.wipe',
         label: '擦掉水汽。',
         cost: 1,
-        effects: [setf('did.wiped-mask')],
         goto: 'pro.mask.wiped',
       }),
       c({
         id: 'pro.mask.gauge',
         label: '读压力表。',
         cost: 1,
-        effects: [setf('did.read-gauge')],
         goto: 'pro.mask.gauge',
       }),
-      go('pro.mask.back', '放下。', 'pro.seated'),
+      go('pro.mask.back', '放下。', 'pro.seated')
     ],
   },
   {
     id: 'pro.mask.wiped',
+    onEnter: [setf('did.wiped-visor')],
     text: '擦掉了。三次呼吸之后它回到同一个位置。\n形状也一样。',
     choices: [
       c({
@@ -245,7 +244,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         effects: [addf('count.futile-acts', 1)],
         goto: 'pro.mask.wiped2',
       }),
-      go('pro.mask.wiped.stop', '算了。', 'pro.seated'),
+      go('pro.mask.wiped.stop', '算了。', 'pro.seated')
     ],
   },
   {
@@ -258,15 +257,15 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
     text: '九百。单位不是升，是"呼吸"。\n有人把原来的刻度磨了，用钢针重新刻了单位。',
     corruptedText: cor([50, '九百。你看第二眼的时候是八百九十七。你没有呼吸。']),
     tags: ['key'],
-    onEnter: [setf('know.breath-unit')],
+    onEnter: [setf('know.breath-unit'), setf('did.checked-gauge')],
     choices: [
       c({
         id: 'pro.mask.gauge.who',
         label: '谁会把氧气换算成呼吸？',
-        effects: [setf('did.asked-unit')],
+        effects: [addf('count.questions', 1)],
         goto: 'pro.mask.unit',
       }),
-      go('pro.mask.gauge.back', '收好。', 'pro.seated'),
+      go('pro.mask.gauge.back', '收好。', 'pro.seated')
     ],
   },
   {
@@ -289,7 +288,6 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'pro.bunk.rivets',
         label: '看铆钉。',
         cost: 2,
-        effects: [setf('did.examined-rivets')],
         goto: 'pro.bunk.rivets',
       }),
       c({
@@ -305,10 +303,10 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'pro.bunk.sheets',
         label: '摸床单。',
         cost: 1,
-        effects: [setf('did.touched-sheets'), san(-2)],
+        effects: [san(-2)],
         goto: 'pro.bunk.sheets',
       }),
-      go('pro.bunk.back', '离开铺位。', 'pro.seated'),
+      go('pro.bunk.back', '离开铺位。', 'pro.seated')
     ],
   },
   {
@@ -322,10 +320,10 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: on('did.count-breaths'),
         gateMode: 'disable',
-        effects: [setf('did.counted-rivet-rings'), san(-5)],
+        effects: [san(-5)],
         goto: 'pro.bunk.rings',
       }),
-      go('pro.bunk.rivets.back', '……', 'pro.bunk'),
+      go('pro.bunk.rivets.back', '……', 'pro.bunk')
     ],
   },
   {
@@ -341,7 +339,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         effects: [setf('know.plate-replaced')],
         goto: 'pro.bunk.conclude',
       }),
-      silence('pro.bunk.rings.silent', 'pro.bunk'),
+      silence('pro.bunk.rings.silent', 'pro.bunk')
     ],
   },
   {
@@ -354,12 +352,11 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
     id: 'pro.bunk.pried',
     text: '牌背面有钢印，一行小字：批次 K-9，位 04。\n"位"后面原来有别的数字，被磨掉了。',
     tags: ['key'],
-    onEnter: [setf('know.batch-stamp')],
+    onEnter: [setf('know.batch-stamp'), setf('did.pried-bunk')],
     choices: [
       c({
         id: 'pro.bunk.pried.pocket',
         label: '揣进口袋。',
-        effects: [setf('did.kept-nameplate')],
         goto: 'pro.bunk',
       }),
       c({
@@ -367,11 +364,12 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         label: '放回床上。',
         effects: [take('nameplate')],
         goto: 'pro.bunk',
-      }),
+      })
     ],
   },
   {
     id: 'pro.bunk.sheets',
+    onEnter: [setf('did.smelled-sheets')],
     text: '干的。\n你刚才躺的位置也是干的，但你的膝盖是湿的。',
     corruptedText: cor([35, '干的。你的膝盖是湿的。水不是从这里来的，是从你身上来的。']),
     choices: [
@@ -379,10 +377,10 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'pro.bunk.sheets.knee',
         label: '看膝盖。',
         cost: 1,
-        effects: [setf('did.looked-at-knee'), fear(8)],
+        effects: [fear(8)],
         goto: 'pro.knee',
       }),
-      go('pro.bunk.sheets.back', '不看。', 'pro.bunk'),
+      go('pro.bunk.sheets.back', '不看。', 'pro.bunk')
     ],
   },
   {
@@ -404,7 +402,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'pro.hatch.talk',
         label: '按下通话键。',
         cost: 2,
-        effects: [setf('met.vance'), setf('did.answered-radio'), mark('listening', 1), sfx('radio.squelch')],
+        effects: [setf('met.vance'), mark('listening', 1), sfx('radio.squelch')],
         goto: 'vance.hail',
       }),
       c({
@@ -419,20 +417,20 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'pro.hatch.wheel',
         label: '直接转手轮。',
         cost: 3,
-        effects: [setf('did.opened-hatch'), loud(3), sfx('hull.groan')],
+        effects: [loud(3), sfx('hull.groan')],
         goto: 'pro.threshold',
       }),
       c({
         id: 'pro.hatch.listen',
         label: '贴在门上听。',
         cost: 2,
-        effects: [setf('did.ear-to-door')],
         goto: 'pro.door.listen',
-      }),
+      })
     ],
   },
   {
     id: 'pro.door.listen',
+    onEnter: [setf('did.listened-at-door')],
     text: '门后是水在动，很慢。还有一种声音，间隔二、二、三。\n和舱里的金属一样。',
     corruptedText: cor([40, '门后有人在贴着门听。他的耳朵在你耳朵的位置。']),
     tags: ['key'],
@@ -441,10 +439,10 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'pro.door.listen.knock',
         label: '敲两下。',
         cost: 1,
-        effects: [loud(6), setf('did.knocked-first'), mark('listening', 1), sfx('pipe.knock')],
+        effects: [loud(6), mark('listening', 1), sfx('pipe.knock')],
         goto: 'pro.door.knocked',
       }),
-      go('pro.door.listen.back', '退开。', 'pro.hatch'),
+      go('pro.door.listen.back', '退开。', 'pro.hatch')
     ],
   },
   {
@@ -452,24 +450,24 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
     text: '门后回敲了三下。\n你敲了两下。',
     corruptedText: cor([50, '门后回敲了三下。第三下在你的面罩里。']),
     tags: ['key'],
-    onEnter: [fear(12), shake(0.4)],
+    onEnter: [fear(12), shake(0.4), setf('did.knocked-hatch')],
     choices: [
       c({
         id: 'pro.door.knocked.reply',
         label: '再敲一下，凑成三。',
         cost: 1,
         irreversible: true,
-        effects: [loud(6), setf('did.completed-knock'), mark('listening', 2), san(-5)],
+        effects: [loud(6), mark('listening', 2), san(-5)],
         goto: 'pro.door.answered',
       }),
-      silence('pro.door.knocked.quiet', 'pro.hatch', '把手放下。不凑。'),
+      silence('pro.door.knocked.quiet', 'pro.hatch', '把手放下。不凑。')
     ],
   },
   {
     id: 'pro.door.answered',
     text: '安静了。安静得很完整，连金属都不响了。\n然后手轮自己转了四分之一圈。',
     tags: ['key'],
-    onEnter: [sfx('silence.total'), setf('did.door-opened-itself')],
+    onEnter: [sfx('silence.total'), setf('did.answered-knock')],
     choices: [go('pro.door.answered.go', '推门。', 'pro.threshold')],
   },
   {
@@ -485,9 +483,9 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         label: '再打开。',
         cost: 2,
         requires: on('did.muted-radio'),
-        effects: [setf('did.reopened-radio'), setf('met.vance'), mark('silence', -1)],
+        effects: [setf('met.vance'), mark('silence', -1)],
         goto: 'vance.hail',
-      }),
+      })
     ],
   },
   {
@@ -528,9 +526,8 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'pro.threshold.go',
         label: '走。',
         cost: 2,
-        effects: [setf('did.prologue-done')],
         goto: 'pro.out',
-      }),
+      })
     ],
   },
   {
@@ -545,7 +542,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         effects: [addf('count.marks', 1)],
         goto: 'pro.threshold',
-      }),
+      })
     ],
   },
   {
@@ -559,9 +556,8 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'pro.threshold.counted.go',
         label: '走。',
         cost: 2,
-        effects: [setf('did.prologue-done')],
         goto: 'pro.out',
-      }),
+      })
     ],
   },
   {
@@ -572,21 +568,21 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
       [18, '你没有选方向。方向选了你，这句话你不会说，但它是准确的。'],
     ),
     tags: ['key'],
-    onEnter: [setf('did.prologue-done'), sfx('hull.groan')],
+    onEnter: [sfx('hull.groan')],
     choices: [
       c({
         id: 'pro.out.back',
         label: '回头试门。',
         cost: 3,
-        effects: [setf('did.tried-going-back'), fear(6)],
+        effects: [fear(6)],
         goto: 'pro.locked',
       }),
       c({
         id: 'pro.out.on',
         label: '不回头。',
-        effects: [mark('silence', 1), setf('did.did-not-look-back')],
+        effects: [mark('silence', 1) ],
         goto: 'pro.done',
-      }),
+      })
     ],
   },
   {
@@ -601,24 +597,58 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         label: '再划一道，划深一点。',
         cost: 3,
         requires: on('did.marked-door'),
-        effects: [addf('count.marks', 1), setf('did.remarked-door')],
+        effects: [addf('count.marks', 1) ],
         goto: 'pro.done',
       }),
-      go('pro.locked.leave', '走。', 'pro.done'),
+      c({
+        id: 'pro.locked.compare',
+        label: '数记号。',
+        cost: 3,
+        requires: num('count.marks', '>=', 2),
+        gateMode: 'disable',
+        effects: [san(-8)],
+        goto: 'pro.locked.rule',
+      }),
+      go('pro.locked.leave', '走。', 'pro.done')
+    ],
+  },
+  {
+    id: 'pro.locked.rule',
+    text: '两道记号。划过的那两扇门都换了地方，没划过的没有动。\n换的方向一样：往下一层。',
+    corruptedText: cor(
+      [45, '划过的门都换了地方，没划过的没有动。方向一样：往下。它知道你划了哪几扇。'],
+      [20, '划过的门都往下换。你划得越多，下去得越快。这是你自己算出来的。'],
+    ),
+    tags: ['key'],
+    onEnter: [learn('k.reweave-has-rule'), fear(12)],
+    choices: [
+      c({
+        id: 'pro.locked.rule.stop',
+        label: '不再划了。',
+        cost: 1,
+        effects: [mark('apostasy', 1), setf('know.dont-write')],
+        goto: 'pro.done',
+      }),
+      c({
+        id: 'pro.locked.rule.more',
+        label: '再划一道，看它把我往哪推。',
+        cost: 3,
+        effects: [addf('count.marks', 1), mark('listening', 1)],
+        goto: 'pro.done',
+      })
     ],
   },
   {
     id: 'pro.done',
     text: '前面二十米有一点橙色的光。那种光只有一种来源：还没坏的应急灯。\n你朝它走。',
     tags: ['key'],
-    onEnter: [setf('did.prologue-done')],
     choices: [
       c({
         id: 'pro.done.go',
         label: '走过去。',
         cost: 2,
         goto: 'hub.recall',
-      }),
+      })
     ],
   },
 
@@ -680,7 +710,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'hub.recall.lies',
         label: '我被骗过 {{count.lies-swallowed|0}} 次',
         requires: num('count.lies-swallowed', '>=', 1),
-        effects: [setf('did.reviewed-lies'), san(3)],
+        effects: [san(3)],
         goto: 'hub.lies',
       }),
       c({
@@ -689,7 +719,7 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         requires: num('count.futile-acts', '>=', 1),
         goto: 'hub.futile',
       }),
-      c({ id: 'hub.recall.close', label: '够了。走。', cost: 1, goto: 'hub.exit' }),
+      c({ id: 'hub.recall.close', label: '够了。走。', cost: 1, goto: 'hub.exit' })
     ],
   },
   {
@@ -708,9 +738,9 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'hub.layer2.sign',
         label: '如果给我一张同意书，我会不会签。',
         requires: K('k.all-volunteers'),
-        effects: [setf('did.asked-would-i-sign')],
+        effects: [addf('count.questions', 1)],
         goto: 'hub.layer2.sign',
-      }),
+      })
     ],
   },
   {
@@ -736,9 +766,9 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'hub.layer4.grade',
         label: '那我学得怎么样。',
         requires: K('k.ship-is-teaching'),
-        effects: [setf('did.asked-my-grade')],
+        effects: [addf('count.questions', 1)],
         goto: 'hub.layer4.grade',
-      }),
+      })
     ],
   },
   {
@@ -758,9 +788,8 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
         id: 'hub.layer5.stop',
         label: '差一笔的字不是字。',
         requires: K('k.pen-can-stop'),
-        effects: [setf('did.understood-refusal')],
         goto: 'hub.layer5.stop',
-      }),
+      })
     ],
   },
   {
@@ -790,16 +819,16 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
     text: '你往橙色的光走。走到第九步的时候，光暗了一下，又亮起来。\n灯丝没坏。是有东西在灯前面过去了。',
     corruptedText: cor([40, '你往橙色的光走。光暗了一下。那个形状是坐着的。']),
     tags: ['key'],
-    onEnter: [sfx('lamp.filament'), fear(6), setf('did.saw-shadow')],
+    onEnter: [sfx('lamp.filament'), fear(6) ],
     choices: [
       c({ id: 'hub.exit.go', label: '继续走。', cost: 2, goto: 'hub.open' }),
       c({
         id: 'hub.exit.stop',
         label: '站住，等它再过去一次。',
         cost: 6,
-        effects: [setf('did.waited-for-shadow'), san(-5), fear(10)],
+        effects: [san(-5), fear(10)],
         goto: 'hub.exit.wait',
-      }),
+      })
     ],
   },
   {
@@ -813,13 +842,13 @@ export const PROLOGUE_NODES: readonly NarrativeNode[] = [
     tags: ['key', 'hub'],
     onEnter: [setf('did.reached-junction')],
     choices: [
-      c({ id: 'hub.open.explore', label: '去看看。', cost: 1, effects: [setf('did.chose-freely')] }),
+      c({ id: 'hub.open.explore', label: '去看看。', cost: 1, effects: [] }),
       c({
         id: 'hub.open.recall',
         label: '再过一遍清单。',
         requires: on('did.reached-junction'),
         goto: 'hub.recall',
-      }),
+      })
     ],
-  },
+  }
 ];

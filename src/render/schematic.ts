@@ -213,7 +213,7 @@ export class SchematicDisplay {
       const breath = phantom ? 0.55 + 0.45 * Math.sin(s.time * TAU * 0.7 + r.pos.x) : 1;
       const size = bandH * (isCurrent ? 0.30 : 0.22);
 
-      let tone = r.visited ? PALETTE.rust : PALETTE.rustDeep;
+      let tone: string = r.visited ? PALETTE.rust : PALETTE.rustDeep;
       if (r.veracity === 'unstable') tone = PALETTE.bloodDim;
       const alpha = (r.visited ? 0.85 : 0.45) * a * breath * (isHot ? 1.25 : 1);
 

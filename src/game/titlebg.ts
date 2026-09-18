@@ -132,7 +132,7 @@ export class TitleBackground {
     const { ctx } = this;
     // 船体是背景锚点而非主体：压到右下象限，让出左上的标题区
     const L = R * 0.62;
-    const H = R * 0.078;
+    const H = R * 0.092;
 
     // 艏段：t=0 是尖艏，t=1 是断口（平且参差）
     const bowProfile = (t: number) => Math.pow(1 - Math.pow(1 - t, 2.6), 0.44);
@@ -157,23 +157,36 @@ export class TitleBackground {
       const halfH = (t: number) => H * s.prof(t);
       const xAt = (t: number) => (t - 0.5) * s.len;
 
+      // 断口那一端不是切面，是撕口。平整的竖边会让两截读成两个无关的方块，
+      // 参差的边缘才说得出"这里断过"。
+      const jag = (x: number, from: number, to: number, seed: number) => {
+        const n = 9;
+        for (let i = 1; i <= n; i++) {
+          const k = i / n;
+          const bite = (fbm2(i * 5.1 + seed, seed * 0.7, 2, 3300 + seed) - 0.5) * s.len * 0.055;
+          ctx.lineTo(x + bite, from + (to - from) * k);
+        }
+      };
+
       ctx.beginPath();
       for (let i = 0; i <= steps; i++) {
         const t = i / steps;
         if (i === 0) ctx.moveTo(xAt(t), -halfH(t));
         else ctx.lineTo(xAt(t), -halfH(t));
       }
+      if (s.bow) jag(xAt(1), -halfH(1), halfH(1), 17);
       for (let i = steps; i >= 0; i--) {
         const t = i / steps;
         ctx.lineTo(xAt(t), halfH(t));
       }
+      if (!s.bow) jag(xAt(0), halfH(0), -halfH(0), 41);
       ctx.closePath();
 
       // 船体内部比外面的水更黑 —— 这是"里面"与"外面"的第一次视觉分野
-      ctx.fillStyle = 'rgba(4, 7, 11, 0.72)';
+      ctx.fillStyle = 'rgba(4, 7, 11, 0.78)';
       ctx.fill();
-      ctx.strokeStyle = `rgba(74, 155, 168, ${0.36 * this.intensity})`;
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = `rgba(74, 155, 168, ${0.46 * this.intensity})`;
+      ctx.lineWidth = 1.4;
       ctx.stroke();
 
       // 五层甲板：玩家要走的每一层，在标题画面上已经都在了
@@ -188,7 +201,7 @@ export class TitleBackground {
         ctx.lineTo(s.len, y);
         ctx.stroke();
       }
-      const bulkheads = s.bow ? 11 : 7;
+      const bulkheads = s.bow ? 7 : 4;
       for (let b = 1; b < bulkheads; b++) {
         const x = -s.len * 0.5 + (s.len * b) / bulkheads;
         ctx.strokeStyle = `rgba(74, 155, 168, ${0.075 * this.intensity})`;
@@ -199,18 +212,60 @@ export class TitleBackground {
       }
       ctx.restore();
 
-      // 指挥塔围壳
+      // 指挥塔围壳。这是"这是一艘潜艇"最强的一个视觉线索，所以画得比写实更大。
       if (s.bow) {
-        ctx.fillStyle = 'rgba(4, 7, 11, 0.94)';
+        // 围壳的宽高比比绝对尺寸更重要：真实帆罩是横躺的梯形，
+        // 一旦画高了就会读成塔楼，整艘船跟着变成建筑。
+        const sx = -s.len * 0.1;
+        const sw = s.len * 0.34;
+        const sh = H * 1.15;
+        ctx.fillStyle = 'rgba(4, 7, 11, 0.96)';
+        ctx.strokeStyle = `rgba(74, 155, 168, ${0.42 * this.intensity})`;
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.moveTo(sx, -H * 0.55);
+        ctx.lineTo(sx + sw * 0.16, -H - sh);
+        ctx.lineTo(sx + sw * 0.86, -H - sh);
+        ctx.lineTo(sx + sw, -H * 0.55);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 潜望镜与通气管：两根细杆，让围壳不只是个梯形
+        ctx.strokeStyle = `rgba(74, 155, 168, ${0.34 * this.intensity})`;
+        ctx.lineWidth = 1;
+        for (const [mx, mh] of [[0.4, 0.85], [0.58, 0.6]] as const) {
+          ctx.beginPath();
+          ctx.moveTo(sx + sw * mx, -H - sh);
+          ctx.lineTo(sx + sw * mx, -H - sh - H * mh);
+          ctx.stroke();
+        }
+
+        // 艏水平舵
+        ctx.strokeStyle = `rgba(74, 155, 168, ${0.3 * this.intensity})`;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(-s.len * 0.3, H * 0.1);
+        ctx.lineTo(-s.len * 0.42, H * 0.1);
+        ctx.stroke();
+      } else {
+        // 艉部十字舵与桨毂：第二强的线索，补在断掉的那一半上，
+        // 让后段不至于读成一块无名的残骸
+        const tx = s.len * 0.5;
+        ctx.strokeStyle = `rgba(74, 155, 168, ${0.34 * this.intensity})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(tx - s.len * 0.09, -H * 1.5);
+        ctx.lineTo(tx - s.len * 0.02, 0);
+        ctx.lineTo(tx - s.len * 0.09, H * 1.5);
+        ctx.moveTo(tx - s.len * 0.13, 0);
+        ctx.lineTo(tx + s.len * 0.02, 0);
+        ctx.stroke();
+
         ctx.strokeStyle = `rgba(74, 155, 168, ${0.26 * this.intensity})`;
         ctx.lineWidth = 1.1;
         ctx.beginPath();
-        ctx.moveTo(-s.len * 0.02, -H);
-        ctx.lineTo(s.len * 0.01, -H * 2.5);
-        ctx.lineTo(s.len * 0.14, -H * 2.5);
-        ctx.lineTo(s.len * 0.17, -H);
-        ctx.closePath();
-        ctx.fill();
+        ctx.ellipse(tx + s.len * 0.01, 0, H * 0.2, H * 0.42, 0, 0, Math.PI * 2);
         ctx.stroke();
       }
       ctx.restore();

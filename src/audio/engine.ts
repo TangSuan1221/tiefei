@@ -26,8 +26,27 @@ import type { BreathClock } from './breath';
 import { BEDS, CUES, CUE_COUNT, CUE_META } from './cues';
 import {
   activeNodeCount, cleanup, filt, gainNode, hiss, hit, makeImpulse, makeNoise,
-  noiseSource, osc, panner, ramp, type SynthCtx,
+  makeRoomImpulse, noiseSource, osc, panner, ramp, type SynthCtx,
 } from './dsp';
+
+/**
+ * 一个声音在空间里的位置。
+ *
+ * **不传它 = 和以前一模一样**。舱内那几百个 cue（继电器、呼吸、面板、船体）
+ * 本来就在你脑袋旁边，给它们加距离衰减只会让界面变糊。
+ * 传它的只有一类声音：舱外、隔着水、在摄像头画面里那一侧发生的事。
+ */
+export interface CueSpace {
+  /** 声源到舱的距离（米）。决定延迟、高频衰减和干湿比 */
+  dist: number;
+  /** 这一间房的外接尺度（米）。决定混响尾巴的长度 */
+  room?: number;
+  /** 房间进了水 */
+  flooded?: boolean;
+}
+
+/** 水里的声速。延迟和第一反射都按它算 —— 这是这套混响唯一一个真实物理量 */
+const C_WATER = 1500;
 
 export interface AudioStats {
   cues: number;
@@ -61,6 +80,17 @@ export class AudioEngine implements AudioSystem {
   private convolver!: ConvolverNode;
   private revGain!: GainNode;
   private tinnitusBus!: GainNode;
+
+  // 舱外那一间房自己的混响。和舱内的 convolver 是两条独立的路 ——
+  // 舱内的尾巴永远是那个九米铁罐子，它不该跟着外面的房间变
+  private roomSend!: GainNode;
+  private roomConv!: ConvolverNode;
+  private roomLP!: BiquadFilterNode;
+  private roomGain!: GainNode;
+  private roomKey = '';
+  private roomIRs = new Map<string, AudioBuffer>();
+  private roomSize = 8;
+  private roomFlooded = true;
 
   private noiseBuffers: Record<string, AudioBuffer> = {};
 
@@ -122,12 +152,22 @@ export class AudioEngine implements AudioSystem {
     this.convolver = ctx.createConvolver();
     this.convolver.buffer = makeImpulse(ctx, this.rng.fork('ir-hull'), 2.6, 3.4, 0.55);
 
+    this.roomSend = gainNode(ctx, 1);
+    this.roomConv = ctx.createConvolver();
+    this.roomLP = filt(ctx, 'lowpass', 3200, 0.7);
+    this.roomGain = gainNode(ctx, 0.55);
+    this.applyRoomIR();
+
     this.sfxBus.connect(this.dryBus);
     this.heartBus.connect(this.dryBus);
     this.breathBus.connect(this.dryBus);
     this.ambBus.connect(this.dryBus);
     this.dryBus.connect(this.globalLP).connect(this.comp);
     this.reverbSend.connect(this.convolver).connect(this.revGain).connect(this.comp);
+    // 外面那一间的尾巴走 dryBus，所以屏息时它也会被 globalLP 闷掉 ——
+    // 你捂住自己的耳朵，外面的房间也跟着远一层
+    this.roomSend.connect(this.roomConv).connect(this.roomLP).connect(this.roomGain);
+    this.roomGain.connect(this.dryBus);
     this.tinnitusBus.connect(this.master);
     this.comp.connect(this.master);
     this.master.connect(ctx.destination);
@@ -149,6 +189,30 @@ export class AudioEngine implements AudioSystem {
   get ready(): boolean {
     return this.ctx !== null && this.ctx.state === 'running';
   }
+
+  /**
+   * 主输出的瞬时 RMS（0..1）。
+   * 用来回答一个「活动节点数」回答不了的问题：**它到底出声了没有**。
+   * 演示页与自动化验收都读这个值；HUD 的音量表以后也可以直接接上来。
+   */
+  level(): number {
+    const ctx = this.ctx;
+    if (!ctx) return 0;
+    if (!this.analyser) {
+      this.analyser = ctx.createAnalyser();
+      this.analyser.fftSize = 2048;
+      this.analyserBuf = new Float32Array(new ArrayBuffer(this.analyser.fftSize * 4));
+      this.master.connect(this.analyser);
+    }
+    const buf = this.analyserBuf!;
+    this.analyser.getFloatTimeDomainData(buf);
+    let sum = 0;
+    for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+    return Math.sqrt(sum / buf.length);
+  }
+
+  private analyser: AnalyserNode | null = null;
+  private analyserBuf: Float32Array<ArrayBuffer> | null = null;
 
   get stats(): AudioStats {
     return {
@@ -172,7 +236,10 @@ export class AudioEngine implements AudioSystem {
   // AudioSystem 接口
   // ==========================================================================
 
-  cue(name: string, opts?: { gain?: number; pan?: number; detune?: number }): void {
+  cue(
+    name: string,
+    opts?: { gain?: number; pan?: number; detune?: number; space?: CueSpace },
+  ): void {
     const ctx = this.ctx;
     if (!ctx) return;
     const fn = CUES[name];
@@ -181,11 +248,14 @@ export class AudioEngine implements AudioSystem {
       return;
     }
     this.cueCounter++;
+    const t = ctx.currentTime + 0.012;
+    // space 不传就走老路：dest = sfxBus、send = reverbSend，一个节点都不多
+    const route = opts?.space ? this.spaceRoute(opts.space, t) : null;
     const s: SynthCtx = {
       ctx,
-      dest: this.sfxBus,
-      send: this.reverbSend,
-      t: ctx.currentTime + 0.012,
+      dest: route?.dest ?? this.sfxBus,
+      send: route?.send ?? this.reverbSend,
+      t: t + (route?.delay ?? 0),
       rng: this.rng.fork(`cue-${this.cueCounter}`),
       gain: opts?.gain ?? 1,
       pan: clamp(opts?.pan ?? 0, -1, 1),
@@ -196,6 +266,81 @@ export class AudioEngine implements AudioSystem {
     } catch (err) {
       console.error(`[audio] cue "${name}" 合成失败`, err);
     }
+  }
+
+  /**
+   * 给一个 cue 搭一条「它在外面」的路。
+   *
+   * 三件事，按重要性排：
+   *   1. **高频衰减** —— 水把高频吃掉。这是人判断距离最强的线索，比音量强得多。
+   *   2. **第一反射** —— 一个按房间尺度延迟的拍板声。听感上「房间有多大」全在这里。
+   *   3. **干湿比**   —— 远的东西湿声占比高。近处的爪子是干的。
+   *
+   * 传播延迟按水里的声速算出来（十米 = 6.7 ms），小到听不出是延迟，
+   * 但它和第一反射一起决定了那个「啪」落在哪儿。
+   */
+  private spaceRoute(sp: CueSpace, t: number): { dest: AudioNode; send: AudioNode; delay: number } {
+    const ctx = this.ctx!;
+    const dist = clamp(sp.dist, 0, 120);
+    const far = clamp01(dist / 26);
+    const room = clamp(sp.room ?? this.roomSize, 1.5, 60);
+
+    const input = gainNode(ctx, 1);
+    // 水吃高频：一米开外就已经开始暗，二十米外只剩闷响
+    const lp = filt(ctx, 'lowpass', lerp(15000, 700, Math.pow(far, 0.65)), 0.75);
+    // 近场那点轰隆感要去掉，不然爪子听起来像在舱里
+    const hp = filt(ctx, 'highpass', lerp(30, 180, far), 0.7);
+    const dry = gainNode(ctx, (1 - far * 0.55) / (1 + dist * 0.045));
+    input.connect(lp).connect(hp).connect(dry).connect(this.sfxBus);
+
+    // 第一反射：声音打到对面舱壁再回来。房间越大，这一下越晚、越暗
+    const refl = ctx.createDelay(1);
+    refl.delayTime.value = clamp((room * 2) / C_WATER, 0.004, 0.9);
+    const rlp = filt(ctx, 'lowpass', lerp(2600, 900, clamp01(room / 30)), 0.8);
+    const rg = gainNode(ctx, 0.3 + far * 0.2);
+    hp.connect(refl).connect(rlp).connect(rg).connect(this.sfxBus);
+
+    // 湿声。远 → 湿；房间大 → 湿
+    const wet = gainNode(ctx, 0.22 + far * 0.5 + clamp01(room / 40) * 0.2);
+    hp.connect(wet).connect(this.roomSend);
+
+    const until = t + 6;
+    for (const n of [input, lp, hp, dry, refl, rlp, rg, wet]) cleanup(ctx, n, until);
+    return { dest: input, send: this.roomSend, delay: dist / C_WATER };
+  }
+
+  /**
+   * 换一间房。摄像头进了另一间，尾巴就该变。
+   *
+   * 只在尺度跨过档位时才重算脉冲响应 —— 每帧生成一条 IR 会让主线程卡死，
+   * 而玩家听不出 11 米和 12 米的区别。四档：检修间、常规舱、货舱、竖井。
+   */
+  setRoomAcoustics(sizeMeters: number, flooded = true): void {
+    const bucket = sizeMeters <= 5 ? 3.5 : sizeMeters <= 11 ? 8 : sizeMeters <= 22 ? 16 : 32;
+    const key = `${bucket}|${flooded ? 'w' : 'a'}`;
+    if (key === this.roomKey) return;
+    this.roomKey = key;
+    this.roomSize = bucket;
+    this.roomFlooded = flooded;
+    this.applyRoomIR();
+  }
+
+  private applyRoomIR(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const key = this.roomKey || `${this.roomSize}|${this.roomFlooded ? 'w' : 'a'}`;
+    this.roomKey = key;
+    let ir = this.roomIRs.get(key);
+    if (!ir) {
+      ir = makeRoomImpulse(ctx, this.rng.fork(`ir-room-${key}`), this.roomSize, this.roomFlooded);
+      this.roomIRs.set(key, ir);
+    }
+    this.roomConv.buffer = ir;
+    // 大房间的尾巴不光长，还更暗 —— 高频在路上被吃掉的次数更多
+    const t = ctx.currentTime;
+    const cut = lerp(4200, 1100, clamp01(this.roomSize / 32)) * (this.roomFlooded ? 0.75 : 1);
+    ramp(this.roomLP.frequency, t, this.roomLP.frequency.value, cut, 0.6, false);
+    ramp(this.roomGain.gain, t, this.roomGain.gain.value, 0.38 + clamp01(this.roomSize / 32) * 0.4, 0.8, false);
   }
 
   ambience(name: string, intensity: number): void {

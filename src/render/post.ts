@@ -89,14 +89,14 @@ export const DEFAULT_EXTRAS: PostExtras = {
 };
 
 export const DEFAULT_POST: PostParams = {
-  vignette: 0.55,
-  aberration: 0.35,
-  grain: 0.32,
-  scanline: 0.3,
+  vignette: 0.58,
+  aberration: 0.22,
+  grain: 0.26,
+  scanline: 0.24,
   barrel: 0.18,
   breathe: 0.7,
   warp: 0.0,
-  bloom: 0.75,
+  bloom: 0.60,
   caustics: 0.25,
   exposure: 1.0,
   tint: [1, 1, 1],
@@ -230,12 +230,13 @@ void main(){
 
   // 静电撕裂：整行水平抽搐
   float band = hash12(vec2(floor(uv.y * 140.0), floor(uTime * 12.0)));
-  uv.x += step(0.94, band) * uStatic * 0.03 * (hash12(vec2(band, uTime)) - 0.5);
+  uv.x += step(0.968, band) * uStatic * 0.012 * (hash12(vec2(band, uTime)) - 0.5);
 
-  // [5] 色差：径向三次采样，中心为零
+  // [5] 色差：径向三次采样，中心为零。
+  // 上限约 4 px @1600 —— 再大就从「镜片」变成廉价的彩虹描边。
   vec2 d = uv - 0.5;
   float r2 = dot(d, d);
-  float ab = uAberration * (0.0016 + 0.0130 * r2);
+  float ab = uAberration * (0.0005 + 0.0038 * r2);
   vec2 dir = r2 > 1e-8 ? normalize(d) : vec2(0.0);
   vec3 col;
   col.r = texture(uScene, uv + dir * ab).r;
@@ -321,6 +322,7 @@ out vec4 fragColor;
 uniform sampler2D uSrc;
 uniform vec2 uTexel;
 uniform float uRadius;
+uniform float uWeight;
 
 void main(){
   vec2 t = uTexel * uRadius;
@@ -333,7 +335,9 @@ void main(){
   col += texture(uSrc, vUv + vec2( t.x, -t.y)).rgb;
   col += texture(uSrc, vUv + vec2(-t.x,  t.y)).rgb;
   col += texture(uSrc, vUv + vec2( t.x,  t.y)).rgb;
-  fragColor = vec4(col / 16.0, 1.0);
+  // 逐级衰减地回填：不加权的话 5 级叠起来能量是原来的 5 倍，
+  // 整屏会糊成一片发光的雾（第一版就是这么翻车的）。
+  fragColor = vec4(col / 16.0 * uWeight, 1.0);
 }`;
 
 /** 通道 8–10：泛光合成 / 焦散光斑 / 色调分级 / 曝光 */
@@ -366,36 +370,44 @@ vec3 aces(vec3 x){
 void main(){
   vec3 col = texture(uScene, vUv).rgb;
 
-  // [7] 泛光合成 —— 能量归一，避免整屏发灰
+  // [7] 泛光合成。
+  // 只有真正的光源（声呐光点、应急灯、七段管）该发光；铁锈舱壁不该发光。
+  // 所以亮度提取的阈值定得很高，这里的权重也压得很低。
   vec3 bloom = texture(uBloom, vUv).rgb;
-  col += bloom * uBloom_ * 0.85;
+  // 泛光轻微去饱和：纯色泛光会把整个画面染成单一色相
+  bloom = mix(vec3(luma(bloom)), bloom, 0.78);
+  col += bloom * uBloom_ * 0.30;
 
-  // [8] 焦散光斑：只往铁锈橙方向加，绝不加白
+  // [8] 焦散光斑：只往铁锈橙方向加，绝不加白，且只落在暗部
+  // （亮的地方再加光就是一层橙雾，不是水）
   if (uCaustics > 0.001) {
     vec2 cp = vUv * vec2(uRes.x / uRes.y, 1.0) * 6.0;
     float c1 = caustic(cp, uTime * 0.38);
     float c2 = caustic(cp * 1.9 + 4.3, uTime * 0.27);
     float cc = c1 * 0.72 + c2 * 0.38;
     // 上方更亮：光从水面下来（vUv.y = 1 是画面上缘）
-    cc *= mix(0.32, 1.35, vUv.y);
-    col += uRust * cc * uCaustics * 0.55;
+    cc *= mix(0.30, 1.25, vUv.y);
+    // 在已经很亮的像素上收手
+    cc *= 1.0 - smoothstep(0.18, 0.62, luma(col));
+    col += uRust * cc * uCaustics * 0.17;
   }
 
   // [10] 曝光：呼吸与心跳都在推它
   float breatheLum = 1.0 + uBreathe * 0.045 * uBreathPhase + uHeart * 0.035;
   col *= uExposure * breatheLum;
 
-  // [9] 色调分级：三段染色，严格落在四色主调上
+  // [9] 色调分级：三段染色，严格落在四色主调上。
+  // 场景本身已经是铁锈色了 —— 中调只需极轻的推动，重手会糊成一坨橙泥。
   float l = luma(col);
-  float sw = pow(1.0 - clamp(l, 0.0, 1.0), 2.2);
+  float sw = pow(1.0 - clamp(l * 2.4, 0.0, 1.0), 2.0);
   float mw = 4.0 * clamp(l, 0.0, 1.0) * (1.0 - clamp(l, 0.0, 1.0));
-  float hw = pow(clamp(l, 0.0, 1.0), 1.6);
-  vec3 shadowTone = normalize(uAbyss + 0.02) * 1.85;
+  float hw = pow(clamp(l, 0.0, 1.0), 1.8);
+  vec3 shadowTone = normalize(uAbyss + 0.02) * 1.88;
   vec3 midTone    = mix(vec3(1.0), normalize(uRust) * 1.72, 0.55);
   vec3 highTone   = mix(vec3(1.0), normalize(uBone) * 1.74, 0.42);
-  col *= mix(vec3(1.0), shadowTone, sw * 0.62);
-  col *= mix(vec3(1.0), midTone,    mw * 0.40);
-  col *= mix(vec3(1.0), highTone,   hw * 0.55);
+  col *= mix(vec3(1.0), shadowTone, sw * 0.58);
+  col *= mix(vec3(1.0), midTone,    mw * 0.12);
+  col *= mix(vec3(1.0), highTone,   hw * 0.45);
 
   // 屏息：世界被闷住 —— 去饱和 + 压暗 + 轻微偏蓝
   if (uHold > 0.001) {
@@ -405,10 +417,18 @@ void main(){
   }
 
   col = aces(col);
+
+  // 显示域对比 S 曲线 + 黑位归零。
+  // ACES 之后中间调容易发「奶」，这一步把深渊重新压回黑里，
+  // 是整条链子里对「是否像 3A」影响最大的五行。
+  col = clamp(col, 0.0, 1.0);
+  col = mix(col, col * col * (3.0 - 2.0 * col), 0.42);
+  col = max(vec3(0.0), col - 0.020) / 0.980;
+
   col *= uTint;
 
   // 抬一点最暗处，让深渊蓝黑不是纯黑 —— 纯黑在 OLED 上会「掉洞」
-  col = max(col, uAbyss * 0.55);
+  col = max(col, uAbyss * 0.42);
 
   fragColor = vec4(col, 1.0);
 }`;
@@ -438,29 +458,32 @@ void main(){
     float n2 = vnoise(px * 0.31 + vec2(t * 3.1, -t * 2.7));
     float g = (n1 - 0.5) * 0.75 + (n2 - 0.5) * 0.55;
     float l = luma(col);
-    float weight = mix(1.45, 0.35, smoothstep(0.02, 0.55, l));
-    col += g * uGrain * 0.16 * weight;
+    float weight = mix(1.25, 0.28, smoothstep(0.02, 0.50, l));
+    col += g * uGrain * 0.052 * weight;
   }
 
-  // [12] 静电：宽频雪花 + 横向掉线带 + 滚动同步条
+  // [12] 静电：宽频雪花 + 横向掉线带 + 滚动同步条。
+  // 掉线带是「信号变弱」，不是「画面变黑」—— 权重必须夹住，
+  // 否则会出现几条贯穿全屏的黑杠，一眼假。
   if (uStatic > 0.001) {
     float snow = hash12(px + vec2(uTime * 91.3, uTime * 47.1));
-    col += (snow - 0.5) * uStatic * 0.55;
-    float bandY = floor(vUv.y * 80.0);
-    float drop = step(0.978 - uCorruption * 0.05, hash12(vec2(bandY, floor(uTime * 9.0))));
-    col = mix(col, col * vec3(0.25, 0.28, 0.36) + vec3(0.06, 0.05, 0.04) * snow, drop * uStatic * 3.0);
+    col += (snow - 0.5) * uStatic * 0.17;
+    float bandY = floor(vUv.y * 150.0);
+    float drop = step(0.992 - uCorruption * 0.006, hash12(vec2(bandY, floor(uTime * 9.0))));
+    vec3 dead = mix(col, vec3(luma(col)) * vec3(0.78, 0.84, 1.02), 0.7) + vec3(0.02) * snow;
+    col = mix(col, dead, clamp(drop * uStatic * 1.6, 0.0, 0.62));
     float roll = fract(vUv.y + uTime * 0.13);
-    col += smoothstep(0.985, 1.0, roll) * uStatic * 0.30;
+    col += smoothstep(0.988, 1.0, roll) * uStatic * 0.09;
   }
 
   // [13] 扫描线：行间隙 + 孔径栅格 + 回扫亮带
   if (uScanline > 0.001) {
     float lines = 0.5 + 0.5 * sin(vUv.y * uRes.y * 3.14159265 - uTime * 2.0);
-    col *= 1.0 - uScanline * 0.34 * lines;
+    col *= 1.0 - uScanline * 0.20 * lines;
     float aperture = 0.5 + 0.5 * sin(px.x * 2.09439510);   // 2π/3，RGB 三元组
-    col *= 1.0 - uScanline * 0.10 * aperture;
+    col *= 1.0 - uScanline * 0.05 * aperture;
     float retrace = fract(vUv.y * 0.5 - uTime * 0.11);
-    col += smoothstep(0.972, 0.999, retrace) * uScanline * 0.055;
+    col += smoothstep(0.976, 0.999, retrace) * uScanline * 0.030;
   }
 
   fragColor = vec4(col, 1.0);
@@ -537,47 +560,68 @@ void main(){
     hudRgb = mix(hudRgb, max(hudRgb, gh.rgb * 0.7), uCorruption);
     hudA = max(hudA, gh.a * uCorruption * 0.35 * uHudGain);
   }
-  col = col * (1.0 - hudA * 0.28) + hudRgb * hudA;
+  // HUD 压暗它身下的画面再叠上去 —— 投影是「挡在眼前」的，
+  // 不压的话字会被后面的铁锈吃掉，只剩一层橙雾。
+  col = col * (1.0 - hudA * 0.80) + hudRgb * hudA;
   // 投影的辉光洒回玻璃
-  col += hudRgb * hudA * 0.18;
+  col += hudRgb * hudA * 0.08;
 
-  // 玻璃划痕：各向异性细线，被一道移动的高光点亮
+  // 玻璃划痕：各向异性细线，被一道移动的高光点亮。
+  // 只在高光扫过时才明显 —— 常亮的划痕会变成一张廉价的「脏镜头」贴图。
   float sc = vnoise(vec2(px.x * 0.12 + px.y * 0.9, px.y * 0.035));
   float sc2 = vnoise(vec2(px.x * 0.031, px.y * 0.14 - px.x * 0.6));
-  float scratch = pow(max(sc, sc2), 9.0);
+  float scratch = pow(max(sc, sc2), 12.0);
   float sheenPos = fract(uTime * 0.043);
   float sheen = exp(-pow((vUv.x - (sheenPos * 1.6 - 0.3) - vUv.y * 0.25) * 4.2, 2.0));
-  col += uBone * scratch * (0.05 + sheen * 0.55) * 0.6;
+  col += uBone * scratch * (0.012 + sheen * 0.42) * 0.42;
 
   // 玻璃整体反光：一道很淡的斜向梯度，让平面「有厚度」
   float gloss = smoothstep(0.75, 0.0, abs(vUv.x * 0.7 + vUv.y - 0.95 - sheenPos * 0.4));
-  col += vec3(0.055, 0.065, 0.085) * gloss * 0.5;
+  col += vec3(0.055, 0.065, 0.085) * gloss * 0.16;
 
   // [16] 起雾：呼气时从下缘与四角爬上来
   if (uFog > 0.001) {
-    float fogMask = smoothstep(0.38, 0.0, vUv.y) * 0.8 + smoothstep(0.45, 1.0, r) * 0.9;
+    float fogMask = smoothstep(0.34, 0.0, vUv.y) * 0.8 + smoothstep(0.52, 1.0, r) * 0.9;
     float fogN = fbm(vUv * 5.5 + vec2(0.0, -uTime * 0.05));
     float f = clamp(fogMask * (0.55 + fogN * 0.75), 0.0, 1.0) * uFog;
     f *= 0.55 + 0.45 * max(0.0, uBreathPhase);
-    vec3 fogCol = mix(uAbyss * 6.0, uBone * 0.30, 0.35);
-    col = mix(col, fogCol, clamp(f * 0.62, 0.0, 0.85));
+    vec3 fogCol = mix(uAbyss * 6.0, uBone * 0.30, 0.30);
+    col = mix(col, fogCol, clamp(f * 0.40, 0.0, 0.62));
   }
 
-  // [14] 晕影：椭圆，配 16:9
-  float vig = smoothstep(0.92, 0.28, r);
-  col *= mix(1.0, vig, uVignette);
+  // [14] 晕影：椭圆，配 16:9。
+  // 再叠一圈潜水面罩的硬边光圈 —— 这一圈黑是「构图」，
+  // 它把视线锁进中间的声呐屏，也是画面有纵深的主要来源。
+  float vig = smoothstep(1.06, 0.30, r);
+  col *= mix(1.0, vig, uVignette * 0.95);
+  float rim = smoothstep(0.40, 0.62, r);
+  col *= 1.0 - rim * 0.55 * uVignette;
+  // 非对称：下缘压得比上缘狠。面罩的下沿离脸最近，而且控制台那一条
+  // 大面积浅色金属会把视线从声呐屏上拖下去 —— 构图上必须把它按住。
+  col *= 1.0 - smoothstep(0.34, 0.0, vUv.y) * 0.42 * uVignette;
+  col *= 1.0 - smoothstep(0.80, 1.0, vUv.y) * 0.26 * uVignette;
 
-  // [15] CO₂ 隧道视野：边缘硬收缩 + 去饱和 + 跟心跳一起夹
+  // [15] CO₂ 隧道视野：边缘硬收缩 + 去饱和 + 跟心跳一起夹。
+  // 关键是「洞里」和「洞外」必须拉开差距 —— 只把边缘压暗会得到一张
+  // 单纯很黑的图，玩家读不出是自己快窒息了。所以洞内还要反向提亮。
   if (uTunnel > 0.001) {
-    float squeeze = uTunnel * (0.88 + 0.12 * uHeart);
-    float inner = mix(0.95, 0.10, squeeze);
-    float outer = mix(1.30, 0.42, squeeze);
-    float t = smoothstep(outer, inner, r);
+    // 隧道视野必须是屏幕空间里的**正圆**。用 uv 空间的半径会得到一个
+    // 宽扁的椭圆，看上去只是「画面变暗了」，而不是「我的视野在合上」。
+    float aspect = uRes.x / max(uRes.y, 1.0);
+    float rt = length(d * vec2(aspect, 1.0));
+    float squeeze = uTunnel * (0.86 + 0.14 * uHeart);
+    float inner = mix(1.10, 0.15, squeeze);
+    float outer = mix(1.60, 0.34, squeeze);
+    float t = smoothstep(outer, inner, rt);
     float g = luma(col);
-    col = mix(vec3(g) * vec3(0.72, 0.76, 0.92), col, mix(1.0, t, squeeze));
-    col *= mix(1.0, t, squeeze * 0.96);
-    // 视野边缘的暗红脉动 —— 血在耳朵里
-    col += vec3(0.34, 0.05, 0.07) * (1.0 - t) * squeeze * (0.12 + 0.20 * uHeart);
+    col = mix(vec3(g) * vec3(0.70, 0.74, 0.92), col, mix(1.0, t, squeeze));
+    // 洞外压到近乎全黑
+    col *= mix(1.0, t * t * (0.94 + 0.06 * t), squeeze);
+    // 洞内补偿：视野越窄，中心越被「盯住」
+    col *= 1.0 + squeeze * 0.55 * smoothstep(outer, inner * 0.55, rt);
+    // 洞沿的暗红脉动 —— 血在耳朵里。它跟心跳同相，是最强的窒息暗示。
+    float ring = smoothstep(outer, inner, rt) * (1.0 - smoothstep(inner, inner * 0.55, rt));
+    col += vec3(0.46, 0.05, 0.07) * ring * squeeze * (0.30 + 0.55 * uHeart);
   }
 
   // [17] 有序抖动
@@ -907,8 +951,8 @@ export class PostPipeline {
     this.pBright
       .tex('uSrc', 0, this.tWarp.tex)
       .v2('uTexel', 1 / this.w, 1 / this.h)
-      .f('uThreshold', 0.62)
-      .f('uKnee', 0.32);
+      .f('uThreshold', 0.80)
+      .f('uKnee', 0.22);
     this.draw();
 
     // ---- Pass C: 通道 7a 降采样链 --------------------------------------
@@ -929,7 +973,11 @@ export class PostPipeline {
       const dst = this.mips[i - 1];
       this.bind(dst);
       this.pUp.use();
-      this.pUp.tex('uSrc', 0, src.tex).v2('uTexel', 1 / src.w, 1 / src.h).f('uRadius', 1.15);
+      this.pUp
+        .tex('uSrc', 0, src.tex)
+        .v2('uTexel', 1 / src.w, 1 / src.h)
+        .f('uRadius', 1.15)
+        .f('uWeight', 0.62);
       this.draw();
     }
     gl.disable(gl.BLEND);
@@ -1045,17 +1093,17 @@ export function derivePost(i: PostDriveInput, into?: PostParams): PostParams {
   const flood = clamp01(i.flooding);
   const corr = clamp01(i.corruption);
 
-  p.vignette = 0.42 + fearN * 0.30 + madness * 0.18 + oxyLow * 0.12;
-  p.aberration = 0.22 + madness * 0.95 + fearN * 0.30 + corr * 0.55;
-  p.grain = 0.24 + madness * 0.42 + oxyLow * 0.22;
-  p.scanline = 0.24 + madness * 0.20;
+  p.vignette = 0.52 + fearN * 0.24 + madness * 0.14 + oxyLow * 0.10;
+  p.aberration = 0.16 + madness * 0.62 + fearN * 0.18 + corr * 0.30;
+  p.grain = 0.22 + madness * 0.30 + oxyLow * 0.16;
+  p.scanline = 0.22 + madness * 0.14;
   p.barrel = 0.15 + depthN * 0.10 + co2N * 0.06;
   p.breathe = 0.55 + fearN * 0.65 + co2N * 0.40;
-  p.warp = madness * madness * 1.15 + infN * 0.35;
-  p.bloom = 0.62 + madness * 0.55 + flood * 0.18;
-  p.caustics = 0.12 + flood * 0.75 + depthN * 0.15;
-  p.exposure = 1.0 - oxyLow * 0.18 + madness * 0.10;
-  p.static = 0.02 + corr * 0.34 + infN * 0.12;
+  p.warp = madness * madness * 0.85 + infN * 0.25;
+  p.bloom = 0.58 + madness * 0.34 + flood * 0.12;
+  p.caustics = 0.12 + flood * 0.60 + depthN * 0.12;
+  p.exposure = 1.0 - oxyLow * 0.14 + madness * 0.06;
+  p.static = 0.015 + corr * 0.18 + infN * 0.06;
   // CO2 隧道视野在 55 以上才开始咬人，之后急速收紧
   p.tunnel = Math.pow(clamp01((co2N - 0.45) / 0.55), 1.6) * 0.95 + (i.holdingBreath ? 0.06 : 0);
 

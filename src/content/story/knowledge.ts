@@ -56,6 +56,35 @@ export const KNOWLEDGE: readonly KnowledgeDef[] = [
     source: '生活层 / 铺位区',
   },
 
+  {
+    id: 'k.sonar-line',
+    title: '二十天的直线',
+    layer: 1,
+    requires: [],
+    summary: '声呐纸带二十天没有一个回波。只有一条直线，直线上每隔一段有一个半拍宽的缺口。',
+    revealText: '二十天，一条直线。缺口是半拍宽的。',
+    corrupted: '一条直线。缺口十七个。第十八个正在吐。',
+    source: '声呐室 / 拉出走纸机的纸带',
+  },
+  {
+    id: 'k.pumps-reversed',
+    title: '泵被接反了',
+    layer: 1,
+    requires: [],
+    summary: '排出口朝里。八个卡箍扭矩一致，最后一个垫了布——装的人不慌，但怕响。',
+    revealText: '管子接反了，而且接得很仔细。',
+    source: '泵舱 / 检查卡箍',
+  },
+  {
+    id: 'k.ladder-cut-from-below',
+    title: '梯子是从下面割的',
+    layer: 1,
+    requires: [],
+    summary: '逃生管廊的梯子上半段被气割掉，溅痕从下往上。有人站在下面割掉了自己的出路。',
+    revealText: '溅痕从下往上。他站在下面割的。',
+    source: '逃生管廊 / 看切口',
+  },
+
   // ------------------------------------------------------------------ L2 中层
   {
     id: 'k.not-research',
@@ -113,6 +142,17 @@ export const KNOWLEDGE: readonly KnowledgeDef[] = [
     revealText: '他们在点名。',
     corrupted: '他们在点名。有一个名字你答应了。',
     source: '圣所层礼拜堂 / 听完整一轮',
+  },
+
+  {
+    id: 'k.hull-was-designed-to-open',
+    title: '船体本来就打算打开',
+    layer: 2,
+    requires: ['k.breach-from-inside', 'k.not-research'],
+    summary: '破口边缘的旧漆下面刷着一行字：此处将开。字比这个洞早很多年。',
+    revealText: '「此处将开」。刷在造船的时候。',
+    corrupted: '「此处将开」。洞是照着字开的。',
+    source: '破口处 / 刮掉外面那层新漆',
   },
 
   // ------------------------------------------------------------------ L3 深层
@@ -181,6 +221,27 @@ export const KNOWLEDGE: readonly KnowledgeDef[] = [
     summary: '只有做了标记的门会变。变的方向总是把你往下推一层。',
     revealText: '它在推你往下走。',
     source: '在两道门上做标记后离开再回来',
+  },
+
+  {
+    id: 'k.they-wanted-out-to-it',
+    title: '他们是往外撞的',
+    layer: 3,
+    requires: ['k.breach-from-inside', 'k.signal-is-real'],
+    summary: '往外是水，逃不了。撞开一米不是为了逃，是为了离那个声音近一米。',
+    revealText: '不是为了逃。是为了近一米。',
+    corrupted: '近一米也算。你也会这么想的。',
+    source: '破口 / 在已确认信号为真之后重看卷边',
+  },
+  {
+    id: 'k.ship-breathes-with-you',
+    title: '船跟着你呼吸',
+    layer: 3,
+    requires: ['k.signal-is-real'],
+    summary: '泵舱水面的白沫、冷库里的布袋，都跟着你的呼吸起伏。你屏气，它们就停。',
+    revealText: '你屏气，它停。你呼气，它动。',
+    corrupted: '它不是在呼吸。它在跟。',
+    source: '泵舱水面 / 冷库第七个布袋 —— 屏住呼吸做对照',
   },
 
   // ------------------------------------------------------------------ L4 真层
@@ -260,6 +321,17 @@ export const KNOWLEDGE: readonly KnowledgeDef[] = [
     revealText: '她走完了。留下来的这部分，就是奖品。',
     corrupted: '她走完了。她在等你也走完，好有人陪她值班。',
     source: '档案室 / 第三号样本结案报告',
+  },
+
+  {
+    id: 'k.counting-is-the-ritual',
+    title: '数，就是仪式',
+    layer: 4,
+    requires: ['k.you-are-sample-n', 'k.choir-sings-manifest'],
+    summary: '"不要数"不是禁令，是分工。他们不数了，所以需要一个人替他们数。照片背面写着谢谢。',
+    revealText: '不是禁令，是分工。',
+    corrupted: '谢谢你替我们数。',
+    source: '铺位区照片背面 / 在已知"别数"之后再看',
   },
 
   // ------------------------------------------------------------------ L5 底层

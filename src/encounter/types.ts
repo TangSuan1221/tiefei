@@ -264,6 +264,17 @@ export interface EncounterRuntime extends EncounterState {
   markedExit: boolean;
   /** 连续静默回合数 —— 对付 THE LISTENER 的唯一硬指标 */
   silentStreak: number;
+  /**
+   * 谈判进度。人型敌人可以被"说下去"，但要说两次以上才算成立 ——
+   * 一次成功的恳求只是让它放下手，不是让它放你走。
+   */
+  negotiation: number;
+
+  /**
+   * `adaptive` 标签的敌人（第 N-1 个你）的学习记录：
+   * bonus = 已经额外获得的通道灵敏度；seenDecoys = 已经上过一次的诱饵通道，从此免疫。
+   */
+  adaptive: Map<ID, { bonus: Partial<Record<Sense, number>>; seenDecoys: Set<Sense> }>;
 
   /** defId → 当前认知档位。引擎在 begin() 时从账本快照，跨档时刷新 */
   cogTier: Record<ID, 0 | 1 | 2 | 3>;
@@ -300,7 +311,8 @@ export type ActionPhase = 'stalk' | 'contact' | 'panic' | 'any';
 export type ActionTag =
   | 'melee' | 'ranged' | 'thrown' | 'stealth' | 'info' | 'light' | 'sound'
   | 'medical' | 'social' | 'ritual' | 'escape' | 'defense' | 'panic'
-  | 'breath' | 'mask' | 'sacrifice' | 'precision' | 'loud' | 'silent';
+  | 'breath' | 'mask' | 'sacrifice' | 'precision' | 'loud' | 'silent'
+  | 'approach';
 
 /** 内容层写的动作。引擎把它包装成契约的 CombatAction */
 export interface ActionDef {

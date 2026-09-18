@@ -16,12 +16,21 @@ import type {
   Effect,
   ID,
   InteractionSpec,
+  LogTone,
   Prop,
   PropKind,
+  Rng,
   Room,
   RoomArchetype,
   Vec2,
+  WorldEvent,
 } from '../core/contract';
+
+/** 门与 prop 的实例序号。跟着图一起走，保证同一种子下 id 完全可复现 */
+export interface Counters {
+  door: number;
+  prop: number;
+}
 
 // ============================================================================
 // 门
@@ -359,7 +368,7 @@ export interface SetpieceContext {
 
 export interface SetpieceHookResult {
   /** 追加到玩家日志的文本 */
-  log?: { text: string; tone: 'neutral' | 'good' | 'bad' | 'eerie' | 'system' | 'whisper' }[];
+  log?: { text: string; tone: LogTone }[];
   effects?: readonly Effect[];
   /** 强制把玩家送到某个房间（莫比乌斯走廊要用） */
   teleportTo?: ID;
@@ -368,6 +377,23 @@ export interface SetpieceHookResult {
   /** 额外揭示的房间 */
   reveal?: readonly ID[];
   extraAnomalies?: SonarAnomaly[];
+  /** 直接派发的世界事件 */
+  worldEvents?: WorldEvent[];
+  /** 改变某一层的水位（倒悬压载舱：抽干这里 = 灌满下面） */
+  floodDelta?: { deck: number; amount: number };
+  /** 解锁指定门（回声室扫三次会"听出"一扇门） */
+  unlockDoors?: readonly ID[];
+  /** 从房间里拿掉 n 件东西（莫比乌斯走廊每圈少一件） */
+  removeProps?: number;
+  /** 覆写房间名（镜像舱会变成上一个房间的名字） */
+  renameTo?: string;
+}
+
+export interface SetpieceBuildContext {
+  graph: WorldGraph;
+  room: WorldRoom;
+  rng: Rng;
+  counters: Counters;
 }
 
 export interface SetpieceDef {
@@ -378,31 +404,21 @@ export interface SetpieceDef {
   /** 允许放置的甲板 */
   decks: readonly number[];
   weight: number;
-  /** 一次生成最多放几个 */
-  maxPerRun: number;
-  /** 是否必放 */
+  /** 是否必放 —— GDD §6.4 列出的五个是硬要求 */
   guaranteed: boolean;
   /** 房间变体 id（manualOnly） */
   variantId: string;
+  /** 挂接这处房间用的门角色。setpiece 永不出现在关键路径上 */
+  attachAs: DoorRole;
   /** 放置前置条件 */
   canPlace?(graph: WorldGraph, deck: number): boolean;
   /** 放置后对房间与图做定制改造 */
-  build?(graph: WorldGraph, room: WorldRoom, rng: SetpieceRng): void;
+  build?(ctx: SetpieceBuildContext): void;
   onEnter?(ctx: SetpieceContext): SetpieceHookResult | void;
   onExit?(ctx: SetpieceContext): SetpieceHookResult | void;
   onPing?(ctx: SetpieceContext, mode: SonarMode): SetpieceHookResult | void;
   /** 仅当条件满足才对声呐可见（零号舱：SAN < 20） */
   sonarVisible?(ctx: { san: number; cycle: number }): boolean;
-}
-
-/** setpiece build 只需要 Rng 的一小部分，单独声明便于测试 */
-export interface SetpieceRng {
-  int(min: number, max: number): number;
-  float(min: number, max: number): number;
-  bool(p?: number): boolean;
-  pick<T>(arr: readonly T[]): T;
-  next(): number;
-  shuffle<T>(arr: T[]): T[];
 }
 
 // ============================================================================

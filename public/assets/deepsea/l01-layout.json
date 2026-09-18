@@ -1,0 +1,509 @@
+{
+  "version": 1,
+  "asset": "l01-processing.glb",
+  "scope": "first-level vertical slice only: main hall + 3m short corridor",
+  "coordinateSystem": {
+    "up": "+Y",
+    "forward": "-Z",
+    "units": "meters",
+    "blenderToThree": "(x,z,-y); glTF already converted, do not rotate again"
+  },
+  "bounds": {
+    "min": [
+      -9,
+      -4,
+      -11
+    ],
+    "max": [
+      9,
+      4,
+      11
+    ]
+  },
+  "corridor": {
+    "min": [
+      -2.2,
+      -2.1,
+      -14
+    ],
+    "max": [
+      2.2,
+      2.1,
+      -11
+    ]
+  },
+  "spawn": {
+    "name": "spawn_player",
+    "position": [
+      0,
+      0,
+      8
+    ],
+    "forward": [
+      0,
+      0,
+      -1
+    ]
+  },
+  "doors": [
+    {
+      "id": "door_transfer",
+      "anchor": "int_door_transfer",
+      "center": [
+        0,
+        0,
+        -11
+      ],
+      "width": 4.4,
+      "height": 4.2,
+      "thickness": 0.3,
+      "initialState": "open",
+      "panelNode": "geo_door_transfer",
+      "closedPosition": [
+        0,
+        0,
+        -11.16
+      ],
+      "openPosition": [
+        -4.65,
+        0,
+        -11.16
+      ],
+      "slideAxis": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "door_entry",
+      "center": [
+        0,
+        0,
+        11
+      ],
+      "width": 4.4,
+      "height": 4.2,
+      "initialState": "open",
+      "connectsExternalWorld": false
+    }
+  ],
+  "crates": [
+    {
+      "id": "supply",
+      "anchor": "int_cache_supply",
+      "position": [
+        6,
+        -2.3,
+        3
+      ],
+      "size": [
+        1.4,
+        1.1,
+        0.9
+      ],
+      "lidNode": "crate_lid_supply",
+      "hinge": [
+        6,
+        -1.86,
+        2.57
+      ],
+      "hingeAxis": [
+        1,
+        0,
+        0
+      ],
+      "openAngleRadians": -1.85,
+      "items": [
+        "sup.cell",
+        "sup.lure"
+      ],
+      "itemNodes": [
+        "item_supply_cell",
+        "item_supply_lure"
+      ]
+    },
+    {
+      "id": "tools",
+      "anchor": "int_cache_tools",
+      "position": [
+        -6,
+        -2.3,
+        -4
+      ],
+      "size": [
+        1.4,
+        1.1,
+        0.9
+      ],
+      "lidNode": "crate_lid_tools",
+      "hinge": [
+        -6,
+        -1.86,
+        -4.43
+      ],
+      "hingeAxis": [
+        1,
+        0,
+        0
+      ],
+      "openAngleRadians": -1.85,
+      "items": [
+        "sup.tape",
+        "sup.tape",
+        "sup.cutter"
+      ],
+      "itemNodes": [
+        "item_tools_tape01",
+        "item_tools_tape02",
+        "item_tools_cutter"
+      ]
+    }
+  ],
+  "obstacles": [
+    {
+      "name": "rack_and_cache_supply",
+      "min": [
+        5.15,
+        -4,
+        2.425
+      ],
+      "max": [
+        6.85,
+        -1.7499999999999998,
+        3.575
+      ]
+    },
+    {
+      "name": "rack_and_cache_tools",
+      "min": [
+        -6.85,
+        -4,
+        -4.575
+      ],
+      "max": [
+        -5.15,
+        -1.7499999999999998,
+        -3.425
+      ]
+    },
+    {
+      "name": "geo_separator",
+      "min": [
+        -5.1,
+        -4,
+        -3.9
+      ],
+      "max": [
+        0.75,
+        1.0,
+        2.9
+      ]
+    },
+    {
+      "name": "geo_diver",
+      "min": [
+        4.95,
+        -4,
+        -6.1
+      ],
+      "max": [
+        6.65,
+        -2.98,
+        -3.65
+      ]
+    }
+  ],
+  "walls": [
+    {
+      "name": "geo_wall_left",
+      "min": [
+        -9.3,
+        -4.3,
+        -11.3
+      ],
+      "max": [
+        -9.0,
+        4.3,
+        11.3
+      ]
+    },
+    {
+      "name": "geo_wall_right",
+      "min": [
+        9.0,
+        -4.3,
+        -11.3
+      ],
+      "max": [
+        9.3,
+        4.3,
+        11.3
+      ]
+    },
+    {
+      "name": "geo_floor",
+      "min": [
+        -9.0,
+        -4.3,
+        -11.0
+      ],
+      "max": [
+        9.0,
+        -4.0,
+        11.0
+      ]
+    },
+    {
+      "name": "geo_ceiling",
+      "min": [
+        -9.0,
+        4.0,
+        -11.0
+      ],
+      "max": [
+        9.0,
+        4.3,
+        11.0
+      ]
+    },
+    {
+      "name": "geo_front_pier_-1",
+      "min": [
+        -9.0,
+        -4.3,
+        -11.3
+      ],
+      "max": [
+        -2.2,
+        4.3,
+        -11.0
+      ]
+    },
+    {
+      "name": "geo_front_pier_1",
+      "min": [
+        2.2,
+        -4.3,
+        -11.3
+      ],
+      "max": [
+        9.0,
+        4.3,
+        -11.0
+      ]
+    },
+    {
+      "name": "geo_front_lintel_-1",
+      "min": [
+        -2.2,
+        -4.0,
+        -11.3
+      ],
+      "max": [
+        2.2,
+        -2.1,
+        -11.0
+      ]
+    },
+    {
+      "name": "geo_front_lintel_1",
+      "min": [
+        -2.2,
+        2.1,
+        -11.3
+      ],
+      "max": [
+        2.2,
+        4.0,
+        -11.0
+      ]
+    },
+    {
+      "name": "geo_rear_pier_-1",
+      "min": [
+        -9.0,
+        -4.3,
+        11.0
+      ],
+      "max": [
+        -2.2,
+        4.3,
+        11.3
+      ]
+    },
+    {
+      "name": "geo_rear_pier_1",
+      "min": [
+        2.2,
+        -4.3,
+        11.0
+      ],
+      "max": [
+        9.0,
+        4.3,
+        11.3
+      ]
+    },
+    {
+      "name": "geo_rear_lintel_-1",
+      "min": [
+        -2.2,
+        -4.0,
+        11.0
+      ],
+      "max": [
+        2.2,
+        -2.1,
+        11.3
+      ]
+    },
+    {
+      "name": "geo_rear_lintel_1",
+      "min": [
+        -2.2,
+        2.1,
+        11.0
+      ],
+      "max": [
+        2.2,
+        4.0,
+        11.3
+      ]
+    },
+    {
+      "name": "geo_corridor_side",
+      "min": [
+        -2.5,
+        -2.4,
+        -14.15
+      ],
+      "max": [
+        -2.2,
+        2.4,
+        -11.15
+      ]
+    },
+    {
+      "name": "geo_corridor_side.001",
+      "min": [
+        2.2,
+        -2.4,
+        -14.15
+      ],
+      "max": [
+        2.5,
+        2.4,
+        -11.15
+      ]
+    },
+    {
+      "name": "geo_corridor_slab",
+      "min": [
+        -2.2,
+        -2.4,
+        -14.15
+      ],
+      "max": [
+        2.2,
+        -2.1,
+        -11.15
+      ]
+    },
+    {
+      "name": "geo_corridor_slab.001",
+      "min": [
+        -2.2,
+        2.1,
+        -14.15
+      ],
+      "max": [
+        2.2,
+        2.4,
+        -11.15
+      ]
+    }
+  ],
+  "safeRoute": [
+    [
+      0,
+      0,
+      8
+    ],
+    [
+      3.5,
+      0,
+      4.5
+    ],
+    [
+      4.8,
+      0,
+      0
+    ],
+    [
+      4.8,
+      0,
+      -6.5
+    ],
+    [
+      0,
+      0,
+      -9
+    ],
+    [
+      0,
+      0,
+      -13
+    ]
+  ],
+  "observations": [
+    {
+      "name": "int_body_diver01",
+      "position": [
+        5.8,
+        -3,
+        -5.2
+      ]
+    },
+    {
+      "name": "trigger_echo_observe",
+      "position": [
+        0,
+        0,
+        -10
+      ]
+    }
+  ],
+  "notes": [
+    "The supplied hall-local brief supersedes the larger A/B/C/D/E/F map positions for this build.",
+    "No lights, camera, water volume, particle systems or invisible collision proxies are exported.",
+    "Doors are supplied open, separately movable. JSON door state must be respected by runtime collision.",
+    "Collision records are conservative object-group AABBs in Three coordinates. Small bolts/cables/fauna are decorative."
+  ],
+  "buildStage": "detailed",
+  "exportObjects": 35,
+  "meshBounds": {
+    "min": [
+      -9.3,
+      -4.3,
+      -14.15
+    ],
+    "max": [
+      9.3,
+      4.3,
+      11.47
+    ]
+  },
+  "stats": {
+    "objects": 35,
+    "meshes": 28,
+    "polygons": 26353,
+    "materials": 8
+  },
+  "buildMethod": "local Blender background process; live MCP dispatch unavailable on 2026-09-18",
+  "limitations": [
+    "Main hall and short corridor only; not the full first-level route or seven levels.",
+    "No real-world scan assets; textures are deterministic packed PBR images.",
+    "Runtime inventory and door-state integration are not implemented by this asset build."
+  ]
+}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="data:,"><title>三号采矿区 · Blender 首关试制</title>
+  <style>
+    :root{color-scheme:dark;font-family:"Microsoft YaHei",sans-serif;background:#05090c;color:#a4aca8}
+    *{box-sizing:border-box}body{margin:0;overflow:hidden}header{height:54px;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #273235;background:#0b1115}
+    h1{margin:0;font-size:14px;font-weight:500;letter-spacing:2px;color:#d5c8ac}header span{font-size:11px;color:#758481;letter-spacing:1px}
+    #view{display:block;width:100vw;height:calc(100vh - 108px);background:#010406}
+    footer{height:54px;display:flex;gap:22px;align-items:center;padding:8px 24px;border-top:1px solid #273235;background:#0b1115;font-size:12px}
+    #status{flex:1;margin:0}a,button{color:#cab896;background:#182126;border:1px solid #414747;padding:7px 12px;text-decoration:none;font:inherit;cursor:pointer}button:hover,a:hover{border-color:#cab896}
+    #error{position:fixed;inset:20% 12%;padding:32px;background:#111b20;border:1px solid #8d7960;display:none;white-space:pre-wrap;line-height:1.8}
+  </style>
+</head>
+<body>
+  <header><h1>三号采矿区 / 破口处理大厅</h1><span>BLENDER → THREE.JS · 首关试制 · 非七关最终版</span></header>
+  <canvas id="view"></canvas>
+  <footer><p id="status">初始化</p><button id="reset">重置试制场景</button><a href="/">返回游戏</a></footer>
+  <div id="error"></div>
+  <script type="module" src="/src/pod/view/deepsea/level-preview.ts"></script>
+</body>
+</html>

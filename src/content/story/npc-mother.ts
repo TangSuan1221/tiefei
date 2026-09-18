@@ -55,7 +55,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.first.yes',
         label: '"吃过了。"',
         cost: 2,
-        effects: [setf('did.answered-food'), addf('count.answered-mother', 1)],
+        effects: [addf('count.answered-mother', 1)],
         goto: 'mother.fed',
       }),
       c({
@@ -69,10 +69,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.first.who',
         label: '"谁在说话。"',
         cost: 2,
-        effects: [setf('did.asked-mother-who')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.who',
       }),
-      silence('mother.first.silent', 'mother.nosound'),
+      silence('mother.first.silent', 'mother.nosound')
     ],
   },
   {
@@ -85,11 +85,9 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
       c({
         id: 'mother.fed.bowl',
         label: '"我没有碗。"',
-        cost: 2,
-        effects: [setf('did.mentioned-no-bowl')],
-        goto: 'mother.bowl',
+        cost: 2,        goto: 'mother.bowl',
       }),
-      go('mother.fed.channel', '……', 'mother.pa'),
+      go('mother.fed.channel', '……', 'mother.pa')
     ],
   },
   {
@@ -104,10 +102,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.bowl.thanks',
         label: '"谢谢。"',
         cost: 2,
-        effects: [setf('did.thanked-mother'), san(3)],
+        effects: [san(3)],
         goto: 'mother.pa',
       }),
-      go('mother.bowl.drop', '……', 'mother.pa'),
+      go('mother.bowl.drop', '……', 'mother.pa')
     ],
   },
   {
@@ -116,16 +114,16 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
     text: '那就去吃。（咔）路上灯我开着。',
     corruptedText: cor([45, '那就去吃。（咔）路上灯我开着。一直开着。开了很久。']),
     tags: ['key'],
-    onEnter: [setf('did.mother-lit-path'), san(4)],
+    onEnter: [san(4)],
     choices: [
       c({
         id: 'mother.hungry.why',
         label: '"为什么帮我。"',
         cost: 2,
-        effects: [setf('did.asked-why-help')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.whyhelp',
       }),
-      go('mother.hungry.go', '……', 'mother.pa'),
+      go('mother.hungry.go', '……', 'mother.pa')
     ],
   },
   {
@@ -141,23 +139,21 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
     speaker: '广播',
     text: '（咔）水位到膝盖就别往下走了。（咔）听见了吗。',
     corruptedText: cor([45, '（咔）水位到膝盖就别往下走了。你的膝盖是湿的。']),
-    tags: ['key'],
-    onEnter: [setf('did.mother-dodged-once')],
-    choices: [
+    tags: ['key'],    choices: [
       c({
         id: 'mother.who.again',
         label: '"我问你是谁。"',
         cost: 2,
-        effects: [addf('count.asked-mother-identity', 1), setf('did.asked-mother-name')],
+        effects: [addf('count.asked-mother-identity', 1), addf('count.questions', 1)],
         goto: 'mother.who2',
       }),
       c({
         id: 'mother.who.heard',
         label: '"听见了。"',
         cost: 2,
-        effects: [setf('did.obeyed-mother'), addf('count.answered-mother', 1)],
+        effects: [addf('count.answered-mother', 1)],
         goto: 'mother.pa',
-      }),
+      })
     ],
   },
   {
@@ -177,7 +173,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         effects: [addf('count.asked-mother-identity', 1)],
         goto: 'mother.who3',
       }),
-      go('mother.who2.stop', '不问了。', 'mother.pa'),
+      go('mother.who2.stop', '不问了。', 'mother.pa')
     ],
   },
   {
@@ -194,7 +190,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: num('count.mother-asked-food', '>=', 2),
         gateMode: 'disable',
-        effects: [setf('did.caught-repeat'), addf('count.debunks', 1), san(5)],
+        effects: [addf('count.debunks', 1), san(5)],
         goto: 'mother.repeat',
       }),
       c({
@@ -203,7 +199,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 2,
         effects: [addf('count.answered-mother', 1)],
         goto: 'mother.pa',
-      }),
+      })
     ],
   },
   {
@@ -212,7 +208,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
     text: '（咔）',
     corruptedText: cor([40, '（咔）（咔）']),
     tags: ['key'],
-    onEnter: [sfx('tape.splice'), setf('did.heard-splice')],
+    onEnter: [sfx('tape.splice') ],
     choices: [
       c({
         id: 'mother.repeat.click',
@@ -221,7 +217,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         effects: [learn('k.mother-is-spliced')],
         goto: 'mother.spliced',
       }),
-      silence('mother.repeat.silent', 'mother.pa'),
+      silence('mother.repeat.silent', 'mother.pa')
     ],
   },
   {
@@ -236,10 +232,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.spliced.worse',
         label: '所以这些话是真的，只是次序被换了。',
         cost: 2,
-        effects: [setf('did.realized-words-real'), san(-4)],
+        effects: [san(-4)],
         goto: 'mother.wordsreal',
       }),
-      go('mother.spliced.back', '……', 'mother.pa'),
+      go('mother.spliced.back', '……', 'mother.pa')
     ],
   },
   {
@@ -255,7 +251,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
     text: '（咔）好。（咔）不说就不说。灯我留着。',
     corruptedText: cor([45, '（咔）不说就不说。灯我留着。留到你回来。']),
     tags: ['key'],
-    onEnter: [setf('did.mother-left-light'), mark('silence', 1)],
+    onEnter: [mark('silence', 1)],
     choices: [go('mother.nosound.go', '……', 'mother.pa')],
   },
 
@@ -285,7 +281,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         label: '叫她"妈"。',
         cost: 2,
         irreversible: true,
-        effects: [setf('did.called-her-mom'), mark('listening', 2), san(-3)],
+        effects: [mark('listening', 2), san(-3)],
         goto: 'mother.mom',
       }),
       c({
@@ -294,7 +290,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.mother-is-spliced'),
         gateMode: 'disable',
-        effects: [setf('did.denied-mother'), mark('apostasy', 1)],
+        effects: [mark('apostasy', 1)],
         goto: 'mother.denied',
       }),
       c({
@@ -302,9 +298,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         label: '"名单第三行。"',
         cost: 3,
         requires: K('k.mother-was-crew'),
-        gateMode: 'disable',
-        effects: [setf('did.said-third-row')],
-        goto: 'mother.thirdrow',
+        gateMode: 'disable',        goto: 'mother.thirdrow',
       }),
       c({
         id: 'mother.pa.finished',
@@ -312,21 +306,21 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.mother-is-sample-three'),
         gateMode: 'disable',
-        effects: [setf('did.asked-if-finished')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.finished',
       }),
       c({
         id: 'mother.pa.lights',
         label: '"把灯全关掉。"',
         cost: 3,
-        effects: [setf('did.asked-lights-off')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.lightsoff',
       }),
       c({
         id: 'mother.pa.water',
         label: '"水位。"',
         cost: 2,
-        effects: [setf('did.asked-mother-water'), addf('count.water-checks', 1)],
+        effects: [addf('count.questions', 1), addf('count.water-checks', 1)],
         goto: 'mother.water',
       }),
       c({
@@ -335,7 +329,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: all(on('met.choir'), K('k.cult-was-right')),
         gateMode: 'lie',
-        effects: [setf('did.asked-mother-reliquary')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.reliquary',
       }),
       c({
@@ -343,9 +337,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         label: '去医务室慢速回放这段广播。',
         cost: 4,
         requires: item('tape.mother'),
-        gateMode: 'hide',
-        effects: [setf('did.slowed-tape')],
-        goto: 'mother.tape.slow',
+        gateMode: 'hide',        goto: 'mother.tape.slow',
       }),
       c({
         id: 'mother.pa.pelle',
@@ -353,7 +345,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: on('met.pelle'),
         gateMode: 'hide',
-        effects: [setf('did.asked-mother-pelle')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.pelle',
       }),
       c({
@@ -362,10 +354,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: on('met.choir'),
         gateMode: 'hide',
-        effects: [setf('did.asked-mother-sing')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.sing',
       }),
-      c({ id: 'mother.pa.leave', label: '走开。', cost: 1, goto: 'mother.leaving' }),
+      c({ id: 'mother.pa.leave', label: '走开。', cost: 1, goto: 'mother.leaving' })
     ],
   },
   {
@@ -383,7 +375,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         effects: [addf('count.called-mom', 1), mark('listening', 1), san(-4)],
         goto: 'mother.mom2',
       }),
-      silence('mother.mom.silent', 'mother.pa'),
+      silence('mother.mom.silent', 'mother.pa')
     ],
   },
   {
@@ -402,7 +394,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         effects: [addf('count.called-mom', 1), san(-6), mark('listening', 1)],
         goto: 'mother.mom3',
       }),
-      go('mother.mom2.stop', '不叫了。', 'mother.pa'),
+      go('mother.mom2.stop', '不叫了。', 'mother.pa')
     ],
   },
   {
@@ -419,10 +411,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.mother-is-spliced'),
         gateMode: 'disable',
-        effects: [setf('did.noticed-clean-word'), addf('count.debunks', 1)],
+        effects: [addf('count.debunks', 1)],
         goto: 'mother.clean',
       }),
-      silence('mother.mom3.silent', 'mother.pa'),
+      silence('mother.mom3.silent', 'mother.pa')
     ],
   },
   {
@@ -439,17 +431,15 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
     speaker: '广播',
     text: '（咔）好。（咔）水位到膝盖就别往下走了。',
     corruptedText: cor([45, '（咔）好。（她没有反驳。她从来不反驳。）']),
-    tags: ['key'],
-    onEnter: [setf('did.mother-accepted-denial')],
-    choices: [
+    tags: ['key'],    choices: [
       c({
         id: 'mother.denied.press',
         label: '"你就不问为什么？"',
         cost: 2,
-        effects: [setf('did.pressed-mother-denial')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.nopress',
       }),
-      go('mother.denied.drop', '……', 'mother.pa'),
+      go('mother.denied.drop', '……', 'mother.pa')
     ],
   },
   {
@@ -471,7 +461,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.thirdrow.why',
         label: '"为什么签。"',
         cost: 2,
-        effects: [setf('did.asked-why-she-signed')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.whysign',
       }),
       c({
@@ -480,9 +470,9 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.manifest-nineteen'),
         gateMode: 'disable',
-        effects: [setf('did.asked-am-i-listed')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.amilisted',
-      }),
+      })
     ],
   },
   {
@@ -497,10 +487,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.whysign.blame',
         label: '"因为我不在。"',
         cost: 2,
-        effects: [setf('did.took-blame'), san(-6)],
+        effects: [san(-6)],
         goto: 'mother.blame',
       }),
-      silence('mother.whysign.silent', 'mother.pa'),
+      silence('mother.whysign.silent', 'mother.pa')
     ],
   },
   {
@@ -532,16 +522,16 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.finished.how',
         label: '"走完了是什么意思。"',
         cost: 2,
-        effects: [setf('did.asked-what-finished-means')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.meaning',
       }),
       c({
         id: 'mother.finished.food',
         label: '"吃过了。"',
         cost: 2,
-        effects: [addf('count.answered-mother', 1), setf('did.answered-after-truth'), san(-4)],
+        effects: [addf('count.answered-mother', 1), san(-4)],
         goto: 'mother.afterTruth',
-      }),
+      })
     ],
   },
   {
@@ -556,10 +546,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.meaning.alone',
         label: '"你一个人值了多久。"',
         cost: 2,
-        effects: [setf('did.asked-how-long'), san(-5)],
+        effects: [addf('count.questions', 1), san(-5)],
         goto: 'mother.howlong',
       }),
-      silence('mother.meaning.silent', 'mother.pa'),
+      silence('mother.meaning.silent', 'mother.pa')
     ],
   },
   {
@@ -576,10 +566,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: K('k.you-are-sample-n'),
         gateMode: 'disable',
-        effects: [setf('did.said-they-were-me'), san(-8)],
+        effects: [san(-8)],
         goto: 'mother.seventeen',
       }),
-      silence('mother.howlong.silent', 'mother.pa'),
+      silence('mother.howlong.silent', 'mother.pa')
     ],
   },
   {
@@ -595,7 +585,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         label: '"这次我回来关。"',
         cost: 2,
         irreversible: true,
-        effects: [setf('did.promised-to-return'), mark('iron', 1)],
+        effects: [mark('iron', 1)],
         goto: 'mother.promise',
       }),
       c({
@@ -603,9 +593,9 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         label: '"别留了。"',
         cost: 2,
         irreversible: true,
-        effects: [setf('did.told-her-stop-waiting'), mark('silence', 2), san(4)],
+        effects: [addf('count.questions', 1), mark('silence', 2), san(4)],
         goto: 'mother.stopwaiting',
-      }),
+      })
     ],
   },
   {
@@ -628,16 +618,16 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.stopwaiting.thanks',
         label: '"谢谢。"',
         cost: 2,
-        effects: [setf('did.thanked-for-dark'), mark('silence', 1)],
+        effects: [mark('silence', 1)],
         goto: 'mother.pa',
       }),
       c({
         id: 'mother.stopwaiting.take',
         label: '"再开一下。"',
         cost: 2,
-        effects: [setf('did.asked-light-back'), addf('count.futile-acts', 1)],
+        effects: [addf('count.questions', 1), addf('count.futile-acts', 1)],
         goto: 'mother.relight',
-      }),
+      })
     ],
   },
   {
@@ -667,10 +657,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.lightsoff.insist',
         label: '"关。"',
         cost: 2,
-        effects: [setf('did.lights-off'), mark('silence', 2), san(-4)],
+        effects: [mark('silence', 2), san(-4)],
         goto: 'mother.dark',
       }),
-      go('mother.lightsoff.cancel', '"算了。"', 'mother.pa'),
+      go('mother.lightsoff.cancel', '"算了。"', 'mother.pa')
     ],
   },
   {
@@ -685,16 +675,16 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.dark.turn',
         label: '转身。',
         cost: 2,
-        effects: [setf('did.turned-in-dark'), fear(10), san(-6)],
+        effects: [fear(10), san(-6)],
         goto: 'mother.behind',
       }),
       c({
         id: 'mother.dark.light',
         label: '"开灯。"',
         cost: 2,
-        effects: [setf('did.asked-light-back'), addf('count.futile-acts', 1)],
+        effects: [addf('count.questions', 1), addf('count.futile-acts', 1)],
         goto: 'mother.relight',
-      }),
+      })
     ],
   },
   {
@@ -718,10 +708,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.water.rate',
         label: '"多久到膝盖。"',
         cost: 2,
-        effects: [setf('did.asked-flood-rate')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.rate',
       }),
-      go('mother.water.ok', '……', 'mother.pa'),
+      go('mother.water.ok', '……', 'mother.pa')
     ],
   },
   {
@@ -744,10 +734,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.reliquary.who',
         label: '"谁在里面。"',
         cost: 2,
-        effects: [setf('did.asked-who-inside')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.whoinside',
       }),
-      go('mother.reliquary.drop', '……', 'mother.pa'),
+      go('mother.reliquary.drop', '……', 'mother.pa')
     ],
   },
   {
@@ -772,10 +762,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         label: '"他叫佩勒。"',
         cost: 2,
         requires: on('met.pelle'),
-        effects: [setf('did.told-mother-pelle-name')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.pelle.name',
       }),
-      go('mother.pelle.drop', '……', 'mother.pa'),
+      go('mother.pelle.drop', '……', 'mother.pa')
     ],
   },
   {
@@ -792,10 +782,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.pelle-not-on-list'),
         gateMode: 'disable',
-        effects: [setf('did.asked-pelle-number')],
+        effects: [addf('count.questions', 1)],
         goto: 'mother.pelle.number',
       }),
-      silence('mother.pelle.name.silent', 'mother.pa'),
+      silence('mother.pelle.name.silent', 'mother.pa')
     ],
   },
   {
@@ -818,10 +808,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.sing.ask',
         label: '"唱一句。"',
         cost: 3,
-        effects: [setf('did.asked-her-to-sing'), mark('listening', 1)],
+        effects: [addf('count.questions', 1), mark('listening', 1)],
         goto: 'mother.sang',
       }),
-      go('mother.sing.drop', '……', 'mother.pa'),
+      go('mother.sing.drop', '……', 'mother.pa')
     ],
   },
   {
@@ -836,10 +826,10 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         id: 'mother.sang.name',
         label: '"安内莉。"',
         cost: 2,
-        effects: [setf('did.spoke-her-name'), san(-4), mark('listening', 1)],
+        effects: [san(-4), mark('listening', 1)],
         goto: 'mother.named',
       }),
-      silence('mother.sang.silent', 'mother.pa'),
+      silence('mother.sang.silent', 'mother.pa')
     ],
   },
   {
@@ -857,14 +847,14 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
     text: '磁带放慢到四分之一速。她的声音变低，剪接处变成一串"咔"。\n三十七秒里有十四个接头。第十四个后面还有零点三秒的东西。',
     corruptedText: cor([40, '十四个接头。第十四个后面有零点三秒。那零点三秒不是她。']),
     tags: ['key'],
-    onEnter: [learn('k.mother-is-spliced'), setf('did.counted-splices')],
+    onEnter: [learn('k.mother-is-spliced') ],
     choices: [
       c({
         id: 'mother.tape.slow.play',
         label: '把那零点三秒放出来。',
         cost: 4,
         irreversible: true,
-        effects: [setf('did.played-tail'), san(-10), loud(8), fear(16)],
+        effects: [san(-10), loud(8), fear(16)],
         goto: 'mother.tape.tail',
       }),
       c({
@@ -873,7 +863,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 1,
         effects: [mark('silence', 1)],
         goto: 'mother.pa',
-      }),
+      })
     ],
   },
   {
@@ -890,24 +880,22 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.vance-is-the-recorder'),
         gateMode: 'disable',
-        effects: [setf('did.linked-vance-to-tape'), san(-5)],
+        effects: [san(-5)],
         goto: 'mother.tape.vance',
       }),
       c({
         id: 'mother.tape.tail.keep',
         label: '把磁带收起来。',
-        cost: 2,
-        effects: [setf('did.kept-tape')],
-        goto: 'mother.pa',
+        cost: 2,        goto: 'mother.pa',
       }),
       c({
         id: 'mother.tape.tail.destroy',
         label: '抽出磁带，扯断。',
         cost: 3,
         irreversible: true,
-        effects: [take('tape.mother'), setf('did.destroyed-tape'), mark('apostasy', 2), san(6)],
+        effects: [take('tape.mother'), mark('apostasy', 2), san(6)],
         goto: 'mother.tape.broken',
-      }),
+      })
     ],
   },
   {
@@ -933,7 +921,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         effects: [setf('know.not-the-tape'), san(-6)],
         goto: 'mother.notTape',
       }),
-      silence('mother.tape.broken.silent', 'mother.pa'),
+      silence('mother.tape.broken.silent', 'mother.pa')
     ],
   },
   {
@@ -950,9 +938,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
     speaker: '广播',
     text: '（咔）灯我留着。',
     corruptedText: cor([45, '（咔）灯我留着。（咔）你吃过东西了吗。']),
-    tags: ['key'],
-    onEnter: [setf('did.mother-left-light')],
-    choices: [
+    tags: ['key'],    choices: [
       c({
         id: 'mother.leaving.back',
         label: '回头再说两句。',
@@ -961,7 +947,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
         gateMode: 'disable',
         goto: 'mother.pa',
       }),
-      c({ id: 'mother.leaving.go', label: '走。', cost: 1, effects: [setf('did.walked-away-from-mother')] }),
+      c({ id: 'mother.leaving.go', label: '走。', cost: 1, effects: [] })
     ],
   },
   {
@@ -970,16 +956,16 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
     text: '（咔）我吃过东西了吗。',
     corruptedText: cor([40, '（咔）我吃过东西了吗。（咔）我吃过东西了吗。']),
     tags: ['entry', 'key'],
-    onEnter: [setf('did.mother-asked-herself'), san(-10)],
+    onEnter: [san(-10)],
     choices: [
       c({
         id: 'mother.last.answer',
         label: '"吃过了。"',
         cost: 2,
-        effects: [setf('did.answered-for-her'), mark('flesh', 1), san(-4)],
+        effects: [mark('flesh', 1), san(-4)],
         goto: 'mother.last.answered',
       }),
-      silence('mother.last.silent', 'mother.last.silent', '不回答。'),
+      silence('mother.last.silent', 'mother.last.silent', '不回答。')
     ],
   },
   {
@@ -989,7 +975,7 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
     corruptedText: cor([40, '（咔）好。（咔）碗放着。（没有碗。没有桌子。没有食堂。）']),
     tags: ['key'],
     choices: [
-      c({ id: 'mother.last.answered.go', label: '走。', cost: 1, effects: [setf('did.left-her-asking')] }),
+      c({ id: 'mother.last.answered.go', label: '走。', cost: 1, effects: [] })
     ],
   },
   {
@@ -998,11 +984,11 @@ export const MOTHER_NODES: readonly NarrativeNode[] = [
     text: '（咔）',
     corruptedText: cor([40, '（咔）（咔）（咔）']),
     tags: ['key'],
-    onEnter: [mark('silence', 2), setf('did.left-her-asking')],
+    onEnter: [mark('silence', 2) ],
     choices: [
-      c({ id: 'mother.last.silent.go', label: '走。', cost: 1, effects: [setf('did.walked-away-from-mother')] }),
+      c({ id: 'mother.last.silent.go', label: '走。', cost: 1, effects: [] })
     ],
-  },
+  }
 ];
 
 /** 母亲换话题的那一下，其实解了圣物室的门闩。她不会说这件事。 */

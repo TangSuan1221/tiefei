@@ -299,10 +299,22 @@ export class VitalsEngine implements VitalsSystem {
     const dark = 1 - light;
     const corruption = this.filter?.corruption ?? 0;
 
+    /*
+     * 屏息会削弱"被注视"的压迫 —— 这是屏息的第三重收益，也是让它成为
+     * 真正的微观决策而不是单纯自虐的关键。
+     *
+     * 理由既是叙事的也是数值的：叙事上，一个静止、无声、连呼吸都收起来的人
+     * 确实更不容易被注意到；数值上，屏息在氧气账面上是**净亏**的
+     * （省 1 点氧要付约 5 点 CO2，而清掉它要花 1.5 个呼吸的换气），
+     * 所以如果它只给"安静"，屏息潜行流就会被活活憋到窒息——
+     * 模拟器里它 62.7% 的死因是窒息，存活率 7.5%，是四个原型里唯一不可行的那个。
+     */
+    const presence = clamp01(amb.presence) * (this.holding ? 0.55 : 1);
+
     // —— 恐惧：趋近一个由环境决定的目标值，而不是自由衰减。
     // 这样"离开那个房间"才是降低恐惧的正确手段，而不是"原地等"。
     let fearTarget =
-      clamp01(amb.presence) * FE.presenceWeight +
+      presence * FE.presenceWeight +
       dark * FE.darknessWeight +
       depthN * FE.depthWeight +
       clamp01(amb.noiseFloor) * FE.noiseFloorWeight;
@@ -315,7 +327,7 @@ export class VitalsEngine implements VitalsSystem {
     // —— 理智：多源流失 ÷ 意志，再叠加光照回复。
     let drain =
       S.baseDriftPerBreath +
-      clamp01(amb.presence) * S.presenceScale +
+      presence * S.presenceScale +
       dark * S.darknessScale +
       depthN * S.depthScale +
       (this.v.infection / 100) * S.infectionScale +

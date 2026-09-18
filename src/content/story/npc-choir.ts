@@ -57,22 +57,95 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.enter.listen',
         label: '站在门口听。',
         cost: 4,
-        effects: [setf('did.listened-to-choir'), addf('count.choir-time', 1)],
+        effects: [addf('count.choir-time', 1)],
         goto: 'choir.first-names',
       }),
       c({
         id: 'choir.enter.close',
         label: '靠近。',
         cost: 3,
-        effects: [setf('did.approached-choir'), fear(8), loud(2)],
+        effects: [fear(8), loud(2)],
         goto: 'choir.close',
       }),
       c({
         id: 'choir.enter.leave',
         label: '退出去。',
         cost: 2,
-        effects: [mark('silence', 1), setf('did.backed-out-of-chapel')],
+        effects: [mark('silence', 1) ],
+      })
+    ],
+  },
+  {
+    id: 'choir.close',
+    speaker: undefined,
+    text: '走到第一排后面，两步。\n六个喉咙都开了口，切口平齐，缝口朝外。唱的声音不从那里出来。',
+    corruptedText: cor(
+      [50, '六个喉咙都开了口，缝口朝外。声音不从那里出来。你的喉咙是痒的。'],
+      [20, '六个切口。你摸了一下自己的那个位置，已经有了。'],
+    ),
+    tags: ['key'],
+    onEnter: [fear(10), san(-6), setf('know.bone-conduction')],
+    choices: [
+      c({
+        id: 'choir.close.seventh',
+        label: '看他们右边那个空着的跪印。',
+        cost: 3,
+        effects: [fear(8)],
+        goto: 'choir.pews',
       }),
+      c({
+        id: 'choir.close.count',
+        label: '数切口。',
+        cost: 2,
+        effects: [mark('listening', 1), addf('count.breaths-counted', 1)],
+        goto: 'choir.counting',
+      }),
+      c({
+        id: 'choir.close.touch',
+        label: '摸自己的喉咙。',
+        cost: 2,
+        requires: num('count.breaths-counted', '>=', 1),
+        gateMode: 'lie',
+        effects: [san(-8), setf('know.i-am-in-the-choir')],
+        goto: 'choir.ownNeck',
+      }),
+      silence('choir.close.back', 'choir.first-names', '退回门口。')
+    ],
+  },
+  {
+    id: 'choir.counting',
+    speaker: undefined,
+    text: '你跟着数。你数到第十一，他们唱到第十三。\n重新对了一次。你数到第十三，他们唱到第十五。',
+    corruptedText: cor(
+      [45, '你数到第十三，他们唱到第十五。差两个。你对过几次，就差几个。'],
+      [20, '你数到第十九，他们唱到第二十。中间那一个是你补的。'],
+    ),
+    tags: ['key'],
+    onEnter: [mark('listening', 1), san(-5), setf('know.crossing-counts')],
+    choices: [
+      c({
+        id: 'choir.counting.again',
+        label: '再对一次。',
+        cost: 3,
+        effects: [addf('count.choir-rounds', 1), san(-4)],
+        goto: 'choir.nine',
+      }),
+      c({
+        id: 'choir.counting.ask',
+        label: '等他们唱到十九。',
+        cost: 4,
+        requires: on('know.twentieth-gap'),
+        gateMode: 'hide',
+        effects: [addf('count.choir-rounds', 1)],
+        goto: 'choir.nineteen',
+      }),
+      c({
+        id: 'choir.counting.stop',
+        label: '不数了。',
+        cost: 2,
+        effects: [mark('silence', 1), mark('apostasy', 1)],
+        goto: 'choir.pews',
+      })
     ],
   },
   {
@@ -94,10 +167,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.first-names.count',
         label: '数他们唱到第几个。',
         cost: 2,
-        effects: [setf('did.counting-names'), mark('listening', 1)],
+        effects: [mark('listening', 1)],
         goto: 'choir.counting',
       }),
-      go('choir.first-names.hub', '……', 'choir.pews'),
+      go('choir.first-names.hub', '……', 'choir.pews')
     ],
   },
   {
@@ -112,10 +185,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.nine.check',
         label: '看最左边那个人的胸牌。',
         cost: 3,
-        effects: [setf('did.checked-nametag'), san(-6)],
+        effects: [san(-6)],
         goto: 'choir.selfsinging',
       }),
-      go('choir.nine.on', '继续听。', 'choir.fourteen'),
+      go('choir.nine.on', '继续听。', 'choir.fourteen')
     ],
   },
   {
@@ -144,7 +217,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         effects: [learn('k.dorn-daughter')],
         goto: 'choir.twodorns',
       }),
-      go('choir.fourteen.on', '继续听。', 'choir.nineteen'),
+      go('choir.fourteen.on', '继续听。', 'choir.nineteen')
     ],
   },
   {
@@ -170,16 +243,14 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: on('met.vance'),
         gateMode: 'hide',
-        effects: [setf('did.heard-vance-sung'), san(-8)],
+        effects: [san(-8)],
         goto: 'choir.vanceSung',
       }),
       c({
         id: 'choir.nineteen.wait',
         label: '等第二十个。',
-        cost: 3,
-        effects: [setf('did.waited-for-twentieth')],
-        goto: 'choir.twenty',
-      }),
+        cost: 3,        goto: 'choir.twenty',
+      })
     ],
   },
   {
@@ -208,11 +279,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         cost: 2,
         irreversible: true,
         effects: [
-          setf('did.answered-twentieth'),
           mark('listening', 3),
           san(-14),
           loud(24),
-          status('status.humming', 200),
+          status('status.humming', 200)
         ],
         goto: 'choir.answered',
       }),
@@ -221,7 +291,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         label: '不答应。',
         cost: 2,
         irreversible: true,
-        effects: [setf('did.refused-twentieth'), mark('silence', 3), san(4)],
+        effects: [mark('silence', 3), san(4)],
         goto: 'choir.refused',
       }),
       c({
@@ -239,10 +309,8 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         label: '"安内莉·斯特兰。"',
         cost: 3,
         requires: K('k.mother-is-sample-three'),
-        gateMode: 'lie',
-        effects: [setf('did.offered-mother')],
-        goto: 'choir.offeredMother',
-      }),
+        gateMode: 'lie',        goto: 'choir.offeredMother',
+      })
     ],
   },
   {
@@ -255,23 +323,23 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
       learn('k.choir-sings-manifest'),
       setf('know.i-am-on-the-list'),
       addf('count.choir-rounds', 1),
-      san(-10),
+      san(-10)
     ],
     choices: [
       c({
         id: 'choir.answered.listen',
         label: '听完整一轮。',
         cost: 12,
-        effects: [setf('did.heard-full-round'), addf('count.choir-rounds', 1), san(-8)],
+        effects: [addf('count.choir-rounds', 1), san(-8)],
         goto: 'choir.fullRound',
       }),
       c({
         id: 'choir.answered.run',
         label: '走。',
         cost: 3,
-        effects: [fear(10), setf('did.fled-chapel')],
+        effects: [fear(10) ],
         goto: 'choir.pews',
-      }),
+      })
     ],
   },
   {
@@ -286,10 +354,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.refused.listen',
         label: '听完整一轮。',
         cost: 12,
-        effects: [setf('did.heard-full-round'), addf('count.choir-rounds', 1)],
+        effects: [addf('count.choir-rounds', 1)],
         goto: 'choir.fullRound',
       }),
-      go('choir.refused.hub', '在长凳上坐一会儿。', 'choir.pews'),
+      go('choir.refused.hub', '在长凳上坐一会儿。', 'choir.pews')
     ],
   },
   {
@@ -304,10 +372,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.falseName.guilt',
         label: '那个名字现在在名单上。',
         cost: 2,
-        effects: [setf('did.realized-i-added-someone'), san(-8)],
+        effects: [san(-8)],
         goto: 'choir.addedSomeone',
       }),
-      go('choir.falseName.hub', '……', 'choir.pews'),
+      go('choir.falseName.hub', '……', 'choir.pews')
     ],
   },
   {
@@ -330,18 +398,16 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
       c({
         id: 'choir.offeredMother.listen',
         label: '听广播。',
-        cost: 3,
-        effects: [setf('did.heard-mother-called')],
-        goto: 'choir.motherAnswers',
+        cost: 3,        goto: 'choir.motherAnswers',
       }),
       c({
         id: 'choir.offeredMother.take',
         label: '"不是她。是我。"',
         cost: 3,
         irreversible: true,
-        effects: [setf('did.took-it-back'), mark('listening', 2), san(-8)],
+        effects: [mark('listening', 2), san(-8)],
         goto: 'choir.answered',
-      }),
+      })
     ],
   },
   {
@@ -350,16 +416,16 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
     text: '（咔）我在。',
     corruptedText: cor([40, '（咔）我在。（咔）你吃过东西了吗。']),
     tags: ['key'],
-    onEnter: [setf('did.mother-answered-choir'), san(-10)],
+    onEnter: [san(-10)],
     choices: [
       c({
         id: 'choir.motherAnswers.sorry',
         label: '"对不起。"',
         cost: 2,
-        effects: [setf('did.apologized-to-mother'), san(-4)],
+        effects: [san(-4)],
         goto: 'choir.pews',
       }),
-      silence('choir.motherAnswers.silent', 'choir.pews'),
+      silence('choir.motherAnswers.silent', 'choir.pews')
     ],
   },
   {
@@ -368,7 +434,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
     text: '一整轮四分钟。十九个名字，然后回到第一。\n第二十行每次都有那半拍。',
     corruptedText: cor([40, '一整轮四分钟。第二十行每次都有那半拍。他们在等，很有耐心。']),
     tags: ['key'],
-    onEnter: [learn('k.choir-sings-manifest'), setf('did.heard-full-round')],
+    onEnter: [learn('k.choir-sings-manifest') ],
     choices: [
       c({
         id: 'choir.fullRound.melody',
@@ -377,7 +443,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         effects: [setf('did.memorized-melody'), mark('listening', 1)],
         goto: 'choir.melody',
       }),
-      go('choir.fullRound.hub', '……', 'choir.pews'),
+      go('choir.fullRound.hub', '……', 'choir.pews')
     ],
   },
   {
@@ -397,7 +463,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         effects: [learn('k.signal-is-real'), san(-10)],
         goto: 'choir.aligned',
       }),
-      go('choir.melody.hub', '……', 'choir.pews'),
+      go('choir.melody.hub', '……', 'choir.pews')
     ],
   },
   {
@@ -428,21 +494,21 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.pews.body1',
         label: '看第一具。',
         cost: 3,
-        effects: [setf('did.examined-body-1'), addf('count.bodies-examined', 1)],
+        effects: [addf('count.bodies-examined', 1)],
         goto: 'choir.body1',
       }),
       c({
         id: 'choir.pews.body2',
         label: '看第二具。',
         cost: 3,
-        effects: [setf('did.examined-body-2'), addf('count.bodies-examined', 1)],
+        effects: [addf('count.bodies-examined', 1)],
         goto: 'choir.body2',
       }),
       c({
         id: 'choir.pews.body3',
         label: '看第三具。',
         cost: 3,
-        effects: [setf('did.examined-body-3'), addf('count.bodies-examined', 1)],
+        effects: [addf('count.bodies-examined', 1)],
         goto: 'choir.body3',
       }),
       c({
@@ -451,7 +517,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: num('count.bodies-examined', '>=', 2),
         gateMode: 'disable',
-        effects: [setf('did.examined-body-4'), addf('count.bodies-examined', 1)],
+        effects: [addf('count.bodies-examined', 1)],
         goto: 'choir.body4',
       }),
       c({
@@ -460,7 +526,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: num('count.bodies-examined', '>=', 3),
         gateMode: 'disable',
-        effects: [setf('did.examined-body-5'), addf('count.bodies-examined', 1)],
+        effects: [addf('count.bodies-examined', 1)],
         goto: 'choir.body5',
       }),
       c({
@@ -469,14 +535,14 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: num('count.bodies-examined', '>=', 4),
         gateMode: 'disable',
-        effects: [setf('did.examined-body-6'), addf('count.bodies-examined', 1)],
+        effects: [addf('count.bodies-examined', 1)],
         goto: 'choir.body6',
       }),
       c({
         id: 'choir.pews.hymnal',
         label: '拿唱诗本。',
         cost: 3,
-        effects: [give('hymnal'), setf('did.took-hymnal'), loud(3)],
+        effects: [give('hymnal'), loud(3)],
         goto: 'choir.hymnal',
       }),
       c({
@@ -484,7 +550,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         label: '打断他们。',
         cost: 2,
         irreversible: true,
-        effects: [setf('did.interrupted-choir'), loud(30), fear(20), mark('apostasy', 2)],
+        effects: [loud(30), fear(20), mark('apostasy', 2)],
         goto: 'choir.interrupted',
       }),
       c({
@@ -493,7 +559,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         cost: 4,
         requires: on('did.memorized-melody'),
         gateMode: 'hide',
-        effects: [setf('did.sang-along'), mark('listening', 2), loud(20), san(-10)],
+        effects: [mark('listening', 2), loud(20), san(-10)],
         goto: 'choir.sangAlong',
       }),
       c({
@@ -502,7 +568,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: item('earwax'),
         gateMode: 'disable',
-        effects: [setf('did.plugged-ears'), take('earwax'), mark('silence', 2), status('status.ringing', 300)],
+        effects: [take('earwax'), mark('silence', 2), status('status.ringing', 300)],
         goto: 'choir.plugged',
       }),
       c({
@@ -517,10 +583,8 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
       c({
         id: 'choir.pews.leave',
         label: '离开礼拜堂。',
-        cost: 2,
-        effects: [setf('did.left-chapel')],
-        goto: 'choir.leaving',
-      }),
+        cost: 2,        goto: 'choir.leaving',
+      })
     ],
   },
   {
@@ -538,7 +602,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         effects: [setf('did.took-pencil'), mark('flesh', 1)],
         goto: 'choir.pencil',
       }),
-      go('choir.body1.back', '……', 'choir.pews'),
+      go('choir.body1.back', '……', 'choir.pews')
     ],
   },
   {
@@ -571,10 +635,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.body3.count',
         label: '数声音。',
         cost: 3,
-        effects: [setf('did.counted-voices'), san(-8), addf('count.debunks', 1)],
+        effects: [san(-8), addf('count.debunks', 1)],
         goto: 'choir.sixVoices',
       }),
-      go('choir.body3.back', '不数。', 'choir.pews'),
+      go('choir.body3.back', '不数。', 'choir.pews')
     ],
   },
   {
@@ -589,7 +653,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.sixVoices.mouth',
         label: '摸自己的嘴。',
         cost: 2,
-        effects: [setf('did.touched-own-mouth'), san(-10)],
+        effects: [san(-10)],
         goto: 'choir.myMouth',
       }),
       c({
@@ -598,9 +662,9 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.listening-array'),
         gateMode: 'disable',
-        effects: [addf('count.debunks', 1), san(10), setf('did.debunked-sixth')],
+        effects: [addf('count.debunks', 1), san(10) ],
         goto: 'choir.debunkedSixth',
-      }),
+      })
     ],
   },
   {
@@ -609,7 +673,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
     text: '在动。\n你停下来。六个声音变成五个，然后第六个又回来了，但慢了半拍。',
     corruptedText: cor([40, '在动。你停下来。第六个慢了半拍回来。它在等你。']),
     tags: ['key'],
-    onEnter: [san(-10), status('status.humming', 240), setf('did.was-humming')],
+    onEnter: [san(-10), status('status.humming', 240) ],
     choices: [go('choir.myMouth.ok', '……', 'choir.pews')],
   },
   {
@@ -635,10 +699,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         requires: item('scalpel'),
         gateMode: 'disable',
         irreversible: true,
-        effects: [setf('did.opened-body'), mark('flesh', 2), san(-12), loud(8)],
+        effects: [mark('flesh', 2), san(-12), loud(8)],
         goto: 'choir.opened',
       }),
-      go('choir.body4.back', '不拆。', 'choir.pews'),
+      go('choir.body4.back', '不拆。', 'choir.pews')
     ],
   },
   {
@@ -653,10 +717,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.opened.neck',
         label: '摸自己的后颈。',
         cost: 2,
-        effects: [setf('did.felt-own-neck'), san(-10), fear(20)],
+        effects: [san(-10), fear(20)],
         goto: 'choir.ownNeck',
       }),
-      go('choir.opened.back', '缝回去。', 'choir.pews'),
+      go('choir.opened.back', '缝回去。', 'choir.pews')
     ],
   },
   {
@@ -680,16 +744,16 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         label: '拆开读。',
         cost: 4,
         irreversible: true,
-        effects: [setf('did.read-letter'), san(-6), mark('apostasy', 1)],
+        effects: [san(-6), mark('apostasy', 1)],
         goto: 'choir.letter',
       }),
       c({
         id: 'choir.body5.leave',
         label: '放回去。',
         cost: 2,
-        effects: [mark('silence', 1), setf('did.left-letter'), san(3)],
+        effects: [mark('silence', 1), san(3)],
         goto: 'choir.pews',
-      }),
+      })
     ],
   },
   {
@@ -704,10 +768,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.letter.sign',
         label: '看签名。',
         cost: 3,
-        effects: [setf('did.checked-signature'), san(-8)],
+        effects: [san(-8)],
         goto: 'choir.signature',
       }),
-      go('choir.letter.back', '折好放回去。', 'choir.pews'),
+      go('choir.letter.back', '折好放回去。', 'choir.pews')
     ],
   },
   {
@@ -730,10 +794,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.body6.whistle',
         label: '取哨子。',
         cost: 3,
-        effects: [give('whistle.pelle'), setf('did.took-whistle'), mark('flesh', 1)],
+        effects: [give('whistle.pelle'), mark('flesh', 1)],
         goto: 'choir.whistle',
       }),
-      go('choir.body6.back', '不动。', 'choir.pews'),
+      go('choir.body6.back', '不动。', 'choir.pews')
     ],
   },
   {
@@ -749,10 +813,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         label: '吹一下。',
         cost: 2,
         irreversible: true,
-        effects: [setf('did.blew-whistle'), loud(34), fear(18), mark('listening', 1)],
+        effects: [loud(34), fear(18), mark('listening', 1)],
         goto: 'choir.blown',
       }),
-      go('choir.whistle.pocket', '收起来。', 'choir.pews'),
+      go('choir.whistle.pocket', '收起来。', 'choir.pews')
     ],
   },
   {
@@ -778,17 +842,15 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         cost: 4,
         requires: num('count.coords-given', '>=', 2),
         gateMode: 'disable',
-        effects: [setf('did.compared-coords'), san(-6)],
+        effects: [san(-6)],
         goto: 'choir.coordsMatch',
       }),
       c({
         id: 'choir.hymnal.twenty',
         label: '看第二十行。',
-        cost: 3,
-        effects: [setf('did.checked-twentieth-line')],
-        goto: 'choir.twentiethLine',
+        cost: 3,        goto: 'choir.twentiethLine',
       }),
-      go('choir.hymnal.back', '合上。', 'choir.pews'),
+      go('choir.hymnal.back', '合上。', 'choir.pews')
     ],
   },
   {
@@ -814,10 +876,10 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         cost: 4,
         requires: on('did.took-pencil'),
         gateMode: 'disable',
-        effects: [setf('did.rubbed-impression'), san(-8)],
+        effects: [san(-8)],
         goto: 'choir.impression',
       }),
-      go('choir.twentiethLine.back', '合上。', 'choir.pews'),
+      go('choir.twentiethLine.back', '合上。', 'choir.pews')
     ],
   },
   {
@@ -841,7 +903,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.interrupted.run',
         label: '跑。',
         cost: 6,
-        effects: [setf('did.ran-from-choir'), loud(12), fear(10)],
+        effects: [loud(12), fear(10)],
         goto: 'choir.leaving',
       }),
       c({
@@ -849,16 +911,16 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         label: '站着。',
         cost: 4,
         irreversible: true,
-        effects: [setf('did.faced-choir'), fight('enc.choir-rise')],
+        effects: [fight('enc.choir-rise')],
         goto: 'choir.faced',
       }),
       c({
         id: 'choir.interrupted.apologize',
         label: '"对不起。接着唱。"',
         cost: 3,
-        effects: [setf('did.apologized-to-choir'), mark('listening', 1), san(-4)],
+        effects: [mark('listening', 1), san(-4)],
         goto: 'choir.resumed',
-      }),
+      })
     ],
   },
   {
@@ -890,7 +952,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.sangAlong.stop',
         label: '停住。',
         cost: 3,
-        effects: [setf('did.stopped-singing'), mark('silence', 2), san(4)],
+        effects: [mark('silence', 2), san(4)],
         goto: 'choir.stopped',
       }),
       c({
@@ -898,9 +960,9 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         label: '唱完。',
         cost: 6,
         irreversible: true,
-        effects: [setf('did.finished-the-twentieth'), mark('listening', 3), san(-12), loud(26)],
+        effects: [mark('listening', 3), san(-12), loud(26)],
         goto: 'choir.finishedName',
-      }),
+      })
     ],
   },
   {
@@ -929,7 +991,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         effects: [learn('k.your-name')],
         goto: 'choir.myName',
       }),
-      go('choir.finishedName.back', '……', 'choir.pews'),
+      go('choir.finishedName.back', '……', 'choir.pews')
     ],
   },
   {
@@ -945,7 +1007,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         label: '留着这半拍。走。',
         cost: 3,
         irreversible: true,
-        effects: [setf('did.left-the-gap'), mark('silence', 3), setf('know.gap-left-open'), san(6)],
+        effects: [mark('silence', 3), setf('know.gap-left-open'), san(6)],
         goto: 'choir.leaving',
       }),
       c({
@@ -953,9 +1015,9 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         label: '填上。',
         cost: 3,
         irreversible: true,
-        effects: [setf('did.filled-the-gap'), mark('listening', 4), san(-16), loud(30)],
+        effects: [mark('listening', 4), san(-16), loud(30)],
         goto: 'choir.filled',
-      }),
+      })
     ],
   },
   {
@@ -977,10 +1039,8 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
       c({
         id: 'choir.filled.walk',
         label: '走出去。',
-        cost: 4,
-        effects: [setf('did.walked-out-humming')],
-        goto: 'choir.leaving',
-      }),
+        cost: 4,        goto: 'choir.leaving',
+      })
     ],
   },
   {
@@ -995,7 +1055,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.kneeled.rise',
         label: '站起来。',
         cost: 10,
-        effects: [setf('did.rose-from-kneeling'), san(6), mark('apostasy', 1)],
+        effects: [san(6), mark('apostasy', 1)],
         goto: 'choir.leaving',
       }),
       c({
@@ -1003,9 +1063,9 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         label: '不站起来。',
         cost: 20,
         irreversible: true,
-        effects: [setf('did.stayed-kneeling'), mark('listening', 4), san(-14)],
+        effects: [mark('listening', 4), san(-14)],
         goto: 'choir.stayed',
-      }),
+      })
     ],
   },
   {
@@ -1020,15 +1080,15 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.stayed.wait',
         label: '等他进来。',
         cost: 20,
-        effects: [setf('did.waited-for-next-me'), addf('count.futile-acts', 1)],
+        effects: [addf('count.futile-acts', 1)],
       }),
       c({
         id: 'choir.stayed.rise',
         label: '站起来。',
         cost: 12,
-        effects: [setf('did.rose-from-kneeling'), san(4)],
+        effects: [san(4)],
         goto: 'choir.leaving',
-      }),
+      })
     ],
   },
   {
@@ -1043,16 +1103,16 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
         id: 'choir.plugged.pull',
         label: '取出来。',
         cost: 2,
-        effects: [setf('did.unplugged-ears'), give('earwax')],
+        effects: [give('earwax')],
         goto: 'choir.pews',
       }),
       c({
         id: 'choir.plugged.stay',
         label: '就这样待一会儿。',
         cost: 8,
-        effects: [setf('did.stayed-deaf'), san(6), mark('silence', 1)],
+        effects: [san(6), mark('silence', 1)],
         goto: 'choir.deafRest',
-      }),
+      })
     ],
   },
   {
@@ -1082,9 +1142,7 @@ export const CHOIR_NODES: readonly NarrativeNode[] = [
       c({
         id: 'choir.leaving.go',
         label: '走。',
-        cost: 2,
-        effects: [setf('did.left-chapel')],
-      }),
+        cost: 2,      })
     ],
-  },
+  }
 ];

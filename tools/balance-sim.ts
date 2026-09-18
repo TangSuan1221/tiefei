@@ -94,6 +94,13 @@ const ARCHES: Room['archetype'][][] = [
   ['moonpool', 'airlock', 'flooded', 'corridor', 'void', 'crawlspace'],
 ];
 
+/**
+ * 涉水区：水位 0.55–0.82 —— 没到没顶，所以不会淹死你，但散热是干燥舱的三到四倍。
+ * 低温必须靠"一段路"而不是"一个房间"才能致死，所以这些房间成段出现。
+ * 没有它们时低温死因只有 1.5%，整套体温模型形同虚设。
+ */
+const WADING: Record<number, readonly number[]> = { 1: [4], 3: [4], 4: [3] };
+
 const ROOMS_PER_DECK = 6;
 
 /** Room.doors 在契约里是 readonly；建图时需要后填，所以内部用这个可变别名。 */
@@ -118,7 +125,7 @@ class MockWorld implements WorldSystem {
           name: `${DECK_NAMES[d]}·${i}`,
           pos: { x: i, y: d },
           deck: d + 1,
-          ambient: this.ambientFor(d, arche),
+          ambient: this.ambientFor(d, arche, (WADING[d] ?? []).includes(i)),
           doors: [],
           props: [],
           visited: false,
@@ -155,13 +162,17 @@ class MockWorld implements WorldSystem {
     };
   }
 
-  private ambientFor(deckIdx: number, arche: Room['archetype']): AmbientConditions {
+  private ambientFor(deckIdx: number, arche: Room['archetype'], wading: boolean): AmbientConditions {
     const depth = DECK_DEPTH[deckIdx];
     const flooded = arche === 'flooded';
     const deep = arche === 'void' || arche === 'moonpool';
     return {
       // 淹水必须是**地点**而不是天气：绝大多数舱室是干的，积水区才是真正的没顶。
-      flooding: flooded ? this.rng.float(0.9, 1) : clamp01(this.rng.float(-0.5, 0.22) + deckIdx * 0.07),
+      flooding: flooded
+        ? this.rng.float(0.9, 1)
+        : wading
+          ? this.rng.float(0.5, 0.72)
+          : clamp01(this.rng.float(-0.5, 0.22) + deckIdx * 0.07),
       pressure: 1 + depth / 10.06,
       // 密闭壳体保温，所以舱内远高于舷外水温；越深越冷只是因为供暖早就停了。
       temperature: clamp(17 - deckIdx * 1.5 + this.rng.float(-2, 2), 2, 22),
@@ -241,6 +252,8 @@ interface RunResult {
   survived: boolean;
   breaths: number;
   cause: DeathCause | null;
+  hypercapnic: boolean;
+  endOxygenFraction: number;
   deckReached: number;
   endSan: number;
   minSan: number;
@@ -252,6 +265,7 @@ interface RunResult {
   reliefs: number;
   spawns: number;
   peakInfection: number;
+  peakIntensity: number;
 }
 
 /**
@@ -259,7 +273,7 @@ interface RunResult {
  * 唯独月池层反而最短：那里没有什么可查的，只有一条出路和一个正在压扁你的深度。
  * 它必须能在内爆倒计时（约 121 呼吸）内跑完，否则最后一层等于必死。
  */
-const DECK_REQUIREMENT = [30, 38, 46, 52, 28];
+const DECK_REQUIREMENT = [14, 19, 22, 24, 14];
 
 function deckRequirement(deck: number): number {
   return DECK_REQUIREMENT[clamp(deck, 0, 4)];
@@ -304,7 +318,6 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
     const wantLamp = rng.next() < spec.lamp && lamp > 0;
     flags.set('sys.light', wantLamp ? 1 : 0);
 
-    const ctx: SimContext = { rng, depth: DECK_DEPTH[deck], ambient: room.ambient, flags };
     const submerged = room.ambient.flooding >= TUNING.flooding.submergedAt;
 
     // ────────────────────────────────────────────────────────────────
@@ -314,34 +327,61 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
     const v = vitals.vitals;
     const oxyFrac = v.oxygen / v.oxygenMax;
 
-    if (hunt > 0) {
+    /*
+     * 下水前先把 CO2 呼下去 —— 这是屏息机制最真实的那个决策。
+     * 顶着 60 的 CO2 跳进没顶的舱室，必然在水里被迫大喘气，然后吸进去的是水。
+     * 会玩的人会先站在水边喘匀了再下去；不会玩的人（冲刺流）不会。
+     */
+    /*
+     * "会不会停下来喘匀"本身就是策略画像的一部分，不是全有全无。
+     * 冲刺流并非不懂过度换气，只是没那个耐心——给它 45% 的执行率，
+     * 于是它依然是四个原型里 CO2 最难看的那个，但不再因此被判死刑。
+     */
+    const ventDiscipline = spec.hold > 0.3 ? 1 : spec.rush < 0.5 ? 0.9 : 0.55;
+    const canVent = rng.bool(ventDiscipline);
+    // 注意用 costOf 而不是裸的 base：动作的真实长度是基础成本 × breathCost 倍率（常在 1.5 上下）。
+    // 用 base 估算屏息余量会系统性低估四成，于是每一次"算好了能憋过去"的下水都以大喘气收场。
+    const swimCost = 5.5 * vitals.costOf(BREATH.STEP * 1.6);
+
+    // 水优先于一切：站在没顶的舱室里讨论"要不要躲"是没有意义的。
+    // 早期版本让追猎判定排在前面，于是玩家会在水下屏息躲藏、被迫大喘气、然后吸进去的是水——
+    // 屏息流 17.5% 的死亡是这一个顺序错误造成的。
+    if (submerged) {
+      action = canVent && v.co2 + swimCost >= TUNING.co2.forcedGaspAt
+        ? 'vent'
+        : rng.bool(0.11) ? 'snag' : 'swim';
+    } else if (canVent && hunt === 0 && v.co2 >= TUNING.co2.ventAt && !vitals.has('fx.hyperventilation')) {
+      // 还债窗口。屏息流之所以曾经 38.5% 死于 CO2 中毒，不是因为它憋得太多，
+      // 而是因为它从来没有一个"停下来把气喘匀"的时刻——只要没人在追，就该喘。
+      action = 'vent';
+    } else if (hunt > 0) {
       // 憋不住的时候躲是自杀：强制大喘气会把追猎窗口重新点燃。没气就只能跑。
-      const canHide = v.co2 < TUNING.co2.forcedGaspAt - 16;
+      const canHide = v.co2 < TUNING.co2.forcedGaspAt - 22;
       action = spec.rush > 0.6 || !canHide ? 'flee' : 'hide';
-    } else if (submerged) {
-      action = 'swim';
     } else if (v.trauma > 55 && items.med > 0) {
       action = 'medkit';
     } else if (v.coreTemp < 34.5 && items.wrap > 0) {
       action = 'wrap';
     } else if (v.infection > 45 && items.anti > 0) {
       action = 'antibiotic';
-    } else if (oxyFrac < 0.16 && items.oxy > 0) {
+    } else if (oxyFrac < 0.12 && items.oxy > 0) {
       action = 'oxybottle';
     } else if (v.san < 30 && items.anchor > 0 && rng.bool(0.6)) {
       action = 'anchor';
     } else if (v.fatigue > spec.restAt && oxyFrac > 0.3) {
       action = 'rest';
-    } else if (deck >= 3 && rng.next() < spec.piety * 0.045 && flags.getNum('stigma.listening') < 4) {
+    } else if (deck >= 2 && rng.next() < spec.piety * 0.05 && flags.getNum('stigma.listening') < 3) {
       action = 'ritual';
     } else if (knowledge >= deckRequirement(deck)) {
       action = 'descend';
     } else {
+      // 月池层的壳体正在压扁你。任何人到了这里都会停止搜刮，只管往出口跑。
+      const endgame = deck === 4;
       const weights: [string, number][] = [
-        ['move', 1],
-        ['run', spec.rush * 1.4],
-        ['search', spec.loot * 1.1],
-        ['sonar', spec.ping * 1.2],
+        ['move', endgame ? 1.8 : 1],
+        ['run', spec.rush * 1.4 + (endgame ? 0.6 : 0)],
+        ['search', endgame ? spec.loot * 0.15 : spec.loot * 1.1],
+        ['sonar', endgame ? spec.ping * 0.4 : spec.ping * 1.2],
         ['force', spec.rush * 0.35],
       ];
       action = rng.weighted(weights);
@@ -358,8 +398,10 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
 
     switch (action) {
       case 'move': base = BREATH.STEP; noise = 1; gain = 1.0; exertion = 0.35; break;
-      case 'run': base = BREATH.STEP; noise = 6; gain = 1.9; exertion = 0.95; break;
-      case 'search': base = BREATH.SEARCH; noise = 2; gain = 1.25 * vitals.derived('searchQuality'); exertion = 0.3; break;
+      // 跑步覆盖更多距离，但每次动作烧掉的氧气也更多。第四轮模拟里 run 的成本与 move 相同，
+      // 于是冲刺流在氧气上毫无压力（低氧时间 0.2%），"氧气即货币"对他不成立。
+      case 'run': base = BREATH.STEP * 1.75; noise = 6; gain = 1.6; exertion = 1; break;
+      case 'search': base = BREATH.SEARCH; noise = 2; gain = 1.32 * vitals.derived('searchQuality'); exertion = 0.3; break;
       case 'sonar': base = BREATH.SONAR_PING; noise = 9; exertion = 0.15; break;
       case 'force': base = BREATH.FORCE_DOOR; noise = 12; gain = 2.2; exertion = 1; break;
       case 'rest': base = BREATH.REST; noise = 0; exertion = 0; break;
@@ -368,27 +410,55 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
       // 没顶的舱室：任何有理智的人都会屏息。真正的危险不是"忘了憋气"，
       // 而是**带着已经很高的 CO2 下水**——holdBreath() 会直接拒绝，于是你在水里呼吸。
       case 'swim': base = BREATH.STEP * 1.6; noise = 3; gain = 0.9; exertion = 0.85; holding = true; break;
+      // 缠绕：线缆、软管、别人的睡袋。溺毙不该只惩罚"算错了 CO2"——
+      // 那种错误在过度换气进来之后几乎绝迹（溺毙死因掉到 0.9%）。
+      // 真正让水成为威胁的是它**会超出计划**：一次算好的横渡突然变成两倍长。
+      case 'snag': base = BREATH.STEP * 3.4; noise = 5; gain = 0.9; exertion = 1; holding = true; break;
       case 'hide': base = BREATH.LOOK * 3; noise = 0; exertion = 0.05; holding = true; break;
       case 'flee': base = BREATH.STEP * 2; noise = 8; exertion = 1; break;
+      case 'vent': base = BREATH.LOOK * 2; noise = 2; exertion = 0; break;
       default: base = BREATH.INTERACT; noise = 1; exertion = 0.2; break;
     }
 
+    if (action === 'vent') vitals.applyById('fx.hyperventilation');
+
     /*
-     * 屏息的决策模型 —— 这正是 GDD §4.1 想要的那个微观决策，所以模拟里的"玩家"
-     * 必须像真人一样会算：一次动作要花 base 个呼吸，屏息期间 CO2 约 +5.5/呼吸，
-     * 所以只有 co2 + 5.5×base 还够不到 80 时，憋过这个动作才是划算的。
-     * 第三轮模拟里没有这一步，"玩家"会憋着气做一次 6 呼吸的搜刮，
-     * 必然在动作中途强制大喘气（噪音 25），于是屏息流的死因 80% 是聆听者。
+     * 屏息的决策模型 —— GDD §4.1 要的那个微观决策，所以模拟里的"玩家"必须像真人一样会算：
+     * 这个动作真实要花 costOf(base) 个呼吸，屏息期间 CO2 以 holdRate 上升，
+     * 只有两者之积还够不到 80 时，憋过去才是划算的。
+     * 前两版分别踩了两个坑：(1) 完全不算，于是憋着气做 6 呼吸的搜刮，必然中途大喘气；
+     * (2) 用常数 5.5 和裸 base 估算，双重低估约四成，结果一样。
      */
-    const holdHeadroom = v.co2 + 5.5 * base < TUNING.co2.forcedGaspAt;
+    const holdRate = TUNING.co2.holdGainPerBreath *
+      (1 + (v.fear / 100) * TUNING.co2.holdFearScale) *
+      (1 + exertion * TUNING.co2.holdExertionScale);
+    const holdHeadroom = v.co2 + holdRate * vitals.costOf(base) < TUNING.co2.forcedGaspAt - 3;
+    // 只在真正危险的地方憋气。一路憋着走完全程的"潜行流"不是潜行，是慢性自杀：
+    // 第七轮模拟里它平均每局被迫大喘气 8.4 次，每一次都把聆听者重新招回来。
+    /*
+     * 屏息**不是**省氧手段，这一点值得写下来：憋住 1 个呼吸省下 1 点氧，
+     * 却要付出约 5 点 CO2，而清掉这 5 点需要 1.5 个呼吸的正常换气 —— 净亏约 25%。
+     * 所以屏息换来的只有安静。既然如此，只在真正危险的地方憋，而且只憋短动作；
+     * 一路憋着走完全程的"潜行流"会活活把自己憋到窒息（上一轮它 66.5% 死于窒息）。
+     */
+    const dangerous = room.ambient.presence > 0.65 || hunt > 0;
     if (holding && (v.co2 >= spec.releaseAt || (!submerged && !holdHeadroom))) holding = false;
-    if (!holding && spec.hold > 0.5 && room.ambient.presence > 0.35 &&
-        holdHeadroom && action !== 'rest') {
+    if (!holding && spec.hold > 0.5 && dangerous && holdHeadroom && base <= 4 && action !== 'rest') {
       holding = true;
     }
 
     if (holding) vitals.holdBreath();
     else if (vitals.holdingBreath) vitals.release();
+
+    /*
+     * 换气发生在**水边**，不是水里。
+     * 上一版让"喘匀了再下去"这个动作在已经没顶的舱室里结算，于是玩家为了避免
+     * 水下大喘气而选择在水下正常呼吸——溺毙率直接冲到 42.7%。
+     * 这条 ambient 覆盖就是那道门槛：你还没迈进去。
+     */
+    const ambient: AmbientConditions =
+      action === 'vent' ? { ...room.ambient, flooding: 0 } : room.ambient;
+    const ctx: SimContext = { rng, depth: DECK_DEPTH[deck], ambient, flags };
 
     // —— 道具与仪式（不消耗呼吸预算之外的东西）
     handleItems(action, vitals, items, flags);
@@ -398,7 +468,7 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
       vitals.shock(10, 'knowledge');
       knowledge += 9;
       // 仪式本身有致死风险：你把自己交给了一个你不理解的流程。
-      if (rng.bool(0.055)) {
+      if (rng.bool(0.05)) {
         vitals.kill('ritual');
         break;
       }
@@ -434,14 +504,40 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
     if (action === 'search') {
       flags.add('count.search', 1);
       rollLoot(rng, vitals, items, spec, deck);
-      // 搜刮会碰到不该碰的东西。
-      if (rng.bool(0.035 + deck * 0.012)) {
-        vitals.infect(rng.float(6, 16));
+      // 搜刮会碰到不该碰的东西。感染是一条长曲线，所以单次接触量必须够大，
+      // 否则它永远走不到致死区（第四轮：感染死因仅 0.9%）。
+      if (rng.bool(0.055 + deck * 0.022)) {
+        vitals.infect(rng.float(9, 22));
         vitals.shock(8, 'touch');
       }
     }
 
-    if (action === 'move' || action === 'run' || action === 'swim') {
+    /*
+     * 外伤必须有一条**不依赖聆听者**的来源。
+     * 上一轮把聆听者的即死率调低之后，外伤死因直接归零——因为它此前完全是
+     * "被抓住但没死"的副产品。一条船在沉：撬门会崩开、黑暗里跑步会摔，
+     * 这些才是外伤应有的日常来源，而且它们恰好惩罚的是最强的那个策略。
+     */
+    if (action === 'force' && rng.bool(0.12)) {
+      vitals.injure(rng.float(10, 26));
+      world.addNoise(roomId, 8);
+    }
+    if (action === 'run' && rng.bool(wantLamp ? 0.03 : 0.09 + room.ambient.flooding * 0.12)) {
+      vitals.injure(rng.float(8, 22));
+    }
+    /*
+     * 上面两条只会打到冲刺流，于是外伤死因长期挂在 2.3%，而且全部集中在一个原型身上。
+     * 外伤得是**所有人**的日常税：把手伸进黑暗的机械里会被割，
+     * 从缠住的线缆里挣脱会留下东西在皮肤上。这两条同时也削掉了搜刮流的统治性。
+     */
+    if (action === 'search' && rng.bool(0.07)) {
+      vitals.injure(rng.float(7, 18));
+    }
+    if (action === 'snag' && rng.bool(0.3)) {
+      vitals.injure(rng.float(9, 20));
+    }
+
+    if (action === 'move' || action === 'run' || action === 'swim' || action === 'snag') {
       flags.add('count.move', 1);
       roomIdx = (roomIdx + 1) % ROOMS_PER_DECK;
     }
@@ -459,12 +555,14 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
       if (rng.next() < escape) hunt = 0;
       else if (hunt <= 0) {
         // 被追上。大多数时候是重伤而不是即死——即死太廉价，重伤才会让后面的路难走。
-        if (rng.bool(0.3)) {
+        // 即死概率低、重伤概率高：被聆听者抓住更多是"活下来但走不动了"，
+        // 这样外伤才有独立的死因份额，而不是全被 listener 吞掉。
+        if (rng.bool(0.24)) {
           vitals.kill('listener');
         } else {
-          vitals.injure(rng.float(18, 44));
+          vitals.injure(rng.float(22, 52));
           vitals.shock(30, 'touch');
-          if (rng.bool(0.4)) vitals.infect(rng.float(8, 20));
+          if (rng.bool(0.45)) vitals.infect(rng.float(14, 30));
         }
       }
     } else if (room.noise > room.noiseThreshold) {
@@ -474,9 +572,9 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
 
     // 密封破损：深处的压差会咬掉你的余量。它只是给内爆加速，不该自己就是主死因——
     // 第二轮模拟里这个事件过于频繁，一个人就把内爆推到了 54% 的死因占比。
-    if (room.ambient.pressure > 120 && rng.bool(0.006 + deck * 0.004)) {
+    if (room.ambient.pressure > 120 && rng.bool(0.004 + deck * 0.0025)) {
       flags.set(TUNING.pressure.ratingFlag,
-        Math.max(130, flags.getNum(TUNING.pressure.ratingFlag, TUNING.pressure.suitRating) - rng.float(4, 14)));
+        Math.max(150, flags.getNum(TUNING.pressure.ratingFlag, TUNING.pressure.suitRating) - rng.float(4, 12)));
     }
 
     // 导演 tick（它也会在 relief 相里给玩家喘息室，这里体现为注视感下降）
@@ -511,6 +609,10 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
     survived,
     breaths: vitals.breathsElapsed,
     cause: vitals.cause,
+    // 契约把"氧尽"和"CO2 中毒"并成同一个 DeathCause，但调参时必须分开看：
+    // 前者说明氧气经济偏紧，后者说明屏息/通风的循环有问题，处方完全相反。
+    hypercapnic: vitals.cause === 'asphyxiation' && vitals.vitals.oxygen > 0,
+    endOxygenFraction: vitals.vitals.oxygen / vitals.vitals.oxygenMax,
     deckReached: Math.min(5, deck + 1),
     endSan: vitals.vitals.san,
     minSan,
@@ -522,6 +624,7 @@ function runOne(seed: number, spec: StrategySpec): RunResult {
     reliefs: director.stats.reliefs,
     spawns: director.stats.spawns,
     peakInfection,
+    peakIntensity: director.stats.peakIntensity,
   };
 }
 
@@ -532,7 +635,7 @@ function handleItems(
 ): void {
   switch (action) {
     case 'oxybottle':
-      if (items.oxy > 0) { items.oxy--; vitals.applyById('fx.pure-oxygen'); vitals.restore({ oxygen: 120 }); }
+      if (items.oxy > 0) { items.oxy--; vitals.applyById('fx.pure-oxygen'); vitals.restore({ oxygen: 70 }); }
       break;
     case 'wrap':
       if (items.wrap > 0) { items.wrap--; vitals.applyById('fx.thermal-wrap'); }
@@ -557,9 +660,9 @@ function rollLoot(
   spec: StrategySpec, deck: number,
 ): void {
   const q = vitals.derived('searchQuality');
-  if (!rng.bool(clamp01(0.42 * q))) return;
+  if (!rng.bool(clamp01(0.38 * q))) return;
   const roll = rng.weighted<keyof typeof items | 'none'>([
-    ['oxy', 1.5], ['med', 1.2], ['wrap', 0.8], ['anti', 0.7], ['anchor', 0.6], ['none', 1.0],
+    ['oxy', 1.1], ['med', 1.2], ['wrap', 0.9], ['anti', 0.7], ['anchor', 0.6], ['none', 1.2],
   ]);
   if (roll !== 'none') items[roll]++;
 }
@@ -583,6 +686,10 @@ interface Summary {
   avgReliefs: number;
   avgSpawns: number;
   avgCorruption: number;
+  avgPeakIntensity: number;
+  /** 窒息死里属于"CO2 中毒"而非"氧尽"的那一半，占全部 run 的比例。 */
+  hypercapnicShare: number;
+  avgEndOxygen: number;
 }
 
 function quantiles(values: number[]): Record<string, number> {
@@ -594,12 +701,15 @@ function quantiles(values: number[]): Record<string, number> {
 function summarize(spec: StrategySpec, results: RunResult[]): Summary {
   const causes = new Map<DeathCause, number>();
   let survived = 0, breaths = 0, deck = 0, lowOxy = 0, gasps = 0, debunks = 0;
-  let reliefs = 0, spawns = 0, corruption = 0;
+  let reliefs = 0, spawns = 0, corruption = 0, peakIntensity = 0;
+  let hypercapnic = 0, endOxy = 0;
   const endSan: number[] = [];
   const minSan: number[] = [];
   for (const r of results) {
     if (r.survived) survived++;
     else if (r.cause) causes.set(r.cause, (causes.get(r.cause) ?? 0) + 1);
+    if (r.hypercapnic) hypercapnic++;
+    endOxy += r.endOxygenFraction;
     breaths += r.breaths;
     deck += r.deckReached;
     lowOxy += r.lowOxygenFraction;
@@ -608,6 +718,7 @@ function summarize(spec: StrategySpec, results: RunResult[]): Summary {
     reliefs += r.reliefs;
     spawns += r.spawns;
     corruption += r.endCorruption;
+    peakIntensity += r.peakIntensity;
     endSan.push(r.endSan);
     minSan.push(r.minSan);
   }
@@ -626,6 +737,9 @@ function summarize(spec: StrategySpec, results: RunResult[]): Summary {
     avgReliefs: reliefs / n,
     avgSpawns: spawns / n,
     avgCorruption: corruption / n,
+    avgPeakIntensity: peakIntensity / n,
+    hypercapnicShare: hypercapnic / n,
+    avgEndOxygen: endOxy / n,
   };
 }
 
@@ -656,8 +770,8 @@ function report(summaries: Summary[], all: RunResult[]): void {
   console.log('══════════════════════════════════════════════════════════════════════\n');
 
   console.log(pad('策略原型', 16) + pad('存活率', 10) + pad('平均呼吸', 11) +
-    pad('平均层数', 11) + pad('低氧时间', 11) + pad('大喘气', 9) + pad('识破', 8) + '喘息室');
-  console.log('─'.repeat(86));
+    pad('平均层数', 11) + pad('低氧时间', 11) + pad('余氧', 8) + pad('CO2死', 8) + pad('大喘气', 9) + pad('识破', 8) + '喘息室');
+  console.log('─'.repeat(100));
   for (const s of summaries) {
     console.log(
       pad(s.spec.label, 16) +
@@ -665,9 +779,11 @@ function report(summaries: Summary[], all: RunResult[]): void {
       pad(s.avgBreaths.toFixed(0), 11) +
       pad(s.avgDeck.toFixed(2), 11) +
       pad(pct(s.lowOxygen), 11) +
+      pad(pct(s.avgEndOxygen), 8) +
+      pad(pct(s.hypercapnicShare), 8) +
       pad(s.avgGasps.toFixed(1), 9) +
       pad(s.avgDebunks.toFixed(1), 8) +
-      s.avgReliefs.toFixed(1),
+      `${s.avgReliefs.toFixed(1)} (峰值强度 ${s.avgPeakIntensity.toFixed(2)})`,
     );
   }
 

@@ -1,0 +1,26 @@
+{
+  "blenderVersion": "5.1.2",
+  "scenes": [
+    "DS_L01",
+    "Scene"
+  ],
+  "stats": {
+    "objects": 35,
+    "meshes": 28,
+    "polygons": 26353,
+    "materials": 8
+  },
+  "meshBounds": {
+    "min": [
+      -9.3,
+      -4.3,
+      -14.15
+    ],
+    "max": [
+      9.3,
+      4.3,
+      11.47
+    ]
+  },
+  "buildMethod": "local Blender background process; live MCP dispatch unavailable on 2026-09-18"
+}

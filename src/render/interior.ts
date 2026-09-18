@@ -69,7 +69,7 @@ export interface InteriorState {
 // 程序化材质工具
 // ============================================================================
 
-function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
+export function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingContext2D] {
   const c = document.createElement('canvas');
   c.width = Math.max(1, Math.round(w));
   c.height = Math.max(1, Math.round(h));
@@ -79,7 +79,7 @@ function makeCanvas(w: number, h: number): [HTMLCanvasElement, CanvasRenderingCo
 }
 
 /** 高频砂砾瓦片：铺在任何金属上都能瞬间「脏」起来 */
-function makeGritTile(size: number, seed: number): HTMLCanvasElement {
+export function makeGritTile(size: number, seed: number): HTMLCanvasElement {
   const [cv, ctx] = makeCanvas(size, size);
   const img = ctx.createImageData(size, size);
   const d = img.data;
@@ -103,7 +103,7 @@ function makeGritTile(size: number, seed: number): HTMLCanvasElement {
 }
 
 /** 锈迹层：低频斑块 + 边缘更饱和的铁锈橙，alpha 随斑块强度 */
-function makeRustLayer(w: number, h: number, seed: number): HTMLCanvasElement {
+export function makeRustLayer(w: number, h: number, seed: number): HTMLCanvasElement {
   const sw = Math.max(8, Math.round(w / 4));
   const sh = Math.max(8, Math.round(h / 4));
   const [cv, ctx] = makeCanvas(sw, sh);
@@ -724,21 +724,23 @@ export class InteriorRenderer {
 
     lx.globalCompositeOperation = 'lighter';
 
-    // 应急灯（左上），闪烁
+    // 应急灯（左上），闪烁。
+    // 半径必须小：一盏 20 W 的应急灯照不亮一整个舱，把它开大会在左上角
+    // 烧出一团橙雾，还会把视线从声呐屏上拽走。
     const flick = lampFlicker(s.time, s.power);
-    addLight(lx, L.w * 0.155 * sx, L.h * 0.095 * sy, L.h * 0.85 * sy, [1.0, 0.30, 0.22], 0.72 * flick * s.power);
+    addLight(lx, L.w * 0.155 * sx, L.h * 0.095 * sy, L.h * 0.46 * sy, [1.0, 0.26, 0.19], 0.40 * flick * s.power);
 
     // 第二盏（右上），更冷更弱
     const flick2 = lampFlicker(s.time * 0.83 + 17, s.power);
-    addLight(lx, L.w * 0.88 * sx, L.h * 0.115 * sy, L.h * 0.62 * sy, [0.85, 0.78, 0.72], 0.30 * flick2 * s.power);
+    addLight(lx, L.w * 0.88 * sx, L.h * 0.115 * sy, L.h * 0.40 * sy, [0.85, 0.78, 0.72], 0.20 * flick2 * s.power);
 
-    // 声呐屏辉光
-    addLight(lx, L.scope.cx * sx, L.scope.cy * sy, L.scope.r * 2.35 * sx, [1.0, 0.62, 0.30], 0.60 * s.scopeGlow);
+    // 声呐屏辉光 —— 唯一被允许照亮一片区域的光源，因为玩家要看它
+    addLight(lx, L.scope.cx * sx, L.scope.cy * sy, L.scope.r * 1.75 * sx, [1.0, 0.62, 0.30], 0.42 * s.scopeGlow);
 
     // 手电：在玩家正前方偏下，随呼吸上下
     const tx = L.w * 0.50 * sx;
     const ty = (L.h * 0.56 + s.breathPhase * L.h * 0.012) * sy;
-    addLight(lx, tx, ty, L.h * 1.05 * sy, [1.0, 0.88, 0.72], 0.82 * s.torch);
+    addLight(lx, tx, ty, L.h * 0.82 * sy, [1.0, 0.88, 0.72], 0.66 * s.torch);
 
     lx.globalCompositeOperation = 'source-over';
   }
@@ -749,13 +751,13 @@ export class InteriorRenderer {
     if (flick < 0.01) return;
     const x = L.w * 0.155;
     const y = L.h * 0.072;
-    const r = L.h * 0.30;
+    const r = L.h * 0.17;
 
-    // 灯罩本体
+    // 灯罩本体：小而硬的核，衰减要快
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, rgba(PALETTE.bloodHot, 0.85 * flick));
-    g.addColorStop(0.10, rgba(PALETTE.blood, 0.42 * flick));
-    g.addColorStop(0.42, rgba(PALETTE.bloodDim, 0.14 * flick));
+    g.addColorStop(0, rgba(PALETTE.bloodHot, 0.80 * flick));
+    g.addColorStop(0.10, rgba(PALETTE.blood, 0.30 * flick));
+    g.addColorStop(0.42, rgba(PALETTE.bloodDim, 0.08 * flick));
     g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g;
     ctx.beginPath();
@@ -764,7 +766,7 @@ export class InteriorRenderer {
 
     // 光锥落到墙上
     ctx.save();
-    ctx.globalAlpha = 0.28 * flick;
+    ctx.globalAlpha = 0.16 * flick;
     const cone = ctx.createLinearGradient(x, y, x, y + L.h * 0.55);
     cone.addColorStop(0, rgba(PALETTE.blood, 0.55));
     cone.addColorStop(1, 'rgba(0,0,0,0)');
@@ -980,7 +982,7 @@ export class InteriorRenderer {
 // 零件画法
 // ============================================================================
 
-function rivet(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
+export function rivet(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
   const g = ctx.createRadialGradient(x - r * 0.4, y - r * 0.45, 0, x, y, r);
   g.addColorStop(0, 'rgba(126,136,148,0.95)');
   g.addColorStop(0.55, 'rgba(58,66,76,0.9)');
@@ -995,7 +997,7 @@ function rivet(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): 
   ctx.fill();
 }
 
-function pipeH(ctx: CanvasRenderingContext2D, x0: number, x1: number, y: number, r: number, tone: string): void {
+export function pipeH(ctx: CanvasRenderingContext2D, x0: number, x1: number, y: number, r: number, tone: string): void {
   const g = ctx.createLinearGradient(0, y - r, 0, y + r);
   g.addColorStop(0, 'rgba(0,0,0,0.75)');
   g.addColorStop(0.22, shadeHex(tone, 1.45));
@@ -1012,7 +1014,7 @@ function pipeH(ctx: CanvasRenderingContext2D, x0: number, x1: number, y: number,
   ctx.stroke();
 }
 
-function pipeV(ctx: CanvasRenderingContext2D, x: number, y0: number, y1: number, r: number, tone: string): void {
+export function pipeV(ctx: CanvasRenderingContext2D, x: number, y0: number, y1: number, r: number, tone: string): void {
   const g = ctx.createLinearGradient(x - r, 0, x + r, 0);
   g.addColorStop(0, 'rgba(0,0,0,0.8)');
   g.addColorStop(0.25, shadeHex(tone, 1.4));
@@ -1023,7 +1025,7 @@ function pipeV(ctx: CanvasRenderingContext2D, x: number, y0: number, y1: number,
   ctx.fillRect(x - r, y0, r * 2, y1 - y0);
 }
 
-function flange(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
+export function flange(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
   const fw = r * 0.55;
   const fh = r * 1.35;
   const g = ctx.createLinearGradient(0, y - fh, 0, y + fh);
@@ -1040,7 +1042,7 @@ function flange(ctx: CanvasRenderingContext2D, x: number, y: number, r: number):
   rivet(ctx, x, y + fh * 0.62, Math.max(1.2, r * 0.18));
 }
 
-function valve(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
+export function valve(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
   ctx.save();
   ctx.strokeStyle = shadeHex(PALETTE.rustDim, 1.05);
   ctx.lineWidth = Math.max(1.6, r * 0.16);
@@ -1107,7 +1109,7 @@ function pushButton(ctx: CanvasRenderingContext2D, x: number, y: number, r: numb
   ctx.stroke();
 }
 
-function labelPlate(
+export function labelPlate(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, w: number, h: number,
   text: string, refH: number,
@@ -1147,7 +1149,7 @@ export function roundRect(
   ctx.closePath();
 }
 
-function addLight(
+export function addLight(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, r: number,
   color: readonly [number, number, number],

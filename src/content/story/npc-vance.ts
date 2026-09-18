@@ -53,7 +53,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.hail.name',
         label: '报自己的名字。',
         cost: 2,
-        effects: [setf('did.gave-name'), mark('listening', 1)],
+        effects: [mark('listening', 1)],
         goto: 'vance.hail.named',
       }),
       c({
@@ -63,7 +63,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         effects: [setf('did.asked-vance-who')],
         goto: 'vance.who',
       }),
-      silence('vance.hail.hold', 'vance.hail.silence', '按住按钮，不说话。'),
+      silence('vance.hail.hold', 'vance.hail.silence', '按住按钮，不说话。')
     ],
   },
   {
@@ -78,10 +78,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.hail.named.list',
         label: '"什么名单。"',
         cost: 2,
-        effects: [setf('did.asked-about-list')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.list',
       }),
-      go('vance.hail.named.skip', '不接这句。', 'vance.channel'),
+      go('vance.hail.named.skip', '不接这句。', 'vance.channel')
     ],
   },
   {
@@ -96,10 +96,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.hail.silence.how',
         label: '"你怎么知道水是温的。"',
         cost: 2,
-        effects: [setf('did.asked-vance-water')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.water',
       }),
-      silence('vance.hail.silence.keep', 'vance.channel'),
+      silence('vance.hail.silence.keep', 'vance.channel')
     ],
   },
   {
@@ -112,15 +112,15 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.water.press',
         label: '照做。',
         cost: 1,
-        effects: [setf('did.obeyed-vance'), addf('count.vance-obeyed', 1), san(2)],
+        effects: [addf('count.vance-obeyed', 1), san(2)],
         goto: 'vance.channel',
       }),
       c({
         id: 'vance.water.refuse',
         label: '不动。',
-        effects: [setf('did.refused-vance'), mark('silence', 1)],
+        effects: [mark('silence', 1)],
         goto: 'vance.refused',
-      }),
+      })
     ],
   },
   {
@@ -134,10 +134,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.refused.which',
         label: '"哪一种要紧。"',
         cost: 2,
-        effects: [setf('did.asked-which-matters')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.which',
       }),
-      go('vance.refused.drop', '不问。', 'vance.channel'),
+      go('vance.refused.drop', '不问。', 'vance.channel')
     ],
   },
   {
@@ -157,19 +157,17 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
       c({
         id: 'vance.who.surface',
         label: '"水面。你在水面上。"',
-        cost: 2,
-        effects: [setf('did.tested-vance-surface')],
-        goto: 'vance.surface',
+        cost: 2,        goto: 'vance.surface',
       }),
       c({
         id: 'vance.who.first',
         label: '"第一班呢。"',
         cost: 2,
         requires: on('did.asked-vance-who'),
-        effects: [setf('did.asked-first-shift')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.firstshift',
       }),
-      go('vance.who.next', '……', 'vance.channel'),
+      go('vance.who.next', '……', 'vance.channel')
     ],
   },
   {
@@ -183,10 +181,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.surface.smaller',
         label: '"谁在动。"',
         cost: 2,
-        effects: [setf('did.asked-who-moves'), fear(6)],
+        effects: [addf('count.questions', 1), fear(6)],
         goto: 'vance.whomoves',
       }),
-      go('vance.surface.ok', '"好消息。"', 'vance.channel'),
+      go('vance.surface.ok', '"好消息。"', 'vance.channel')
     ],
   },
   {
@@ -204,7 +202,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         effects: [setf('did.heard-vance-chair'), setf('know.vance-chair')],
         goto: 'vance.chair',
       }),
-      silence('vance.whomoves.silent', 'vance.channel'),
+      silence('vance.whomoves.silent', 'vance.channel')
     ],
   },
   {
@@ -219,10 +217,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: on('met.dorn'),
         gateMode: 'hide',
-        effects: [setf('did.compared-chairs'), san(-4)],
+        effects: [san(-4)],
         goto: 'vance.chair.same',
       }),
-      go('vance.chair.drop', '按住按钮，不说话。', 'vance.channel'),
+      go('vance.chair.drop', '按住按钮，不说话。', 'vance.channel')
     ],
   },
   {
@@ -237,10 +235,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.chair.same.yes',
         label: '"他还坐着。"',
         cost: 2,
-        effects: [setf('did.told-vance-about-dorn'), addf('count.described', 1)],
+        effects: [addf('count.questions', 1), addf('count.described', 1)],
         goto: 'vance.chair.report',
       }),
-      silence('vance.chair.same.no', 'vance.channel', '不回答。'),
+      silence('vance.chair.same.no', 'vance.channel', '不回答。')
     ],
   },
   {
@@ -253,16 +251,16 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.chair.report.no',
         label: '"他让我别解。"',
         cost: 2,
-        effects: [addf('count.described', 1), setf('did.reported-dorn-refusal')],
+        effects: [addf('count.described', 1) ],
         goto: 'vance.chair.good',
       }),
       c({
         id: 'vance.chair.report.lie',
         label: '"他让我解。"',
         cost: 2,
-        effects: [setf('did.lied-to-vance'), san(-2)],
+        effects: [san(-2)],
         goto: 'vance.chair.wrong',
-      }),
+      })
     ],
   },
   {
@@ -284,10 +282,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.chair.wrong.how',
         label: '"你怎么知道他不会那么说。"',
         cost: 2,
-        effects: [setf('did.pressed-vance-dorn'), fear(8)],
+        effects: [addf('count.questions', 1), fear(8)],
         goto: 'vance.chair.knows',
       }),
-      go('vance.chair.wrong.drop', '……', 'vance.channel'),
+      go('vance.chair.wrong.drop', '……', 'vance.channel')
     ],
   },
   {
@@ -309,11 +307,9 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
       c({
         id: 'vance.firstshift.sample',
         label: '"样本。"',
-        cost: 2,
-        effects: [setf('did.heard-sample-word')],
-        goto: 'vance.sample-word',
+        cost: 2,        goto: 'vance.sample-word',
       }),
-      go('vance.firstshift.drop', '不接。', 'vance.channel'),
+      go('vance.firstshift.drop', '不接。', 'vance.channel')
     ],
   },
   {
@@ -327,10 +323,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.sample-word.column',
         label: '"表格有几栏。"',
         cost: 2,
-        effects: [setf('did.asked-columns')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.columns',
       }),
-      go('vance.sample-word.drop', '……', 'vance.channel'),
+      go('vance.sample-word.drop', '……', 'vance.channel')
     ],
   },
   {
@@ -342,7 +338,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
     onEnter: [setf('know.eight-columns')],
     choices: [
       c({
-        id: 'vance.columns.eight',
+        id: 'vance.columns.ask8',
         label: '"八栏，哪八栏。"',
         cost: 3,
         requires: all(K('k.vance-is-the-recorder'), K('k.path-is-a-stroke')),
@@ -350,7 +346,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         effects: [learn('k.eight-strokes')],
         goto: 'vance.columns.eight',
       }),
-      go('vance.columns.drop', '……', 'vance.channel'),
+      go('vance.columns.drop', '……', 'vance.channel')
     ],
   },
   {
@@ -368,7 +364,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         effects: [setf('did.asked-eighth')],
         goto: 'vance.eighth',
       }),
-      silence('vance.columns.eight.silent', 'vance.channel'),
+      silence('vance.columns.eight.silent', 'vance.channel')
     ],
   },
   {
@@ -391,10 +387,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.manifest-nineteen'),
         gateMode: 'disable',
-        effects: [setf('did.discussed-twentieth')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.twentieth',
       }),
-      go('vance.list.drop', '……', 'vance.channel'),
+      go('vance.list.drop', '……', 'vance.channel')
     ],
   },
   {
@@ -424,7 +420,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.channel.coords',
         label: '"给我坐标。"',
         cost: 2,
-        effects: [addf('count.coords-given', 1), setf('did.asked-coords')],
+        effects: [addf('count.coords-given', 1), addf('count.questions', 1)],
         goto: 'vance.coords',
       }),
       c({
@@ -440,7 +436,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: K('k.not-research'),
         gateMode: 'disable',
-        effects: [setf('did.asked-purpose')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.array',
       }),
       c({
@@ -449,14 +445,14 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: num('count.coords-given', '>=', 3),
         gateMode: 'disable',
-        effects: [setf('did.asked-vance-where')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.where',
       }),
       c({
         id: 'vance.channel.describe',
         label: '描述你眼前的东西。',
         cost: 3,
-        effects: [addf('count.described', 1), setf('did.described-room')],
+        effects: [addf('count.described', 1) ],
         goto: 'vance.describe',
       }),
       c({
@@ -465,7 +461,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: all(K('k.vance-onboard'), K('k.salvage-is-ritual')),
         gateMode: 'disable',
-        effects: [learn('k.vance-is-the-recorder'), setf('did.confronted-vance')],
+        effects: [learn('k.vance-is-the-recorder'), addf('count.questions', 1)],
         goto: 'vance.recorder',
       }),
       c({
@@ -474,7 +470,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: on('met.mother'),
         gateMode: 'hide',
-        effects: [setf('did.asked-vance-mother')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.mother',
       }),
       c({
@@ -483,7 +479,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: on('met.pelle'),
         gateMode: 'hide',
-        effects: [setf('did.told-vance-pelle'), addf('count.described', 1)],
+        effects: [addf('count.questions', 1), addf('count.described', 1)],
         goto: 'vance.pelle',
       }),
       c({
@@ -492,7 +488,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: on('met.choir'),
         gateMode: 'hide',
-        effects: [setf('did.told-vance-choir'), addf('count.described', 1)],
+        effects: [addf('count.questions', 1), addf('count.described', 1)],
         goto: 'vance.choir',
       }),
       c({
@@ -500,26 +496,22 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         label: '出示他的值班簿。',
         cost: 3,
         requires: item('logbook.vance'),
-        gateMode: 'lie',
-        effects: [setf('did.showed-logbook')],
-        goto: 'vance.logbook',
+        gateMode: 'lie',        goto: 'vance.logbook',
       }),
       c({
         id: 'vance.channel.sync',
         label: '屏住呼吸，听他的呼吸。',
         cost: 4,
         requires: num('count.vance-calls', '>=', 5),
-        gateMode: 'disable',
-        effects: [setf('did.caught-vance-sync')],
-        goto: 'vance.sync',
+        gateMode: 'disable',        goto: 'vance.sync',
       }),
       c({
         id: 'vance.channel.off',
         label: '关掉。',
         cost: 1,
-        effects: [mark('silence', 1), setf('did.hung-up')],
+        effects: [mark('silence', 1) ],
         goto: 'vance.off',
-      }),
+      })
     ],
   },
   {
@@ -530,17 +522,13 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
       [50, '方位一一七，下两层，再往船尾三个舱。你现在就在那里。'],
       [22, '方位一一七。他报的是你脚下那块板的编号。'],
     ),
-    tags: ['key'],
-    onEnter: [setf('did.received-coords')],
-    choices: [
+    tags: ['key'],    choices: [
       c({
         id: 'vance.coords.accurate',
         label: '"越来越准。"',
         cost: 2,
         requires: num('count.coords-given', '>=', 2),
-        gateMode: 'disable',
-        effects: [setf('did.noted-accuracy')],
-        goto: 'vance.accurate',
+        gateMode: 'disable',        goto: 'vance.accurate',
       }),
       c({
         id: 'vance.coords.verify',
@@ -548,10 +536,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: on('know.breath-unit'),
         gateMode: 'disable',
-        effects: [setf('did.verified-coords'), addf('count.coords-verified', 1)],
+        effects: [addf('count.coords-verified', 1)],
         goto: 'vance.verify',
       }),
-      go('vance.coords.thanks', '"收到。"', 'vance.channel'),
+      go('vance.coords.thanks', '"收到。"', 'vance.channel')
     ],
   },
   {
@@ -578,7 +566,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         effects: [learn('k.vance-onboard')],
         goto: 'vance.verify.conclude',
       }),
-      go('vance.verify.again', '再要一次坐标。', 'vance.channel'),
+      go('vance.verify.again', '再要一次坐标。', 'vance.channel')
     ],
   },
   {
@@ -604,18 +592,16 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         label: '"上次你也说二十分钟。"',
         cost: 2,
         requires: num('count.window-asked', '>=', 3),
-        gateMode: 'disable',
-        effects: [setf('did.called-out-window')],
-        goto: 'vance.window.again',
+        gateMode: 'disable',        goto: 'vance.window.again',
       }),
       c({
         id: 'vance.window.wait',
         label: '"我在这儿等。"',
         cost: 10,
-        effects: [setf('did.waited-for-window'), addf('count.futile-acts', 1), san(-4)],
+        effects: [addf('count.futile-acts', 1), san(-4)],
         goto: 'vance.window.waited',
       }),
-      go('vance.window.ok', '"收到。"', 'vance.channel'),
+      go('vance.window.ok', '"收到。"', 'vance.channel')
     ],
   },
   {
@@ -634,7 +620,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         effects: [setf('know.no-window'), san(-6)],
         goto: 'vance.nowindow',
       }),
-      go('vance.window.again.drop', '……', 'vance.channel'),
+      go('vance.window.again.drop', '……', 'vance.channel')
     ],
   },
   {
@@ -649,10 +635,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.nowindow.why',
         label: '"那你为什么要说有。"',
         cost: 2,
-        effects: [setf('did.asked-why-lie')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.whylie',
       }),
-      silence('vance.nowindow.silent', 'vance.channel'),
+      silence('vance.nowindow.silent', 'vance.channel')
     ],
   },
   {
@@ -666,17 +652,17 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.whylie.thanks',
         label: '"谢谢。"',
         cost: 2,
-        effects: [setf('did.thanked-vance'), mark('listening', 1), san(-3)],
+        effects: [mark('listening', 1), san(-3)],
         goto: 'vance.thanked',
       }),
       c({
         id: 'vance.whylie.curse',
         label: '骂他。',
         cost: 2,
-        effects: [setf('did.cursed-vance'), loud(18), fear(-6)],
+        effects: [loud(18), fear(-6)],
         goto: 'vance.cursed',
       }),
-      silence('vance.whylie.silent', 'vance.channel'),
+      silence('vance.whylie.silent', 'vance.channel')
     ],
   },
   {
@@ -713,16 +699,16 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.array.who',
         label: '"听谁。"',
         cost: 2,
-        effects: [setf('did.asked-listen-whom')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.listenwhom',
       }),
       c({
         id: 'vance.array.quiet',
         label: '"那我应该闭嘴。"',
         cost: 2,
-        effects: [mark('silence', 2), setf('did.chose-quiet')],
+        effects: [mark('silence', 2) ],
         goto: 'vance.beQuiet',
-      }),
+      })
     ],
   },
   {
@@ -752,10 +738,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.where.press',
         label: '再问一次。',
         cost: 3,
-        effects: [addf('count.pressed-vance', 1), setf('did.pressed-vance-location')],
+        effects: [addf('count.pressed-vance', 1), addf('count.questions', 1)],
         goto: 'vance.where.again',
       }),
-      silence('vance.where.silent', 'vance.channel'),
+      silence('vance.where.silent', 'vance.channel')
     ],
   },
   {
@@ -769,11 +755,9 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
       c({
         id: 'vance.where.again.come',
         label: '"我来找你。"',
-        cost: 2,
-        effects: [setf('did.promised-to-find-vance')],
-        goto: 'vance.come',
+        cost: 2,        goto: 'vance.come',
       }),
-      silence('vance.where.again.silent', 'vance.channel'),
+      silence('vance.where.again.silent', 'vance.channel')
     ],
   },
   {
@@ -803,10 +787,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.describe.turn',
         label: '"换你说。你那边是什么样。"',
         cost: 2,
-        effects: [setf('did.asked-vance-describe')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.turnabout',
       }),
-      go('vance.describe.stop', '不说了。', 'vance.channel'),
+      go('vance.describe.stop', '不说了。', 'vance.channel')
     ],
   },
   {
@@ -814,17 +798,13 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
     speaker: '万斯',
     text: '好。\n［停顿］你描述得比上次清楚。上次你漏了水位。',
     corruptedText: cor([40, '你描述得比上次清楚。上次你在这个房间里哭了。']),
-    tags: ['key'],
-    onEnter: [setf('did.noticed-last-time')],
-    choices: [
+    tags: ['key'],    choices: [
       c({
         id: 'vance.describe.more.lasttime',
         label: '"上次。"',
-        cost: 2,
-        effects: [setf('did.caught-lasttime')],
-        goto: 'vance.lasttime',
+        cost: 2,        goto: 'vance.lasttime',
       }),
-      go('vance.describe.more.drop', '……', 'vance.channel'),
+      go('vance.describe.more.drop', '……', 'vance.channel')
     ],
   },
   {
@@ -840,10 +820,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: K('k.you-are-sample-n'),
         gateMode: 'disable',
-        effects: [setf('did.rejected-drill-story'), san(-5)],
+        effects: [san(-5)],
         goto: 'vance.drill',
       }),
-      go('vance.lasttime.drop', '……', 'vance.channel'),
+      go('vance.lasttime.drop', '……', 'vance.channel')
     ],
   },
   {
@@ -858,10 +838,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.drill.who',
         label: '"谁设计的。"',
         cost: 2,
-        effects: [setf('did.asked-designer')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.designer',
       }),
-      silence('vance.drill.silent', 'vance.channel'),
+      silence('vance.drill.silent', 'vance.channel')
     ],
   },
   {
@@ -878,17 +858,15 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
     speaker: '万斯',
     text: '［停顿］\n［停顿］我这边是黑的。',
     corruptedText: cor([40, '［停顿］我这边是黑的。我看着你的那一面不是黑的。']),
-    tags: ['key'],
-    onEnter: [setf('did.vance-described-once')],
-    choices: [
+    tags: ['key'],    choices: [
       c({
         id: 'vance.turnabout.press',
         label: '"具体一点。颜色、数量、有没有在动。"',
         cost: 3,
-        effects: [setf('did.used-his-words'), san(-3)],
+        effects: [san(-3)],
         goto: 'vance.turnabout.detail',
       }),
-      go('vance.turnabout.drop', '……', 'vance.channel'),
+      go('vance.turnabout.drop', '……', 'vance.channel')
     ],
   },
   {
@@ -913,10 +891,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.mother-is-spliced'),
         gateMode: 'disable',
-        effects: [setf('did.asked-whose-voice')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.mother.whose',
       }),
-      go('vance.mother.drop', '……', 'vance.channel'),
+      go('vance.mother.drop', '……', 'vance.channel')
     ],
   },
   {
@@ -939,7 +917,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.pelle.why',
         label: '"为什么。"',
         cost: 2,
-        effects: [setf('did.asked-why-not-tell-pelle')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.pelle.why',
       }),
       c({
@@ -947,10 +925,8 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         label: '"我已经说了。"',
         cost: 2,
         requires: on('did.told-pelle-name'),
-        gateMode: 'hide',
-        effects: [setf('did.confessed-to-vance')],
-        goto: 'vance.pelle.late',
-      }),
+        gateMode: 'hide',        goto: 'vance.pelle.late',
+      })
     ],
   },
   {
@@ -971,11 +947,9 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
       c({
         id: 'vance.pelle.late.next',
         label: '"下次。"',
-        cost: 2,
-        effects: [setf('did.caught-next-time')],
-        goto: 'vance.nexttime',
+        cost: 2,        goto: 'vance.nexttime',
       }),
-      silence('vance.pelle.late.silent', 'vance.channel'),
+      silence('vance.pelle.late.silent', 'vance.channel')
     ],
   },
   {
@@ -999,10 +973,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.choir-sings-manifest'),
         gateMode: 'disable',
-        effects: [setf('did.told-vance-names')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.choir.names',
       }),
-      go('vance.choir.drop', '……', 'vance.channel'),
+      go('vance.choir.drop', '……', 'vance.channel')
     ],
   },
   {
@@ -1019,17 +993,15 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
     speaker: '万斯',
     text: '［停顿］那本簿子应该在声呐室。\n［停顿］你去过声呐室了。',
     corruptedText: cor([40, '［停顿］那本簿子应该在我手里。你手里那本是哪一本。']),
-    tags: ['key'],
-    onEnter: [setf('did.vance-knows-you-took-log')],
-    choices: [
+    tags: ['key'],    choices: [
       c({
         id: 'vance.logbook.read',
         label: '念最后一页给他听。',
         cost: 4,
-        effects: [setf('did.read-log-to-vance'), learn('k.eight-strokes')],
+        effects: [learn('k.eight-strokes')],
         goto: 'vance.logbook.read',
       }),
-      go('vance.logbook.close', '合上。', 'vance.channel'),
+      go('vance.logbook.close', '合上。', 'vance.channel')
     ],
   },
   {
@@ -1047,10 +1019,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         irreversible: true,
         requires: K('k.the-word'),
         gateMode: 'lie',
-        effects: [setf('did.spoke-the-word'), mark('listening', 2), san(-10), loud(30)],
+        effects: [mark('listening', 2), san(-10), loud(30)],
         goto: 'vance.logbook.spoken',
       }),
-      silence('vance.logbook.read.silent', 'vance.channel', '合上簿子。'),
+      silence('vance.logbook.read.silent', 'vance.channel', '合上簿子。')
     ],
   },
   {
@@ -1076,16 +1048,16 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.listening-array'),
         gateMode: 'disable',
-        effects: [setf('did.debunked-sync'), addf('count.debunks', 1), san(10)],
+        effects: [addf('count.debunks', 1), san(10)],
         goto: 'vance.sync.debunk',
       }),
       c({
         id: 'vance.sync.accept',
         label: '继续屏住，看谁先喘。',
         cost: 6,
-        effects: [setf('did.breath-contest'), san(-6), loud(22)],
+        effects: [san(-6), loud(22)],
         goto: 'vance.sync.lost',
-      }),
+      })
     ],
   },
   {
@@ -1108,10 +1080,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.sync.lost.what',
         label: '"什么意思。"',
         cost: 2,
-        effects: [setf('did.asked-vance-breath')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.nobreath',
       }),
-      silence('vance.sync.lost.silent', 'vance.channel'),
+      silence('vance.sync.lost.silent', 'vance.channel')
     ],
   },
   {
@@ -1134,7 +1106,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.recorder.stop',
         label: '"停止记录。"',
         cost: 2,
-        effects: [setf('did.asked-stop-recording')],
+        effects: [addf('count.questions', 1)],
         goto: 'vance.recorder.stop',
       }),
       c({
@@ -1143,10 +1115,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: K('k.eight-strokes'),
         gateMode: 'disable',
-        effects: [give('logbook.vance'), setf('did.got-logbook')],
+        effects: [give('logbook.vance') ],
         goto: 'vance.recorder.give',
       }),
-      silence('vance.recorder.silent', 'vance.channel'),
+      silence('vance.recorder.silent', 'vance.channel')
     ],
   },
   {
@@ -1161,16 +1133,16 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         label: '"要。"',
         cost: 2,
         irreversible: true,
-        effects: [setf('did.stopped-record'), mark('silence', 3), mark('apostasy', 1), san(4)],
+        effects: [mark('silence', 3), mark('apostasy', 1), san(4)],
         goto: 'vance.stopped',
       }),
       c({
         id: 'vance.recorder.stop.no',
         label: '"不要。"',
         cost: 2,
-        effects: [setf('did.kept-record'), mark('listening', 2)],
+        effects: [mark('listening', 2)],
         goto: 'vance.kept',
-      }),
+      })
     ],
   },
   {
@@ -1210,16 +1182,16 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         id: 'vance.off.on',
         label: '再打开。',
         cost: 2,
-        effects: [setf('did.reopened-radio'), mark('silence', -1)],
+        effects: [mark('silence', -1)],
         goto: 'vance.channel',
       }),
       c({
         id: 'vance.off.leave',
         label: '摘下耳机。',
         cost: 2,
-        effects: [mark('silence', 2), setf('did.removed-headset')],
+        effects: [mark('silence', 2) ],
         goto: 'vance.removed',
-      }),
+      })
     ],
   },
   {
@@ -1233,15 +1205,13 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
       c({
         id: 'vance.removed.wear',
         label: '戴回去。',
-        cost: 2,
-        effects: [setf('did.put-headset-back')],
-        goto: 'vance.channel',
+        cost: 2,        goto: 'vance.channel',
       }),
       c({
         id: 'vance.removed.keep',
         label: '不戴了。',
-        effects: [mark('silence', 1), setf('did.stayed-unplugged')],
-      }),
+        effects: [mark('silence', 1) ],
+      })
     ],
   },
   {
@@ -1250,13 +1220,13 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
     text: '窗口……过了。\n［停顿］按住按钮。求你按住。',
     corruptedText: cor([40, '窗口过了。［停顿］按住按钮。我需要有人听见我。']),
     tags: ['entry', 'key'],
-    onEnter: [setf('did.vance-final'), sfx('radio.squelch')],
+    onEnter: [sfx('radio.squelch')],
     choices: [
       c({
         id: 'vance.final.hold',
         label: '按住。',
         cost: 4,
-        effects: [setf('did.held-for-vance'), mark('listening', 1), san(-4)],
+        effects: [mark('listening', 1), san(-4)],
         goto: 'vance.final.held',
       }),
       c({
@@ -1264,9 +1234,9 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         label: '松手。',
         cost: 1,
         irreversible: true,
-        effects: [setf('did.released-vance'), mark('silence', 3)],
+        effects: [mark('silence', 3)],
         goto: 'vance.final.released',
-      }),
+      })
     ],
   },
   {
@@ -1283,10 +1253,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: K('k.pen-can-stop'),
         gateMode: 'disable',
-        effects: [setf('did.demanded-erase'), mark('apostasy', 2)],
+        effects: [mark('apostasy', 2)],
         goto: 'vance.final.erase',
       }),
-      silence('vance.final.held.silent', 'vance.channel'),
+      silence('vance.final.held.silent', 'vance.channel')
     ],
   },
   {
@@ -1304,7 +1274,7 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
     text: '你松了手。载波断在一个字的中间。\n那个字的前半是"别"。',
     corruptedText: cor([40, '你松了手。那个字的前半是"别"。后半你已经知道了。']),
     tags: ['key'],
-    onEnter: [sfx('silence.total'), setf('did.vance-cut-off')],
+    onEnter: [sfx('silence.total') ],
     choices: [
       c({
         id: 'vance.final.released.guess',
@@ -1312,10 +1282,10 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: on('know.dont-count'),
         gateMode: 'disable',
-        effects: [setf('did.completed-dont'), san(-4)],
+        effects: [san(-4)],
         goto: 'vance.final.dont',
       }),
-      silence('vance.final.released.silent', 'vance.channel'),
+      silence('vance.final.released.silent', 'vance.channel')
     ],
   },
   {
@@ -1325,5 +1295,5 @@ export const VANCE_NODES: readonly NarrativeNode[] = [
     tags: ['key'],
     onEnter: [setf('know.plate-not-vance')],
     choices: [go('vance.final.dont.ok', '……', 'vance.channel')],
-  },
+  }
 ];

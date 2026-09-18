@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 教团残存者 —— 唯一**还是人**的敌人。
  *
  * 设计角色：给玩家一个"可以不打"的选项，并且让不打变成一个有代价的诱惑。
@@ -208,6 +208,21 @@ export const SILENT_DEACON: EnemyDef = {
       { hp: 16, evasion: 0.28, armor: 1, revealAt: 2 },
       { blindTo: ['vibration'], approachMul: 0.8, note: '它踩不准了。它开始用斧柄探地。' },
       '光脚。脚底的皮厚到失去弹性，但足弓内侧有一片异常柔软 —— 它用那里读地板。',
+    ),
+    // 圣器室那场是关门的，没有门可以退。这条腱就是那扇门 ——
+    // 卸掉它，它走不过你，"逃"才重新成为一个选项。
+    part(
+      'pt.hamstring',
+      '腿后腱',
+      '绑腿',
+      'locomotion',
+      { hp: 22, evasion: 0.34, armor: 1, revealAt: 2 },
+      {
+        approachMul: 0.25,
+        forbidIntents: ['grab'],
+        note: '它还在往前，但每一步都要先把重心交给另一条腿。',
+      },
+      '膝窝上方两指，皮下有一根绷起的索。它站着的时候那根索是直的。',
     ),
     part(
       'pt.axe-wrist',

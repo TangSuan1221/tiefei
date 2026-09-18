@@ -56,14 +56,14 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.first.knock',
         label: '敲一下。',
         cost: 1,
-        effects: [setf('did.knocked-for-pelle'), loud(5), sfx('pipe.knock')],
+        effects: [loud(5), sfx('pipe.knock')],
         goto: 'pelle.knocked',
       }),
       c({
         id: 'pelle.first.who',
         label: '"你是谁。"',
         cost: 2,
-        effects: [setf('did.asked-pelle-who')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.who',
       }),
       c({
@@ -74,7 +74,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         effects: [setf('did.told-pelle-name'), mark('listening', 1)],
         goto: 'pelle.named',
       }),
-      silence('pelle.first.silent', 'pelle.silent'),
+      silence('pelle.first.silent', 'pelle.silent')
     ],
   },
   {
@@ -89,10 +89,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.knocked.previous',
         label: '"上一个是谁。"',
         cost: 2,
-        effects: [setf('did.asked-previous-visitor')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.previous',
       }),
-      go('pelle.knocked.hub', '……', 'pelle.pipe'),
+      go('pelle.knocked.hub', '……', 'pelle.pipe')
     ],
   },
   {
@@ -107,10 +107,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.previous.foot',
         label: '听自己的脚步。',
         cost: 2,
-        effects: [setf('did.listened-own-steps'), san(-4)],
+        effects: [san(-4)],
         goto: 'pelle.ownSteps',
       }),
-      go('pelle.previous.hub', '……', 'pelle.pipe'),
+      go('pelle.previous.hub', '……', 'pelle.pipe')
     ],
   },
   {
@@ -134,10 +134,9 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         label: '数到十。',
         cost: 4,
         effects: [
-          setf('did.played-counting'),
           addf('count.pelle-games', 1),
           addf('count.breaths-counted', 10),
-          mark('listening', 1),
+          mark('listening', 1)
         ],
         goto: 'pelle.counted',
       }),
@@ -147,10 +146,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: on('know.dont-count'),
         gateMode: 'hide',
-        effects: [setf('did.refused-to-count'), mark('silence', 2), san(4)],
+        effects: [mark('silence', 2), san(4)],
         goto: 'pelle.refusedCount',
       }),
-      go('pelle.who.hub', '……', 'pelle.pipe'),
+      go('pelle.who.hub', '……', 'pelle.pipe')
     ],
   },
   {
@@ -172,9 +171,9 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.counted.why',
         label: '"你为什么会说反。"',
         cost: 2,
-        effects: [setf('did.asked-why-reversed')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.reversed',
-      }),
+      })
     ],
   },
   {
@@ -194,7 +193,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         effects: [learn('k.pelle-not-on-list'), setf('know.pelle-has-blueprint')],
         goto: 'pelle.blueprint',
       }),
-      go('pelle.counted2.hub', '……', 'pelle.pipe'),
+      go('pelle.counted2.hub', '……', 'pelle.pipe')
     ],
   },
   {
@@ -208,11 +207,9 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
       c({
         id: 'pelle.reversed.walked',
         label: '"你没走过这条船。"',
-        cost: 2,
-        effects: [setf('did.said-pelle-never-walked')],
-        goto: 'pelle.neverWalked',
+        cost: 2,        goto: 'pelle.neverWalked',
       }),
-      go('pelle.reversed.hub', '……', 'pelle.pipe'),
+      go('pelle.reversed.hub', '……', 'pelle.pipe')
     ],
   },
   {
@@ -227,7 +224,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.blueprint.which',
         label: '"哪一个。"',
         cost: 2,
-        effects: [setf('did.asked-which-extra')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.zeroRoom',
       }),
       c({
@@ -238,7 +235,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         gateMode: 'lie',
         effects: [give('chart.zero'), setf('did.got-chart')],
         goto: 'pelle.gaveChart',
-      }),
+      })
     ],
   },
   {
@@ -253,10 +250,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.zeroRoom.how',
         label: '"你怎么出来的。"',
         cost: 2,
-        effects: [setf('did.asked-how-he-got-out')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.gotOut',
       }),
-      go('pelle.zeroRoom.hub', '……', 'pelle.pipe'),
+      go('pelle.zeroRoom.hub', '……', 'pelle.pipe')
     ],
   },
   {
@@ -278,9 +275,9 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.gotOut.press',
         label: '"我问你怎么出来的。"',
         cost: 3,
-        effects: [addf('count.pressed-pelle', 1), setf('did.pressed-pelle')],
+        effects: [addf('count.pressed-pelle', 1), addf('count.questions', 1)],
         goto: 'pelle.gotOut2',
-      }),
+      })
     ],
   },
   {
@@ -295,10 +292,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.gotOut2.why',
         label: '"那你为什么不出来。"',
         cost: 2,
-        effects: [setf('did.asked-why-stay')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.whyStay',
       }),
-      silence('pelle.gotOut2.silent', 'pelle.pipe'),
+      silence('pelle.gotOut2.silent', 'pelle.pipe')
     ],
   },
   {
@@ -322,10 +319,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.neverWalked.many',
         label: '"很多遍是几遍。"',
         cost: 2,
-        effects: [setf('did.asked-how-many-times')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.howMany',
       }),
-      go('pelle.neverWalked.hub', '……', 'pelle.pipe'),
+      go('pelle.neverWalked.hub', '……', 'pelle.pipe')
     ],
   },
   {
@@ -340,10 +337,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.howMany.look',
         label: '在管道外面找那些道。',
         cost: 4,
-        effects: [setf('did.found-pelle-tally'), san(-6)],
+        effects: [san(-6)],
         goto: 'pelle.tally',
       }),
-      go('pelle.howMany.hub', '……', 'pelle.pipe'),
+      go('pelle.howMany.hub', '……', 'pelle.pipe')
     ],
   },
   {
@@ -358,10 +355,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.tally.feel',
         label: '摸第十八道。',
         cost: 3,
-        effects: [setf('did.touched-eighteenth-line'), san(-8), fear(14)],
+        effects: [san(-8), fear(14)],
         goto: 'pelle.eighteenth',
       }),
-      go('pelle.tally.hub', '不摸。', 'pelle.pipe'),
+      go('pelle.tally.hub', '不摸。', 'pelle.pipe')
     ],
   },
   {
@@ -376,10 +373,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.eighteenth.finish',
         label: '"画完会怎么样。"',
         cost: 2,
-        effects: [setf('did.asked-what-if-finished')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.ifFinished',
       }),
-      silence('pelle.eighteenth.silent', 'pelle.pipe'),
+      silence('pelle.eighteenth.silent', 'pelle.pipe')
     ],
   },
   {
@@ -394,10 +391,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.ifFinished.eight',
         label: '"为什么是八。"',
         cost: 2,
-        effects: [setf('did.asked-why-eight')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.eight',
       }),
-      silence('pelle.ifFinished.silent', 'pelle.pipe'),
+      silence('pelle.ifFinished.silent', 'pelle.pipe')
     ],
   },
   {
@@ -417,7 +414,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         effects: [learn('k.pen-can-stop')],
         goto: 'pelle.penStops',
       }),
-      go('pelle.eight.hub', '……', 'pelle.pipe'),
+      go('pelle.eight.hub', '……', 'pelle.pipe')
     ],
   },
   {
@@ -433,10 +430,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         label: '"这次我不画完。"',
         cost: 3,
         irreversible: true,
-        effects: [setf('did.promised-not-to-finish'), setf('know.promised-pelle'), mark('silence', 2)],
+        effects: [setf('know.promised-pelle'), mark('silence', 2)],
         goto: 'pelle.promised',
       }),
-      silence('pelle.penStops.silent', 'pelle.pipe'),
+      silence('pelle.penStops.silent', 'pelle.pipe')
     ],
   },
   {
@@ -460,10 +457,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.named.forget',
         label: '"忘掉。"',
         cost: 2,
-        effects: [setf('did.asked-pelle-forget')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.cannotForget',
       }),
-      go('pelle.named.hub', '……', 'pelle.pipe'),
+      go('pelle.named.hub', '……', 'pelle.pipe')
     ],
   },
   {
@@ -479,11 +476,9 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         label: '"礼拜堂里有六个人在唱名字。"',
         cost: 2,
         requires: on('met.choir'),
-        gateMode: 'hide',
-        effects: [setf('did.linked-pelle-to-choir')],
-        goto: 'pelle.chapelLink',
+        gateMode: 'hide',        goto: 'pelle.chapelLink',
       }),
-      silence('pelle.cannotForget.silent', 'pelle.pipe'),
+      silence('pelle.cannotForget.silent', 'pelle.pipe')
     ],
   },
   {
@@ -497,11 +492,9 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
       c({
         id: 'pelle.chapelLink.you',
         label: '"你在唱。"',
-        cost: 2,
-        effects: [setf('did.said-pelle-sings')],
-        goto: 'pelle.sings',
+        cost: 2,        goto: 'pelle.sings',
       }),
-      silence('pelle.chapelLink.silent', 'pelle.pipe'),
+      silence('pelle.chapelLink.silent', 'pelle.pipe')
     ],
   },
   {
@@ -548,14 +541,14 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.pipe.age',
         label: '"你几岁。"',
         cost: 2,
-        effects: [setf('did.asked-pelle-age')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.age',
       }),
       c({
         id: 'pelle.pipe.parents',
         label: '"你妈妈呢。"',
         cost: 2,
-        effects: [setf('did.asked-pelle-mother')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.mother',
       }),
       c({
@@ -572,7 +565,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.pipe.crawl',
         label: '爬进管道。',
         cost: 8,
-        effects: [setf('did.crawled-in'), san(-8), mark('silence', 1)],
+        effects: [san(-8), mark('silence', 1)],
         goto: 'pelle.crawl',
       }),
       c({
@@ -581,7 +574,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: K('k.manifest-nineteen'),
         gateMode: 'disable',
-        effects: [setf('did.told-pelle-no-children')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.notOnList',
       }),
       c({
@@ -599,7 +592,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: on('did.gave-whistle'),
         gateMode: 'disable',
-        effects: [setf('did.asked-pelle-lead'), addf('count.pelle-led', 1)],
+        effects: [addf('count.questions', 1), addf('count.pelle-led', 1)],
         goto: 'pelle.lead',
       }),
       c({
@@ -608,7 +601,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         cost: 4,
         requires: all(on('did.got-chart'), K('k.zero-is-the-berth')),
         gateMode: 'lie',
-        effects: [setf('did.asked-pelle-zero')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.zeroLead',
       }),
       c({
@@ -617,16 +610,14 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.pelle-is-a-guide'),
         gateMode: 'hide',
-        effects: [setf('did.asked-pelle-tired')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.tired',
       }),
       c({
         id: 'pelle.pipe.leave',
         label: '走开。',
-        cost: 1,
-        effects: [setf('did.left-pelle')],
-        goto: 'pelle.leaving',
-      }),
+        cost: 1,        goto: 'pelle.leaving',
+      })
     ],
   },
   {
@@ -641,16 +632,16 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.game.nine',
         label: '"九。"',
         cost: 1,
-        effects: [setf('did.said-nine'), mark('listening', 1), addf('count.breaths-counted', 1)],
+        effects: [mark('listening', 1), addf('count.breaths-counted', 1)],
         goto: 'pelle.nine',
       }),
       c({
         id: 'pelle.game.stop',
         label: '不接。',
         cost: 1,
-        effects: [setf('did.did-not-say-nine'), mark('silence', 2), san(3)],
+        effects: [mark('silence', 2), san(3)],
         goto: 'pelle.notNine',
-      }),
+      })
     ],
   },
   {
@@ -668,7 +659,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         effects: [addf('count.pelle-games', 1), addf('count.breaths-counted', 10)],
         goto: 'pelle.game',
       }),
-      go('pelle.nine.stop', '不玩了。', 'pelle.pipe'),
+      go('pelle.nine.stop', '不玩了。', 'pelle.pipe')
     ],
   },
   {
@@ -685,9 +676,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
     speaker: '管道里',
     text: '这里有回声。\n［停顿］你敲一下。',
     corruptedText: cor([45, '这里有回声。（他不回答年龄。他从来不回答。）']),
-    tags: ['key'],
-    onEnter: [setf('did.pelle-dodged-age')],
-    choices: [
+    tags: ['key'],    choices: [
       c({
         id: 'pelle.age.press',
         label: '"我问你几岁。"',
@@ -701,7 +690,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         cost: 1,
         effects: [loud(5), addf('count.knocks', 1)],
         goto: 'pelle.pipe',
-      }),
+      })
     ],
   },
   {
@@ -727,10 +716,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: K('k.mother-was-crew'),
         gateMode: 'disable',
-        effects: [setf('did.told-pelle-truth-mother'), san(-4)],
+        effects: [addf('count.questions', 1), san(-4)],
         goto: 'pelle.notHisMother',
       }),
-      silence('pelle.mother.silent', 'pelle.pipe'),
+      silence('pelle.mother.silent', 'pelle.pipe')
     ],
   },
   {
@@ -754,10 +743,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.whistleGiven.how',
         label: '"它在礼拜堂第六具的手里。"',
         cost: 2,
-        effects: [setf('did.told-pelle-where-whistle')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.whistleWhere',
       }),
-      go('pelle.whistleGiven.ok', '……', 'pelle.pipe'),
+      go('pelle.whistleGiven.ok', '……', 'pelle.pipe')
     ],
   },
   {
@@ -778,22 +767,20 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
       [20, '爬进去十米。你的肩膀卡住了。前面有人在等你卡住。'],
     ),
     tags: ['key'],
-    onEnter: [san(-8), fear(14), setf('did.crawled-in')],
+    onEnter: [san(-8), fear(14) ],
     choices: [
       c({
         id: 'pelle.crawl.on',
         label: '继续爬。',
         cost: 8,
-        effects: [setf('did.crawled-deeper'), san(-10), fear(16)],
+        effects: [san(-10), fear(16)],
         goto: 'pelle.deep',
       }),
       c({
         id: 'pelle.crawl.back',
         label: '退出来。',
-        cost: 6,
-        effects: [setf('did.backed-out-of-pipe')],
-        goto: 'pelle.pipe',
-      }),
+        cost: 6,        goto: 'pelle.pipe',
+      })
     ],
   },
   {
@@ -809,7 +796,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         label: '走中间那支。',
         cost: 10,
         irreversible: true,
-        effects: [setf('did.took-middle-pipe'), san(-12), fight('enc.crawler-pipe')],
+        effects: [san(-12), fight('enc.crawler-pipe')],
         goto: 'pelle.middle',
       }),
       c({
@@ -818,16 +805,14 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: K('k.reweave-has-rule'),
         gateMode: 'disable',
-        effects: [addf('count.debunks', 1), san(10), setf('did.debunked-pipe')],
+        effects: [addf('count.debunks', 1), san(10) ],
         goto: 'pelle.debunkedPipe',
       }),
       c({
         id: 'pelle.deep.back',
         label: '退出来。',
-        cost: 8,
-        effects: [setf('did.backed-out-of-pipe')],
-        goto: 'pelle.pipe',
-      }),
+        cost: 8,        goto: 'pelle.pipe',
+      })
     ],
   },
   {
@@ -842,16 +827,14 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.middle.mattress',
         label: '摸床垫。',
         cost: 2,
-        effects: [setf('did.touched-mattress'), san(-8)],
+        effects: [san(-8)],
         goto: 'pelle.mattress',
       }),
       c({
         id: 'pelle.middle.back',
         label: '退出来。',
-        cost: 10,
-        effects: [setf('did.left-pelle-berth')],
-        goto: 'pelle.pipe',
-      }),
+        cost: 10,        goto: 'pelle.pipe',
+      })
     ],
   },
   {
@@ -892,10 +875,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.guide.who',
         label: '"谁教你的。"',
         cost: 2,
-        effects: [setf('did.asked-who-taught-pelle')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.whoTaught',
       }),
-      silence('pelle.guide.silent', 'pelle.pipe'),
+      silence('pelle.guide.silent', 'pelle.pipe')
     ],
   },
   {
@@ -913,16 +896,16 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
     text: '往下走，过配电，别进压载三。\n［停顿］压载三的门会自己开，你别进。',
     corruptedText: cor([45, '往下走，过配电，别进压载三。压载三的门会自己开。别进。']),
     tags: ['key'],
-    onEnter: [setf('know.avoid-ballast-three'), setf('did.pelle-led-you')],
+    onEnter: [setf('know.avoid-ballast-three') ],
     choices: [
       c({
         id: 'pelle.lead.why',
         label: '"压载三怎么了。"',
         cost: 2,
-        effects: [setf('did.asked-about-ballast')],
+        effects: [addf('count.questions', 1)],
         goto: 'pelle.ballast',
       }),
-      go('pelle.lead.ok', '"记住了。"', 'pelle.pipe'),
+      go('pelle.lead.ok', '"记住了。"', 'pelle.pipe')
     ],
   },
   {
@@ -948,17 +931,15 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
     speaker: '管道里',
     text: '这里有回声。',
     corruptedText: cor([45, '这里有回声。（这是他唯一一次用这句话挡一个不该问的问题。）']),
-    tags: ['key'],
-    onEnter: [setf('did.pelle-dodged-tired')],
-    choices: [
+    tags: ['key'],    choices: [
       c({
         id: 'pelle.tired.press',
         label: '"我问你累不累。"',
         cost: 3,
-        effects: [addf('count.pressed-pelle', 1), setf('did.pressed-pelle')],
+        effects: [addf('count.pressed-pelle', 1), addf('count.questions', 1)],
         goto: 'pelle.tired2',
       }),
-      silence('pelle.tired.silent', 'pelle.pipe'),
+      silence('pelle.tired.silent', 'pelle.pipe')
     ],
   },
   {
@@ -973,16 +954,16 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.tired2.count',
         label: '数到十。',
         cost: 4,
-        effects: [addf('count.breaths-counted', 10), mark('listening', 1), setf('did.counted-for-pelle')],
+        effects: [addf('count.breaths-counted', 10), mark('listening', 1) ],
         goto: 'pelle.rested',
       }),
       c({
         id: 'pelle.tired2.no',
         label: '"我不数。"',
         cost: 2,
-        effects: [setf('did.refused-to-count'), mark('silence', 2)],
+        effects: [mark('silence', 2)],
         goto: 'pelle.notRested',
-      }),
+      })
     ],
   },
   {
@@ -1015,10 +996,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.gaveChart.back',
         label: '看图纸背面。',
         cost: 3,
-        effects: [setf('did.looked-chart-back'), san(-10)],
+        effects: [san(-10)],
         goto: 'pelle.chartBack',
       }),
-      go('pelle.gaveChart.fold', '折起来。', 'pelle.pipe'),
+      go('pelle.gaveChart.fold', '折起来。', 'pelle.pipe')
     ],
   },
   {
@@ -1038,7 +1019,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         effects: [learn('k.the-word'), san(-12)],
         goto: 'pelle.overlay',
       }),
-      go('pelle.chartBack.fold', '折起来。', 'pelle.pipe'),
+      go('pelle.chartBack.fold', '折起来。', 'pelle.pipe')
     ],
   },
   {
@@ -1062,10 +1043,10 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
         id: 'pelle.refusedCount.stop',
         label: '"别数。"',
         cost: 2,
-        effects: [setf('did.told-pelle-dont-count'), mark('silence', 2), san(4)],
+        effects: [addf('count.questions', 1), mark('silence', 2), san(4)],
         goto: 'pelle.stoppedCounting',
       }),
-      silence('pelle.refusedCount.silent', 'pelle.pipe'),
+      silence('pelle.refusedCount.silent', 'pelle.pipe')
     ],
   },
   {
@@ -1096,9 +1077,7 @@ export const PELLE_NODES: readonly NarrativeNode[] = [
       c({
         id: 'pelle.leaving.go',
         label: '走。',
-        cost: 1,
-        effects: [setf('did.left-pelle')],
-      }),
+        cost: 1,      })
     ],
-  },
+  }
 ];

@@ -1,7 +1,7 @@
 /**
  * 程序化音效库
  * ============================================================================
- * GDD §9 要求 ≥ 25 个 cue，目标 40。这里有 62 个，全部现场合成。
+ * GDD §9 要求 ≥ 25 个 cue，目标 40。这里有 81 个，全部现场合成。
  *
  * 命名约定 `域.动作[.变体]`，让叙事内容里的 `{ op:'sfx', cue:'door.force' }`
  * 可以被静态校验器检查拼写。
@@ -551,7 +551,353 @@ export const CUES: Record<string, CueFn> = {
     bell({ ...s, t: s.t + 0.12, gain: s.gain * 0.6 }, 392, 2.0, 0.2);
     return 2.6;
   },
+
+  // ---- 机械手 -------------------------------------------------------------
+  // 舱外没有窗户，那条臂玩家只看得见画面一角。它到底在干什么，主要靠听。
+  // 所以这一组要能单靠声音分辨：泵起没起、这一爪捞到的是铁还是烂棉花、
+  // 电机是第一爪还是第三爪、它是不是已经咬死了。
+  'arm.pump-start': (s) => {
+    const { ctx, t } = s;
+    click(s, 0.28, 0.26); // 接触器吸合
+    const o = osc(ctx, 'sawtooth', 22);
+    ramp(o.frequency, t + 0.04, 22, 116, 0.72);
+    const f = filt(ctx, 'lowpass', 180, 5);
+    ramp(f.frequency, t + 0.04, 180, 640, 0.8);
+    const g = gainNode(ctx, 0);
+    const p = panner(ctx, s.pan);
+    adsr(g.gain, t + 0.04, 0.30 * s.gain, 0.18, 0.30, 0.75, 0.42, 0.55);
+    o.connect(f).connect(g).connect(p);
+    p.connect(s.dest);
+    p.connect(s.send);
+    o.start(t);
+    o.stop(t + 1.9);
+    cleanup(ctx, g, t + 2.2);
+    // 油路建压：高 Q 噪声往上走，这是「压力到了」那一下
+    hiss({ ...s, t: s.t + 0.1, gain: s.gain * 0.30 }, 'bandpass', 520, 1500, 3.4, 0.9, 0.22, 0.14);
+    return 1.6;
+  },
+  'arm.pump-stop': (s) => {
+    const { ctx, t } = s;
+    const o = osc(ctx, 'sawtooth', 104);
+    ramp(o.frequency, t, 104, 17, 0.9);
+    const f = filt(ctx, 'lowpass', 560, 4);
+    ramp(f.frequency, t, 560, 140, 1.0);
+    const g = gainNode(ctx, 0);
+    const p = panner(ctx, s.pan);
+    adsr(g.gain, t, 0.24 * s.gain, 0.02, 0.5, 0.35, 0.2, 0.6);
+    o.connect(f).connect(g).connect(p);
+    p.connect(s.dest);
+    p.connect(s.send);
+    o.start(t);
+    o.stop(t + 1.5);
+    cleanup(ctx, g, t + 1.8);
+    hiss({ ...s, t: s.t + 0.55, gain: s.gain * 0.34 }, 'bandpass', 1400, 380, 1.8, 0.55, 0.26, 0.01); // 泄压
+    clang({ ...s, t: s.t + 0.95, gain: s.gain * 0.35 }, 164, PIPE_RATIOS, 0.28, 0.4);
+    return 1.4;
+  },
+  // 三个爪次。同一台电机，越往后基频越低、扭矩纹波越深、油压越抖。
+  'arm.grip.1': (s) => motorGrip(s, 0),
+  'arm.grip.2': (s) => motorGrip(s, 1),
+  'arm.grip.3': (s) => motorGrip(s, 2),
+  'arm.claw-metal': (s) => {
+    // 爪齿刮薄铁皮。这一爪里有硬东西 —— 听见这个就等于看见了。
+    hiss(s, 'bandpass', 3400, 1800, 2.6, 0.42, 0.26, 0.004);
+    for (let i = 0; i < 4; i++) {
+      clang(
+        { ...s, t: s.t + i * s.rng.float(0.06, 0.14), gain: s.gain * s.rng.float(0.18, 0.44) },
+        s.rng.float(720, 1250), PLATE_RATIOS, 0.20, 0.9,
+      );
+    }
+    return 0.7;
+  },
+  'arm.claw-wet': (s) => {
+    // 插进泡烂的填充物。闷，没有任何金属成分 —— 这一爪是空的。
+    hiss(s, 'lowpass', 620, 180, 1.4, 0.55, 0.40, 0.03);
+    for (let i = 0; i < 7; i++) {
+      bubble({ ...s, t: s.t + s.rng.float(0, 0.34), gain: s.gain * s.rng.float(0.15, 0.4) }, s.rng.float(80, 260));
+    }
+    thud({ ...s, t: s.t + 0.30, gain: s.gain * 0.45 }, 54, 0.30, 0.08);
+    return 0.8;
+  },
+  'arm.motor-stall': (s) => {
+    const { ctx, t } = s;
+    // 失速：转速掉下去、电流反而上来。听上去像有人掐住了它的喉咙。
+    const o = osc(ctx, 'sawtooth', 98);
+    ramp(o.frequency, t, 98, 21, 0.44);
+    const f = filt(ctx, 'lowpass', 700, 9);
+    ramp(f.frequency, t, 700, 210, 0.5);
+    const g = gainNode(ctx, 0);
+    const p = panner(ctx, s.pan);
+    adsr(g.gain, t, 0.34 * s.gain, 0.02, 0.22, 0.85, 0.30, 0.34);
+    o.connect(f).connect(g).connect(p);
+    p.connect(s.dest);
+    p.connect(s.send);
+    o.start(t);
+    o.stop(t + 1.2);
+    cleanup(ctx, g, t + 1.5);
+    // 堵转电流：50 Hz 嗡声压过机械声
+    const hum = osc(ctx, 'triangle', 50);
+    const hg = gainNode(ctx, 0);
+    adsr(hg.gain, t + 0.1, 0.20 * s.gain, 0.12, 0.2, 0.9, 0.35, 0.3);
+    hum.connect(hg).connect(p);
+    hum.start(t);
+    hum.stop(t + 1.2);
+    cleanup(ctx, hg, t + 1.5);
+    return 1.0;
+  },
+  'arm.jam': (s) => {
+    // 咬死。一声，然后是被咬住的那段钢自己的应力。
+    clang(s, 188, METAL_RATIOS, 0.34, 0.85);
+    clang({ ...s, t: s.t + 0.07, gain: s.gain * 0.55 }, 172, METAL_RATIOS, 0.22, 0.7);
+    CUES['arm.motor-stall']({ ...s, t: s.t + 0.10, gain: s.gain * 0.7 });
+    CUES['hull.groan']({ ...s, t: s.t + 0.5, gain: s.gain * 0.22 });
+    return 1.6;
+  },
+  'arm.wrench': (s) => {
+    // 拽。三下递增，最后一下要么是它松了，要么是你的钢松了。
+    hiss(s, 'bandpass', 420, 900, 3.8, 0.9, 0.24, 0.16); // 液压憋压
+    for (let i = 0; i < 3; i++) {
+      clang(
+        { ...s, t: s.t + 0.12 + i * 0.26, gain: s.gain * (0.42 + i * 0.26) },
+        152 - i * 11, METAL_RATIOS, 0.26 + i * 0.10, 0.6,
+      );
+    }
+    thud({ ...s, t: s.t + 0.92, gain: s.gain * 0.7 }, 44, 0.6, 0.45);
+    return 1.5;
+  },
+  'arm.coupler-blow': (s) => {
+    // 弃臂。爆炸螺栓、喷出去的液压油、然后是那条臂落在下面某个东西上。
+    // 这是玩家在这一趟里做过的最重的一个决定，所以它必须响、亮、而且有回声。
+    clang(s, 940, METAL_RATIOS, 0.16, 1);
+    hiss({ ...s, t: s.t + 0.01, gain: s.gain * 0.85 }, 'highpass', 900, 5600, 0.8, 0.42, 0.6, 0.001);
+    thud({ ...s, t: s.t + 0.03, gain: s.gain * 0.9 }, 62, 0.7, 0.7);
+    for (let i = 0; i < 14; i++) {
+      bubble(
+        { ...s, t: s.t + 0.05 + s.rng.float(0, 0.7), gain: s.gain * s.rng.float(0.18, 0.5) },
+        s.rng.float(70, 380),
+      );
+    }
+    // 它落下去了。远、偏、而且不在你这一侧
+    clang({ ...s, t: s.t + 0.92, gain: s.gain * 0.40, pan: -s.pan * 0.8 }, 118, PLATE_RATIOS, 1.1, 0.35);
+    clang({ ...s, t: s.t + 1.31, gain: s.gain * 0.22, pan: -s.pan * 0.9 }, 104, PLATE_RATIOS, 0.9, 0.3);
+    return 2.4;
+  },
+  'arm.stow': (s) => {
+    hiss(s, 'bandpass', 700, 300, 2.4, 0.5, 0.20, 0.10);
+    clang({ ...s, t: s.t + 0.42, gain: s.gain * 0.5 }, 236, PIPE_RATIOS, 0.24, 0.5);
+    click({ ...s, t: s.t + 0.46, gain: s.gain * 0.6 }, 0.35, 0.22);
+    return 0.8;
+  },
+  'arm.servo': (s) => {
+    const { ctx, t } = s;
+    // 伺服底噪。这是整条时间轴的第一下，所以它不能有攻击感 ——
+    // 它是「机器开始动了」，不是「东西撞了一下」。
+    // 齿隙让频率不平稳：伺服在找位置，而不是匀速转。
+    const o = osc(ctx, 'sawtooth', 168);
+    const wob = osc(ctx, 'sine', 5.4);
+    const wobG = gainNode(ctx, 7);
+    wob.connect(wobG).connect(o.frequency);
+    const f = filt(ctx, 'bandpass', 520, 3.2);
+    ramp(f.frequency, t, 430, 760, 0.85);
+    const g = gainNode(ctx, 0);
+    const p = panner(ctx, s.pan);
+    adsr(g.gain, t, 0.17 * s.gain, 0.09, 0.22, 0.85, 0.34, 0.30);
+    o.connect(f).connect(g).connect(p);
+    p.connect(s.dest);
+    p.connect(s.send);
+    o.start(t);
+    wob.start(t);
+    o.stop(t + 1.1);
+    wob.stop(t + 1.1);
+    cleanup(ctx, g, t + 1.4);
+    // 减速箱的齿：细密、不规则、贴在底噪上面
+    for (let i = 0; i < 5; i++) {
+      click({ ...s, t: s.t + 0.10 + i * s.rng.float(0.11, 0.19), gain: s.gain * 0.09 }, 0.7, 0.10);
+    }
+    return 0.95;
+  },
+  'arm.retract': (s) => {
+    // 收回：棘轮一格一格咬回去，最后泄压。
+    // 棘轮的间隔越来越密 —— 臂离舱越近，卷筒转得越快。
+    let at = 0;
+    for (let i = 0; i < 9; i++) {
+      click({ ...s, t: s.t + at, gain: s.gain * (0.30 - i * 0.015) }, 0.55, 0.20);
+      at += 0.13 - i * 0.008;
+    }
+    hiss({ ...s, t: s.t + at + 0.04, gain: s.gain * 0.4 }, 'bandpass', 1250, 420, 2.0, 0.34, 0.24, 0.006);
+    return at + 0.4;
+  },
+
+  // ---- 箱子（封条、箱盖、填充物、配重） -----------------------------------
+  // 「封条会撒谎」是整套翻箱机制的核心，所以撕封条必须有自己的声音：
+  // 它是玩家唯一一次**验证先验**的时刻，听感上必须和开门彻底分开。
+  'crate.seal-peel': (s) => {
+    const { ctx, t } = s;
+    // 撕胶带那种连续的、颗粒状的爆裂：一条窄带噪声被高速振幅调制。
+    // 频率往下走 = 封条越撕越松。
+    const nz = noiseSource(ctx, getScratchNoise(ctx), 1.15);
+    const bp = filt(ctx, 'bandpass', 2600, 2.2);
+    ramp(bp.frequency, t, 2900, 1150, 0.62);
+    const rip = gainNode(ctx, 0.45);
+    // 撕裂的「牙齿」：52 Hz 方波调制振幅，听上去是一格一格崩开的
+    const tear = osc(ctx, 'square', 52);
+    ramp(tear.frequency, t, 62, 34, 0.62);
+    const tearG = gainNode(ctx, 0.5);
+    tear.connect(tearG).connect(rip.gain);
+    const g = gainNode(ctx, 0);
+    const p = panner(ctx, s.pan);
+    adsr(g.gain, t, 0.34 * s.gain, 0.03, 0.18, 0.8, 0.22, 0.22);
+    nz.connect(bp).connect(rip).connect(g).connect(p);
+    p.connect(s.dest);
+    p.connect(s.send);
+    nz.start(t);
+    tear.start(t);
+    nz.stop(t + 0.9);
+    tear.stop(t + 0.9);
+    cleanup(ctx, g, t + 1.2);
+    // 压条弹开：封条断掉那一下，箱子自己的薄钢响一声
+    clang({ ...s, t: s.t + 0.58, gain: s.gain * 0.34 }, 690, PLATE_RATIOS, 0.16, 0.8);
+    return 0.8;
+  },
+  'crate.lid-open': (s) => {
+    // 箱盖翻开。和开门不是一回事：门后面是走廊，箱盖下面是一个**空腔**，
+    // 所以重点是盖子掀开之后露出来的那个共鸣，而不是铰链。
+    const { ctx, t } = s;
+    hiss(s, 'bandpass', 900, 1600, 1.6, 0.20, 0.22, 0.006); // 铁皮互相刮
+    clang({ ...s, t: s.t + 0.14, gain: s.gain * 0.55 }, 148, PLATE_RATIOS, 0.5, 0.45);
+    // 空腔：一个被低通掉的窄带共振，从盖子掀开的那一刻起持续零点几秒
+    const nz = noiseSource(ctx, getScratchNoise(ctx), 0.7);
+    const cav = filt(ctx, 'bandpass', 210, 7.5);
+    ramp(cav.frequency, t + 0.14, 300, 180, 0.6);
+    const cg = gainNode(ctx, 0);
+    const p = panner(ctx, s.pan);
+    adsr(cg.gain, t + 0.14, 0.22 * s.gain, 0.05, 0.25, 0.6, 0.18, 0.4);
+    nz.connect(cav).connect(cg).connect(p);
+    p.connect(s.dest);
+    p.connect(s.send);
+    nz.start(t + 0.14);
+    nz.stop(t + 1.3);
+    cleanup(ctx, cg, t + 1.6);
+    return 0.95;
+  },
+  'fabric.tear': (s) => {
+    // 撕制服。和封条的区别在于它是湿的、没有胶质的脆响，低频多。
+    const { ctx, t } = s;
+    const nz = noiseSource(ctx, getScratchNoise(ctx), 0.8);
+    const bp = filt(ctx, 'bandpass', 1400, 1.1);
+    ramp(bp.frequency, t, 1650, 520, 0.75);
+    const rip = gainNode(ctx, 0.55);
+    const tear = osc(ctx, 'sawtooth', 31);
+    ramp(tear.frequency, t, 41, 19, 0.75);
+    const tearG = gainNode(ctx, 0.42);
+    tear.connect(tearG).connect(rip.gain);
+    const g = gainNode(ctx, 0);
+    const p = panner(ctx, s.pan);
+    adsr(g.gain, t, 0.30 * s.gain, 0.05, 0.26, 0.7, 0.16, 0.34);
+    nz.connect(bp).connect(rip).connect(g).connect(p);
+    p.connect(s.dest);
+    p.connect(s.send);
+    nz.start(t);
+    tear.start(t);
+    nz.stop(t + 1.1);
+    tear.stop(t + 1.1);
+    cleanup(ctx, g, t + 1.4);
+    // 线缝一根一根断：稀疏的极短瞬态
+    for (let i = 0; i < 6; i++) {
+      click({ ...s, t: s.t + s.rng.float(0.05, 0.72), gain: s.gain * s.rng.float(0.06, 0.16) }, 0.85, 0.12);
+    }
+    thud({ ...s, t: s.t + 0.70, gain: s.gain * 0.22 }, 76, 0.22, 0.05); // 湿布落回去
+    return 0.9;
+  },
+  'photo.slide': (s) => {
+    // 照片从口袋里抽出来。全作最轻的一个音 —— 它是遗物时刻的落点，
+    // 所以它不能响；它只需要在别的声音都停下来之后，被听见。
+    hiss(s, 'bandpass', 3800, 2400, 1.3, 0.24, 0.085, 0.012);
+    hiss({ ...s, t: s.t + 0.16, gain: s.gain * 0.55 }, 'highpass', 5200, 3200, 0.7, 0.14, 0.05, 0.02);
+    click({ ...s, t: s.t + 0.30, gain: s.gain * 0.10 }, 0.9, 0.06); // 相纸边缘弹回去
+    return 0.42;
+  },
+  'concrete.scrape': (s) => {
+    // 爪刮水泥配重。关键是**没有金属的余韵** —— 一切都在 0.3 秒内死掉，
+    // 只剩下砂粒。听到这个就知道：这只箱子里没有货，只有让它压秤的东西。
+    const { ctx, t } = s;
+    const nz = noiseSource(ctx, getScratchNoise(ctx), 0.62);
+    const bp = filt(ctx, 'bandpass', 1050, 0.8);
+    ramp(bp.frequency, t, 1250, 700, 0.55);
+    const lp = filt(ctx, 'lowpass', 2600, 0.7);
+    const g = gainNode(ctx, 0);
+    const p = panner(ctx, s.pan);
+    adsr(g.gain, t, 0.34 * s.gain, 0.02, 0.2, 0.75, 0.16, 0.16);
+    nz.connect(bp).connect(lp).connect(g).connect(p);
+    p.connect(s.dest);
+    p.connect(s.send);
+    nz.start(t);
+    nz.stop(t + 0.9);
+    cleanup(ctx, g, t + 1.2);
+    // 砂粒：一小把干的、互不相关的瞬态，全部极短
+    for (let i = 0; i < 11; i++) {
+      click({ ...s, t: s.t + s.rng.float(0, 0.5), gain: s.gain * s.rng.float(0.04, 0.13) }, 0.45, 0.09);
+    }
+    thud({ ...s, t: s.t + 0.06, gain: s.gain * 0.28 }, 58, 0.16, 0.10); // 死沉，不回响
+    return 0.6;
+  },
 };
+
+/**
+ * 液压爪闭合一次。
+ *
+ * tier 0/1/2 = 第一/二/三爪。同一台电机在同一次伸出里会越来越吃力：
+ * 基频掉、扭矩纹波变深、油压开始抖。玩家不需要看爪数 —— 他听得出来。
+ */
+function motorGrip(s: SynthCtx, tier: 0 | 1 | 2): number {
+  const { ctx, t } = s;
+  const base = [132, 112, 91][tier];
+  const ripple = [0.10, 0.22, 0.38][tier];
+  const dur = [0.85, 1.0, 1.25][tier];
+
+  const p = panner(ctx, s.pan);
+  const out = gainNode(ctx, 0);
+  const sat = saturator(ctx, 1.8 + tier * 1.4);
+  out.connect(sat).connect(p);
+  p.connect(s.dest);
+  p.connect(s.send);
+  adsr(out.gain, t, (0.30 - tier * 0.02) * s.gain, 0.05, dur * 0.3, 0.8, dur * 0.35, dur * 0.4);
+
+  // 电机：锯齿 → 低通 → 纹波级 → out。负载让转速在闭合过程里被压下去一点
+  const o = osc(ctx, 'sawtooth', base);
+  ramp(o.frequency, t, base, base * (0.88 - tier * 0.07), dur);
+  const f = filt(ctx, 'lowpass', 620 - tier * 90, 6);
+  const rip = gainNode(ctx, 1 - ripple);
+  o.connect(f).connect(rip).connect(out);
+  o.start(t);
+  o.stop(t + dur + 0.3);
+
+  // 扭矩纹波：电机每转一圈的那一下不均匀。越疲越深
+  const lfo = osc(ctx, 'sine', base / 6);
+  const lfoG = gainNode(ctx, ripple);
+  lfo.connect(lfoG).connect(rip.gain);
+  lfo.start(t);
+  lfo.stop(t + dur + 0.3);
+
+  // 油压抖动：第三爪才明显
+  if (tier > 0) {
+    const nz = noiseSource(ctx, getScratchNoise(ctx), 1);
+    const nf = filt(ctx, 'bandpass', 240, 2.2);
+    const ng = gainNode(ctx, 0);
+    hit(ng.gain, t + dur * 0.5, 0.10 * tier * s.gain, dur * 0.5, 0.05);
+    nz.connect(nf).connect(ng).connect(out);
+    nz.start(t);
+    nz.stop(t + dur + 0.2);
+  }
+
+  // 爪齿咬合的那一声。疲的时候它到得更晚
+  clang(
+    { ...s, t: t + dur * (0.72 + tier * 0.06), gain: s.gain * (0.34 - tier * 0.05) },
+    420 - tier * 40, METAL_RATIOS, 0.20, 0.7,
+  );
+  cleanup(ctx, out, t + dur + 0.8);
+  return dur;
+}
 
 /** 供美术圣经与评审使用的元数据表 */
 export const CUE_META: readonly CueMeta[] = [
@@ -640,6 +986,25 @@ export const CUE_META: readonly CueMeta[] = [
   { id: 'ending.sting', cn: '结局落点', synth: '55 Hz 长钟 + 次声下扫', category: 'meta' },
   { id: 'knowledge.gain', cn: '获得知识', synth: '清亮钟 + 上行泛音', category: 'meta' },
   { id: 'debunk.success', cn: '识破谎言', synth: '纯净大三度双钟', category: 'meta' },
+  { id: 'arm.pump-start', cn: '液压泵启动', synth: '接触器 + 22→116 Hz 上扭锯齿 + 油路建压噪声', category: 'power' },
+  { id: 'arm.pump-stop', cn: '液压泵停', synth: '下扫锯齿 + 泄压嘶声 + 管状回落', category: 'power' },
+  { id: 'arm.grip.1', cn: '第一爪闭合', synth: '132 Hz 电机 + 10% 扭矩纹波 + 爪齿咬合', category: 'object' },
+  { id: 'arm.grip.2', cn: '第二爪闭合', synth: '112 Hz 电机 + 22% 纹波 + 油压抖动', category: 'object' },
+  { id: 'arm.grip.3', cn: '第三爪闭合', synth: '91 Hz 疲电机 + 38% 纹波 + 深油压抖动', category: 'object' },
+  { id: 'arm.claw-metal', cn: '爪齿刮铁皮', synth: '高频带通 + 四次薄板非谐分音', category: 'object' },
+  { id: 'arm.claw-wet', cn: '插进泡烂填充物', synth: '低通闷噪 + 低频气泡群（无金属成分）', category: 'object' },
+  { id: 'arm.motor-stall', cn: '马达失速', synth: '转速急降锯齿 + 50 Hz 堵转电流嗡', category: 'power' },
+  { id: 'arm.jam', cn: '爪子咬死', synth: '双次金属撞击 + 失速 + 延迟船体应力', category: 'object' },
+  { id: 'arm.wrench', cn: '拽卡住的爪子', synth: '液压憋压 + 三次递增金属挣扎 + 屈服闷响', category: 'object' },
+  { id: 'arm.coupler-blow', cn: '液压接头弹开', synth: '爆炸螺栓 + 高压油喷 + 气泡群 + 反侧落地回声', category: 'power' },
+  { id: 'arm.stow', cn: '机械手进护套', synth: '滑入噪声 + 管状锁扣 + 继电器', category: 'object' },
+  { id: 'arm.servo', cn: '伺服底噪', synth: '168 Hz 锯齿 + 5.4 Hz 齿隙抖动 + 带通上扫 + 减速箱齿声', category: 'power' },
+  { id: 'arm.retract', cn: '爪收回', synth: '九格递密棘轮 + 末端泄压嘶声', category: 'object' },
+  { id: 'crate.seal-peel', cn: '撕封条', synth: '窄带噪声 × 52 Hz 方波振幅调制 + 压条弹开', category: 'object' },
+  { id: 'crate.lid-open', cn: '箱盖翻开', synth: '铁皮互刮 + 薄板撞击 + Q7.5 空腔共振', category: 'object' },
+  { id: 'fabric.tear', cn: '撕制服', synth: '中频噪声 × 31 Hz 锯齿调制 + 线缝断裂瞬态 + 湿布落地', category: 'object' },
+  { id: 'photo.slide', cn: '照片抽出', synth: '两层高频窄带嘶声 + 相纸边缘轻弹', category: 'object' },
+  { id: 'concrete.scrape', cn: '刮水泥配重', synth: '干带通噪声（无金属余韵）+ 十一粒砂 + 死沉闷响', category: 'object' },
 ];
 
 export const CUE_COUNT = Object.keys(CUES).length;

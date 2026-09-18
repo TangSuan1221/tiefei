@@ -144,11 +144,17 @@ export const gate = (
 ): NarrativeChoice => ({ id, label, requires, gateMode, goto: target, ...extra });
 
 /** 沉默 —— 本作出现频率最高的选项，因为它几乎总是正确的 */
-export const silence = (id: ID, target: ID, label = '……（不出声）'): NarrativeChoice => ({
+export const silence = (
+  id: ID,
+  target?: ID,
+  label = '……（不出声）',
+  extra: Partial<NarrativeChoice> = {},
+): NarrativeChoice => ({
   id,
   label,
   goto: target,
   effects: [mark('silence', 1)],
+  ...extra,
 });
 
 export function ending(def: Ending): Ending {

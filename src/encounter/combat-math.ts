@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 遭遇的判定内核。动作库与引擎共用这一份，保证"玩家打它"和"它打玩家"
  * 走的是同一套命中与部位逻辑。
  *
@@ -218,7 +218,7 @@ export function attackPart(
   }
 
   const lightTerm = o.lightIndependent ? 0.08 : rt.light * 0.26 - 0.08;
-  const bandTerm = bandIndex(bandOf(rt, e)) >= 3 ? 0.08 : -0.06;
+  const bandTerm = bandIndex(bandOf(rt, e.id)) >= 3 ? 0.08 : -0.06;
   const evasion = (pd.evasion + def.evasion * 0.5 + b.evasionAdd) * (1 - clamp01(o.precision ?? 0));
   const chance = clamp(o.base + lightTerm + tier * 0.05 + bandTerm - evasion, 0.05, 0.96);
 
@@ -278,7 +278,7 @@ export function escapeChance(rt: EncounterRuntime): number {
   if (!live.length) return 1;
   let worst = 0;
   for (const e of live) {
-    const band = bandIndex(bandOf(rt, e));
+    const band = bandIndex(bandOf(rt, e.id));
     const c = 0.72 - e.awareness * 0.42 - band * 0.1 + (rt.markedExit ? 0.16 : 0) - rt.noise * 0.0016;
     worst = Math.max(worst, 1 - clamp(c, 0.04, 0.95));
   }

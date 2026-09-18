@@ -55,7 +55,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.first.why',
         label: '"为什么。"',
         cost: 2,
-        effects: [setf('did.asked-dorn-why')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.why',
       }),
       c({
@@ -63,17 +63,15 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         label: '动手解。',
         cost: 6,
         irreversible: true,
-        effects: [setf('did.untied-dorn'), loud(8), mark('flesh', 1)],
+        effects: [loud(8), mark('flesh', 1)],
         goto: 'dorn.untied',
       }),
       c({
         id: 'dorn.first.look',
         label: '先看绳子。',
-        cost: 3,
-        effects: [setf('did.checked-knot')],
-        goto: 'dorn.knot',
+        cost: 3,        goto: 'dorn.knot',
       }),
-      silence('dorn.first.silent', 'dorn.silence'),
+      silence('dorn.first.silent', 'dorn.silence')
     ],
   },
   {
@@ -87,16 +85,14 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.why.report',
         label: '报水位。',
         cost: 2,
-        effects: [setf('did.reported-water'), addf('count.reports-to-dorn', 1)],
+        effects: [addf('count.reports-to-dorn', 1)],
         goto: 'dorn.water',
       }),
       c({
         id: 'dorn.why.again',
         label: '"我问你为什么。"',
-        cost: 2,
-        effects: [setf('did.repeated-question')],
-        goto: 'dorn.why2',
-      }),
+        cost: 2,        goto: 'dorn.why2',
+      })
     ],
   },
   {
@@ -110,11 +106,9 @@ export const DORN_NODES: readonly NarrativeNode[] = [
       c({
         id: 'dorn.water.lasttime',
         label: '"我没有报过。"',
-        cost: 2,
-        effects: [setf('did.denied-reporting')],
-        goto: 'dorn.denied',
+        cost: 2,        goto: 'dorn.denied',
       }),
-      go('dorn.water.ok', '……', 'dorn.chair'),
+      go('dorn.water.ok', '……', 'dorn.chair')
     ],
   },
   {
@@ -138,10 +132,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.why2.down',
         label: '"往下走有什么。"',
         cost: 2,
-        effects: [setf('did.asked-what-below')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.below',
       }),
-      go('dorn.why2.ok', '……', 'dorn.chair'),
+      go('dorn.why2.ok', '……', 'dorn.chair')
     ],
   },
   {
@@ -156,16 +150,16 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.below.same',
         label: '"我也想。"',
         cost: 2,
-        effects: [setf('did.admitted-pull'), mark('listening', 1), san(-3)],
+        effects: [mark('listening', 1), san(-3)],
         goto: 'dorn.sameAs',
       }),
       c({
         id: 'dorn.below.no',
         label: '"我不想。"',
         cost: 2,
-        effects: [setf('did.denied-pull'), mark('silence', 1)],
+        effects: [mark('silence', 1)],
         goto: 'dorn.notyet',
-      }),
+      })
     ],
   },
   {
@@ -179,10 +173,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.sameAs.half',
         label: '"哪个是半个。"',
         cost: 2,
-        effects: [setf('did.asked-which-half')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.half',
       }),
-      go('dorn.sameAs.ok', '……', 'dorn.chair'),
+      go('dorn.sameAs.ok', '……', 'dorn.chair')
     ],
   },
   {
@@ -203,10 +197,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.notyet.report',
         label: '报水位。',
         cost: 2,
-        effects: [addf('count.reports-to-dorn', 1), setf('did.reported-water')],
+        effects: [addf('count.reports-to-dorn', 1) ],
         goto: 'dorn.chair',
       }),
-      go('dorn.notyet.no', '不报。', 'dorn.chair'),
+      go('dorn.notyet.no', '不报。', 'dorn.chair')
     ],
   },
   {
@@ -215,23 +209,21 @@ export const DORN_NODES: readonly NarrativeNode[] = [
     text: '绳子绕过椅背，两道，交叉。结在他右手边，离他的手指八公分。\n收尾那个结的绳头上有牙印。',
     corruptedText: cor([45, '结在他右手边。绳头上有牙印。牙印的间距和你的一样。']),
     tags: ['key'],
-    onEnter: [learn('k.dorn-tied-himself'), setf('did.checked-knot')],
+    onEnter: [learn('k.dorn-tied-himself') ],
     choices: [
       c({
         id: 'dorn.knot.say',
         label: '"你自己绑的。"',
-        cost: 2,
-        effects: [setf('did.said-self-tied')],
-        goto: 'dorn.selfTied',
+        cost: 2,        goto: 'dorn.selfTied',
       }),
       c({
         id: 'dorn.knot.teeth',
         label: '看牙印。',
         cost: 2,
-        effects: [setf('did.examined-teeth-marks'), san(-4)],
+        effects: [san(-4)],
         goto: 'dorn.teeth',
       }),
-      go('dorn.knot.back', '不说。', 'dorn.chair'),
+      go('dorn.knot.back', '不说。', 'dorn.chair')
     ],
   },
   {
@@ -245,10 +237,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.selfTied.help',
         label: '"我可以帮你绑紧一点。"',
         cost: 4,
-        effects: [setf('did.tightened-ropes'), mark('iron', 1), san(-3), sfx('rope.strain')],
+        effects: [mark('iron', 1), san(-3), sfx('rope.strain')],
         goto: 'dorn.tightened',
       }),
-      go('dorn.selfTied.ok', '……', 'dorn.chair'),
+      go('dorn.selfTied.ok', '……', 'dorn.chair')
     ],
   },
   {
@@ -262,11 +254,9 @@ export const DORN_NODES: readonly NarrativeNode[] = [
       c({
         id: 'dorn.tightened.before',
         label: '"前面几个。"',
-        cost: 2,
-        effects: [setf('did.caught-previous-ones')],
-        goto: 'dorn.previous',
+        cost: 2,        goto: 'dorn.previous',
       }),
-      go('dorn.tightened.ok', '……', 'dorn.chair'),
+      go('dorn.tightened.ok', '……', 'dorn.chair')
     ],
   },
   {
@@ -283,10 +273,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: item('mirror'),
         gateMode: 'lie',
-        effects: [setf('did.compared-teeth'), san(-8)],
+        effects: [san(-8)],
         goto: 'dorn.teeth.match',
       }),
-      go('dorn.teeth.back', '不比。', 'dorn.chair'),
+      go('dorn.teeth.back', '不比。', 'dorn.chair')
     ],
   },
   {
@@ -304,7 +294,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
     text: '［停顿］\n把帽子捡起来。',
     corruptedText: cor([45, '［停顿］把帽子捡起来。（他没有站起来。他在等你先动。）']),
     tags: ['key'],
-    onEnter: [setf('did.untied-dorn'), sfx('rope.strain')],
+    onEnter: [sfx('rope.strain')],
     choices: [
       c({
         id: 'dorn.untied.cap',
@@ -317,16 +307,16 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.untied.retie',
         label: '重新绑上。',
         cost: 6,
-        effects: [setf('did.retied-dorn'), mark('iron', 1), san(-4)],
+        effects: [mark('iron', 1), san(-4)],
         goto: 'dorn.retied',
       }),
       c({
         id: 'dorn.untied.watch',
         label: '站着不动，看他会不会走。',
         cost: 8,
-        effects: [setf('did.watched-dorn'), san(-5)],
+        effects: [san(-5)],
         goto: 'dorn.watched',
-      }),
+      })
     ],
   },
   {
@@ -340,16 +330,14 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.cap.close',
         label: '出去，关门。',
         cost: 3,
-        effects: [setf('did.closed-dorn-door'), mark('silence', 1)],
+        effects: [mark('silence', 1)],
         goto: 'dorn.doorClosed',
       }),
       c({
         id: 'dorn.cap.stay',
         label: '不出去。',
-        cost: 2,
-        effects: [setf('did.stayed-with-dorn')],
-        goto: 'dorn.stayed',
-      }),
+        cost: 2,        goto: 'dorn.stayed',
+      })
     ],
   },
   {
@@ -372,16 +360,16 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.stayed.watch',
         label: '看。',
         cost: 10,
-        effects: [setf('did.watched-him-retie'), san(-10), fear(12)],
+        effects: [san(-10), fear(12)],
         goto: 'dorn.retieSelf',
       }),
       c({
         id: 'dorn.stayed.leave',
         label: '走开。',
         cost: 2,
-        effects: [mark('silence', 1), setf('did.looked-away')],
+        effects: [mark('silence', 1) ],
         goto: 'dorn.chair',
-      }),
+      })
     ],
   },
   {
@@ -396,10 +384,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.retieSelf.why',
         label: '"为什么一定要绑着。"',
         cost: 2,
-        effects: [setf('did.asked-why-bound')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.whyBound',
       }),
-      silence('dorn.retieSelf.silent', 'dorn.chair'),
+      silence('dorn.retieSelf.silent', 'dorn.chair')
     ],
   },
   {
@@ -414,10 +402,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.whyBound.mirror',
         label: '"那我呢。"',
         cost: 2,
-        effects: [setf('did.asked-about-myself')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.aboutYou',
       }),
-      go('dorn.whyBound.ok', '……', 'dorn.chair'),
+      go('dorn.whyBound.ok', '……', 'dorn.chair')
     ],
   },
   {
@@ -439,10 +427,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.retied.tighter',
         label: '再紧。',
         cost: 4,
-        effects: [setf('did.tightened-ropes'), mark('iron', 1), sfx('rope.strain'), san(-3)],
+        effects: [mark('iron', 1), sfx('rope.strain'), san(-3)],
         goto: 'dorn.tightened',
       }),
-      go('dorn.retied.enough', '够了。', 'dorn.chair'),
+      go('dorn.retied.enough', '够了。', 'dorn.chair')
     ],
   },
   {
@@ -450,17 +438,15 @@ export const DORN_NODES: readonly NarrativeNode[] = [
     speaker: '多恩',
     text: '［停顿］\n［停顿］你不是想解开我。',
     corruptedText: cor([40, '［停顿］你不是想解开我。你想看我走。']),
-    tags: ['key'],
-    onEnter: [setf('did.dorn-called-it-out')],
-    choices: [
+    tags: ['key'],    choices: [
       c({
         id: 'dorn.watched.what',
         label: '"那我想干什么。"',
         cost: 2,
-        effects: [setf('did.asked-what-i-want')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.attack',
       }),
-      silence('dorn.watched.silent', 'dorn.attack'),
+      silence('dorn.watched.silent', 'dorn.attack')
     ],
   },
 
@@ -477,23 +463,23 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.attack.justify',
         label: '"我得先搞清楚状况。"',
         cost: 2,
-        effects: [setf('did.rationalized'), addf('count.rationalizations', 1)],
+        effects: [addf('count.rationalizations', 1)],
         goto: 'dorn.rationalized',
       }),
       c({
         id: 'dorn.attack.admit',
         label: '"是。"',
         cost: 2,
-        effects: [setf('did.admitted-using-him'), san(4), mark('apostasy', 1)],
+        effects: [san(4), mark('apostasy', 1)],
         goto: 'dorn.admitted',
       }),
       c({
         id: 'dorn.attack.help',
         label: '"你要什么。我去拿。"',
         cost: 3,
-        effects: [setf('did.offered-help'), addf('count.selfless-acts', 1)],
+        effects: [addf('count.selfless-acts', 1)],
         goto: 'dorn.wants',
-      }),
+      })
     ],
   },
   {
@@ -526,7 +512,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.wants.do',
         label: '去放盖板。',
         cost: 6,
-        effects: [setf('did.closed-porthole'), mark('silence', 2), addf('count.selfless-acts', 1), san(5)],
+        effects: [mark('silence', 2), addf('count.selfless-acts', 1), san(5)],
         goto: 'dorn.windowClosed',
       }),
       c({
@@ -534,10 +520,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         label: '先看一眼窗外。',
         cost: 4,
         irreversible: true,
-        effects: [setf('did.looked-outside'), san(-14), fear(20), mark('listening', 2)],
+        effects: [san(-14), fear(20), mark('listening', 2)],
         goto: 'dorn.looked',
       }),
-      go('dorn.wants.refuse', '"不去。"', 'dorn.chair'),
+      go('dorn.wants.refuse', '"不去。"', 'dorn.chair')
     ],
   },
   {
@@ -564,7 +550,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.looked.close',
         label: '放下盖板。',
         cost: 4,
-        effects: [setf('did.closed-porthole'), mark('silence', 1)],
+        effects: [mark('silence', 1)],
         goto: 'dorn.windowClosed',
       }),
       c({
@@ -572,9 +558,9 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         label: '再看一会儿。',
         cost: 8,
         irreversible: true,
-        effects: [setf('did.stared-outside'), san(-16), mark('listening', 3), addf('count.staring', 1)],
+        effects: [san(-16), mark('listening', 3), addf('count.staring', 1)],
         goto: 'dorn.stared',
-      }),
+      })
     ],
   },
   {
@@ -589,9 +575,9 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.stared.back',
         label: '退开。',
         cost: 3,
-        effects: [setf('did.stepped-back'), fear(8)],
+        effects: [fear(8)],
         goto: 'dorn.chair',
-      }),
+      })
     ],
   },
 
@@ -613,21 +599,21 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.chair.report',
         label: '报水位。',
         cost: 2,
-        effects: [addf('count.reports-to-dorn', 1), setf('did.reported-water')],
+        effects: [addf('count.reports-to-dorn', 1) ],
         goto: 'dorn.reported',
       }),
       c({
         id: 'dorn.chair.ship',
         label: '"这条船是干什么的。"',
         cost: 2,
-        effects: [setf('did.asked-dorn-ship')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.ship',
       }),
       c({
         id: 'dorn.chair.crew',
         label: '"人都去哪了。"',
         cost: 2,
-        effects: [setf('did.asked-dorn-crew')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.crew',
       }),
       c({
@@ -636,7 +622,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: all(K('k.dorn-tied-himself'), K('k.your-bunk')),
         gateMode: 'disable',
-        effects: [setf('did.asked-my-number')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.number',
       }),
       c({
@@ -644,9 +630,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         label: '"名单第十四行姓多恩。"',
         cost: 3,
         requires: K('k.manifest-nineteen'),
-        gateMode: 'hide',
-        effects: [setf('did.mentioned-fourteenth')],
-        goto: 'dorn.fourteen',
+        gateMode: 'hide',        goto: 'dorn.fourteen',
       }),
       c({
         id: 'dorn.chair.vance',
@@ -654,7 +638,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: on('know.vance-location'),
         gateMode: 'hide',
-        effects: [setf('did.told-dorn-vance')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.vance',
       }),
       c({
@@ -671,7 +655,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         requires: item('scalpel'),
         gateMode: 'disable',
         irreversible: true,
-        effects: [setf('did.cut-dorn-ropes'), mark('flesh', 1), loud(6)],
+        effects: [mark('flesh', 1), loud(6)],
         goto: 'dorn.cut',
       }),
       c({
@@ -681,7 +665,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         requires: all(item('scalpel'), K('k.salvage-is-ritual')),
         gateMode: 'lie',
         irreversible: true,
-        effects: [setf('did.killed-dorn'), mark('flesh', 3), san(-20), loud(20)],
+        effects: [mark('flesh', 3), san(-20), loud(20)],
         goto: 'dorn.killed',
       }),
       c({
@@ -690,7 +674,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: K('k.ship-is-teaching'),
         gateMode: 'disable',
-        effects: [setf('did.told-dorn-teaching')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.teaching',
       }),
       c({
@@ -699,10 +683,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: K('k.pen-can-stop'),
         gateMode: 'disable',
-        effects: [setf('did.told-dorn-refusal')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.refusal',
       }),
-      c({ id: 'dorn.chair.leave', label: '走。', cost: 1, goto: 'dorn.leaving' }),
+      c({ id: 'dorn.chair.leave', label: '走。', cost: 1, goto: 'dorn.leaving' })
     ],
   },
   {
@@ -725,10 +709,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.ship.heard',
         label: '"你听见了什么。"',
         cost: 2,
-        effects: [setf('did.asked-what-he-heard')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.heard',
       }),
-      go('dorn.ship.ok', '……', 'dorn.chair'),
+      go('dorn.ship.ok', '……', 'dorn.chair')
     ],
   },
   {
@@ -743,10 +727,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.heard.press',
         label: '"我问你听见了什么。"',
         cost: 3,
-        effects: [addf('count.pressed-dorn', 1), setf('did.pressed-dorn')],
+        effects: [addf('count.pressed-dorn', 1), addf('count.questions', 1)],
         goto: 'dorn.heard2',
       }),
-      go('dorn.heard.report', '报水位。', 'dorn.reported'),
+      go('dorn.heard.report', '报水位。', 'dorn.reported')
     ],
   },
   {
@@ -761,10 +745,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.heard2.mine',
         label: '"有我的吗。"',
         cost: 2,
-        effects: [setf('did.asked-if-mine')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.mineToo',
       }),
-      silence('dorn.heard2.silent', 'dorn.chair'),
+      silence('dorn.heard2.silent', 'dorn.chair')
     ],
   },
   {
@@ -790,10 +774,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: on('met.choir'),
         gateMode: 'hide',
-        effects: [setf('did.told-dorn-choir')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.choir',
       }),
-      go('dorn.crew.ok', '……', 'dorn.chair'),
+      go('dorn.crew.ok', '……', 'dorn.chair')
     ],
   },
   {
@@ -820,17 +804,17 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.number.how',
         label: '"你怎么数的。"',
         cost: 2,
-        effects: [setf('did.asked-how-he-counts')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.howCount',
       }),
       c({
         id: 'dorn.number.others',
         label: '"前面十七个呢。"',
         cost: 2,
-        effects: [setf('did.asked-about-previous')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.previous',
       }),
-      silence('dorn.number.silent', 'dorn.chair'),
+      silence('dorn.number.silent', 'dorn.chair')
     ],
   },
   {
@@ -845,10 +829,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.howCount.look',
         label: '数绳子上的磨痕。',
         cost: 4,
-        effects: [setf('did.counted-rope-marks'), addf('count.breaths-counted', 17), san(-6)],
+        effects: [addf('count.breaths-counted', 17), san(-6)],
         goto: 'dorn.ropeMarks',
       }),
-      go('dorn.howCount.ok', '……', 'dorn.chair'),
+      go('dorn.howCount.ok', '……', 'dorn.chair')
     ],
   },
   {
@@ -874,10 +858,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         cost: 2,
         requires: all(on('did.gave-dorn-water'), on('did.picked-up-cap')),
         gateMode: 'hide',
-        effects: [setf('did.realized-i-am-both'), san(-8)],
+        effects: [san(-8)],
         goto: 'dorn.bothMe',
       }),
-      silence('dorn.previous.silent', 'dorn.chair'),
+      silence('dorn.previous.silent', 'dorn.chair')
     ],
   },
   {
@@ -894,9 +878,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
     speaker: '多恩',
     text: '水位。报一下。',
     corruptedText: cor([45, '水位。报一下。（他的下巴在动，但不是在说话。）']),
-    tags: ['key'],
-    onEnter: [setf('did.dorn-dodged-daughter')],
-    choices: [
+    tags: ['key'],    choices: [
       c({
         id: 'dorn.fourteen.again',
         label: '"第十四行。"',
@@ -908,9 +890,9 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.fourteen.report',
         label: '报水位。',
         cost: 2,
-        effects: [addf('count.reports-to-dorn', 1), setf('did.respected-silence'), mark('silence', 1)],
+        effects: [addf('count.reports-to-dorn', 1), mark('silence', 1)],
         goto: 'dorn.respected',
-      }),
+      })
     ],
   },
   {
@@ -943,10 +925,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.vance.which',
         label: '"哪把椅子。"',
         cost: 2,
-        effects: [setf('did.asked-which-chair')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.whichChair',
       }),
-      silence('dorn.vance.silent', 'dorn.chair'),
+      silence('dorn.vance.silent', 'dorn.chair')
     ],
   },
   {
@@ -962,10 +944,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: all(K('k.vance-onboard'), on('did.heard-vance-chair')),
         gateMode: 'lie',
-        effects: [setf('did.accused-dorn-of-being-vance'), san(-10)],
+        effects: [addf('count.questions', 1), san(-10)],
         goto: 'dorn.notVance',
       }),
-      go('dorn.whichChair.report', '报水位。', 'dorn.reported'),
+      go('dorn.whichChair.report', '报水位。', 'dorn.reported')
     ],
   },
   {
@@ -989,10 +971,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.drink.more',
         label: '再喂一点。',
         cost: 3,
-        effects: [addf('count.selfless-acts', 1), setf('did.fed-him-twice')],
+        effects: [addf('count.selfless-acts', 1) ],
         goto: 'dorn.drink2',
       }),
-      go('dorn.drink.ok', '……', 'dorn.chair'),
+      go('dorn.drink.ok', '……', 'dorn.chair')
     ],
   },
   {
@@ -1016,16 +998,16 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         label: '给他。',
         cost: 2,
         irreversible: true,
-        effects: [take('scalpel'), setf('did.gave-dorn-knife'), mark('flesh', 1)],
+        effects: [take('scalpel'), mark('flesh', 1)],
         goto: 'dorn.knife',
       }),
       c({
         id: 'dorn.cut.keep',
         label: '不给。',
         cost: 2,
-        effects: [setf('did.kept-knife'), mark('iron', 1)],
+        effects: [mark('iron', 1)],
         goto: 'dorn.keptKnife',
-      }),
+      })
     ],
   },
   {
@@ -1058,7 +1040,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.killed.rope',
         label: '看绳子上的磨痕。',
         cost: 3,
-        effects: [setf('did.counted-rope-marks'), san(-6)],
+        effects: [san(-6)],
         goto: 'dorn.ropeMarks',
       }),
       c({
@@ -1066,9 +1048,9 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         label: '坐到椅子上。',
         cost: 6,
         irreversible: true,
-        effects: [setf('did.sat-in-chair'), mark('iron', 2), san(-10)],
+        effects: [mark('iron', 2), san(-10)],
         goto: 'dorn.sat',
-      }),
+      })
     ],
   },
   {
@@ -1084,16 +1066,16 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         label: '把绳子绕上。',
         cost: 8,
         irreversible: true,
-        effects: [setf('did.tied-myself'), mark('iron', 3), san(-10)],
+        effects: [mark('iron', 3), san(-10)],
         goto: 'dorn.tiedSelf',
       }),
       c({
         id: 'dorn.sat.up',
         label: '站起来。',
         cost: 3,
-        effects: [setf('did.stood-up'), san(4)],
+        effects: [san(4)],
         goto: 'dorn.stoodUp',
-      }),
+      })
     ],
   },
   {
@@ -1108,16 +1090,16 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.tiedSelf.wait',
         label: '等。',
         cost: 20,
-        effects: [setf('did.waited-in-chair'), addf('count.futile-acts', 1), san(-8)],
+        effects: [addf('count.futile-acts', 1), san(-8)],
         goto: 'dorn.waited',
       }),
       c({
         id: 'dorn.tiedSelf.free',
         label: '用牙解开。',
         cost: 10,
-        effects: [setf('did.freed-myself'), san(6), mark('apostasy', 1)],
+        effects: [san(6), mark('apostasy', 1)],
         goto: 'dorn.stoodUp',
-      }),
+      })
     ],
   },
   {
@@ -1133,16 +1115,16 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         label: '说"别解"。',
         cost: 2,
         irreversible: true,
-        effects: [setf('did.said-dont-untie'), mark('iron', 2), san(-8)],
+        effects: [mark('iron', 2), san(-8)],
         goto: 'dorn.becameDorn',
       }),
       c({
         id: 'dorn.waited.free',
         label: '用牙解开。',
         cost: 10,
-        effects: [setf('did.freed-myself'), san(4)],
+        effects: [san(4)],
         goto: 'dorn.stoodUp',
-      }),
+      })
     ],
   },
   {
@@ -1151,14 +1133,12 @@ export const DORN_NODES: readonly NarrativeNode[] = [
     text: '门口的人停了一下，然后问了水位。\n你报了。你报得很准。',
     corruptedText: cor([40, '门口的人问了水位。你报了。报完你想磨一道绳子。']),
     tags: ['key'],
-    onEnter: [setf('did.became-dorn'), mark('iron', 2)],
+    onEnter: [mark('iron', 2)],
     choices: [
       c({
         id: 'dorn.becameDorn.stay',
         label: '坐着。',
-        cost: 4,
-        effects: [setf('did.stayed-seated')],
-      }),
+        cost: 4,      })
     ],
   },
   {
@@ -1166,9 +1146,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
     speaker: undefined,
     text: '你站起来。腿麻。\n椅子上那两道凹现在有三道。',
     corruptedText: cor([40, '你站起来。凹有三道。你只坐了一次。']),
-    tags: ['key'],
-    onEnter: [setf('did.stood-up')],
-    choices: [go('dorn.stoodUp.go', '走。', 'dorn.leaving')],
+    tags: ['key'],    choices: [go('dorn.stoodUp.go', '走。', 'dorn.leaving')],
   },
   {
     id: 'dorn.teaching',
@@ -1184,10 +1162,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         cost: 3,
         requires: K('k.salvage-is-ritual'),
         gateMode: 'disable',
-        effects: [setf('did.understood-dorns-method'), san(6)],
+        effects: [san(6)],
         goto: 'dorn.method',
       }),
-      go('dorn.teaching.ok', '……', 'dorn.chair'),
+      go('dorn.teaching.ok', '……', 'dorn.chair')
     ],
   },
   {
@@ -1211,10 +1189,10 @@ export const DORN_NODES: readonly NarrativeNode[] = [
         id: 'dorn.refusal.you',
         label: '"你怎么办。"',
         cost: 2,
-        effects: [setf('did.asked-dorn-fate')],
+        effects: [addf('count.questions', 1)],
         goto: 'dorn.fate',
       }),
-      go('dorn.refusal.go', '走。', 'dorn.leaving'),
+      go('dorn.refusal.go', '走。', 'dorn.leaving')
     ],
   },
   {
@@ -1232,7 +1210,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
     text: '［停顿］\n好。那就别解。',
     corruptedText: cor([40, '［停顿］好。那就别解。你上次也没解。']),
     tags: ['key'],
-    onEnter: [mark('silence', 1), setf('did.stayed-silent-with-dorn')],
+    onEnter: [mark('silence', 1) ],
     choices: [go('dorn.silence.ok', '……', 'dorn.chair')],
   },
   {
@@ -1253,9 +1231,7 @@ export const DORN_NODES: readonly NarrativeNode[] = [
       c({
         id: 'dorn.leaving.go',
         label: '走。',
-        cost: 1,
-        effects: [setf('did.left-dorn')],
-      }),
+        cost: 1,      })
     ],
-  },
+  }
 ];
