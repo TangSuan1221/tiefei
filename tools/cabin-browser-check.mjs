@@ -1,0 +1,78 @@
+import { chromium } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
+import assert from 'node:assert/strict';
+
+const browser = await chromium.launch({channel:'msedge',headless:true});
+try {
+  const page=await browser.newPage({viewport:{width:1440,height:900}});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  page.on('console',m=>{if(m.type()==='error') console.log(m.text());});
+  await page.goto('http://localhost:5173/');
+  await page.locator('[data-id="new"]').click();
+  await page.waitForFunction(()=>!!window.__pod).catch(async e=>{console.log(await page.locator('body').innerText());throw e;});
+  await mkdir('qa/cabin',{recursive:true});
+  await page.waitForTimeout(2200);
+  await page.keyboard.press('j');
+  assert.ok((await page.locator('#campaign-journal').innerText()).includes('事故报告'));
+  assert.ok(!(await page.locator('#campaign-journal').innerText()).includes('接班回路'),'journal hides future chapter revelations');
+  await page.screenshot({path:'qa/cabin/campaign-journal.png'});
+  await page.keyboard.press('j');
+  assert.equal(await page.locator('#campaign-journal').count(),0);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(1500);
+  await page.screenshot({path:'qa/cabin/overview.png'});
+  for(const [key,id] of [['1','life'],['3','radio'],['4','camera'],['5','lab'],['6','nav']]) {
+    await page.keyboard.press(key);await page.waitForTimeout(1600);
+    assert.equal(await page.evaluate(()=>window.__pod.at),id);
+    await page.screenshot({path:`qa/cabin/${id}.png`});
+    await page.keyboard.press('Escape');await page.waitForTimeout(350);
+  }
+  await page.keyboard.press('6');await page.waitForTimeout(1800);
+  // Coordinates taken from the rendered 1440×900 terminal, not a QA action API.
+  await page.mouse.click(445,705);
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(()=>window.__pod.sweepPower),1,'physical normal-ping button');
+  await page.mouse.click(1070,168);
+  await page.waitForTimeout(1200);
+  assert.equal(await page.evaluate(()=>window.__pod.at),null,'physical back button');
+  await page.mouse.click(720,450);
+  await page.waitForFunction(()=>!!document.pointerLockElement);
+  await page.waitForTimeout(300);
+  const start=await page.evaluate(()=>window.__cabinPose());
+  await page.keyboard.down('w');
+  await page.waitForFunction(z=>window.__cabinPose().z<z-.25,start.z,{timeout:15000});
+  await page.keyboard.up('w');
+  const walked=await page.evaluate(()=>window.__cabinPose());
+  assert.ok(walked.z<start.z-.2,'W physically moves eye');
+  await page.keyboard.down('d');await page.waitForTimeout(1600);await page.keyboard.up('d');
+  assert.ok((await page.evaluate(()=>window.__cabinPose())).x<=.401,'equipment collision envelope');
+  await page.mouse.move(950,440);
+  await page.waitForTimeout(600);
+  assert.notEqual((await page.evaluate(()=>window.__cabinPose())).yaw,start.yaw,'mouse rotates first-person view');
+  await page.screenshot({path:'qa/cabin/first-person.png'});
+  const beforeUse=await page.evaluate(()=>window.__cabinPose());
+  await page.keyboard.press('e');
+  await page.waitForFunction(()=>window.__pod.at==='lab');
+  await page.waitForFunction(()=>!document.pointerLockElement);
+  await page.waitForTimeout(1000);
+  await page.screenshot({path:'qa/cabin/first-person-interaction.png'});
+  await page.keyboard.press('Escape');await page.waitForTimeout(400);
+  const stopped=await page.evaluate(()=>window.__cabinPose());
+  assert.deepEqual(stopped,beforeUse,'leaving terminal preserves first-person pose');
+  await page.keyboard.down('w');await page.waitForTimeout(400);await page.keyboard.up('w');
+  assert.ok((await page.evaluate(()=>window.__cabinPose())).z<stopped.z,'WASD works without pointer lock');
+  const beforeDrag=await page.evaluate(()=>window.__cabinPose());
+  await page.mouse.move(700,450);await page.mouse.down({button:'right'});
+  await page.mouse.move(760,450);await page.mouse.up({button:'right'});
+  assert.notEqual((await page.evaluate(()=>window.__cabinPose())).yaw,beforeDrag.yaw,'right drag fallback look');
+  await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
+  const blurred=await page.evaluate(()=>window.__cabinPose());
+  await page.keyboard.down('w');await page.waitForTimeout(400);await page.keyboard.up('w');
+  assert.deepEqual(await page.evaluate(()=>window.__cabinPose()),blurred,'blur still blocks movement');
+  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+  await page.setViewportSize({width:1024,height:768});
+  await page.keyboard.press('1');await page.waitForTimeout(1500);
+  await page.screenshot({path:'qa/cabin/compact-life.png'});
+  assert.deepEqual(errors,[]);
+  console.log('PASS: boot, 5 stations, controls, locked/unlocked WASD, mouse/right-drag look, blur safety, resize');
+} finally {await browser.close();}

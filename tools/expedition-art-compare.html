@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>七关视觉审查</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#081014;color:#b8c4c5;font:14px/1.5 sans-serif;padding:22px}
+    h1{font-size:22px;font-weight:500;margin:0 0 8px}h2{font-size:17px;font-weight:500;margin:0 0 12px}
+    p{color:#8c9ea2;margin:0 0 18px}section,header{margin-bottom:28px}
+    .references,.level-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    figure{margin:0;min-width:0}img{width:100%;aspect-ratio:16/9;object-fit:contain;background:#020506;display:block;border:1px solid #26363b}
+    figcaption{padding:8px 0;color:#b8c4c5}a{color:inherit;text-decoration:none}a:focus-visible{outline:2px solid #83b5bb}
+    .level{padding-top:18px;border-top:1px solid #26363b}.missing{color:#d7b983}#pass{color:#d7caa4}
+    @media(max-width:700px){body{padding:12px}.references,.level-grid{gap:8px}figcaption{font-size:11px}h1{font-size:18px}}
+  </style>
+</head>
+<body>
+  <h1>七关实际 Three.js 渲染 · 同尺寸对照</h1>
+  <p>当前截图批次：<span id="pass"></span>。点击图片查看原始尺寸；所有图片保持原比例，不裁切、不调色。</p>
+  <header aria-labelledby="references-title">
+    <h2 id="references-title">氛围参考 · 暗部 / 工作区 / 机械区</h2>
+    <div class="references" id="references"></div>
+  </header>
+  <section aria-labelledby="km-title">
+    <h2 id="km-title">K / M 原图并排对比</h2>
+    <div class="comparison" id="km"></div>
+  </section>
+  <main aria-label="七关入口、地标与叙事细节"></main>
+  <script>
+    const base='/qa/deepsea/art/';
+    function figure(src,label){
+      const f=document.createElement('figure'),a=document.createElement('a'),img=document.createElement('img'),c=document.createElement('figcaption');
+      a.href=src;a.target='_blank';a.rel='noopener';img.alt=label;c.textContent=label;
+      img.addEventListener('error',()=>{c.textContent=label+' · 图片尚未生成';c.classList.add('missing');});
+      img.src=src;a.append(img);f.append(a,c);return f;
+    }
+    for(const [file,label] of [['reference-dark','暗部与水下氛围'],['reference-workplace','工作区与生活痕迹'],['reference-machinery','机械设施与局部照明']]){
+      document.querySelector('#references').append(figure(`${base}${file}.png`,label));
+    }
+    for(const letter of ['K','M'])document.querySelector('#km').append(figure(`${base}review-${letter}.png`,`${letter} · 原始审查图`));
+    const pass=new URLSearchParams(location.search).get('pass')||'pass-0';
+    document.querySelector('#pass').textContent=pass;
+    if(/^[a-z0-9-]+$/.test(pass)){
+      for(let i=1;i<=7;i++){
+        const section=document.createElement('section'),title=document.createElement('h2'),grid=document.createElement('div');
+        section.className='level';title.textContent=`航段 ${String(i).padStart(2,'0')} · ${pass}`;grid.className='level-grid';
+        for(const [view,label] of [['entry','入口与寻路'],['hall','地标主视图'],['story','叙事细节']]){
+          grid.append(figure(`${base}${pass}/${view}-${i}.png`,`${i} / ${label}`));
+        }
+        section.append(title,grid);document.querySelector('main').append(section);
+        if(pass.startsWith('environment-'))grid.append(figure(`${base}${pass}/passage-${i}.png`,`${i} / 实际通道截面与门体`));
+        if(pass.startsWith('spatial-')||pass.startsWith('environment-')){const map=figure(`${base}${pass}/map-${i}.png`,`${i} / 实际设施蓝图与动线`);map.style.maxWidth='820px';section.append(map);}
+      }
+    }else document.querySelector('main').textContent='无效的 pass 参数：仅支持小写字母、数字及连字符。';
+  </script>
+</body>
+</html>

@@ -67,6 +67,8 @@ export default defineConfig(({ mode }) => {
         input: {
           game: fileURLToPath(new URL('./index.html', import.meta.url)),
           deepsea: fileURLToPath(new URL('./deepsea.html', import.meta.url)),
+          reference: fileURLToPath(new URL('./reference.html', import.meta.url)),
+          expedition: fileURLToPath(new URL('./expedition.html', import.meta.url)),
         },
       },
     },

@@ -21,10 +21,11 @@ import { SonarScope } from '@/render/sonar';
 import { cjk, mono, tracked } from '@/ui/typography';
 import { STATIONS, STATION_ORDER, STATION_KEYS, canonicalStation, type StationId } from '../types';
 import { PodRun } from '../sim/run';
-import { CabinRenderer } from './cabin';
+import { CabinThree } from './cabin-three';
 import { HitMap } from './chrome';
 import { installFootageSink } from './footage';
-import { drawStationView } from './stations';
+import { drawCameraFeed } from './creature';
+import { PodExpedition } from './deepsea/pod-expedition';
 
 /**
  * 现在最该去的工位。
@@ -36,9 +37,10 @@ import { drawStationView } from './stations';
  */
 function adviseStationFor(run: PodRun): StationId | null {
   const t = run.threat;
-  if (t && t.known && (t.phase === 'contact' || t.phase === 'identified')) {
+  if (t && (t.known || t.behavior === 'warning') && (t.phase === 'contact' || t.phase === 'identified')) {
     return canonicalStation(t.creature.adviceStation);
   }
+  if(run.legIndex===6 && run.canDepart && !run.campaign.choice) return 'radio';
   if (run.radioWaiting) return 'radio';
   if (run.phase === 'site' && !run.volumeKnown) {
     return run.unanalyzedCount > 0 ? 'lab' : 'camera';
@@ -57,7 +59,7 @@ export class PodView {
   readonly breath = new BreathClock();
   readonly pipeline: PostPipeline;
   readonly sonar = new SonarScope();
-  readonly cabin = new CabinRenderer();
+  readonly cabin = new CabinThree();
   readonly hits = new HitMap();
 
   hovered: string | null = null;
@@ -74,6 +76,7 @@ export class PodView {
   private lastH = 0;
   private lastSweep = 0;
   private zoomVisual = 0;
+  private sceneOffset = { x: 0, y: 0 };
 
   constructor(run: PodRun, out: HTMLCanvasElement) {
     this.out = out;
@@ -85,10 +88,28 @@ export class PodView {
     if (!s || !h) throw new Error('[pod] 无法创建 2D 上下文');
     this.sctx = s;
     this.hctx = h;
+    run.createAuthoredSite=index=>new PodExpedition(run,index);
+    run.captureKeyframe = () => {
+      const frame = document.createElement('canvas');
+      frame.width = 1024; frame.height = 720;
+      const ctx = frame.getContext('2d', { alpha: false });
+      if (!ctx) throw new Error('Shutter canvas unavailable');
+      drawCameraFeed(ctx, frame.width, frame.height, {
+        run, time: this.clock, aim: run.cameraOnTarget(), reveal: 0, keyframe: true,
+      });
+      // Sensor exposure compensation preserves framing, not extra scene content.
+      const pixels=ctx.getImageData(0,0,frame.width,frame.height);
+      for(let i=0;i<pixels.data.length;i+=4){
+        for(let c=0;c<3;c++)pixels.data[i+c]=255*Math.pow(pixels.data[i+c]/255,.7);
+      }
+      ctx.putImageData(pixels,0,0);
+      return frame.toDataURL('image/png');
+    };
 
     run.onCue = (cue, gain) => this.audio.cue(cue, { gain: gain ?? 0.85 });
     run.onShake = (amount) => {
       this.shake = Math.max(this.shake, clamp01(amount));
+      this.cabin.impact(amount);
     };
     // 冲洗回路是这里装上的 —— 表现层是唯一允许碰网络的一层。
     // GM 无视频模式会装一个不发请求的 sink，只交出提示词。
@@ -132,9 +153,21 @@ export class PodView {
 
   pick(clientX: number, clientY: number): string | null {
     const rect = this.out.getBoundingClientRect();
-    const x = ((clientX - rect.left) / rect.width) * this.scene.width;
-    const y = ((clientY - rect.top) / rect.height) * this.scene.height;
-    return this.hits.pick(x, y);
+    // Match the post shader's output-to-source lookup before ray casting.
+    let u = (clientX - rect.left) / rect.width;
+    let v = 1 - (clientY - rect.top) / rect.height;
+    const bp = this.extras.breathPhase;
+    const asym = bp < 0 ? bp * 1.35 : bp * .85;
+    const scale = 1 - this.post.breathe * .006 * asym;
+    u = .5 + (u - .5) * scale;
+    v = .5 + (v - .5) * scale + this.post.breathe * .0016 * asym;
+    u = .5 + (u - .5) * (1 - this.extras.heartPulse * .0022);
+    v = .5 + (v - .5) * (1 - this.extras.heartPulse * .0022);
+    const r2 = (u - .5) ** 2 + (v - .5) ** 2;
+    const k = 1 + this.post.barrel * r2 + this.post.barrel ** 2 * .72 * r2 ** 2;
+    const x = (.5 + (u - .5) * k) * this.scene.width - this.sceneOffset.x;
+    const y = (.5 - (v - .5) * k) * this.scene.height - this.sceneOffset.y;
+    return this.cabin.pick(x, y, this.scene.width, this.scene.height);
   }
 
   frame(dt: number, run: PodRun): void {
@@ -190,6 +223,11 @@ export class PodView {
     );
 
     const bpm = run.vitals.heartRateBpm();
+    // A dry cabin has no underwater refraction. Keep deterministic optical
+    // distortion (inverted by pick), grading and grain, not stochastic UV tears.
+    this.post.caustics = 0;
+    this.post.warp = 0;
+    this.post.static = 0;
     const beat = (this.clock * bpm) / 60;
     const heartPulse = Math.pow(Math.max(0, 1 - (beat - Math.floor(beat)) * 5.5), 2);
     this.extras.breathPhase = this.breath.phase;
@@ -215,31 +253,13 @@ export class PodView {
 
     const shakeX = (Math.random() - 0.5) * this.shake * h * 0.012;
     const shakeY = (Math.random() - 0.5) * this.shake * h * 0.012;
+    this.sceneOffset = { x: shakeX, y: shakeY };
     ctx.save();
     ctx.translate(shakeX, shakeY);
 
-    this.cabin.draw(ctx, w, h, run, this.hits, { time: this.clock, dt, hovered: this.hovered });
+    this.cabin.draw(ctx, w, h, run, this.hits, { time: this.clock, dt, hovered: this.hovered, sonar: this.sonar });
     ctx.restore();
 
-    const z = this.zoomVisual;
-    if (z > 0.02 && run.at) {
-      const padX = lerp(w * 0.5, w * 0.04, z);
-      const padY = lerp(h * 0.5, h * 0.06, z);
-      ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha = z > 0.4 ? 1 : smooth(z);
-      try {
-        drawStationView(ctx, run, run.at, padX, padY, w - padX * 2, h - padY * 2, this.hits, {
-          sonar: this.sonar,
-          hovered: this.hovered,
-          time: this.clock,
-        });
-      } catch (err) {
-        console.error('[pod] 工位近景', err);
-      }
-      ctx.restore();
-    }
   }
 
   private drawHud(run: PodRun): void {
@@ -251,6 +271,25 @@ export class PodView {
 
     const v = run.vitals.perceived();
     const zoomed = this.zoomVisual > 0.55;
+    if(!zoomed && run.mode!=='alert' && !run.openingGuide && run.storyCaptionLeft<=0) {
+      ctx.textAlign='center';ctx.fillStyle='#d6c9ab';ctx.font=cjk(h*.017,500);
+      ctx.fillText(`航行记录 ${run.campaign.chapter+1}/7 · ${run.campaign.current.title} · J 回看`,w*.5,h*.19);
+      ctx.fillStyle='#a9c7be';ctx.font=cjk(h*.016,400);
+      ctx.fillText(run.campaign.objective,w*.5,h*.219,w*.8);
+    }
+    if(run.mode!=='alert' && run.outcome.kind==='alive' && (run.openingGuide || run.storyCaptionLeft>0)) {
+      const lines:string[]=[];
+      const message=run.storyCaptionLeft>0?run.storyCaption:run.at==='camera'?'':!run.openingReceived?'事故后，你在密封的三号艇内恢复意识。舱外一片漆黑，唯一回应你的声音来自无线电。':'';
+      ctx.font=cjk(Math.max(15,h*.019),500);
+      let line='';
+      for(const char of message){if(ctx.measureText(line+char).width>w*.70){lines.push(line);line='';}line+=char;}
+      if(line)lines.push(line);
+      const step=Math.max(22,h*.028),top=h*(run.at==='camera'?.055:.11);
+      ctx.fillStyle='rgba(3,10,12,.88)';ctx.fillRect(w*.13,top-26,w*.74,44+step*(lines.length+1));
+      ctx.textAlign='left';ctx.fillStyle='#d2ac68';ctx.fillText(run.openingReceived?'无线电 / 航行记录':'121.5 MHz · 三号艇呼叫未应答',w*.15,top);
+      ctx.fillStyle='#e0dfce';lines.forEach((text,i)=>ctx.fillText(text,w*.15,top+step*(i+1)));
+      ctx.fillStyle='#9cdbcf';ctx.fillText(run.openingGuide??run.campaign.objective,w*.15,top+step*(lines.length+1),w*.70);
+    }
 
     // 顶栏
     ctx.fillStyle = rgba(PALETTE.rust, 0.75);
@@ -262,7 +301,7 @@ export class PodView {
     ctx.textAlign = 'right';
     ctx.fillStyle = rgba(PALETTE.boneDim, 0.8);
     ctx.fillText(
-      `${run.depth.toFixed(0)} m   HDG ${String(run.heading).padStart(3, '0')}   ${run.mode === 'alert' ? 'ALERT' : 'CALM'}`,
+      `${run.depth.toFixed(0)} m   HDG ${run.heading.toFixed(0).padStart(3, '0')}   ${run.mode === 'alert' ? 'ALERT' : 'CALM'}`,
       w * 0.97,
       h * 0.038,
     );
@@ -274,9 +313,16 @@ export class PodView {
       this.gauge(ctx, w * 0.34, h * 0.93, h * 0.055, 1 - run.flood, 'DRY', run.flood > 0.45);
 
       ctx.textAlign = 'left';
-      ctx.fillStyle = rgba(PALETTE.boneWhisper, 0.7);
+      ctx.fillStyle = '#d6dfc8';
       ctx.font = cjk(h * 0.018, 400);
-      ctx.fillText('A / D 沿舱走动    点击工位或 Enter 坐下    1–6 直达', w * 0.42, h * 0.955);
+      ctx.fillText('WASD 移动 · 点击或右键拖动环视 · E 操作', w * 0.39, h * 0.91);
+      ctx.strokeStyle=this.hovered?.startsWith('station:')?'#efbd70':'#a6b7b0';
+      ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(w/2,h/2,3,0,Math.PI*2);ctx.stroke();
+      if(this.hovered?.startsWith('station:')) {
+        ctx.textAlign='center';ctx.fillStyle='#efbd70';
+        ctx.fillText('E · 操作设备',w/2,h*.56);
+      }
 
       if (run.radioWaiting) {
         ctx.fillStyle = rgba(PALETTE.bloodHot, 0.55 + Math.sin(this.clock * 7) * 0.3);
@@ -332,7 +378,7 @@ export class PodView {
         const here = STATION_ORDER.indexOf(run.closestStation());
         const arrow = i === here ? '↑' : i > here ? '→' : '←';
         ctx.textAlign = 'center';
-        ctx.fillStyle = rgba(PALETTE.bloodHot, 0.6 + Math.sin(this.clock * 5) * 0.25);
+        ctx.fillStyle = '#dfb078';
         ctx.font = cjk(h * 0.021, 600);
         ctx.fillText(
           `${arrow} 去 ${STATIONS[advised].name}（按 ${STATION_KEYS[advised]}）`,
@@ -343,7 +389,8 @@ export class PodView {
     }
 
     // 日志
-    const logs = run.log.slice(-zoomed ? 3 : 5);
+    // At the helm, physical labels must not sit behind the scrolling journal.
+    const logs = run.at === 'camera' ? [] : run.log.slice(-(zoomed ? 3 : 5));
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     logs.forEach((line, i) => {
@@ -369,7 +416,9 @@ export class PodView {
       ctx.fillText('CONTACT', w * 0.5, h * 0.12);
       ctx.font = cjk(h * 0.018, 500);
       ctx.fillText(
-        run.threat.known ? run.threat.creature.advice : '去摄像头。看清楚再动手。',
+        run.threat.behavior === 'warning'
+          ? `舱外重撞 · ${Math.ceil(run.threat.warningLeft)} 秒内应对：${run.threat.creature.advice}`
+          : run.threat.known ? run.threat.creature.advice : '异响正在靠近。实时镜头不可见，拍摄录像辨认。',
         w * 0.5,
         h * 0.148,
       );
@@ -407,15 +456,6 @@ export class PodView {
     ctx.fillText(label, cx, cy + r * 0.12);
     ctx.restore();
   }
-}
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
-}
-
-function smooth(t: number): number {
-  const x = clamp01(t);
-  return x * x * (3 - 2 * x);
 }
 
 export type { StationId };

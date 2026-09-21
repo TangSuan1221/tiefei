@@ -51,6 +51,7 @@ function renderTitle(): void {
       ? { id: 'continue', label: '继续下潜', sub: '恢复上次的呼吸' }
       : { id: 'continue', label: '继续下潜', sub: '无记录', disabled: true },
     { id: 'new', label: cycles > 0 ? '新的轮回' : '开始下潜', sub: seedToCoords(bootSeed) },
+    { id: 'expedition', label: '实景设施探索', sub: '七关大地图 · 独立探索存档' },
     { id: 'seed', label: '输入深度坐标', sub: '指定种子' },
     { id: 'archive', label: '档案', sub: `${endings}/8 结局 · ${meta.knowledgeUnlocked.length} 条知识`, disabled: cycles === 0 },
     { id: 'options', label: '设置', sub: '' },
@@ -110,6 +111,9 @@ function renderCorners(): void {
 async function onMenu(id: string): Promise<void> {
   bg.pulse();
   switch (id) {
+    case 'expedition':
+      location.href = '/expedition.html';
+      break;
     case 'new':
     case 'continue':
       await enterGame(id === 'continue');

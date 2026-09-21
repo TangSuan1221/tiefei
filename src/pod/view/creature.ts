@@ -13,16 +13,30 @@ import { clamp, clamp01, lerp, smoothstep } from '@/core/util';
 import { PALETTE, rgba } from '@/render/palette';
 import { shadeHex } from '@/render/interior';
 import type { Creature, CreatureLook } from '../content/creatures';
+import { creature } from '../content/creatures';
 import type { Wreck } from '../content/route';
 import type { PodRun } from '../sim/run';
 import { drawPanoWindow, sitePano } from './pano';
 import { drawFootageFrame, drawPromptFrame, readyPrompt, readyReel } from './footage';
 import { cameraEye, drawRoomCamera, type RoomCameraInput, type RoomMark } from './camera-room';
 import { drawDeepseaRoom } from './deepsea';
+import { FOOTAGE_STATE_CN } from '../content/footage-director';
+import type { TapeRecord } from '../sim/run';
 
 const TAU = Math.PI * 2;
+// Decode at most one image per reel and do not retain entire old runs.
+const localFrames=new WeakMap<TapeRecord,HTMLImageElement>();
+function drawLocalFrame(ctx:CanvasRenderingContext2D,w:number,h:number,tape:TapeRecord):boolean {
+  if(!tape.keyframe)return false;
+  let frame=localFrames.get(tape);
+  if(!frame){frame=new Image();frame.src=tape.keyframe;localFrames.set(tape,frame);}
+  if(!frame.complete||!frame.naturalWidth)return false;
+  ctx.drawImage(frame,0,0,w,h);return true;
+}
 
 export interface CameraFeedInput {
+  /** Fresh optical image only: never capture playback or instrument overlays. */
+  keyframe?: boolean;
   run: PodRun;
   time: number;
   /** 摄像头对准威胁的程度 0..1 */
@@ -42,6 +56,10 @@ export function drawCameraFeed(
   input: CameraFeedInput,
 ): void {
   const { run, time } = input;
+  if(run.phase==='site'&&run.createAuthoredSite&&!run.authoredSite){
+    ctx.fillStyle='#071116';ctx.fillRect(0,0,w,h);ctx.fillStyle='#d9bf85';
+    ctx.font='20px monospace';ctx.fillText(run.authoredSiteError||'设施场景载入中…',w*.1,h*.5);return;
+  }
   const lit = run.lamp || run.flareLeft > 0;
   const flare = run.flareLeft > 0 ? clamp01(run.flareLeft / 8) : 0;
   const lamp = run.lamp ? 1 : 0;
@@ -70,25 +88,29 @@ export function drawCameraFeed(
   //
   // 任何一种失败（没配 key、断网、生成失败、浏览器解不开这个编码）都会让
   // readyReel 返回 null，于是画面自己退回 c/d。游戏不需要知道发生了什么。
-  const prompt = readyPrompt(run);
+  const prompt = input.keyframe ? null : readyPrompt(run);
   if (prompt) {
     drawPromptFrame(ctx, w, h, prompt, time);
     drawFeedTail(ctx, w, h, run, time, input.aim, depthN, light, 0.5);
     return;
   }
 
-  const reel = readyReel(run);
+  const reel = input.keyframe ? null : readyReel(run);
   if (reel) {
     drawFootageFrame(ctx, w, h, reel, { time, corruption: run.corruption, light });
+    // Remote footage owns its scene content. Never paint synthetic evidence
+    // (black discs, orbiting particles or scratches) over generated frames.
     // 片子是拍好的，海雪/地形/怪物那几层不能再叠 —— 它们已经在画面里了。
     // 直接跳到深度雾开始的公共尾段。
-    drawFeedTail(ctx, w, h, run, time, input.aim, depthN, light, 0.5);
+    drawViewfinder(ctx, w, h, run, time, input.aim);
     return;
   }
 
   const room = roomFeed(run, time, light, zoom);
   const pano = room ? null : sitePano(run);
-  if (room) {
+  if (run.phase==='site' && run.authoredSite) {
+    run.authoredSite.draw(ctx,w,h,time);
+  } else if (room) {
     if (!drawDeepseaRoom(ctx, w, h, room)) drawRoomCamera(ctx, w, h, room);
   } else if (pano) {
     drawPanoWindow(ctx, w, h, pano, {
@@ -132,23 +154,72 @@ export function drawCameraFeed(
     }
   }
 
-  // 6. 那个东西。
-  const t = run.threat;
-  if (t && t.phase !== 'repelled' && t.phase !== 'struck') {
-    const canSee = run.cameraCanSee();
-    const aim = input.aim;
-    if (t.creature.look.plan === 'absent') {
-      drawAbsent(ctx, w, h, t.creature.look, time, aim, run.corruption);
-    } else if (canSee && aim > 0.12) {
-      const appear = clamp01((aim - 0.12) / 0.55) * (0.35 + input.reveal * 0.65);
-      drawCreature(ctx, w, h, t.creature, time, appear, light, zoom);
-    } else if (!canSee && t.creature.look.lights > 0 && aim > 0.25) {
-      // 没打灯，但它自己在发光。先看见灯，再看见它。
-      drawLureOnly(ctx, w, h, t.creature.look, time, aim);
+  // A returned local tape is the only procedural creature image. Never use live threat state.
+  const tape = run.tapes.find(t => t.id === `tape.${run.shot.token}`);
+  if (!input.keyframe && run.shot.phase === 'ready' && run.shot.viewing && tape) {
+    const recorded = !tape.creatureMissing && tape.caughtThreat ? creature(tape.caughtThreat) : null;
+    // Fixed framing and a five-second loop: moving the live camera cannot reveal the creature.
+    ctx.fillStyle = '#030508';
+    ctx.fillRect(0, 0, w, h);
+    const reelTime = time % 5;
+    // Offline playback keeps the actual shutter image, never a substitute room.
+    if(!drawLocalFrame(ctx,w,h,tape)){
+      ctx.fillStyle='#b7b8a4';ctx.font='16px monospace';
+      ctx.fillText(tape.keyframe?'正在读取曝光首帧…':'旧录像没有画面底片，请重新曝光。',w*.1,h*.5);
     }
+    drawMarineSnow(ctx, w, h, reelTime, 0.6, 1, 0, depthN);
+    for (const id of tape.fauna) drawCreature(ctx, w, h, creature(id), reelTime, 0.45, 0.65, 1);
+    if (recorded && reelTime > 1.8 && reelTime < 3.8) {
+      if (recorded.look.plan === 'absent') drawAbsent(ctx, w, h, recorded.look, reelTime, 1, 0.7);
+      else drawCreature(ctx, w, h, recorded, reelTime, 0.65, 0.7, 1);
+    }
+    ctx.fillStyle = PALETTE.boneDim;
+    ctx.font = '12px monospace';
+    ctx.fillText(`TAPE / ${tape.id} / ${reelTime.toFixed(1)}s`, 12, 22);
+    drawTapeEvidence(ctx, w, h, tape, reelTime);
   }
 
-  drawFeedTail(ctx, w, h, run, time, input.aim, depthN, light, room ? 0.3 : pano ? 0.35 : 1);
+  if (!input.keyframe) drawFeedTail(ctx, w, h, run, time, input.aim, depthN, light, room ? 0.3 : pano ? 0.35 : 1);
+}
+
+/** Physical traces are tape-only, also preserving essential clues if a remote model omits them. */
+function drawTapeEvidence(ctx: CanvasRenderingContext2D, w: number, h: number, tape: TapeRecord | undefined, time: number): void {
+  const d = tape?.direction;
+  if (!d) return;
+  ctx.save();
+  if (d.evidence && time >= 1 && time <= 4.5) {
+    const near = Math.min(1, d.intensity / 6);
+    const x = w * (0.58 - near * 0.12);
+    const y = h * 0.42;
+    if (d.intensity <= 1 && d.state !== 'aftermath') {
+      ctx.fillStyle = 'rgba(0,0,0,0.9)';
+      ctx.beginPath(); ctx.ellipse(x, y, w * 0.065, h * 0.11, 0.2, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(210,210,190,0.75)';
+      for (let i = 0; i < 18; i++) {
+        const a = i / 18 * TAU - time * 1.3;
+        ctx.fillRect(x + Math.cos(a) * w * 0.085, y + Math.sin(a) * h * 0.13, 2, 2);
+      }
+    } else {
+      ctx.strokeStyle = `rgba(195,175,146,${0.45 + near * 0.35})`;
+      ctx.lineWidth = Math.max(1, h * (0.002 + near * 0.004));
+      const count = d.state === 'aftermath' ? 3 : Math.min(3, Math.floor((time - 1) * 1.5) + 1);
+      for (let i = 0; i < count; i++) {
+        const offset = (i - 1) * w * 0.035;
+        ctx.beginPath(); ctx.moveTo(x + offset, y - h * (0.08 + near * 0.12));
+        ctx.lineTo(x + offset - w * 0.02, y + h * (0.07 + near * 0.12)); ctx.stroke();
+      }
+      if (d.intensity >= 4) {
+        ctx.strokeStyle = 'rgba(188,179,160,0.35)';
+        ctx.strokeRect(w * 0.06, h * 0.08, w * 0.88, h * 0.84);
+      }
+    }
+  }
+  ctx.fillStyle = 'rgba(225,218,203,0.9)';
+  ctx.font = `${Math.max(10, h * 0.024)}px "Microsoft YaHei",sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.fillText(`${FOOTAGE_STATE_CN[d.state]} · 记录 ${d.repeat}`, w * 0.035, h * 0.93, w * 0.92);
+  if (d.evidence && time >= 1) ctx.fillText(d.traceCN, w * 0.035, h * 0.88, w * 0.92);
+  ctx.restore();
 }
 
 /**
@@ -913,7 +984,7 @@ function drawViewfinder(
   }
 
   // 对准框：瞄到东西时收紧、变红
-  if (run.threat && aim > 0.2) {
+  if (run.threat && aim > 0.2 && !(s.phase === 'ready' && s.viewing)) {
     const locked = aim > 0.55 && run.cameraCanSee();
     const size = h * (0.28 - aim * 0.08);
     ctx.strokeStyle = rgba(locked ? PALETTE.bloodHot : PALETTE.ember, 0.45 + aim * 0.4);
@@ -922,7 +993,7 @@ function drawViewfinder(
     if (locked) {
       ctx.fillStyle = rgba(PALETTE.bloodHot, 0.7);
       ctx.font = `${(h * 0.028).toFixed(1)}px "JetBrains Mono", monospace`;
-      ctx.fillText(run.threat.known ? run.threat.creature.name : 'CONTACT', mid, h * 0.5 + size * 0.52);
+      ctx.fillText('SONAR BEARING / REC ONLY', mid, h * 0.5 + size * 0.52);
     }
   }
 

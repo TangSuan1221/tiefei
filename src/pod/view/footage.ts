@@ -26,9 +26,12 @@ import { remapFootagePixels } from './degrade';
 import { isNoVideoMode, openPromptPanel, promptFor, storePrompt } from './gm';
 
 /** sessionStorage 里那张「航段 → job id」的表 */
-const STORE_KEY = 'ironlung.footage.v1';
+const STORE_KEY = 'ironlung.footage.v2';
+
+interface StoredReel { videoId: string; creatureMissing: boolean }
 
 interface Reel {
+  creatureMissing: boolean;
   legId: string;
   url: string;
   video: HTMLVideoElement;
@@ -39,18 +42,19 @@ const REELS = new Map<string, Reel>();
 /** 正在冲的航段，挡住重复请求 */
 const INFLIGHT = new Set<string>();
 
-function loadIdMap(): Record<string, string> {
+function loadIdMap(): Record<string, StoredReel> {
   try {
-    return JSON.parse(sessionStorage.getItem(STORE_KEY) ?? '{}') as Record<string, string>;
+    return JSON.parse(sessionStorage.getItem(STORE_KEY) ?? '{}') as Record<string, StoredReel>;
   } catch {
     return {};
   }
 }
 
-function saveId(legId: string, videoId: string): void {
+function saveId(key: string, videoId: string, creatureMissing: boolean): void {
   try {
     const m = loadIdMap();
-    m[legId] = videoId;
+    m[key] = { videoId, creatureMissing };
+    for (const old of Object.keys(m).slice(0, -24)) delete m[old];
     sessionStorage.setItem(STORE_KEY, JSON.stringify(m));
   } catch {
     /* 隐私模式下 sessionStorage 会抛。缓存是优化，不是功能 */
@@ -64,7 +68,7 @@ function saveId(legId: string, videoId: string): void {
  * 编码、blob 截断、mp4 头坏了）。如果不在这里等，sim 层会先切到 ready，
  * 然后玩家看到的是一块纯黑，而日志上写着「片子冲出来了」。
  */
-function decodeReel(legId: string, blob: Blob): Promise<Reel | null> {
+function decodeReel(legId: string, blob: Blob, creatureMissing: boolean): Promise<Reel | null> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(blob);
     const video = document.createElement('video');
@@ -86,7 +90,7 @@ function decodeReel(legId: string, blob: Blob): Promise<Reel | null> {
       void video.play().catch(() => {
         /* 自动播放策略。画面靠 drawImage 取帧，暂停着也能取到第一帧 */
       });
-      resolve({ legId, url, video });
+      resolve({ legId, url, video, creatureMissing });
     };
 
     const timer = setTimeout(() => done(false), 12000);
@@ -105,21 +109,24 @@ function decodeReel(legId: string, blob: Blob): Promise<Reel | null> {
  */
 export function installFootageSink(run: PodRun): void {
   if (isNoVideoMode()) {
+    run.videoStatus = 'GM 提示词模式 · 不生成视频';
     run.footageSink = (req: FootageRequest) => handlePrompt(run, req);
     return;
   }
   if (!VIDEO_ENABLED) {
+    run.videoStatus = '本地底片 · 视频服务未启用';
     run.footageSink = null;
     return;
   }
   run.footageSink = (req: FootageRequest) => {
+    run.videoStatus = '正在提交视频任务';
     void handle(run, req);
   };
 }
 
 /** GM 无视频：曝光和线框分析照常，接口一分钱不花。 */
 function handlePrompt(run: PodRun, req: FootageRequest): void {
-  storePrompt(req.legId, req.prompt);
+  storePrompt(req.cacheKey, req.prompt);
   window.setTimeout(() => {
     req.settle(req.token, true, undefined, false, true);
     if (run.shot.token === req.token && run.shot.phase === 'ready'
@@ -134,43 +141,51 @@ export function readyPrompt(run: PodRun): string | null {
   if (!isNoVideoMode()) return null;
   const s = run.shot;
   if (s.phase !== 'ready' || !s.viewing || armOut(run.arm)) return null;
-  return promptFor(s.legId) ?? null;
+  return promptFor(s.cacheKey ?? s.legId) ?? null;
 }
 
 async function handle(run: PodRun, req: FootageRequest): Promise<void> {
-  const { legId, token, settle } = req;
+  const { legId, token, settle, cacheKey } = req;
 
   // 1. 内存缓存。同一段第二次拍：不花钱，不花时间。
-  const cached = REELS.get(legId);
+  const cached = REELS.get(cacheKey);
   if (cached) {
-    settle(token, true);
+    run.videoStatus = '生成视频 · 缓存回放';
+    settle(token, true, undefined, cached.creatureMissing);
     return;
   }
 
-  if (INFLIGHT.has(legId)) {
+  if (INFLIGHT.has(cacheKey)) {
     settle(token, false, '冲洗槽里已经有一卷了。等它出来。');
     return;
   }
-  INFLIGHT.add(legId);
+  INFLIGHT.add(cacheKey);
 
   try {
     // 2. sessionStorage 里有 id：只取片，不生成。取片不计费。
-    const knownId = loadIdMap()[legId];
-    let result = knownId ? await fetchVideoContent(knownId) : null;
+    const known = loadIdMap()[cacheKey];
+    let result = known?.videoId ? await fetchVideoContent(known.videoId) : null;
+    let creatureMissing = result?.ok ? known?.creatureMissing ?? false : false;
 
     // 3. 真的得生成了。
     if (!result || !result.ok) {
-      result = await requestVideo(req.prompt);
+      creatureMissing = false;
+      if (!req.keyframe) {
+        settle(token, false, '首帧遗失，无法冲洗这卷录像。请重新曝光。');
+        return;
+      }
+      result = await requestVideo(req.prompt, undefined, req.keyframe, status => {
+        if (run.shot.token === token) run.videoStatus = status;
+      });
     }
 
     // 3b. 被内容审核拦了：拿不含怪物的那一版再试一次。
     //     本作是恐怖游戏，怪物描述被驳回是常态而不是异常
     //     （实拍：溺者合唱那一段直接 "output new_sensitive"）。
     //     环境总比什么都没有好，而「那东西刚好没进这一卷」在世界观里成立。
-    let creatureMissing = false;
-    if (!result.ok && result.fail.kind === 'filtered' && req.fallbackPrompt !== req.prompt) {
-      console.warn('[footage] 怪物描述被内容审核拦了，改用环境版重试', result.fail.detail);
-      const retry = await requestVideo(req.fallbackPrompt);
+    if (!result.ok && result.fail.kind === 'filtered' && req.fallbackPrompt !== req.prompt && !req.prompt.includes('Template: attack.')) {
+      console.warn('[footage] 改用保留异常痕迹、不含身体的录像模板', result.fail.detail);
+      const retry = await requestVideo(req.fallbackPrompt, undefined, req.keyframe);
       if (retry.ok) {
         result = retry;
         creatureMissing = true;
@@ -185,21 +200,31 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
     }
 
     // 4. 必须能解码才算成功。
-    const reel = await decodeReel(legId, result.blob);
+    run.videoStatus = '视频已下载 · 正在解码';
+    const reel = await decodeReel(legId, result.blob, creatureMissing);
     if (!reel) {
       console.warn('[footage] 片子拿到了但浏览器解不开', result.videoId);
       settle(token, false, '片子在冲洗槽里卡住了，抽出来的时候已经烫得卷了边。');
       return;
     }
 
-    REELS.set(legId, reel);
-    saveId(legId, result.videoId);
+    REELS.set(cacheKey, reel);
+    saveId(cacheKey, result.videoId, creatureMissing);
+    // State-dependent reels must not accumulate unbounded video/blob allocations.
+    if (REELS.size > 12) {
+      const oldest = REELS.keys().next().value!;
+      const old = REELS.get(oldest)!;
+      old.video.pause(); old.video.removeAttribute('src'); old.video.load();
+      URL.revokeObjectURL(old.url);
+      REELS.delete(oldest);
+    }
+    run.videoStatus = '生成视频 · 远端回放';
     settle(token, true, undefined, creatureMissing);
   } catch (e) {
     console.warn('[footage] 冲洗回路异常', e);
     settle(token, false, '信号中断。冲洗槽那头没人接。');
   } finally {
-    INFLIGHT.delete(legId);
+    INFLIGHT.delete(cacheKey);
   }
 }
 
@@ -207,11 +232,36 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
 export function readyReel(run: PodRun): HTMLVideoElement | null {
   const s = run.shot;
   if (s.phase !== 'ready' || !s.viewing || armOut(run.arm)) return null;
-  const reel = REELS.get(s.legId);
+  const reel = REELS.get(s.cacheKey ?? s.legId);
   if (!reel) return null;
   // 视频还没解到第一帧的话画出来是全黑，不如先让程序化画面顶着。
   if (reel.video.readyState < 2) return null;
   return reel.video;
+}
+
+const LAB_FRAMES=new Map<string,HTMLImageElement>();
+/** Playback belongs to the analysis bench and follows the selected archive, not the current shot. */
+export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:number,h:number):string {
+  const tape=run.selectedTape;
+  const notice=(title:string,detail:string)=>{
+    ctx.fillStyle='#03080b';ctx.fillRect(0,0,w,h);ctx.fillStyle='#e4b981';ctx.font=cjk(Math.max(14,h*.065),500);
+    ctx.fillText(title,w*.05,h*.42,w*.9);ctx.fillStyle='#b2c6c4';ctx.font=cjk(Math.max(12,h*.045),400);
+    ctx.fillText(detail,w*.05,h*.55,w*.9);return title;
+  };
+  if(!tape||!tape.ready)return notice('视频生成中 · 尚未收到录像',run.videoStatus);
+  const reel=REELS.get(tape.cacheKey??tape.legId);
+  if(reel&&reel.video.readyState>=2){
+    if(run.labVideoExpanded){
+      const scale=Math.min(w/reel.video.videoWidth,h/reel.video.videoHeight);
+      const vw=reel.video.videoWidth*scale,vh=reel.video.videoHeight*scale;
+      ctx.fillStyle='#020406';ctx.fillRect(0,0,w,h);
+      ctx.drawImage(reel.video,(w-vw)/2,(h-vh)/2,vw,vh);
+      return '原始录像 · 等比放大';
+    }
+    drawFootageFrame(ctx,w,h,reel.video,{time:reel.video.currentTime,corruption:0,light:1});
+    return '录像回放 · 远端生成';
+  }
+  return notice(tape.videoResult==='prompt'?'GM 提示词模式 · 未请求视频':'无可播放视频 · 不使用图片冒充录像',tape.videoError??'视频未生成、未加载或缓存已释放；请检查任务日志。');
 }
 
 // ============================================================================
@@ -283,7 +333,8 @@ export function drawFootageFrame(
   const corr = clamp01(opts.corruption);
   // 关灯的时候这块屏也暗下来，但不能到零 —— 片子是拍好的，不是实时的，
   // 所以它不该因为现在关了灯就消失。留一个底。
-  remapFootagePixels(img.data, 0.42 + light * 0.58);
+  // Recorded footage has its own monitor gain, independent of the live lamp.
+  remapFootagePixels(img.data, 1);
   bufCtx.putImageData(img, 0, 0);
 
   // 3. 放大回屏幕。逐行横向抖动 = 磁带跑偏，和 pano.ts 里同一个手法：

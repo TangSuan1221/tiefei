@@ -22,8 +22,9 @@ import {
   armGrabbed,
   wrenchChance,
 } from '../sim/manipulator';
-import { CAMERA_DRIVE_METERS, PodRun, TAPE_PURPOSE_CN, type CameraDriveAction } from '../sim/run';
+import { PodRun, TAPE_PURPOSE_CN, type CameraDriveAction } from '../sim/run';
 import { drawCameraFeed } from './creature';
+import { drawLabRecording } from './footage';
 import { isNoVideoMode, revealPrompt } from './gm';
 import { drawHoloMap } from './wire';
 import {
@@ -140,7 +141,7 @@ function drawStationViewInner(
   }
 }
 
-function drawStationScreen(
+export function drawStationScreen(
   ctx: CanvasRenderingContext2D,
   run: PodRun,
   id: StationId,
@@ -446,6 +447,12 @@ function drawRadio(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: num
  * 不上卷，习性不会自己长到日志里。
  */
 function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: number): void {
+  if(run.labVideoExpanded&&run.selectedTape){
+    ctx.save();ctx.translate(w*.03,h*.12);
+    const status=drawLabRecording(ctx,run,w*.94,h*.72);
+    ctx.restore();ctx.fillStyle='#accbc1';ctx.font=cjk(h*.025,500);
+    ctx.fillText(`${status} · 按 4 返回分析布局`,w*.04,h*.90);return;
+  }
   screenTitle(ctx, w * 0.06, h * 0.08, w * 0.88, 'LAB  FILM BENCH', h);
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
@@ -488,6 +495,12 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
 
   const tape = run.selectedTape;
   if (!tape) return;
+  ctx.save();ctx.translate(bodyX,h*.30);
+  ctx.fillStyle='#03080b';ctx.fillRect(0,0,bodyW,h*.34);
+  const recordingStatus=drawLabRecording(ctx,run,bodyW,h*.34);
+  ctx.restore();
+  ctx.strokeStyle='#6d9990';ctx.strokeRect(bodyX,h*.30,bodyW,h*.34);
+  ctx.fillStyle='#accbc1';ctx.font=cjk(h*.023,500);ctx.fillText(recordingStatus,bodyX,h*.68);
   ctx.fillStyle = rgba(PALETTE.ember, 0.9);
   ctx.font = cjk(h * 0.036, 600);
   ctx.fillText(tape.siteName, bodyX, h * 0.22);
@@ -509,7 +522,7 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
       ].filter(Boolean);
   ctx.font = cjk(h * 0.026, 400);
   ctx.fillStyle = rgba(PALETTE.bone, 0.82);
-  let y = h * 0.33;
+  let y = h * 0.73;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
     if (!line) {
@@ -537,6 +550,7 @@ function drawNav(
   h: number,
   view: StationView,
 ): void {
+  if(run.phase==='site' && run.authoredSite){run.authoredSite.drawMap(ctx,w,h);return;}
   const sonar = view.sonar;
   sonar.contacts = run.contacts;
   sonar.shadows = [];
@@ -587,7 +601,7 @@ function drawNav(
 
   ctx.font = mono(h * 0.028, 600);
   ctx.fillStyle = rgba(PALETTE.boneDim, 0.85);
-  ctx.fillText(`HDG ${String(run.heading).padStart(3, '0')}`, rx, h * 0.43);
+  ctx.fillText(`HDG ${run.heading.toFixed(0).padStart(3, '0')}`, rx, h * 0.43);
   ctx.fillStyle = rgba(PALETTE.boneWhisper, 0.85);
   ctx.fillText(`PITCH ${run.pitch >= 0 ? '+' : ''}${run.pitch.toFixed(0)}°`, rx + rw * 0.48, h * 0.43);
 
@@ -611,7 +625,8 @@ function drawNav(
     ctx.fillText(t.known ? t.creature.name : t.creature.designation, rx, h * 0.66);
     ctx.font = cjk(h * 0.023, 400);
     ctx.fillStyle = rgba(PALETTE.bone, 0.8);
-    ctx.fillText(t.known ? t.creature.advice : '先用摄像头看清它是什么。', rx, h * 0.705);
+    ctx.fillText(t.behavior === 'warning' ? `舱外重撞 · 应对剩余 ${Math.ceil(t.warningLeft)} 秒`
+      : t.known ? `威胁 ${t.hunter.rank} 级 · ${t.creature.advice}` : '实时镜头不可见。拍摄录像辨认异响。', rx, h * 0.705);
   }
 
   if (site && run.volumeKnown) {
@@ -748,6 +763,18 @@ function drawHeadingTape(
 // ============================================================================
 
 /** 实时画面与物资侧栏并排，镜头按钮和机械臂按钮分成两排。 */
+export function drawObservationWindow(ctx:CanvasRenderingContext2D,run:PodRun,hits:HitMap,view:StationView,active:boolean):void {
+  ctx.fillStyle='#050c0e';ctx.fillRect(0,0,1024,720);
+  ctx.save();ctx.beginPath();ctx.roundRect(18,18,988,684,60);ctx.clip();
+  drawCamera(ctx,run,1024,720,view);
+  const shade=ctx.createRadialGradient(512,300,170,512,330,610);
+  shade.addColorStop(0,'rgba(0,8,11,0)');shade.addColorStop(1,'rgba(0,5,8,.85)');
+  ctx.fillStyle=shade;ctx.fillRect(0,0,1024,720);ctx.restore();
+  ctx.strokeStyle='#7b9584';ctx.lineWidth=2;ctx.strokeRect(468,54,88,4);
+  ctx.fillStyle='#b6bba0';ctx.font='18px monospace';ctx.textAlign='left';
+  ctx.fillText(`CAM-01   ${run.depth.toFixed(0)} m   ${(run.pilot.speed*(run.phase==='transit'?10:1)).toFixed(2)} m/s   ${run.powered?'ONLINE':'无供电'}`,66,46);
+}
+
 function drawCameraWorkbench(
   ctx: CanvasRenderingContext2D, run: PodRun, x: number, y: number, w: number, refH: number,
   hits: HitMap, view: StationView,
@@ -772,8 +799,8 @@ function drawCameraWorkbench(
   ctx.fillText(`船头 ${run.heading.toFixed(0)}° / 俯仰 ${run.pitch.toFixed(0)}°　镜头 ${eye.yaw.toFixed(0)}° / ${eye.pitch.toFixed(0)}°　H 镜头回中`, x, y + feedH + refH * 0.018, feedW);
   ctx.fillStyle = rgba(run.driveBlock ? PALETTE.bloodHot : PALETTE.bone, 0.95);
   ctx.fillText(run.driveBlock ?? (run.phase === 'site'
-    ? `离散驾驶 · 每按一次 ${CAMERA_DRIVE_METERS}m · 沿船头推进，不跟随云台 · 未分析也可观察`
-    : `抽象航渡 · 每按空格 60m · 目标航向 ${run.leg.safeHeading}° · 剩余 ${run.remaining.toFixed(0)}m`), x, y + feedH + refH * 0.044, feedW);
+    ? `航速 ${run.pilot.speed.toFixed(2)} m/s · 空格推进 / N 倒车 / Shift 制动`
+    : `航渡 ${Math.abs(run.pilot.speed*10).toFixed(1)} m/s · 按住空格推进 · 剩余 ${run.remaining.toFixed(0)}m`), x, y + feedH + refH * 0.044, feedW);
   ctx.restore();
   drawControls(ctx, hits, x, y + feedH + refH * 0.070, feedW, refH * 0.090, drive, view.hovered, view.time);
   drawControls(ctx, hits, x, y + feedH + refH * 0.166, feedW, refH * 0.090, camera, view.hovered, view.time);
@@ -806,6 +833,17 @@ function drawCamera(
   const t = run.threat;
   const reveal = t ? clamp01(t.lookedAt / 1.6) : 0;
   drawCameraFeed(ctx, w, h, { run, time: view.time, aim, reveal });
+  if(run.phase==='site' && run.authoredSite){
+    if(!run.shot.viewing)run.authoredSite.drawInteraction?.(ctx,w,h);
+    ctx.fillStyle='#c8d9d0';ctx.font=cjk(Math.max(14,h*.026),500);ctx.textAlign='center';
+    ctx.fillText(run.shot.viewing?`${run.videoStatus} · 按 2 返回驾驶`:run.authoredSite.hint,w*.5,h*.94,w*.9);
+    if(run.shot.phase==='ready'){
+      ctx.fillStyle='#dcc491';ctx.font=cjk(h*.023,500);
+      ctx.fillText('录像已送分析台 · 摄像窗保持实时监视',w*.5,h*.89,w*.9);
+    }
+    if(run.shot.phase==='exposing'||run.shot.phase==='developing') drawShotStatus(ctx,run,w,h,view.time);
+    return;
+  }
   // 臂画在实景之上、读数之下：它是镜头前的东西，不是屏幕上的东西
   drawArmBody(ctx, run, w, h, view.time);
   drawShotStatus(ctx, run, w, h, view.time);
@@ -1306,7 +1344,7 @@ function drawShotStatus(
   // 冲洗和失败提示不能遮住正在操作的货箱、准星和爪子。
   if (armOut(run.arm) || (run.phase === 'site' && !s.viewing && (s.phase === 'failed' || s.phase === 'developing'))) {
     const status = s.phase === 'developing'
-      ? `冲洗中 · 已等 ${s.developed.toFixed(0)}s / 最多 ${s.developMax.toFixed(0)}s`
+      ? `${run.videoStatus} · 已等 ${s.developed.toFixed(0)}s`
       : s.phase === 'exposing' ? `曝光中 · 剩余 ${s.exposeLeft.toFixed(1)}s`
       : s.phase === 'failed' ? `冲洗失败 · ${s.reason}`
       : s.phase === 'ready' ? '影片已入盒 · 收臂后可回放'
@@ -1427,6 +1465,15 @@ function armControls(run: PodRun): Control[] {
   // 臂已经弃掉了：这一组键连着一个渗油的孔。一个键都不摆 ——
   // 摆一个灰的按钮等于说「以后还会亮」，而它不会
   if (!armAlive(arm)) return [];
+
+  if(run.authoredSite){
+    const busy=['extending','gripping','hauling','jammed'].includes(arm.phase);
+    return filterControls([
+      {id:'arm.extend',key:'R',label:'伸出臂',hint:'对准箱体 · 开启照明',state:arm.phase==='stowed'?'normal':'disabled'},
+      {id:'arm.rummage',key:'F',label:arm.phase==='stowed'?'伸出 / 操作':'翻找 / 取回',hint:busy?ARM_PHASE_CN[arm.phase]:'对准箱体 · 分步操作',state:busy?'disabled':'active'},
+      {id:'arm.retract',key:'C',label:'收回',hint:'收妥后物资入库',state:run.armBlock('retract')==='ok'?'normal':'disabled'},
+    ]);
+  }
 
   const target = run.armTarget;
   const bExt = run.armBlock('extend');
@@ -1606,13 +1653,13 @@ function cameraDriveControls(run: PodRun): Control[] {
   const block = run.driveBlock;
   const state = block ? 'disabled' : 'normal';
   return [
-    { id: 'drive.left', key: 'J', label: '船头左', hint: '航向 −5°', state },
-    { id: 'drive.right', key: 'L', label: '船头右', hint: '航向 +5°', state },
-    { id: 'drive.up', key: 'I', label: '船头上', hint: '俯仰 −5°', state },
-    { id: 'drive.down', key: 'K', label: '船头下', hint: '俯仰 +5°', state },
+    { id: 'drive.left', key: 'J', label: '左舵', hint: '按住 · 惯性转向', state },
+    { id: 'drive.right', key: 'L', label: '右舵', hint: '按住 · 惯性转向', state },
+    { id: 'drive.up', key: 'I', label: '抬头', hint: '按住 · 调整纵倾', state },
+    { id: 'drive.down', key: 'K', label: '低头', hint: '按住 · 调整纵倾', state },
     { id: 'drive.center', key: 'H', label: '镜头回中', hint: '对齐船头', state },
-    { id: 'drive.forward', key: '空格', label: '向前一步', hint: block ?? (run.phase === 'site' ? '0.75m · 离散' : '60m · 抽象'), state },
-    { id: 'drive.back', key: 'N', label: '倒退一步', hint: block ?? '0.75m · 站内', state: block || run.phase !== 'site' ? 'disabled' : 'normal' },
+    { id: 'drive.forward', key: '空格', label: '推进', hint: block ?? '按住加速 · 松开滑行', state },
+    { id: 'drive.back', key: 'N', label: '倒车', hint: block ?? '反推减速 / 倒航', state },
     { id: 'drive.depart', key: 'B', label: '离开本站', hint: block ?? run.departHint, state: !block && run.canDepart ? 'active' : 'disabled' },
   ];
 }
@@ -1650,6 +1697,12 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
     case 'salvage':
       return stationControls(run, 'camera');
     case 'radio': {
+      if(run.legIndex===6 && run.canDepart && !run.campaign.choice) return [
+        {id:'radio.recv',key:'1',label:run.radioWaiting?'接听':'静默',hint:'先听完再决定',state:run.radioWaiting&&!run.earsPlugged?'active':'disabled'},
+        {id:'story.relay',key:'7',label:'转发载波',hint:'保留信号，上行风险未知'},
+        {id:'story.seal',key:'8',label:'切断载波',hint:'停止转发，放弃远程接应'},
+        {id:'story.archive',key:'9',label:'封存证据',hint:'至少四关读片记录',state:run.campaign.journal.filter(e=>e.beat==='film').length>=4?'normal':'disabled'},
+      ];
       const out: Control[] = [
         {
           id: 'radio.recv',
@@ -1671,20 +1724,17 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
       const s = run.shot;
       const rolling = s.phase === 'exposing' || s.phase === 'developing';
       const purpose = run.shotPurpose();
-      const fresh = purpose === 'survey' || purpose === 'reshoot' || s.phase !== 'ready';
-      const shoot: Control =
-        !fresh && s.phase === 'ready'
-          ? { id: 'camera.replay', key: '1', label: '回放', hint: armOut(run.arm) ? '先收臂·保持实时' : '不要钱', state: armOut(run.arm) ? 'disabled' : 'active' }
-          : {
+      const shoot: Control = {
               id: 'camera.shoot',
               key: '1',
               label: rolling
                 ? (s.phase === 'exposing' ? `曝光 ${s.exposeLeft.toFixed(1)}s` : '冲洗中')
                 : purpose === 'survey' ? '拍下一段'
-                : purpose === 'reshoot' ? '再拍一卷'
+                : purpose === 'reshoot' || s.phase === 'ready' ? '再拍一卷'
                 : '曝光一卷',
               hint:
-                rolling ? '机子在走'
+                armOut(run.arm) ? '先收回机械臂'
+                : rolling ? '机子在走'
                 : run.phase !== 'site' ? '舱在动 · 会糊'
                 : !run.powered ? '没有电'
                 : isNoVideoMode() ? '提示词 · 不走接口'
@@ -1692,7 +1742,7 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
                 : purpose === 'survey' ? '5秒 · 生成下一段'
                 : '5秒 · 5口气 · 6%电',
               state:
-                rolling || run.phase !== 'site' || !run.powered ? 'disabled'
+                armOut(run.arm) || rolling || run.phase !== 'site' || !run.powered ? 'disabled'
                 : run.mode === 'alert' || purpose === 'survey' ? 'danger'
                 : 'normal',
             };
@@ -1703,8 +1753,8 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
           ? {
               id: 'camera.view',
               key: '2',
-              label: s.viewing ? '切监视回路' : isNoVideoMode() ? '切提示词' : '切影片',
-              hint: armOut(run.arm) ? '先收臂·保持实时' : s.viewing ? '实时·看得见方位' : isNoVideoMode() ? '本卷提示词' : '刚冲出来的',
+              label: '前往分析台',
+              hint: armOut(run.arm) ? '先收臂·保持实时' : '录像只能在分析台查看',
               state: armOut(run.arm) ? 'disabled' : 'normal',
             }
           : null,
@@ -1735,13 +1785,14 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
       return filterControls([
         { id: 'lab.prev', key: '1', label: '上一卷', hint: '', state: run.tapes.length > 1 ? 'normal' : 'disabled' },
         { id: 'lab.next', key: '2', label: '下一卷', hint: '', state: run.tapes.length > 1 ? 'normal' : 'disabled' },
+        { id: 'lab.expand', key: '4', label: run.labVideoExpanded?'缩回录像':'放大录像', hint:'分析台全屏查看', state:tape?.ready?'active':'disabled' },
         {
           id: 'lab.analyze',
           key: '3',
           label: tape?.analyzed ? '已拆过' : '上卷分析',
-          hint: tape ? (tape.analyzed ? '报告在屏上' : '6口气 · 扣电') : '片盒空',
+          hint: tape ? (tape.ready === false ? '等待显影完成' : tape.analyzed ? '报告在屏上' : '6口气 · 扣电') : '片盒空',
           state:
-            !tape ? 'disabled'
+            !tape || tape.ready === false ? 'disabled'
             : tape.analyzed ? 'active'
             : run.powered ? 'normal'
             : 'disabled',
@@ -1788,28 +1839,28 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
           ? {
               id: 'nav.thrust',
               key: '4',
-              label: '推进脉冲',
+              label: run.navDriveEngaged ? '停推 · 已接通' : '接通推进',
               hint:
-                run.driveBlock ?? (run.throttle === 0 ? '停机'
+                run.driveBlock ?? (run.navDriveEngaged ? '再次点击停推 / Shift 制动' : run.throttle === 0 ? '单击 / 4 · 接通电机'
                 : run.sighting.kind === 'door' ? '开口'
                 : run.sighting.kind === 'wall' ? '会撞壁'
                 : run.sighting.kind === 'obstacle' ? run.sighting.line
                 : `${run.throttleLabel()}`),
               state:
-                run.driveBlock || run.throttle === 0 ? 'disabled'
+                run.driveBlock ? 'disabled'
                 : run.sighting.kind === 'wall' || run.sighting.kind === 'obstacle' ? 'danger'
                 : 'normal',
             }
           : {
               id: 'nav.thrust',
               key: '4',
-              label: '推进脉冲',
+              label: run.navDriveEngaged ? '停推 · 已接通' : '接通推进',
               hint:
-                run.throttle === 0 ? '停机'
+                run.navDriveEngaged ? '再次点击停推 / Shift 制动' : run.throttle === 0 ? '单击 / 4 · 接通电机'
                 : !run.onCourse ? '偏航·会撞壁'
-                : `${run.throttleSpec().cost}口气 · ${run.throttleSpec().m}m`,
+                : '单击接通 · 再点停推',
               state:
-                run.throttle === 0 || !run.powered ? 'disabled'
+                run.driveBlock ? 'disabled'
                 : run.onCourse ? 'normal'
                 : 'danger',
             },
@@ -1837,6 +1888,10 @@ function filterControls(list: (Control | null)[]): Control[] {
 
 /** 处理一次点击/按键。返回是否消耗了这次输入。 */
 export function performControl(run: PodRun, actionId: string): boolean {
+  if(actionId.startsWith('story.')) {
+    const choice=actionId.slice(6);
+    return run.at==='radio' && (choice==='relay'||choice==='seal'||choice==='archive') && run.chooseTransmission(choice);
+  }
   if (actionId === 'back') {
     run.leaveStation();
     return true;
@@ -1937,11 +1992,11 @@ export function performControl(run: PodRun, actionId: string): boolean {
       return true;
     case 'camera.replay':
       run.replayFootage();
-      if (isNoVideoMode()) revealPrompt(run.shot.legId);
+      if (isNoVideoMode()) revealPrompt(run.shot.cacheKey ?? run.shot.legId);
       return true;
     case 'camera.view':
       run.toggleFootageView();
-      if (isNoVideoMode() && run.shot.viewing) revealPrompt(run.shot.legId);
+      if (isNoVideoMode() && run.shot.viewing) revealPrompt(run.shot.cacheKey ?? run.shot.legId);
       return true;
     case 'nav.left':
       run.nudgeHeading(-5);
@@ -1950,10 +2005,10 @@ export function performControl(run: PodRun, actionId: string): boolean {
       run.nudgeHeading(5);
       return true;
     case 'nav.pitchUp':
-      run.nudgePitch(-8);
+      run.holdHeave(1);
       return true;
     case 'nav.pitchDown':
-      run.nudgePitch(8);
+      run.holdHeave(-1);
       return true;
     case 'nav.charge':
       run.charge();
@@ -1978,6 +2033,9 @@ export function performControl(run: PodRun, actionId: string): boolean {
       return true;
     case 'lab.analyze':
       run.analyzeTape();
+      return true;
+    case 'lab.expand':
+      if(run.selectedTape?.ready)run.labVideoExpanded=!run.labVideoExpanded;
       return true;
     default:
       return false;

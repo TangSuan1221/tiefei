@@ -70,7 +70,8 @@ export function remapFootagePixels(px: Uint8ClampedArray, gain: number): void {
     const g = px[i + 1]!;
     const b = px[i + 2]!;
     // 只按亮度取色。原图的色相**整个丢掉** —— 这正是青绿海水消失的地方。
-    const luma = (r * 0.299 + g * 0.587 + b * 0.114) | 0;
+    const sourceLuma = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+    const luma = Math.min(255, Math.round(Math.pow(sourceLuma, .62) * 255));
     const o = luma * 3;
     let nr = LUT[o]!;
     let ng = LUT[o + 1]!;

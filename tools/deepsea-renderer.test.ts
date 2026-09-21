@@ -80,7 +80,8 @@ test('每个箱体的渲染顶点严格等于 buildRoom，不添加随机物体'
   }
   const materials = createMaterials();
   const root = createRoomMesh(geo, materials);
-  assert.equal(root.children.filter(o => !o.name.startsWith('reveal.')).length, geo.quads.filter(q => q.kind !== 'door').length);
+  assert.equal(root.children.filter(o => !o.name.startsWith('reveal.') && !o.name.startsWith('strap.')).length, geo.quads.filter(q => q.kind !== 'door').length);
+  assert.equal(root.children.filter(o => o.name.startsWith('strap.')).length, geo.quads.filter(q => q.obstacle === 'crate' && q.pts.length === 4).length);
   assert.equal(root.children.filter(o => o.name.startsWith('reveal.')).length, geo.quads.filter(q => q.kind === 'door').length * 4);
   assert.equal(root.children.some(o => o.name.startsWith('door.')), false);
   disposeRoomMesh(root);

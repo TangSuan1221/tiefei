@@ -253,6 +253,7 @@ function exploreSite(run: PodRun, rep: Report, verbose: boolean): boolean {
   if (run.canSurvey) shootAndWait(run);
   run.walkTo('nav');
   const before = run.legIndex;
+  if(run.legIndex===6 && run.canDepart) run.chooseTransmission('seal');
   run.depart();
   return run.legIndex !== before || run.outcome.kind === 'escaped';
 }

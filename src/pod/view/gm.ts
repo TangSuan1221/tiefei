@@ -70,6 +70,8 @@ function setNoVideo(on: boolean): string {
 const HELP = [
   'GM 指令',
   '  无视频模式 [开|关]   拍摄只生成描述提示词，不消耗视频额度',
+  '  怪物入侵 [秒数]     立即进入撞击预警；默认120秒后真实攻击（15–300秒）',
+  '                       航行中会进入当前关卡；手动曝光才提交视频生成',
   '  help                 本表',
   '',
   '控制台也可以：GM.无视频模式()  /  GM.无视频模式(false)',
@@ -85,6 +87,16 @@ export function executeGm(raw: string): string {
   const parts = text.split(/\s+/);
   const name = parts[0] ?? '';
   const arg = (parts[1] ?? '').toLowerCase();
+  if(name==='怪物入侵'||name.toLowerCase()==='invasion'){
+    const seconds=arg?Number(arg):120;
+    const run=hook?.run();
+    const result=!Number.isFinite(seconds)?'秒数必须是数字（15–300）。':run?run.gmInvasion(seconds):'请先开始游戏。';
+    echo(result+(isNoVideoMode()?'\n注意：无视频模式已开启。输入「无视频模式 关」才会请求真实视频。':''));
+    // This command starts an urgent encounter. Do not leave its modal input
+    // focused, blocking every gameplay control while the attack clock runs.
+    if(result.startsWith('GM · 怪物入侵：'))closeGmConsole();
+    return result;
+  }
 
   if (name === '无视频模式' || /^no-?video$/i.test(name) || name === 'novideo' || name === 'prompt') {
     if (arg === '开' || arg === 'on' || arg === '1' || arg === 'true') return setNoVideo(true);
@@ -104,6 +116,7 @@ function ensureGmApi(): void {
       无视频模式: (on?: boolean) => setNoVideo(on ?? !isNoVideoMode()),
       noVideo: (on?: boolean) => setNoVideo(on ?? !isNoVideoMode()),
       help: () => executeGm('help'),
+      怪物入侵: (seconds=120) => executeGm(`怪物入侵 ${seconds}`),
     },
   );
   (window as unknown as { GM: typeof fn }).GM = fn;

@@ -50,8 +50,10 @@ import {
 } from '../content/supplies';
 import { creature, isHarmless, sameCounter, sonarLabelOf, KIN_CN, DANGER_CN, ATTRACTOR_CN, counterLine, type CounterAction, type Creature, type CreatureId } from '../content/creatures';
 import { ACT_COUNT, actAt } from '../content/acts';
+import { hunterProfile, huntAct, type HunterProfile } from '../content/hunters';
 import { legAt, ROUTE, TOTAL_DISTANCE, type Leg, type Wreck } from '../content/route';
-import { buildFootagePrompt } from '../content/footage';
+import { buildFootagePrompt, type FootagePromptInput } from '../content/footage';
+import { directFootage, footageCacheKey, FOOTAGE_STATE_CN, type FootageDirection, type FootageState } from '../content/footage-director';
 import { san01 } from '../content/sanity';
 import { cacheFootageTell, sonarHides, trapFootageTell } from '../gen/traps';
 import {
@@ -87,6 +89,10 @@ import {
 } from '../gen/interior';
 import { faunaOnTape, siteThreatOf } from '../gen/spawn';
 import { collectMemory, currentHookGate, hookLine, type HookGate, type HookSnapshot } from '../gen/story';
+import { Campaign, type CampaignChoice } from './campaign';
+import { PilotMotion } from './pilot';
+import { CAMPAIGN_STORY, OPENING_CALL } from '../content/campaign-story';
+import type { AuthoredSite } from './authored-site';
 import { buildRoom, type Eye, type RoomGeometry } from '../view/roomview';
 import {
   fillPersonText,
@@ -374,6 +380,12 @@ export interface ArmTarget {
 export type ThreatPhase = 'contact' | 'identified' | 'repelled' | 'struck';
 
 export interface ThreatRuntime {
+  encounter: number;
+  hunter: HunterProfile;
+  behavior: 'investigate' | 'stalk' | 'warning';
+  warningLeft: number;
+  cueLeft: number;
+  quietFor: number;
   creature: Creature;
   /** 相对舱首的方位，弧度。0 = 正前 */
   bearing: number;
@@ -427,8 +439,11 @@ export type ShotPhase = 'idle' | 'exposing' | 'developing' | 'ready' | 'failed';
 export type ShotPurpose = 'identify' | 'survey' | 'reshoot';
 
 export interface ShotRuntime {
+  capture?: FootagePromptInput;
+  keyframe?: string;
+  cacheKey?: string;
   phase: ShotPhase;
-  /** 这一卷拍的是哪一段。也是缓存键 */
+  /** 航段标识；内容缓存键另存于 cacheKey。 */
   legId: string;
   /** 曝光剩余秒数 */
   exposeLeft: number;
@@ -462,6 +477,8 @@ export interface ShotRuntime {
  * 的那条代码路径，顺带让 tools/pod-playthrough.ts 不依赖任何网络。
  */
 export interface FootageRequest {
+  keyframe?: string;
+  cacheKey: string;
   /** 缓存键。同一段不该重复生成 —— 每次调用都是真金白银 */
   legId: string;
   /** content/footage.ts 拼好的提示词 */
@@ -487,6 +504,14 @@ export interface FootageRequest {
 
 /** 冲好、进了片盒的一卷。分析台读的是这个，不是摄像头上正在放的那一帧 */
 export interface TapeRecord {
+  videoResult?: 'video' | 'failed' | 'prompt';
+  videoError?: string;
+  keyframe?: string;
+  ready?: boolean;
+  direction?: FootageDirection;
+  cacheKey?: string;
+  prompt?: string;
+  fallbackPrompt?: string;
   id: string;
   legId: string;
   siteName: string;
@@ -518,6 +543,87 @@ const ANALYZE_BREATHS = 6;
 const ANALYZE_POWER = 0.045;
 
 export class PodRun {
+  readonly pilot=new PilotMotion();
+  authoredSite:AuthoredSite|null=null;
+  createAuthoredSite:((index:number)=>AuthoredSite)|null=null;
+  authoredSiteError='';
+  ensureAuthoredSite():void {
+    if(this.phase!=='site'||!this.createAuthoredSite||this.authoredSiteError)return;
+    if(this.authoredSite?.index===this.legIndex)return;
+    this.authoredSite?.dispose();this.authoredSite=null;
+    try {this.authoredSite=this.createAuthoredSite(this.legIndex);}
+    catch(error){
+      this.authoredSiteError=`设施 ${this.legIndex+1} 加载失败，请刷新重试。`;
+      console.error('[authored-site]',error);this.pushLog(this.authoredSiteError,'bad');
+    }
+  }
+  navDriveEngaged=false;
+  private heaveInput=0;
+  private heaveUntil=0;
+  private transitElevation=0;
+  holdHeave(value:number):void {this.heaveInput=clamp(value,-1,1);this.heaveUntil=this.clock+.12;}
+  private pilotInput={thrust:0,yaw:0,pitch:0,brake:false};
+  private pilotInputUntil=0;
+  private pilotSoundAt=0;
+  private pilotImpactUntil=0;
+  private continuousStep=false;
+  holdPilot(thrust:number,yaw:number,pitch:number,brake=false):void {
+    this.pilotInput={thrust:clamp(thrust,-1,1),yaw:clamp(yaw,-1,1),pitch:clamp(pitch,-1,1),brake};
+    this.pilotInputUntil=this.clock+.12;
+  }
+  private tickPilot(dt:number):void {
+    if(this.driveBlock || (this.at!=='camera' && this.at!=='nav')) {this.pilot.stop();return;}
+    const input=this.clock<this.pilotInputUntil?this.pilotInput:{thrust:0,yaw:0,pitch:0,brake:false};
+    if(this.clock<this.pilotImpactUntil){this.pilot.stop();return;}
+    const motion=this.pilot.step(dt,input.thrust,input.yaw,input.pitch,input.brake,this.clock<this.heaveUntil?this.heaveInput:0);
+    if(Math.abs(motion.vertical)>.00001){
+      if(this.phase==='site'){
+        if(!this.authoredSite?.moveVertical?.(motion.vertical))this.pilot.verticalSpeed=0;
+      }else this.transitElevation=clamp(this.transitElevation+motion.vertical,-40,40);
+      this.power=clamp01(this.power-Math.abs(motion.vertical)*.001);
+    }
+    this.heading=(this.heading+motion.yaw+360)%360;
+    this.pitch=clamp(this.pitch+motion.pitch,-65,65);
+    if(Math.abs(motion.distance)<.00001)return;
+    if(this.clock>=this.pilotSoundAt){this.onCue?.('hull.groan',.10+Math.abs(this.pilot.speed)*.12);this.pilotSoundAt=this.clock+2.5;}
+    if(this.phase==='site') {
+      this.continuousStep=true;
+      try{this.moveInVolume(Math.abs(motion.distance),Math.sign(motion.distance));}
+      finally{this.continuousStep=false;}
+    } else {
+      const distance=motion.distance*10;
+      if(!this.onCourse && Math.abs(distance)>.001){this.collide(Math.abs(distance));this.pilot.stop();this.pilotImpactUntil=this.clock+1.2;return;}
+      this.traveled=clamp(this.traveled+distance,0,this.leg.length);
+      const cost=Math.abs(distance)/60;
+      this.power=clamp01(this.power-cost*.006);this.addNoise(cost*.12);
+      if(this.mode==='calm')this.spend(cost*3,.3);
+      if(this.traveled>=this.leg.length){this.pilot.stop();this.arrive();}
+    }
+  }
+  readonly campaign = new Campaign();
+  openingReceived=false;
+  openingScanned=false;
+  storyCaption='';
+  storyCaptionLeft=0;
+  get openingGuide():string|null {
+    if(this.legIndex!==0 || this.campaign.has(0,'film')) return null;
+    if(!this.openingReceived) return this.at==='radio'?'按 1 接听万斯的呼叫。':'左侧无线电正在呼叫。按 3 前往，再按 1 接听。';
+    if(this.phase==='site') return this.shot.phase==='exposing'?'保持机位，等待曝光完成。'
+      :this.shot.phase==='developing'?'正在显影。完成后按 5 前往分析台读片。'
+      :this.unanalyzedCount>0?'录像已回收。按 5 前往分析台，分析本关胶片。'
+      :'已到采矿模块。按 4 前往摄像窗，点击操纵台上的「曝光」。';
+    if(!this.openingScanned) return this.at==='nav'?'按 2 发出常规声呐脉冲，确认目标回波。':'按 6 前往领航台，再按 2 扫描目标。';
+    return this.at==='nav'?`将船头对准声呐目标，点击「接通推进」。距设施 ${this.remaining.toFixed(0)} 米。`
+      :'按 6 返回领航台，沿目标回波航行；到站后拍摄事故现场。';
+  }
+
+  chooseTransmission(choice:CampaignChoice):boolean {
+    const ready=this.outcome.kind==='alive' && this.legIndex===6 && this.canDepart;
+    if(!this.campaign.choose(choice,ready)) return false;
+    this.pushLog(`最后的指令已锁定：${this.campaign.ending!.title}。回到推进台离站。`,'good');
+    this.onCue?.('knowledge.gain',.7);
+    return true;
+  }
   readonly bus = new Bus();
   readonly flags: Flags;
   readonly rng: Rng;
@@ -630,6 +736,7 @@ export class PodRun {
   /** 冲好的片子。离开摄像头也不会丢 —— 分析台读片盒 */
   readonly tapes: TapeRecord[] = [];
   tapeCursor = 0;
+  labVideoExpanded = false;
   /** 分析台上拆过的造物。再碰到同一张脸，报告会写「档案里有过」 */
   readonly filed = new Set<CreatureId>();
 
@@ -718,6 +825,12 @@ export class PodRun {
 
   // --- 威胁 ---------------------------------------------------------------
   threat: ThreatRuntime | null = null;
+  /** Recent disturbance accumulates independently of the visible noise gauge. */
+  suspicion = 0;
+  huntRecoveryUntil = 0;
+  private huntActIndex = -1;
+  private encounterSerial = 0;
+  private readonly footageRepeats = new Map<string, number>();
   /** 本段已经触发过的威胁拍子 */
   private firedBeats = new Set<string>();
 
@@ -752,6 +865,9 @@ export class PodRun {
    * 都会废掉，而废掉是有完整回落的 —— 游戏照样通关。
    */
   footageSink: ((req: FootageRequest) => void) | null = null;
+  videoStatus = '本地底片 · 未连接视频服务';
+  /** View-owned synchronous shutter snapshot; no DOM dependency in simulation. */
+  captureKeyframe: (() => string) | null = null;
 
   constructor(seed: number) {
     this.seed = seed >>> 0;
@@ -798,6 +914,7 @@ export class PodRun {
   }
 
   get atExit(): boolean {
+    if(this.authoredSite)return this.authoredSite.complete;
     const v = this.volume;
     return !!v && this.volumeAt === exitNode(v).id;
   }
@@ -823,8 +940,10 @@ export class PodRun {
 
   get canDepart(): boolean {
     if (this.phase !== 'site' || !this.powered) return false;
+    if(this.authoredSite) return this.authoredSite.complete && this.campaign.has(this.legIndex,'film');
     const v = this.volume;
     if (!v || !v.identified || !this.atExit) return false;
+    if(v.hookNode && !v.visited.includes(v.hookNode)) return false;
     const lock = v.locks[0];
     if (lock && !lock.solved) return false;
     return true;
@@ -833,6 +952,7 @@ export class PodRun {
   /** 出发键上的短提示。万斯的完整催促走无线电，不写在按钮上 */
   get departHint(): string {
     if (this.canDepart) return this.legIndex >= ACT_COUNT - 1 ? '进入电梯' : '驶向下一段';
+    if(this.authoredSite) return this.campaign.has(this.legIndex,'film')?'完成设施任务并操作出口':'先拍摄并分析本关录像';
     if (!this.volumeKnown) return '先分析第一卷';
     const gate = this.hookGate;
     if (gate === 'identify') return '先拍、再分析';
@@ -844,6 +964,7 @@ export class PodRun {
 
   /** 准星打在墙上、障碍上，还是开口上 */
   get sighting(): Sighting {
+    if(this.authoredSite)return {kind:'free',line:this.authoredSite.hint};
     const v = this.volume;
     if (!v || !this.volumeAt) return { kind: 'free', line: '' };
     const here = nodeById(v, this.volumeAt);
@@ -898,6 +1019,7 @@ export class PodRun {
    * 同一扇门只催一次。无线电台上还有未接的，先让他把上一句听完。
    */
   private maybeNudgeHook(): void {
+    if(this.authoredSite)return;
     if (this.phase !== 'site' || this.outcome.kind !== 'alive') return;
     if (this.pending.length > 0) return;
     if (this.at === 'radio') return;
@@ -919,6 +1041,7 @@ export class PodRun {
   }
 
   private tickHookIdle(dt: number): void {
+    if(this.authoredSite) return;
     if (this.phase !== 'site' || this.outcome.kind !== 'alive') {
       this.siteIdleSec = 0;
       return;
@@ -942,6 +1065,8 @@ export class PodRun {
     const l = this.leg;
     const prev = this.legIndex > 0 ? legAt(this.legIndex - 1).depth : 1080;
     const along = lerp(prev, l.depth, clamp01(this.traveled / l.length));
+    if(this.phase==='site'&&this.authoredSite)return along-(this.authoredSite.elevation??0);
+    if(this.phase!=='site')return along-this.transitElevation;
     const v = this.volume;
     if (this.phase === 'site' && v) {
       try {
@@ -1277,6 +1402,7 @@ export class PodRun {
    * 从来没有成立过。现在废墟就在站点上：开到了，就够得着。
    */
   siteWreck(): Wreck | null {
+    if(this.authoredSite)return null;
     if (this.phase !== 'site') return null;
     const v = this.volume;
     if (v) {
@@ -1404,6 +1530,7 @@ export class PodRun {
 
   /** 每帧都跑。动画、噪音衰减、警报倒计时、幻听 */
   frame(dt: number): void {
+    this.ensureAuthoredSite();
     if (this.outcome.kind !== 'alive') return;
     this.clock += dt;
 
@@ -1426,6 +1553,14 @@ export class PodRun {
     if (this.bench.length) this.drainBench();
     this.tickVoices(dt);
     this.tickHookIdle(dt);
+    this.tickPilot(dt);
+    if(this.mode!=='alert') this.storyCaptionLeft=Math.max(0,this.storyCaptionLeft-dt);
+    const storyBeat=this.campaign.tick(dt,this.mode==='alert'||this.storyCaptionLeft>0);
+    if(storyBeat) {
+      if(storyBeat.id!=='0.hook') {this.storyCaption=storyBeat.text;this.storyCaptionLeft=22;}
+      this.pushLog(`【航行记录 ${storyBeat.chapter+1}】${storyBeat.text}`,'eerie');
+      this.onCue?.(storyBeat.beat==='arrival'?'door.knock':storyBeat.beat==='film'?'knowledge.gain':'radio.squelch',.45);
+    }
     this.syncCorruption();
 
     // 警报态：真实时间会烧氧
@@ -1445,9 +1580,10 @@ export class PodRun {
   addNoise(amount: number): void {
     if (amount <= 0) return;
     this.noise = clamp01(this.noise + amount);
+    if (this.phase === 'site' && this.clock >= this.huntRecoveryUntil) this.suspicion += amount * 4;
     // 已经在警报里的时候，噪音直接缩短引信
     const t = this.threat;
-    if (t && t.phase === 'contact' && t.creature.attractor === 'noise') {
+    if (t && (t.phase === 'contact' || t.phase === 'identified') && t.creature.attractor === 'noise') {
       t.fuse = Math.max(2, t.fuse - amount * 14);
     }
   }
@@ -1490,6 +1626,7 @@ export class PodRun {
     this.camTargetX = to;
     this.at = id;
     this.onCue?.('step.metal', 0.45 + dist * 0.4);
+    this.addNoise(dist * 0.18);
     // 舱只有九米长，走过去不值几口气 —— 但警报态里这几秒是要命的
     const cost = dist < 0.03 ? 0 : Math.max(1, Math.round(dist * 5.5));
     if (cost <= 0) return 0;
@@ -1510,6 +1647,7 @@ export class PodRun {
     this.at = null;
     if (dist > 0.01) {
       this.onCue?.('step.metal', 0.4 + dist * 0.35);
+      this.addNoise(dist * 0.18);
       const cost = Math.max(1, Math.round(dist * 4));
       if (this.mode === 'calm') this.spend(cost, 0.25);
       else this.breathAcc += dist * 1.8;
@@ -1544,6 +1682,7 @@ export class PodRun {
       return;
     }
     const cost = [2, 4, 6][power];
+    if(this.legIndex===0 && power>0) this.openingScanned=true;
     const noise = [0.04, 0.42, 0.95][power];
     this.sweepPower = power;
     this.sweepAtDistance = this.traveled;
@@ -1770,12 +1909,13 @@ export class PodRun {
   driveInputBlocked = false;
 
   get driveBlock(): string | null {
+    if(this.phase==='site'&&this.createAuthoredSite&&!this.authoredSite)return this.authoredSiteError||'设施场景载入中';
     if (this.outcome.kind !== 'alive') return '航行已结束';
     if (this.driveInputBlocked) return '关闭面板并返回游戏';
     if (armOut(this.arm)) return '先收回机械臂';
     if (this.shot.viewing) return '切回实时镜头';
     if (this.shot.phase === 'exposing') return '曝光中 · 保持停船';
-    if (this.shot.phase === 'developing') return '冲洗提示中 · 暂停驾驶';
+    // The shutter frame is frozen already; remote generation must not lock escape controls.
     if (this.charging) return '先断开充电';
     if (!this.powered) return '推进器没有电';
     return null;
@@ -1814,6 +1954,20 @@ export class PodRun {
    * 到站之后，推力在当前这一间里走。航向对准开口，潜深躲开横梁，对不上就刮壁。
    */
   private moveInVolume(pulseDistance?: number, direction = 1): void {
+    if(this.authoredSite){
+      if(this.driveBlock)return;
+      const distance=(pulseDistance??SITE_PULSE[this.throttle]??0)*direction;
+      if(!distance)return;
+      if(!this.authoredSite.move(distance)){
+        this.pilot.stop();this.navDriveEngaged=false;this.pilotImpactUntil=this.clock+1.2;
+        this.pushLog('艇体接近设施或关闭的门。停推，调整航向或操作门锁。','system');
+        this.onCue?.('hull.groan',.3);
+      }
+      const cost=Math.abs(distance)/SITE_PULSE[1];
+      this.power=clamp01(this.power-.004*cost);this.addNoise(.30*cost);
+      if(this.mode==='calm')this.spend(cost,.35);else this.breathAcc+=cost*.4;
+      return;
+    }
     if (this.driveBlock) {
       this.pushLog(this.driveBlock, 'system');
       return;
@@ -1838,9 +1992,10 @@ export class PodRun {
     this.addNoise((0.22 + (pulseDistance === undefined ? this.throttle : 1) * 0.08) * siteCost);
     if (this.mode === 'calm') this.spend(siteCost, 0.35);
     else this.breathAcc += siteCost * 0.4;
-    this.onCue?.('hull.groan', 0.35 + this.throttle * 0.12);
+    if(!this.continuousStep)this.onCue?.('hull.groan', 0.35 + this.throttle * 0.12);
     if (this.outcome.kind !== 'alive') return;
     if (hit.kind === 'wall' && hit.to) {
+      if(this.continuousStep){this.pilot.stop();this.pilotImpactUntil=this.clock+1.2;}
       this.cabinPos = hit.pos;
       this.pushLog('锁还没开。先拍摄分析，再在摄像打捞台操作机关。', 'bad');
       return;
@@ -1850,12 +2005,14 @@ export class PodRun {
       const dest = nodeById(v, hit.to);
       const hazard = v.hazards.find((h) => h.node === dest.id);
       if (hazard && !this.resolveTrap(v, hazard, dest.id)) {
+        if(this.continuousStep){this.pilot.stop();this.pilotImpactUntil=this.clock+1.2;}
         this.cabinPos = hit.pos;
         return;
       }
       const from = this.volumeAt;
       this.volumeAt = dest.id;
       markVisited(v, dest.id);
+      if(v.hookNode===dest.id) this.campaign.record(this.legIndex,'evidence');
       this.settleCabin(from);
       this.siteShadow = this.buildShadow();
       this.pushLog(
@@ -1877,12 +2034,13 @@ export class PodRun {
 
     this.cabinPos = hit.pos;
     if (hit.kind === 'wall' || hit.kind === 'obstacle') {
+      if(this.continuousStep){this.pilot.stop();this.pilotImpactUntil=this.clock+1.2;}
       const what = hit.kind === 'obstacle' && hit.obstacle ? OBSTACLE_CN[hit.obstacle] : '舱壁';
       this.pushLog(`撞上${what}。把航向或潜深拧开，再推。`, 'bad');
       this.collide(dist);
       return;
     }
-    this.pushLog(`滑了 ${hit.t.toFixed(1)} 米。`, 'neutral');
+    if(!this.continuousStep)this.pushLog(`滑了 ${hit.t.toFixed(1)} 米。`, 'neutral');
   }
 
   /** false = 这一步被挡住或砸了，不要挪 volumeAt */
@@ -2102,6 +2260,7 @@ export class PodRun {
    * 开始计时。航渡阶段只有一件事要做（把船开对），到站之后才有选择。
    */
   private arrive(): void {
+    this.navDriveEngaged=false;
     this.phase = 'site';
     this.traveled = this.leg.length;
     this.throttle = 0;
@@ -2123,6 +2282,9 @@ export class PodRun {
     this.pushLog(`抵达：${this.leg.siteName}。推进器停机。声呐上是一团未知废墟。`, 'good');
     this.pushLog(`内部要拍第一卷，送到${stationRef('lab')}才会长出来。`, 'system');
     for (const line of this.leg.arrival) this.pushLog(line, 'neutral');
+    this.campaign.record(this.legIndex,'arrival');
+    this.ensureAuthoredSite();
+    if(!this.authoredSite && this.volume?.hookNode===this.volumeAt) this.campaign.record(this.legIndex,'evidence');
 
     // 没有东西可捞的站点，玩家就没有「发出噪音」这个选项 ——
     // 于是它也没有任何理由醒过来。这种站点上的东西在你停稳的那一刻就动了。
@@ -2147,11 +2309,14 @@ export class PodRun {
       return;
     }
     if (!this.canDepart) {
+      if(this.authoredSite){this.pushLog(this.departHint,'system');return;}
       const v = this.volume;
       if (v && !v.identified) {
         this.pushLog(`全息屏还是空的。拍一卷，送到${stationRef('lab')}。`, 'system');
       } else if (!this.atExit) {
         this.pushLog('你不在这一关的出口上。全息屏上远端那道气闸才是出路。', 'system');
+      } else if(v?.hookNode && !v.visited.includes(v.hookNode)) {
+        this.pushLog('还有一处关键记录未核对。按 J 查看本关线索，再沿全息图前往标记节点。','system');
       } else if (v?.locks[0] && !v.locks[0].solved) {
         this.pushLog('门还锁着。片子里看过的符号 / 薄弱点，得在打捞台操作一次。', 'system');
       }
@@ -2164,7 +2329,13 @@ export class PodRun {
     }
     // 台面上还摊着东西就起步：它们会在第一次推进里滚进舱底的水。
     // 这一条必须说出来 —— 玩家是在被告知之后才失去它们的。
+    if(this.legIndex===6 && !this.campaign.choice) {
+      this.pushLog('井口已就绪。先去无线电台选择：转发载波、切断载波，或封存证据。','system');
+      return;
+    }
     if (this.bench.length) this.lashDown();
+    this.campaign.record(this.legIndex,'departure');
+    this.authoredSite?.dispose();this.authoredSite=null;
     if (this.legIndex >= ACT_COUNT - 1) {
       for (const line of this.leg.clear) this.queueRadio('beacon', line);
       this.legIndex++;
@@ -2216,6 +2387,7 @@ export class PodRun {
    * 节点关卡不再走这条路。保留给验证器旧路径，避免空引用。
    */
   private enterSplicedSite(destId?: string): void {
+    if(!this.canDepart || this.legIndex>=6 || this.driveBlock || armOut(this.arm) || this.outcome.kind!=='alive') return;
     const prev = this.volume;
     const next = this.nextVolume;
     if (!prev || !next) return;
@@ -2223,6 +2395,7 @@ export class PodRun {
     const hazard = next.hazards.find((h) => h.node === dest);
     if (hazard && !this.resolveTrap(next, hazard, dest, exitNode(prev).pos)) return;
 
+    this.campaign.record(this.legIndex,'departure');
     for (const line of this.leg.clear) this.queueRadio('beacon', line);
     this.legIndex++;
     this.firedBeats.clear();
@@ -2245,6 +2418,8 @@ export class PodRun {
     this.beginLeg(this.legIndex);
     this.onCue?.('knowledge.gain', 0.55);
     this.pushLog(`沿线框滑入：${this.leg.siteName}。下一段还在屏上。`, 'good');
+    this.campaign.record(this.legIndex,'arrival');
+    if(next.hookNode===dest) this.campaign.record(this.legIndex,'evidence');
     for (const line of this.leg.arrival) this.pushLog(line, 'neutral');
     this.resolveEcho(dest);
   }
@@ -2352,6 +2527,10 @@ export class PodRun {
    */
   beginShoot(): void {
     const s = this.shot;
+    if (armOut(this.arm)) {
+      this.pushLog('先收回机械臂。作业时需要保持实时监视回路。', 'system');
+      return;
+    }
     if (s.phase === 'exposing' || s.phase === 'developing') {
       this.pushLog('机子已经在走了。', 'system');
       return;
@@ -2367,12 +2546,13 @@ export class PodRun {
       return;
     }
     const purpose = this.nextShotPurpose();
-    if (s.phase === 'ready' && s.legId === this.leg.id && purpose !== 'survey' && purpose !== 'reshoot') {
-      this.pushLog('这一段的片子已经冲出来了。放它就行。', 'system');
-      this.replayFootage();
+    let keyframe: string | undefined;
+    try { keyframe = this.captureKeyframe?.(); }
+    catch {
+      this.pushLog('摄像机首帧读取失败，请重新曝光。', 'bad');
       return;
     }
-
+    s.keyframe = keyframe;
     s.token++;
     s.phase = 'exposing';
     s.legId = purpose === 'survey' ? actAt(this.legIndex + 1).leg.id : this.leg.id;
@@ -2383,6 +2563,8 @@ export class PodRun {
     s.reason = '';
     s.caught = false;
     s.viewing = false;
+    s.cacheKey = undefined;
+    s.capture = this.captureFootage(purpose);
 
     this.power = clamp01(this.power - SHOT_POWER);
     this.addNoise(0.12);
@@ -2408,6 +2590,43 @@ export class PodRun {
     if (!v || !v.identified) return 'identify';
     if (this.canSurvey) return 'survey';
     return 'reshoot';
+  }
+
+  /** Snapshot before the shutter's own noise, resource cost or world mutation. */
+  private captureFootage(purpose: ShotPurpose): FootagePromptInput {
+    const t = this.threat;
+    const active = t && t.phase !== 'repelled' && t.phase !== 'struck';
+    const state: FootageState = active
+      ? t.behavior === 'warning' ? 'attack' : t.behavior === 'stalk' ? 'pursuit' : 'anomaly'
+      : t || (this.encounterSerial > 0 && this.clock < this.huntRecoveryUntil) ? 'aftermath'
+      : this.suspicion >= huntAct(this.legIndex).threshold * 0.5 ? 'anomaly' : 'calm';
+    const episode = active ? `encounter.${t.encounter}` : `${this.legIndex}.${state}.${this.encounterSerial}`;
+    // A survey looks outward from the CURRENT location, not a future room.
+    const act = this.legIndex;
+    const vol = this.chart[act] ?? this.volume;
+    const leg = actAt(act).leg;
+    const repeat = (this.footageRepeats.get(episode) ?? 0) + 1;
+    const direction = directFootage({
+      state, act, repeat, episode, capturedAt: this.clock,
+      encounter: active ? t.encounter : null,
+      roll: this.rng.fork(`footage.${this.shot.token}.${episode}`).next(),
+      target: active ? t.creature.id : null,
+      visible: !!active && this.cameraCanSee(), aim: active ? this.cameraOnTarget() : 0,
+      lamp: this.lit, noise: this.noise, motion: this.throttle, hull: this.hull,
+    });
+    const node = vol?.nodes.find(n => n.id === this.volumeAt) ?? (vol ? entryNode(vol) : null);
+    return {
+      leg, direction, depth: this.depth, lamp: this.lit,
+      narrativeTrace: CAMPAIGN_STORY[act]?.film,
+      corruption: clamp01(this.corruption + san01(this.vitals.vitals.san) * 0.5),
+      san: this.vitals.vitals.san, story: vol?.story, stencil: vol?.stencil,
+      interior: this.authoredSite?.description ?? (vol && node ? interiorFootageClause(vol, node.id) : undefined),
+      creature: direction.identified ? creature(direction.identified) : null,
+      fauna: direction.fauna.map(id => creature(id)),
+      // Geometry evidence is essential; do not enumerate dormant creatures or hidden echoes.
+      tells: !this.authoredSite && vol ? [...vol.hazards.map(trapFootageTell), ...vol.caches.map(cacheFootageTell),
+        ...vol.locks.map(l => `${l.kind} weak side ${l.side}, stripe ${l.stripe}`)] : [],
+    };
   }
 
   /** 给验证器用：这一关接下来该去的节点 */
@@ -2549,7 +2768,8 @@ export class PodRun {
   replayFootage(): void {
     const s = this.shot;
     if (s.phase !== 'ready' || armOut(this.arm)) return;
-    s.viewing = true;
+    s.viewing = false;
+    this.walkTo('lab');
     this.onCue?.('ui.select', 0.5);
     this.pushLog('倒回片头。再看一遍。', 'system');
   }
@@ -2558,7 +2778,8 @@ export class PodRun {
   toggleFootageView(): void {
     const s = this.shot;
     if (s.phase !== 'ready' || armOut(this.arm)) return;
-    s.viewing = !s.viewing;
+    s.viewing = false;
+    this.walkTo('lab');
     this.onCue?.('ui.toggle', 0.45);
   }
 
@@ -2582,10 +2803,7 @@ export class PodRun {
         return;
       }
       // 那个东西有没有进过取景框。进过一次就算拍到了。
-      const t = this.threat;
-      if (t && t.phase !== 'repelled' && t.phase !== 'struck') {
-        if (this.cameraOnTarget() > 0.35 && this.cameraCanSee()) s.caught = true;
-      }
+      s.caught = !!s.capture?.direction?.identified;
       s.exposeLeft = Math.max(0, s.exposeLeft - dt);
       if (s.exposeLeft > 0) return;
 
@@ -2594,36 +2812,35 @@ export class PodRun {
       s.developed = 0;
       this.onCue?.('cloth.rustle', 0.5);
       this.pushLog('快门合上。磁头在走，雪花屏还亮着 —— 这段时间你可以去干别的。', 'system');
+      const shape = s.capture ?? this.captureFootage(s.purpose);
+      const direction = shape.direction!;
+      this.footageRepeats.set(direction.episode, direction.repeat);
+      const prompt = buildFootagePrompt(shape);
+      // Retry can remove anatomy, never the guaranteed physical evidence.
+      const fallbackPrompt = buildFootagePrompt({ ...shape, creature: null, tracesOnly: true });
+      let frameHash=2166136261,frameHash2=5381;
+      for(const char of s.keyframe??'') {
+        frameHash=Math.imul(frameHash^char.charCodeAt(0),16777619);
+        frameHash2=Math.imul(frameHash2,33)^char.charCodeAt(0);
+      }
+      s.cacheKey = footageCacheKey(prompt, fallbackPrompt) + `:frame:${s.keyframe?.length??0}:${frameHash>>>0}:${frameHash2>>>0}`;
       this.commitAnalysis(s.purpose);
       this.archiveTape(false);
+      const tape = this.tapes.at(-1)!;
+      tape.prompt = prompt;
+      tape.fallbackPrompt = fallbackPrompt;
 
       const sink = this.footageSink;
-      const shapeLeg = s.purpose === 'survey' ? actAt(Math.min(this.legIndex + 1, ACT_COUNT - 1)).leg : this.leg;
-      const tapeVol = s.purpose === 'survey' ? this.chart[this.legIndex + 1] ?? this.volume : this.volume;
-      const fauna = tapeVol ? faunaOnTape(tapeVol) : [];
-      const shape = {
-        leg: shapeLeg,
-        depth: this.depth,
-        lamp: this.lit,
-        corruption: clamp01(this.corruption + san01(this.vitals.vitals.san) * 0.5),
-        tells: this.footageTells(s.purpose),
-        fauna,
-        san: this.vitals.vitals.san,
-        story: tapeVol?.story,
-        stencil: tapeVol?.stencil,
-        interior: tapeVol ? interiorFootageClause(tapeVol, this.volumeAt || entryNode(tapeVol).id) : undefined,
-      };
       if (!sink) {
-        this.failShot('冲洗回路没有响应。显影槽是干的。片子进盒之后，分析台才能拆内部。');
+        this.settleShot(s.token, false, '视频服务未启用；本卷仅保存本地底片，未提交生成任务。');
         return;
       }
       sink({
+        keyframe: s.keyframe,
+        cacheKey: s.cacheKey,
         legId: s.legId,
-        prompt: buildFootagePrompt({
-          ...shape,
-          creature: this.threat?.creature ?? fauna[0] ?? (shapeLeg.threats[0] ? creature(shapeLeg.threats[0].creature) : null),
-        }),
-        fallbackPrompt: buildFootagePrompt({ ...shape, creature: null, fauna: [] }),
+        prompt,
+        fallbackPrompt,
         token: s.token,
         settle: (token, ok, reason, creatureMissing, promptOnly) =>
           this.settleShot(token, ok, reason, creatureMissing, promptOnly),
@@ -2634,7 +2851,7 @@ export class PodRun {
     if (s.phase === 'developing') {
       s.developed += dt;
       if (s.developed >= s.developMax) {
-        this.failShot('冲洗槽转了一分半，出来的还是一卷黑的。等太久了。');
+        this.settleShot(s.token, false, '显影超时，读取机载磁带。');
       }
     }
   }
@@ -2648,30 +2865,44 @@ export class PodRun {
   private settleShot(token: number, ok: boolean, reason?: string, creatureMissing?: boolean, promptOnly?: boolean): void {
     const s = this.shot;
     if (token !== s.token || s.phase !== 'developing') return;
+    s.reason = reason ?? '';
     if (!ok) {
-      this.failShot(reason ?? '片子冲坏了。药水温度不对，或者根本没有药水。');
-      return;
+      this.videoStatus = '本地底片 · 非生成视频';
+      this.pushLog(reason ?? '视频生成失败，切换本地底片。', 'system');
     }
     s.phase = 'ready';
-    s.viewing = !armOut(this.arm);
+    s.viewing = false;
+    this.pushLog(ok&&!promptOnly?'录像已送达分析台，请前往分析台查看。':'未收到生成视频，请到分析台查看任务状态。','system');
     if (creatureMissing) s.caught = false;
+    const tape = this.tapes.find(t => t.id === `tape.${s.token}`);
+    if (tape) tape.ready = true;
+    if(tape){tape.videoResult=promptOnly?'prompt':ok?'video':'failed';tape.videoError=reason;}
+    if (tape && creatureMissing) {
+      tape.creatureMissing = true;
+      tape.caughtThreat = null;
+    }
+    if (tape?.direction) {
+      this.pushLog(`回收录像 · ${FOOTAGE_STATE_CN[tape.direction.state]} · 记录 ${tape.direction.repeat}`, 'system');
+      if (tape.direction.evidence) this.pushLog(tape.direction.traceCN, 'eerie');
+    }
     this.onCue?.('knowledge.gain', 0.7);
     this.pushLog(
       promptOnly
         ? 'GM · 无视频模式。接口没动。屏幕上是这一卷的描述提示词。'
-        : '片子冲出来了。屏幕上第一次出现了不是雪花的东西。',
-      promptOnly ? 'system' : 'good',
+        : !ok ? '机载底片已保存。这不是远端生成的视频。' : '视频已接收并解码，录像可以回放。',
+      promptOnly || !ok ? 'system' : 'good',
     );
 
     // 拍到了那个东西 —— 冲出来就等于看清了。这是摄影机在警报态里
     // 真正的用处：你花九秒和一格电，换一个「它到底是什么」。
-    if (s.caught && this.threat && !this.threat.known) {
+    if (ok && !promptOnly && s.caught && this.threat && tape?.direction?.encounter === this.threat.encounter && tape?.caughtThreat === this.threat.creature.id && !this.threat.known
+      && this.threat.phase !== 'struck' && this.threat.phase !== 'repelled') {
       this.pushLog('片子的第三秒，它在画面里。', 'eerie');
       this.identify();
     } else if (creatureMissing && this.threat && !this.threat.known) {
       // 重试那一卷里没有它。这句话必须说出来，否则玩家会以为
       // 「拍了但没看清」是个 bug，而不是一次运气不好。
-      this.pushLog('整卷片子里没有它。你对着的那个方位，画面上只有水。', 'eerie');
+      this.pushLog('没有恢复出它的身体。但异常留下的痕迹仍在这一卷里。', 'eerie');
     }
   }
 
@@ -2679,17 +2910,21 @@ export class PodRun {
     const s = this.shot;
     const idx = s.purpose === 'survey' ? Math.min(this.legIndex + 1, ACT_COUNT - 1) : this.legIndex;
     const vol = this.chart[idx] ?? this.volume;
-    const fauna = vol ? faunaOnTape(vol).map((c) => c.id) : [];
+    const fauna = s.capture?.direction?.fauna ?? [];
     const siteName =
       s.purpose === 'survey' ? actAt(Math.min(this.legIndex + 1, ACT_COUNT - 1)).leg.siteName : this.leg.siteName;
     this.tapes.push({
+      keyframe: s.keyframe,
+      ready: false,
+      direction: s.capture?.direction,
+      cacheKey: s.cacheKey,
       id: `tape.${s.token}`,
       legId: s.legId,
       siteName,
       purpose: s.purpose,
       atBreath: this.breaths,
       fauna,
-      caughtThreat: s.caught && this.threat ? this.threat.creature.id : null,
+      caughtThreat: s.capture?.direction?.identified ?? null,
       creatureMissing,
       analyzed: false,
       report: [],
@@ -2725,6 +2960,10 @@ export class PodRun {
       this.pushLog('这一卷已经拆过。报告还在屏上。', 'system');
       return;
     }
+    if (tape.ready === false) {
+      this.pushLog('这一卷还在显影。等回收完成后再分析。', 'system');
+      return;
+    }
     if (!this.powered) {
       this.pushLog('读片机是电的。总闸拉着，灯丝是冷的。', 'bad');
       this.onCue?.('ui.error', 0.55);
@@ -2739,15 +2978,20 @@ export class PodRun {
     const ids = [...tape.fauna];
     if (tape.caughtThreat && !ids.includes(tape.caughtThreat)) ids.push(tape.caughtThreat);
     const report: string[] = [];
-    if (tape.creatureMissing) report.push('这一卷里没有那个红点。画面上只有水。');
+    if (tape.direction) {
+      report.push(`拍摄状态：${FOOTAGE_STATE_CN[tape.direction.state]}；记录序号 ${tape.direction.repeat}；异常强度 ${tape.direction.intensity}/6。`);
+      if (tape.direction.evidence) report.push(tape.direction.traceCN);
+    }
+    if (tape.creatureMissing) report.push('未恢复怪物身体；保留环境与异常痕迹。');
     if (!ids.length) {
-      report.push('没有活物。只有几何和悬浮物。');
+      report.push(tape.direction?.evidence ? '未确认生物身份；异常痕迹不能当成安全证明。' : '没有异常活物。只有几何和悬浮物。');
     }
     for (const id of ids) {
       const c = creature(id);
       const first = !this.filed.has(id);
       this.filed.add(id);
-      if (this.threat && this.threat.creature.id === id && !this.threat.known) {
+      if (this.threat && tape.direction?.encounter === this.threat.encounter && this.threat.creature.id === id && !this.threat.known
+        && this.threat.phase !== 'repelled' && this.threat.phase !== 'struck') {
         this.identify();
       } else if (first) {
         this.vitals.shock(Math.ceil(c.sanCost * 0.35), 'sight');
@@ -2755,6 +2999,8 @@ export class PodRun {
       const drive = c.weakness.map(counterLine).join('，或') || '没有已知办法';
       const avoid = c.provokes.length ? `  别做：${c.provokes.map(counterLine).join('、')}` : '';
       report.push(first ? c.name : `${c.name}（档案里有过）`);
+      const profile = hunterProfile(c, tape.direction?.act ?? this.legIndex);
+      report.push(c.danger === 0 ? '普通深海生物 · 无攻击威胁' : `威胁等级 ${profile.rank}/5 · 异常前兆：${profile.tell}`);
       report.push(`${KIN_CN[c.kin]} · ${DANGER_CN[c.danger] ?? ''} · ${ATTRACTOR_CN[c.attractor]} · ${sonarLabelOf(c)}`);
       report.push(`驱离：${drive}。${avoid}`);
       report.push(c.advice);
@@ -2767,11 +3013,16 @@ export class PodRun {
       );
     }
     tape.analyzed = true;
+    const sourceChapter=ROUTE.findIndex(leg=>leg.id===tape.legId);
+    if(sourceChapter>=0 && this.campaign.has(sourceChapter,'arrival')) {
+      this.campaign.record(sourceChapter,'film');
+      report.push(CAMPAIGN_STORY[sourceChapter]!.film);
+    }
     tape.report = report;
 
     const v = this.volume;
     if (v && !v.identified && tape.legId === this.leg.id) {
-      for (const line of identifyVolume(v)) this.pushLog(line, 'eerie');
+      for (const line of identifyVolume(v, ids)) this.pushLog(line, 'eerie');
       this.siteShadow = this.buildShadow();
       this.contacts = this.buildContacts(this.sweepPower as 0 | 1 | 2);
       this.pushLog(`读片机把这一间的内部写进全息屏了。去${stationRef('nav')}。对准开口，推过去。`, 'good');
@@ -2992,6 +3243,7 @@ export class PodRun {
    * 而机械手在外面的每一秒都是一个可以被撞断的东西。
    */
   extendArm(): void {
+    if(this.authoredSite){this.authoredSite.interact();return;}
     const target = this.armTarget;
     const block = blockExtend(this.arm, this.armConditions(), !!target);
     if (block !== 'ok' || !target) {
@@ -3020,6 +3272,7 @@ export class PodRun {
    * 所以每一爪之后玩家都要重新回答那个问题：再翻一爪，还是现在收。
    */
   rummage(): void {
+    if(this.authoredSite){this.authoredSite.interact();return;}
     const t = this.armTarget;
     const block = blockRummage(this.arm, this.armConditions(), t, t?.container ?? null);
     if (block !== 'ok' || !t) {
@@ -3649,6 +3902,7 @@ export class PodRun {
           break;
         case 'phase':
           if (ev.phase === 'stowed') {
+            this.authoredSite?.armEvent?.('stowed');
             this.emitOutside('arm.stow', 0.7);
             const cargo = this.armCargo;
             this.armCargo = null;
@@ -3688,6 +3942,7 @@ export class PodRun {
           this.tearArm(ev.line);
           break;
         case 'grip':
+          if(this.authoredSite?.armEvent?.('grip',ev.obstacleId))break;
           this.resolveGrip(ev.obstacleId);
           break;
       }
@@ -3998,8 +4253,25 @@ export class PodRun {
   // ==========================================================================
 
   private tickThreat(dt: number): void {
+    if (this.huntActIndex !== this.legIndex) {
+      this.huntActIndex = this.legIndex;
+      this.suspicion = 0;
+      this.huntRecoveryUntil = this.clock + (this.legIndex === 0 ? 35 : 12);
+    }
     const t = this.threat;
     if (!t) {
+      if (this.phase === 'site' && this.clock >= this.huntRecoveryUntil) {
+        const ecology = hunterProfile(creature(huntAct(this.legIndex).creature), this.legIndex);
+        const stimulus = this.noise * ecology.sound + (this.powered && this.lit ? ecology.light : 0)
+          + (this.blackout ? 0 : this.throttle / 3 * ecology.motion);
+        this.suspicion = Math.max(0, this.suspicion + dt * (stimulus - 0.28));
+        if (this.suspicion === 0) this.footageRepeats.delete(`${this.legIndex}.anomaly.${this.encounterSerial}`);
+        if (this.suspicion >= huntAct(this.legIndex).threshold) {
+          this.spawnThreat(huntAct(this.legIndex).creature, 45 + (6 - this.legIndex) * 4);
+          this.suspicion = 0;
+          return;
+        }
+      }
       this.checkThreatBeats();
       return;
     }
@@ -4014,9 +4286,42 @@ export class PodRun {
       return;
     }
 
-    // 噪音越大，它走得越快。伴行回波例外：它值班，不猎，二次拍摄之后才会贴上来。
+    // Warning is a separate clock: noise and wrong counters cannot erase the response window.
+    if (t.behavior === 'warning') {
+      t.warningLeft = Math.max(0, t.warningLeft - dt);
+      t.cueLeft -= dt;
+      if (t.cueLeft <= 0) {
+        t.cueLeft = 2.4;
+        this.onCue?.('hull.crack', 0.85);
+        this.onCue?.(t.hunter.cue, 0.7);
+        this.onShake?.(0.75);
+        // Repeated physical impacts fatigue the hull before the final strike.
+        // Preserve the response window: warning impacts alone cannot sink the pod.
+        const beforeHull=this.hull;
+        this.hull=Math.min(this.hull,Math.max(.30,this.hull-.035));
+        if(beforeHull>.5&&this.hull<=.5){
+          this.onCue?.('terminal.beep',1);
+          this.pushLog('艇体完整度低于 50%：正常舱灯降功率，红色应急照明接管。','bad');
+        }
+      }
+      if (t.warningLeft <= 0) this.strike();
+      return;
+    }
+    // A sustained safe state also works when it was set before the warning started.
+    const passive = t.creature.weakness.find(w =>
+      (w.kind === 'blackout' && this.blackout) ||
+      (w.kind === 'lampoff' && !this.lit) ||
+      (w.kind === 'fullstop' && this.throttle === 0 && this.noise < 0.15));
+    t.quietFor = passive ? t.quietFor + dt : 0;
+    if (passive && t.quietFor >= 3) {
+      this.tryCounter(passive);
+      return;
+    }
+    // Noise, light and propulsion have different weights for each ecology.
     const watching = !!this.volume?.echoes.some((e) => e.kind === 'watcher') && !this.volume?.shifted;
-    const speed = 1 + this.noise * 0.9 + (t.creature.attractor === 'light' && this.lamp ? 0.5 : 0);
+    const speed = 0.55 + this.noise * t.hunter.sound
+      + (this.powered && this.lit ? t.hunter.light : 0)
+      + (this.blackout ? 0 : this.throttle / 3 * t.hunter.motion);
     if (watching) {
       const hold = t.fuseMax * 0.42;
       t.fuse = Math.max(hold, t.fuse - dt * speed * 0.22);
@@ -4026,18 +4331,22 @@ export class PodRun {
     t.range = clamp(t.fuse / t.fuseMax, 0.04, 1);
     t.bearing += Math.sin(this.clock * 0.31 + t.fuseMax) * dt * 0.09;
 
-    // 摄像头对上它并且看得见 → 累计「看清」
-    if (this.at === 'camera' && !t.known) {
-      const aim = this.cameraOnTarget();
-      if (aim > 0.55 && this.cameraCanSee()) {
-        t.lookedAt += dt * (0.4 + aim);
-        if (t.lookedAt > 1.6) this.identify();
-      } else {
-        t.lookedAt = Math.max(0, t.lookedAt - dt * 0.5);
-      }
+    if (t.behavior === 'investigate' && t.range < 0.55) {
+      t.behavior = 'stalk';
+      this.onCue?.(t.hunter.cue, 0.6);
+      this.pushLog('异响绕到了舱后。实时镜头仍然只有空水；拍摄回收录像才能辨认它。', 'eerie');
     }
 
-    if (t.fuse <= 0) this.strike();
+    if (t.fuse <= 0) {
+      t.behavior = 'warning';
+      t.warningLeft = t.hunter.warning;
+      t.cueLeft = 2.4;
+      this.onCue?.('hull.crack', 1);
+      this.onCue?.(t.hunter.cue, 0.85);
+      this.onShake?.(0.55);
+      this.pushLog(t.hunter.tell, 'bad');
+      this.pushLog(`舱体承压异常。应对窗口约 ${Math.ceil(t.warningLeft)} 秒。${t.creature.advice}`, 'system');
+    }
 
     // 雷达上的红点跟着它走。不重新打脉冲也能看见它在靠近 ——
     // 余辉会留下一条朝你弯过来的弧，这是警报态里最有用的信息。
@@ -4058,6 +4367,7 @@ export class PodRun {
    */
   private checkThreatBeats(): void {
     if (this.phase !== 'site') return;
+    if (this.clock < this.huntRecoveryUntil) return;
     if (this.siteBreaths < SITE_PATIENCE) return;
     this.wakeSite('你在这块废墟上待得太久了。近场回波里多了一个不属于地形的东西。');
   }
@@ -4065,6 +4375,7 @@ export class PodRun {
   /** 把站点上还没出来的那个东西叫出来 */
   private wakeSite(line: string, forced?: CreatureId): void {
     if (this.phase !== 'site' || this.threat) return;
+    if (this.clock < this.huntRecoveryUntil) return;
     const leg = this.leg;
     const id =
       forced ??
@@ -4079,9 +4390,34 @@ export class PodRun {
     this.spawnThreat(id, fuse);
   }
 
+  /** Explicit GM fixture: real attack state, without submitting video requests. */
+  gmInvasion(seconds=120):string {
+    if(this.outcome.kind!=='alive')return '请先开始一局存活中的游戏。';
+    if(this.shot.phase==='exposing'||this.shot.phase==='developing')return '当前曝光或生成尚未结束，请等待后再触发。';
+    if(this.phase!=='site')this.arrive();
+    this.ensureAuthoredSite();
+    this.pilot.stop();this.navDriveEngaged=false;
+    this.shot.viewing=false;
+    // GM invasion tests a physical attacker, not chapter one's bodiless false echo.
+    this.spawnThreat('cre.veil',1);
+    const t=this.threat!;
+    t.behavior='warning';t.fuse=0;t.warningLeft=clamp(seconds,15,300);t.cueLeft=0;
+    this.onCue?.('hull.crack',1);this.onShake?.(.55);
+    const message=`GM · 怪物入侵：撞击已开始，${t.warningLeft} 秒后执行真实攻击，可造成损伤或死亡。按 Esc 关闭指令台，前往摄像机曝光。此指令不自动生成视频。`;
+    this.pushLog(message,'bad');return message;
+  }
+
   spawnThreat(id: CreatureId, fuse: number): void {
     const c = creature(id);
+    const precursor = `${this.legIndex}.anomaly.${this.encounterSerial}`;
+    const priorRecordings = this.footageRepeats.get(precursor) ?? 0;
     this.threat = {
+      encounter: ++this.encounterSerial,
+      hunter: hunterProfile(c, this.legIndex),
+      behavior: 'investigate',
+      warningLeft: 0,
+      cueLeft: 0,
+      quietFor: 0,
       creature: c,
       bearing: this.rng.float(-Math.PI, Math.PI),
       range: 1,
@@ -4094,6 +4430,10 @@ export class PodRun {
       phantom: c.look.plan === 'absent',
       clearAt: null,
     };
+    if (priorRecordings) {
+      this.footageRepeats.set(`encounter.${this.threat.encounter}`, priorRecordings);
+      this.footageRepeats.delete(precursor);
+    }
     this.mode = 'alert';
     this.breathAcc = 0;
     this.onCue?.('terminal.beep', 1);
@@ -4117,6 +4457,7 @@ export class PodRun {
       // 幻觉：看清了就没有了 —— 摄像头本身就是它的解法。
       // 代价已经付过（sanCost），留下的是「那到底是什么」这个问题。
       t.phase = 'repelled';
+      this.huntRecoveryUntil = this.clock + huntAct(this.legIndex).recovery;
       this.mode = 'calm';
       t.clearAt = this.clock + 3;
       this.pushLog('你再看一眼雷达。红点不在了。它没有走远，它只是不在了。', 'eerie');
@@ -4130,6 +4471,8 @@ export class PodRun {
 
     if (t.creature.weakness.some((w) => sameCounter(w, action))) {
       t.phase = 'repelled';
+      this.suspicion = 0;
+      this.huntRecoveryUntil = this.clock + huntAct(this.legIndex).recovery;
       this.mode = 'calm';
       this.onCue?.('debunk.success', 0.9);
       this.pushLog(`红点转向了。它在走远。${t.known ? '' : '你甚至不知道刚才躲开的是什么。'}`, 'good');
@@ -4143,7 +4486,7 @@ export class PodRun {
       t.fuse = Math.max(3, t.fuse * 0.5);
       this.onCue?.('listener.near', 0.9);
       this.onShake?.(0.4);
-      this.pushLog('你做错了。它靠近的速度翻了一倍。', 'bad');
+      this.pushLog(t.behavior === 'warning' ? '异响更近了。这种做法无效，立刻换一种应对。' : '你做错了。它正在加速靠近。', 'bad');
       return;
     }
 
@@ -4158,6 +4501,8 @@ export class PodRun {
     const t = this.threat;
     if (!t) return;
     t.phase = 'struck';
+    this.huntRecoveryUntil = this.clock + huntAct(this.legIndex).recovery;
+    this.suspicion = 0;
     this.mode = 'calm';
     // 伸在外面的那条臂先挨。玩家有过一次按收回的机会，他选了再翻一爪
     const snap = snapArm(this.arm);
@@ -4168,14 +4513,37 @@ export class PodRun {
       this.pushLog(snap.line, 'bad');
     }
     const s = t.creature.onStrike;
-    this.hull = clamp01(this.hull - s.hull);
+    const severity = this.legIndex === 0 ? 0.5 : 1 + (t.hunter.rank - 1) * 0.12;
+    this.hull = clamp01(this.hull - s.hull * severity);
     this.flood = clamp01(this.flood + s.flood);
     this.leak += s.flood * 0.004;
     if (s.trauma > 0) this.vitals.injure(s.trauma);
     this.vitals.shock(s.san, 'touch');
     this.onCue?.('listener.scream', 1);
+    this.onCue?.('hull.crack', 1);
+    this.onCue?.('hull.rivet-pop', .8);
     this.onShake?.(1);
     this.pushLog(s.line, 'bad');
+    this.checkSurvival();
+    if (this.outcome.kind === 'alive' && t.creature.kin === 'mythos' && this.legIndex > 0) {
+      if (t.hunter.skill === 'echo') {
+        this.vitals.shock(6 + t.hunter.rank * 2, 'sound');
+        this.pushLog('合唱替你呼吸。你忘了刚才听到的哪一个声音属于自己。', 'eerie');
+      } else if (t.hunter.skill === 'eclipse') {
+        this.power = clamp01(this.power - 0.06 * t.hunter.rank);
+        this.lamp = false;
+        this.pushLog('光被吞进了电缆。电池骤降，探照灯熄灭。', 'bad');
+      } else if (t.hunter.skill === 'corrosion') {
+        this.leak += 0.001 * t.hunter.rank;
+        this.pushLog('锈从钢板背面生长出来。裂缝持续进水，需要补漏。', 'bad');
+      } else if (t.hunter.rank >= 4 && this.hull < 0.45) {
+        this.pushLog('舱门没有打开。脚步声却停在了你身后。', 'bad');
+        this.die('listener');
+      } else {
+        this.vitals.shock(12, 'touch');
+        this.pushLog('门封里多出一道湿痕。它还没有进来；下次未必。', 'bad');
+      }
+    }
     t.clearAt = this.clock + 3.2;
     this.checkSurvival();
   }
@@ -4185,13 +4553,15 @@ export class PodRun {
   // ==========================================================================
 
   private beginLeg(index: number): void {
+    if(index===0) this.queueRadio('beacon',OPENING_CALL);
+    this.campaign.record(index,'hook');
     const leg = legAt(index);
     for (const line of leg.brief) this.queueRadio('beacon', line);
     this.pushLog(`航段：${leg.name} · ${leg.length} 米`, 'system');
   }
 
   private queueRadio(speaker: RadioSpeaker, text: string): void {
-    this.pending.push({ speaker, text, at: this.breaths });
+    this.pending.push({ speaker, text:this.fill(text), at: this.breaths });
     this.onCue?.('radio.squelch', 0.5);
   }
 
@@ -4199,6 +4569,9 @@ export class PodRun {
   receive(): RadioMessage | null {
     const msg = this.pending.shift();
     if (!msg) return null;
+    if(msg.text===OPENING_CALL) {
+      this.openingReceived=true;this.storyCaption=OPENING_CALL;this.storyCaptionLeft=38;
+    }
     const level = msg.speaker === 'nobody' ? Math.max(0.5, this.corruption) : this.corruption;
     const text = corrupt(this.fill(msg.text), level, this.rng);
     const out: RadioMessage = { ...msg, text };

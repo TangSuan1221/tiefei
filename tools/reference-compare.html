@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><link rel="icon" href="data:,"><title>视觉对照 · 同比例展示</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080b0e;color:#bdc5c8;font:12px sans-serif}
+main{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:18px}figure{margin:0}
+img{display:block;width:100%;aspect-ratio:2532/1361;object-fit:contain;background:#000}
+figcaption{padding:12px 0;letter-spacing:2px}p{margin:0 18px 18px;color:#7c8c94}
+</style></head>
+<body><main>
+<figure><img src="/qa/deepsea/review-B.png"><figcaption>参考图</figcaption></figure>
+<figure><img src="/qa/deepsea/reference-pass-11.png"><figcaption>THREE.JS · 第十一轮实时渲染</figcaption></figure>
+</main><p>同宽高比展示，不以分辨率作为质量判据。左图来自用户参考，右图为本地真实 WebGL 截图。技术验证通过不代表视觉达到参考图品质。</p></body>
+</html>

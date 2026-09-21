@@ -3,9 +3,11 @@ import {
   RepeatWrapping, RGBAFormat, SRGBColorSpace, Vector2,
 } from 'three';
 import type { RoomQuad } from '../roomview';
+import { createReferenceMaterials } from './reference-materials';
 
 export interface DeepseaMaterials {
   forQuad(quad: RoomQuad): MeshStandardMaterial;
+  forDetail?(kind: 'warning' | 'strap'): MeshStandardMaterial;
   dispose(): void;
 }
 
@@ -95,6 +97,24 @@ function bake(surface: Surface): { color: DataTexture; normal: DataTexture; roug
 }
 
 export function createMaterials(): DeepseaMaterials {
+  const reference = createReferenceMaterials();
+  const shared = [reference.hull, reference.floor, reference.steel, reference.yellow, reference.red];
+  for (const material of shared) material.side = DoubleSide;
+  return {
+    forQuad(q) {
+      if (q.id.startsWith('reveal.')) return reference.yellow;
+      if (q.kind === 'floor' || q.obstacle === 'grate') return reference.floor;
+      if (q.obstacle === 'crate') return reference.hull;
+      if (q.kind === 'obstacle') return reference.steel;
+      return reference.hull;
+    },
+    forDetail: kind => kind === 'warning' ? reference.yellow : reference.red,
+    dispose: () => reference.dispose(),
+  };
+}
+
+/** Kept as a comparison profile for the previous procedural art direction. */
+export function createLegacyMaterials(): DeepseaMaterials {
   const textures: DataTexture[] = [];
   const materials = new Map<Surface, MeshStandardMaterial>();
   for (const surface of ['hull', 'floor', 'cargo', 'machinery'] as const) {

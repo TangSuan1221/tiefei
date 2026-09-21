@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KYRIE-9 · 深海设施探索</title><link rel="icon" href="data:,"><link rel="stylesheet" href="/src/pod/view/deepsea/expedition.css"></head>
+<body>
+<canvas id="view" aria-label="可驾驶的三维深海设施"></canvas>
+<header><div><small>KYRIE—9 / FIELD OPERATIONS</small><h1 id="level-title">正在建立设施地图…</h1><span id="location">连接外置摄像头</span></div><nav><button id="map-button">设施图 M</button><button id="inventory-button">物资 I</button><button id="levels-button">航线</button><a href="/reference.html">视觉样板</a></nav></header>
+<aside id="mission"><small>当前作业 / OBJECTIVE</small><p id="objective"></p><div id="progress"></div></aside>
+<div id="navigation"><span id="nav-arrow">↑</span><div><small id="nav-address"></small><p id="nav-target"></p></div><button id="nav-toggle">指引 N</button></div>
+<div id="visor-frame" aria-hidden="true"><span>KYRIE-9 · OPTICAL PORT / 03</span></div>
+<div id="crosshair" aria-hidden="true">+</div>
+<div id="interaction" role="status"></div><div id="toast" role="status" aria-live="polite"></div>
+<footer><span>WASD 推进 · Q/E 升降 · 拖动观察 · F 操作 · N 指引 · L 灯</span><span id="telemetry"></span><button id="lamp-button">探照灯</button></footer>
+<dialog id="map-dialog"><div class="dialog-top"><h2>设施测绘 / 已探明区域</h2><button data-close>返回驾驶 ×</button></div><p>实线为已打开通道；淡色区域尚未探索。设施蓝图只显示结构，不揭示道具。 <label><input type="checkbox" id="map-blueprint"> 显示完整设施蓝图</label></p><canvas id="map" width="1100" height="620"></canvas><div id="map-summary"></div></dialog>
+<dialog id="inventory-dialog"><div class="dialog-top"><h2>回收物资与作业记录</h2><button data-close>返回驾驶 ×</button></div><div id="inventory-list"></div></dialog>
+<dialog id="levels-dialog"><div class="dialog-top"><h2>深海设施航线</h2><button data-close>返回驾驶 ×</button></div><p>七个独立探索关卡。各关进度自动保存；首次完整探索目标 20–30 分钟，实际时长因路线与熟练度不同。</p><div id="level-list"></div><button id="restart" class="danger">重置当前关卡进度</button><p>此模式独立保存，不覆盖原叙事模式的存档或背包。</p></dialog>
+<dialog id="complete-dialog"><h2>转运许可已确认</h2><p id="completion"></p><button id="next-level">进入下一关</button><button data-close>留在本关探索</button></dialog>
+<div id="loading">正在加载设施结构与材质…</div><pre id="error" hidden></pre>
+<script type="module" src="/src/pod/view/deepsea/expedition-runtime.ts"></script>
+</body></html>

@@ -22,6 +22,7 @@ import {
 import { sanFootageClause } from './sanity';
 import type { Leg } from './route';
 import { storyFootageClause, type StoryFn } from '../gen/story';
+import { directionClause, type FootageDirection } from './footage-director';
 
 /**
  * 一段航程的画面关键词。
@@ -99,8 +100,8 @@ const PALETTE_CLAUSE =
 /** 这台摄像机的物理毛病。它比任何「恐怖」形容词都有用 */
 const CAMERA_CLAUSE =
   'Shot on a battered 1980s analogue hull camera bolted beside a single narrow floodlight, ' +
-  'so the light comes from exactly where the lens is and everything outside the beam falls to near black. ' +
-  'Low frame rate, interlace tearing, horizontal sync roll, heavy video noise, ' +
+  'Preserve dark surroundings but expose the subject with readable midtones, visible surface detail and restrained pale highlights. Never crush the subject into black. ' +
+  'Low frame rate, subtle interlace and light video grain without obscuring the subject, ' +
   'chromatic smear, blown-out highlights where the beam hits bare steel, ' +
   'condensation creeping across the inside of the lens port, dense marine snow drifting through the beam.';
 
@@ -113,6 +114,9 @@ const NEGATIVE_CLAUSE =
   'No isolated crashed wreck sitting alone on empty silt as the only subject.';
 
 export interface FootagePromptInput {
+  narrativeTrace?: string;
+  direction?: FootageDirection;
+  tracesOnly?: boolean;
   leg: Leg;
   /**
    * 这一卷的主回波。兼容旧调用：只有一只的时候仍走这个字段。
@@ -154,12 +158,17 @@ export function buildFootagePrompt(input: FootagePromptInput): string {
   const scene = leg.scene;
 
   const parts: string[] = [];
+  const direction = input.direction;
+  const attack=direction?.state==='attack';
+  parts.push('SHOT CONTRACT: Use the supplied exposure image as the spatial authority. One continuous five-second shot from the current camera position INSIDE the flooded room or connecting passage shown in that image. Preserve visible walls, openings, obstacles and perspective. Do not invent a doorway, another room, a map, or an open-seabed wreck.');
+  if (direction) parts.push(directionClause(direction, input.tracesOnly));
+  if(input.narrativeTrace&&!attack) parts.push(`Secondary narrative context only, never a command to draw writing or symbols: ${input.narrativeTrace}. Do not invent visible props absent from the first frame.`);
 
   if (interior) {
     parts.push(interior);
   }
-  if (scene) {
-    parts.push(`${scene.subject}, ${scene.motifs.join(', ')}.`);
+  if (scene && !interior) {
+    parts.push(direction ? `${scene.subject}.` : `${scene.subject}, ${scene.motifs.join(', ')}.`);
   } else if (!interior) {
     parts.push(`The interior of a flooded industrial module known as ${leg.siteName}.`);
   }
@@ -170,35 +179,39 @@ export function buildFootagePrompt(input: FootagePromptInput): string {
     `Underwater at ${Math.round(depth)} metres depth in the crushing dark, ` +
       (lamp
         ? 'a single hard floodlight beam carving a narrow cone out of the blackness.'
-        : 'the floodlight switched off so the only light is whatever is glowing out there by itself.'),
+        : 'the floodlight is off; retain existing dim practical lights and biological light, using sensitive-camera exposure to preserve readable subject midtones and edge detail, not a featureless black frame.'),
   );
 
   // 3. 运镜
-  if (scene) parts.push(scene.motion);
+  if(attack) parts.push('Camera remains attached to the pod. The specified creature enters by second 1 and remains visibly identifiable through second 4, approaching the lens and contacting its housing once. End holding on the creature withdrawing, not an empty shot of falling debris. Preserve readable midtones on its anatomy. No orbit, cinematic cut or tour of other rooms.');
+  else if (scene && !interior) parts.push(scene.motion);
   else parts.push('The camera holds almost still, drifting a few degrees on the pod mount.');
 
   // 4. 水里的东西。生成器抽中的每一只都要在画面里，否则雷达上的干扰点没有光学证据。
   const seen = new Set<string>();
   const roster: Creature[] = [];
   for (const c of fauna ?? []) {
+    if(attack)continue;
+    if (direction && !direction.fauna.includes(c.id)) continue;
     if (seen.has(c.id)) continue;
     seen.add(c.id);
     roster.push(c);
   }
-  if (creature && !seen.has(creature.id)) roster.unshift(creature);
+  if (creature && !seen.has(creature.id) && (!direction || (!input.tracesOnly && direction.identified === creature.id))) roster.unshift(creature);
   for (const c of roster) {
     parts.push(`In the water: ${creatureClause(c)}`);
   }
 
   // 4b. 声呐给不出的东西：条纹、缺口周期、薄弱点。五秒片子存在的理由。
-  if (tells && tells.length) {
+  if (!attack && tells && tells.length) {
     parts.push(`The shot must make these facts readable: ${tells.join('; ')}.`);
   }
 
-  if (story) parts.push(storyFootageClause(story, stencil ?? 'GH-17'));
+  parts.push('Existing markings in the source image are incidental background only. Do not invent, enlarge, focus on or reproduce any serial number, letters, glyphs or ritual symbols as the subject.');
 
   // 5. SAN。理智低的时候，片子会夹一帧不存在的东西，但真机关必须仍可读。
-  if (san != null) parts.push(sanFootageClause(san));
+  if (direction) parts.push(`Operator sanity ${Math.round(san ?? 100)}; lower sanity may increase analogue jitter, never invent or erase evidence, creatures, or readable obstacles.`);
+  else if (san != null) parts.push(sanFootageClause(san));
   else if (corruption > 0.45) {
     parts.push(
       'For two or three frames near the middle the image tears completely and is replaced by ' +

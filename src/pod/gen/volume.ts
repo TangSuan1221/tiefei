@@ -805,13 +805,15 @@ export function interiorFootageClause(vol: Volume, atId: string): string {
   );
 }
 
-export function identifyVolume(vol: Volume): string[] {
+export function identifyVolume(vol: Volume, recordedCreatures?: readonly CreatureId[]): string[] {
   vol.identified = true;
   const lines: string[] = [];
   for (const e of vol.echoes) {
+    if (recordedCreatures && (!e.creature || !recordedCreatures.includes(e.creature))) continue;
     lines.push(`${e.sonarLabel}：片子第三秒看清了。是${e.truth}。`);
   }
   for (const f of vol.fauna) {
+    if (recordedCreatures && !recordedCreatures.includes(f.creature)) continue;
     if (f.role !== 'background') continue;
     const c = creature(f.creature);
     lines.push(

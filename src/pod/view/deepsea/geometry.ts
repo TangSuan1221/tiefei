@@ -59,6 +59,17 @@ export function createRoomMesh(geo: RoomGeometry, materials: DeepseaMaterials): 
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     root.add(mesh);
+    // Tight surface strap: follows the real crate face and never changes its collision or hit target.
+    if (q.obstacle === 'crate' && q.pts.length === 4 && materials.forDetail) {
+      const lerpPoint = (a: typeof q.center, b: typeof q.center, t: number) => ({
+        x: a.x + (b.x - a.x) * t + q.normal.x * .002,
+        y: a.y + (b.y - a.y) * t + q.normal.y * .002,
+        z: a.z + (b.z - a.z) * t + q.normal.z * .002,
+      });
+      const strap = { ...q, id: `strap.${q.id}`, pts: [lerpPoint(q.pts[0],q.pts[1],.43),lerpPoint(q.pts[0],q.pts[1],.57),lerpPoint(q.pts[3],q.pts[2],.57),lerpPoint(q.pts[3],q.pts[2],.43)] };
+      const band = new Mesh(quadGeometry(strap), materials.forDetail('strap'));
+      band.name = strap.id; band.receiveShadow = true; root.add(band);
+    }
   }
   // 门洞是buildRoom已经挖出的四边形。只向房间外侧延伸门套，
   // 不缩小通行截面、不造门板，也不在可航行区域添碰撞外的物体。

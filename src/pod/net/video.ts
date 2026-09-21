@@ -134,7 +134,7 @@ const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
  * 因为调用方（view/footage.ts）对每一种失败都有一句对应的游戏内台词，
  * 而 try/catch 里区分不出「key 不对」和「断网」。
  */
-export async function requestVideo(prompt: string, signal?: AbortSignal): Promise<VideoResult> {
+export async function requestVideo(prompt: string, signal?: AbortSignal, keyframe?: string, progress?: (status: string) => void): Promise<VideoResult> {
   if (!VIDEO_ENABLED) return { ok: false, fail: { kind: 'disabled' } };
 
   const deadline = Date.now() + TOTAL_TIMEOUT;
@@ -145,10 +145,18 @@ export async function requestVideo(prompt: string, signal?: AbortSignal): Promis
   // 降到游戏分辨率的活全在 view/footage.ts 里干。
   let job: VideoJob;
   try {
+    let body: BodyInit = JSON.stringify({ model: MODEL, prompt, duration: DURATION, size: '480p' });
+    if (keyframe) {
+      const match = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(keyframe);
+      if (!match) throw new Error('Invalid shutter keyframe');
+      body = JSON.stringify({ model: MODEL,
+        prompt: 'Use the attached image as the exact opening frame. Preserve its camera position, framing, architecture and lighting. Animate underwater particles and the described events without changing location. ' + prompt,
+        duration: DURATION, size: '480p', first_frame: keyframe });
+    }
     const res = await fetch(`${API_BASE}/videos`, {
       method: 'POST',
       headers: headers(true),
-      body: JSON.stringify({ model: MODEL, prompt, duration: DURATION, size: '480p' }),
+      body,
       signal,
     });
     if (!res.ok) {
@@ -161,6 +169,7 @@ export async function requestVideo(prompt: string, signal?: AbortSignal): Promis
   }
 
   if (!job.id) return { ok: false, fail: { kind: 'generate', detail: '响应里没有 job id' } };
+  progress?.('任务已受理 · 排队 / 生成中');
 
   // ── 2. 轮询 ────────────────────────────────────────────────────────────
   await sleep(FIRST_POLL_DELAY, signal);
@@ -179,6 +188,7 @@ export async function requestVideo(prompt: string, signal?: AbortSignal): Promis
         return { ok: false, fail: { kind: 'generate', detail: await errorDetail(res) } };
       }
       job = (await res.json()) as VideoJob;
+      progress?.(job.status === 'completed' ? '生成完成 · 下载视频' : '远端生成中 · 请等待');
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') throw e;
       return { ok: false, fail: { kind: 'network', detail: String(e) } };

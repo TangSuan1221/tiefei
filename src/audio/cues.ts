@@ -263,6 +263,8 @@ export const CUES: Record<string, CueFn> = {
   },
   'hull.pop': (s) => clang(s, 96, PLATE_RATIOS, 0.7, 0.45),
   'hull.crack': (s) => {
+    thud(s, 48, .65, .7);
+    thud({ ...s, t: s.t + .16, gain: s.gain * .45 }, 67, .5, .45);
     clang(s, 74, METAL_RATIOS, 1.4, 0.85);
     hiss({ ...s, t: s.t + 0.02, gain: s.gain * 0.5 }, 'highpass', 4200, 1200, 0.8, 0.35, 0.3, 0.002);
     return 1.5;
