@@ -4,6 +4,7 @@ import { SaveManager } from './game/save';
 import { seedToCoords } from './core/rng';
 import { formatDepth } from './core/util';
 import { installGmApi } from './pod/view/gm';
+import { hasHarborSave } from './pod/sim/harbor-save';
 
 installGmApi();
 
@@ -17,7 +18,8 @@ bg.start();
 
 const save = new SaveManager();
 const meta = save.loadMeta();
-const hasRun = save.hasRun();
+// Validate the harbor payload; legacy procedural runs are not resumable here.
+const hasRun = hasHarborSave();
 const uiRoot = document.getElementById('ui-root') as HTMLDivElement;
 
 // 每次启动生成一个新种子，但玩家可以在"深度坐标"里输入旧的
@@ -32,13 +34,13 @@ function renderTitle(): void {
   uiRoot.innerHTML = `
     <div class="title-screen">
       <div>
-        <div class="title-mark">深潜器 KYRIE-9 · 三号逃生舱</div>
+        <div class="title-mark">公司事故调查组 · 深潜器 KYRIE-9</div>
         <h1 class="title-cn">铁肺迷城</h1>
         <div class="title-en">Ironlung&nbsp;Maze</div>
         <p class="title-tag">
-          <span>千米以下。逃生舱无法上浮。</span>
-          <span>声呐只给回波。几何在全息屏上。五秒片子给颜色、周期、和那个红点的名字。</span>
-          <span>唯一的活路是油井作业区的逃生电梯。</span>
+          <span>你受公司委派，下潜调查接驳港事故。</span>
+          <span>核对救生舱，找回撤离记录，确认下行通道。</span>
+          <span>声纳引路。实体快门曝光。冲洗后的影像，在分析台核验。</span>
         </p>
       </div>
       <nav class="menu" id="menu"></nav>
@@ -50,8 +52,8 @@ function renderTitle(): void {
     hasRun
       ? { id: 'continue', label: '继续下潜', sub: '恢复上次的呼吸' }
       : { id: 'continue', label: '继续下潜', sub: '无记录', disabled: true },
-    { id: 'new', label: cycles > 0 ? '新的轮回' : '开始下潜', sub: seedToCoords(bootSeed) },
-    { id: 'expedition', label: '实景设施探索', sub: '七关大地图 · 独立探索存档' },
+    { id: 'new', label: '开始事故调查', sub: '正式游戏 · 接驳港' },
+    { id: 'expedition', label: '设施探索预览', sub: '独立测试场景 · 非正式剧情入口' },
     { id: 'seed', label: '输入深度坐标', sub: '指定种子' },
     { id: 'archive', label: '档案', sub: `${endings}/8 结局 · ${meta.knowledgeUnlocked.length} 条知识`, disabled: cycles === 0 },
     { id: 'options', label: '设置', sub: '' },
@@ -92,7 +94,7 @@ function renderCorners(): void {
     <span class="corner-row">轮回 #${String(meta.cyclesPlayed + 1).padStart(3, '0')}</span>`;
 
   const bl = el('div', 'corner corner-bl');
-  bl.innerHTML = `<span class="corner-row">静默教团 · 内部资料 · 不得外传</span>`;
+  bl.innerHTML = `<span class="corner-row">公司事故调查组 · 现场证据须核验</span>`;
 
   const br = el('div', 'corner corner-br');
   br.innerHTML = `<span class="corner-row">v0.1.0 · 垂直切片</span>`;
@@ -116,6 +118,10 @@ async function onMenu(id: string): Promise<void> {
       break;
     case 'new':
     case 'continue':
+      if (id === 'continue' && !hasHarborSave()) {
+        showBootLog(['没有有效的接驳港存档，或存档版本不兼容。', '原存档未修改；请选择开始事故调查。']);
+        return;
+      }
       await enterGame(id === 'continue');
       break;
     case 'seed': {

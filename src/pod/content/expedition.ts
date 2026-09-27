@@ -1,16 +1,22 @@
 import { expeditionPlan } from './expedition-layouts';
 import { passageEnvelope } from './expedition-envelopes';
 import { createIncidentItems } from './expedition-incidents';
+import { createHarborLevel, harborRequirementName } from './harbor-level';
 /** Deterministic content and progression only; proximity/collision belong to the runtime. */
 export type ExpeditionPosition = [number, number];
 export interface ExpeditionRoom {
   id: string; name: string; role: string; sector: number;
   x: number; z: number; width: number; depth: number;
   ceiling?: number;
+  /** Driving centre absolute Y. ceiling is clear height; roof = floorY + ceiling. */
+  elevation?: number;
+  floorY?: number;
 }
 export interface ExpeditionEdge {
   id: string; from: string; to: string; width: number;
   ceiling?: number;
+  /** World [x,y,z], from-room boundary to to-room boundary; reversible. */
+  path?: [number, number, number][];
   lock?: string; requires?: string[];
 }
 export interface ExpeditionItem {
@@ -63,6 +69,7 @@ const THEMES = [
 export function createExpedition(index: number): ExpeditionLevel {
   if (!Number.isInteger(index) || index < 0 || index >= THEMES.length) throw new RangeError('Expedition index must be 0–6');
   const theme = THEMES[index];
+  if (index === 0) return createHarborLevel();
   const prefix = `expedition.${index + 1}`;
   const rooms: ExpeditionRoom[] = [], edges: ExpeditionEdge[] = [], items: ExpeditionItem[] = [], stages: ExpeditionStage[] = [];
   const rid = (s: number, n: number) => `${prefix}.s${s}.r${n}`;
@@ -120,6 +127,10 @@ export function canOpenDoor(level: ExpeditionLevel, state: ExpeditionState, id: 
   return state.version === 1 && state.levelId === level.id && !!edge && hasRequirements(state, edge.requires);
 }
 export function openDoor(level: ExpeditionLevel, state: ExpeditionState, id: string): ExpeditionResult {
+  if (level.id === 'harbor.1' && state.levelId === level.id) {
+    const missing = level.edges.find(e => e.id === id)?.requires?.filter(t => !state.inventory.includes(t)) ?? [];
+    if (missing.length) return { ok: false, message: `尚缺：${missing.map(harborRequirementName).join('、')}` };
+  }
   if (!canOpenDoor(level, state, id)) return { ok: false, message: '门不存在或尚缺阶段通行许可。' };
   add(state.opened, id);
   return { ok: true, message: '门已开启，通行许可仍然保留。' };
@@ -128,7 +139,7 @@ export function interactExpedition(level: ExpeditionLevel, state: ExpeditionStat
   if (state.version !== 1 || state.levelId !== level.id) return { ok: false, message: '存档版本或关卡不匹配。' };
   const item = level.items.find(i => i.id === id);
   if (!item) return { ok: false, message: '未找到交互对象。' };
-  if (!hasRequirements(state, item.requires)) return { ok: false, message: '尚缺核验条件：请完成本区两项任务及上一阶段终端。' };
+  if (!hasRequirements(state, item.requires)) return { ok: false, message: level.id === 'harbor.1' ? `尚缺：${(item.requires ?? []).filter(t => !state.inventory.includes(t)).map(harborRequirementName).join('、')}` : '尚缺核验条件：请完成本区两项任务及上一阶段终端。' };
   if (state.collected.includes(id)) return { ok: false, message: '此对象已完成，不会重复发放。' };
   if (item.kind === 'cache' && !state.opened.includes(id)) {
     add(state.opened, id);
@@ -145,6 +156,7 @@ export function interactExpedition(level: ExpeditionLevel, state: ExpeditionStat
 export function estimateExpeditionRoute(level: ExpeditionLevel, options: {
   includeOptional?: boolean; speedMetersPerSecond?: number; secondsPerAction?: number; secondsPerRoom?: number;
 } = {}): ExpeditionRouteEstimate {
+  if (level.id === 'harbor.1') throw new Error('接驳港包含曝光、分析与资源检查外部事件；旧纯交互路线估算器不适用，必须测量实际游玩路线。');
   const speed = options.speedMetersPerSecond ?? 1.6;
   const actionCost = options.secondsPerAction ?? 8;
   const roomCost = options.secondsPerRoom ?? 12;

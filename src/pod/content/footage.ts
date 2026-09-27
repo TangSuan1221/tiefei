@@ -23,6 +23,7 @@ import { sanFootageClause } from './sanity';
 import type { Leg } from './route';
 import { storyFootageClause, type StoryFn } from '../gen/story';
 import { directionClause, type FootageDirection } from './footage-director';
+import {encounterVideoPrompt,type CombatRecord} from '../sim/weapon-feedback';
 
 /**
  * 一段航程的画面关键词。
@@ -114,6 +115,8 @@ const NEGATIVE_CLAUSE =
   'No isolated crashed wreck sitting alone on empty silt as the only subject.';
 
 export interface FootagePromptInput {
+  encounterObservation?:{appearance:string;combat?:CombatRecord};
+  simulationReport?:string[];
   narrativeTrace?: string;
   direction?: FootageDirection;
   tracesOnly?: boolean;
@@ -154,6 +157,7 @@ export interface FootagePromptInput {
  * 把主体放前面、风格约束放后面，出片才有东西可看。
  */
 export function buildFootagePrompt(input: FootagePromptInput): string {
+  if(input.encounterObservation){const e=input.encounterObservation;return encounterVideoPrompt(e.combat?'combat':'analysis',e.appearance,input.interior??input.leg.scene?.subject??'Flooded industrial interior',input.lamp,e.combat);}
   const { leg, creature, fauna, depth, lamp, corruption, tells, san, story, stencil, interior } = input;
   const scene = leg.scene;
 

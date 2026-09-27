@@ -89,6 +89,16 @@ export class PodView {
     this.sctx = s;
     this.hctx = h;
     run.createAuthoredSite=index=>new PodExpedition(run,index);
+    run.captureSensorFrame = () => {
+      const frame=document.createElement('canvas');frame.width=512;frame.height=360;
+      const ctx=frame.getContext('2d',{alpha:false});
+      if(!ctx)throw new Error('Sensor canvas unavailable');
+      drawCameraFeed(ctx,512,360,{run,time:this.clock,aim:run.cameraOnTarget(),reveal:0,keyframe:true});
+      const pixels=ctx.getImageData(0,0,512,360);
+      for(let i=0;i<pixels.data.length;i+=4)for(let c=0;c<3;c++)pixels.data[i+c]=255*Math.pow(pixels.data[i+c]/255,.7);
+      ctx.putImageData(pixels,0,0);
+      return frame.toDataURL('image/jpeg',.72);
+    };
     run.captureKeyframe = () => {
       const frame = document.createElement('canvas');
       frame.width = 1024; frame.height = 720;
@@ -228,12 +238,21 @@ export class PodView {
     this.post.caustics = 0;
     this.post.warp = 0;
     this.post.static = 0;
+    // The physical CRT already has its own texture. Avoid a second strong
+    // full-screen scan/grain layer obscuring the environment and instrument labels.
+    const harborCabin = run.legIndex === 0;
+    this.extras.glassWear = harborCabin ? 0.025 : 1;
+    if (harborCabin) {
+      this.post.scanline = 0.035;
+      this.post.grain = Math.min(this.post.grain, 0.07);
+      this.post.aberration = Math.min(this.post.aberration, 0.045);
+    }
     const beat = (this.clock * bpm) / 60;
     const heartPulse = Math.pow(Math.max(0, 1 - (beat - Math.floor(beat)) * 5.5), 2);
     this.extras.breathPhase = this.breath.phase;
     this.extras.heartPulse = Math.max(heartPulse, this.shake);
     this.extras.holdBreath = 0;
-    this.extras.fog = clamp01(Math.max(0, this.breath.phase) * 0.2 + run.flood * 0.25);
+    this.extras.fog = clamp01(Math.max(0, this.breath.phase) * 0.035 + run.flood * 0.10);
     this.extras.corruption = run.corruption;
     this.extras.hudGain = 1;
     this.extras.emergency = clamp01((run.mode === 'alert' ? 0.7 : 0) + this.shake + run.noise * 0.4);
@@ -271,24 +290,10 @@ export class PodView {
 
     const v = run.vitals.perceived();
     const zoomed = this.zoomVisual > 0.55;
-    if(!zoomed && run.mode!=='alert' && !run.openingGuide && run.storyCaptionLeft<=0) {
-      ctx.textAlign='center';ctx.fillStyle='#d6c9ab';ctx.font=cjk(h*.017,500);
-      ctx.fillText(`航行记录 ${run.campaign.chapter+1}/7 · ${run.campaign.current.title} · J 回看`,w*.5,h*.19);
-      ctx.fillStyle='#a9c7be';ctx.font=cjk(h*.016,400);
-      ctx.fillText(run.campaign.objective,w*.5,h*.219,w*.8);
-    }
-    if(run.mode!=='alert' && run.outcome.kind==='alive' && (run.openingGuide || run.storyCaptionLeft>0)) {
-      const lines:string[]=[];
-      const message=run.storyCaptionLeft>0?run.storyCaption:run.at==='camera'?'':!run.openingReceived?'事故后，你在密封的三号艇内恢复意识。舱外一片漆黑，唯一回应你的声音来自无线电。':'';
-      ctx.font=cjk(Math.max(15,h*.019),500);
-      let line='';
-      for(const char of message){if(ctx.measureText(line+char).width>w*.70){lines.push(line);line='';}line+=char;}
-      if(line)lines.push(line);
-      const step=Math.max(22,h*.028),top=h*(run.at==='camera'?.055:.11);
-      ctx.fillStyle='rgba(3,10,12,.88)';ctx.fillRect(w*.13,top-26,w*.74,44+step*(lines.length+1));
-      ctx.textAlign='left';ctx.fillStyle='#d2ac68';ctx.fillText(run.openingReceived?'无线电 / 航行记录':'121.5 MHz · 三号艇呼叫未应答',w*.15,top);
-      ctx.fillStyle='#e0dfce';lines.forEach((text,i)=>ctx.fillText(text,w*.15,top+step*(i+1)));
-      ctx.fillStyle='#9cdbcf';ctx.fillText(run.openingGuide??run.campaign.objective,w*.15,top+step*(lines.length+1),w*.70);
+    // Full objectives and transcripts live on instruments, never across the window.
+    if (!run.at && (run.radioWaiting || run.storyCaptionLeft > 0)) {
+      ctx.textAlign = 'left'; ctx.fillStyle = '#d2ac68'; ctx.font = cjk(h * .016, 500);
+      ctx.fillText('VHF · 新通信，按 3 接听／查阅', w * .04, h * .13);
     }
 
     // 顶栏
@@ -306,7 +311,7 @@ export class PodView {
       h * 0.038,
     );
 
-    if (!zoomed) {
+    if (!zoomed && !run.at) {
       this.gauge(ctx, w * 0.07, h * 0.93, h * 0.055, v.oxygen / v.oxygenMax, 'O2', v.oxygen / v.oxygenMax < 0.22);
       this.gauge(ctx, w * 0.16, h * 0.93, h * 0.055, run.power, 'PWR', run.power < 0.18);
       this.gauge(ctx, w * 0.25, h * 0.93, h * 0.055, run.hull, 'HULL', run.hull < 0.28);
@@ -390,7 +395,7 @@ export class PodView {
 
     // 日志
     // At the helm, physical labels must not sit behind the scrolling journal.
-    const logs = run.at === 'camera' ? [] : run.log.slice(-(zoomed ? 3 : 5));
+    const logs = run.at ? [] : run.log.slice(-1);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     logs.forEach((line, i) => {
@@ -409,7 +414,7 @@ export class PodView {
       ctx.fillText(line.text.slice(0, 42), w * 0.42, y);
     });
 
-    if (run.mode === 'alert' && run.threat) {
+    if (run.mode === 'alert' && run.threat && run.at !== 'camera') {
       ctx.fillStyle = rgba(PALETTE.bloodHot, 0.55 + Math.sin(this.clock * 9) * 0.3);
       ctx.font = mono(h * 0.022, 700);
       ctx.textAlign = 'center';

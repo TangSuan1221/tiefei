@@ -15,6 +15,7 @@ import { PodView } from './present';
 import { performControl, stationControls } from './stations';
 import { bindGm, closeGmConsole, closePromptPanel, isGmConsoleOpen } from './gm';
 import { installFootageSink } from './footage';
+import { captureHarborSave, readHarborSave, restoreHarborSave, writeHarborSave } from '../sim/harbor-save';
 
 const DEATH_TITLE: Record<string, string> = {
   asphyxiation: '氧气用完了',
@@ -28,10 +29,15 @@ const DEATH_TITLE: Record<string, string> = {
   self: '你自己做的决定',
 };
 
-export async function startPodSession(_resume: boolean): Promise<void> {
+export async function startPodSession(resume: boolean): Promise<void> {
+  let saved:ReturnType<typeof readHarborSave>=null;
+  try {if(resume){saved=readHarborSave(localStorage);if(!saved)throw new Error('没有可恢复的港口存档。');}}
+  catch(error){window.alert(`无法继续：${error instanceof Error?error.message:String(error)}`);return;}
   const override = sessionStorage.getItem('ironlung.seedOverride');
   sessionStorage.removeItem('ironlung.seedOverride');
-  const seed = override ? Number(override) >>> 0 : (Date.now() ^ 0x9e3779b9) >>> 0;
+  let seed = saved?.seed ?? (override ? Number(override) >>> 0 : (Date.now() ^ 0x9e3779b9) >>> 0);
+  // An explicit new game must never reuse another run's slot, including seed overrides.
+  if(!resume)try{while(localStorage.getItem(`ironlung.harbor.v1.${seed}`)!==null)seed=(seed+1)>>>0;}catch{/* Save reports unavailable storage in-game. */}
 
   const uiRoot = document.getElementById('ui-root') as HTMLDivElement;
   uiRoot.innerHTML = '';
@@ -44,6 +50,15 @@ export async function startPodSession(_resume: boolean): Promise<void> {
 
   const run = new PodRun(seed);
   const view = new PodView(run, outCanvas);
+  if(saved){
+    try{if(!restoreHarborSave(run,saved))throw new Error('关卡恢复接口未就绪或关卡版本不匹配。');}
+    catch(error){
+      const panel=document.createElement('div');panel.style.cssText='position:fixed;inset:25%;padding:24px;background:#111;color:#eee;z-index:999';
+      panel.textContent=`恢复失败，原存档已保留：${error instanceof Error?error.message:String(error)}`;
+      const back=document.createElement('button');back.textContent='返回标题';back.onclick=()=>location.reload();panel.append(back);uiRoot.append(panel);return;
+    }
+    run.pushLog('港口航行记录已恢复。未重新提交任何视频生成任务。','system');
+  }
   bindGm({
     run: () => run,
     reinstallSink: () => installFootageSink(run),
@@ -64,6 +79,40 @@ export async function startPodSession(_resume: boolean): Promise<void> {
 }
 
 export class PodSession {
+  /** T16: synchronous checkpoint veto, called before the first site's disposal. */
+  private saveBeforeDepart=():boolean=>{
+    if(this.run.gmLevelSession||this.run.legIndex!==0)return true;
+    try{
+      const save=captureHarborSave(this.run);
+      if(!save)throw new Error('当前无法安全保存：请收回机械臂、等待曝光与显影结束，并解除警报后重试。');
+      writeHarborSave(localStorage,save);
+      this.saveError='';
+      this.run.pushLog('下潜前港口进度已保存。','system');
+      return true;
+    }catch(error){
+      const reason=error instanceof Error?error.message:String(error);
+      this.run.pushLog(`下潜已取消：${reason} 当前现场与原存档保留。`,'bad');
+      this.run.storyCaption=`下潜已取消：${reason} 现场保留，请处理后重试。`;
+      this.run.storyCaptionLeft=12;
+      this.run.navDriveEngaged=false;
+      this.run.pilot.stop();
+      return false;
+    }
+  };
+  private saveAt=0;
+  private saveError='';
+  private saveCheckpoint=():void=>{
+    try{
+      const save=captureHarborSave(this.run);if(!save)return;
+      writeHarborSave(localStorage,save);
+      if(this.saveError)this.run.pushLog('港口自动保存已恢复。','system');
+      this.saveError='';
+    }catch(error){
+      const message=error instanceof Error?error.message:String(error);
+      if(message!==this.saveError)this.run.pushLog(`自动保存失败：${message} 原存档保留，请勿关闭游戏。`,'bad');
+      this.saveError=message;
+    }
+  };
   private blurred = false;
   private last = performance.now();
   private ended = false;
@@ -120,6 +169,9 @@ export class PodSession {
   ) {}
 
   start(): void {
+    this.run.onBeforeDepart=this.saveBeforeDepart;
+    window.addEventListener('pagehide',this.saveCheckpoint);
+    window.addEventListener('beforeunload',this.saveCheckpoint);
     this.wireSpatialAudio();
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
@@ -168,6 +220,7 @@ export class PodSession {
     this.applyHeld(dt);
     this.run.frame(dt);
     this.view.frame(dt, this.run);
+    if(now>=this.saveAt){this.saveAt=now+15000;this.saveCheckpoint();}
     if((this.run.at || this.run.outcome.kind!=='alive' || this.blurred || isGmConsoleOpen()) && document.pointerLockElement===this.canvas) {
       document.exitPointerLock();this.keys.clear();
     }
@@ -206,7 +259,7 @@ export class PodSession {
     this.run.driveInputBlocked = true;
   };
   private onFocus = (): void => { this.blurred = false; this.syncInputBlock(); };
-  private onVisibility = (): void => { this.keys.clear(); this.syncInputBlock(); };
+  private onVisibility = (): void => { if(document.hidden)this.saveCheckpoint();this.keys.clear(); this.syncInputBlock(); };
 
   private applyHeld(dt: number): void {
     if(this.run.at!=='nav' || this.run.driveBlock || this.keys.has('shift') || this.keys.has('n')) this.run.navDriveEngaged=false;
@@ -298,6 +351,7 @@ export class PodSession {
     }
 
     if (this.run.at === 'camera') {
+      if(key==='7'||key==='8'){e.preventDefault();if(!e.repeat)this.run.fireWeapon(key==='7'?'decoy':'pulse');return;}
       if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown'].includes(key)) {
         // 按住方向键由 applyHeld 连续转云台，避免默认行为同时滚动页面。
         e.preventDefault();

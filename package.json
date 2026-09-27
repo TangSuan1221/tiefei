@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "铁肺迷城 IRONLUNG MAZE — a psychological-horror roguelite about escaping a sunken submarine owned by a cult.",
+  "description": "铁肺迷城 IRONLUNG MAZE — a deep-sea investigation horror game built around delayed photographic evidence.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

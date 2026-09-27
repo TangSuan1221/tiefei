@@ -12,6 +12,7 @@ export class Campaign {
   private cooldown=0;
   chapter=0;
   choice:CampaignChoice|null=null;
+  resetForGm(chapter:number){this.journal.length=0;this.seen.clear();this.queue=[];this.cooldown=0;this.chapter=chapter;this.choice=null;}
   record(chapter:number,beat:CampaignBeat):boolean {
     const story=CAMPAIGN_STORY[chapter];
     if(!story) return false;

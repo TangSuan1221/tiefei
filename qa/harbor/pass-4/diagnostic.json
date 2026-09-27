@@ -1,0 +1,261 @@
+{
+  "snapshot": {
+    "index": 0,
+    "levelId": "harbor.1",
+    "position": [
+      11,
+      0,
+      10
+    ],
+    "state": {
+      "version": 1,
+      "levelId": "harbor.1",
+      "inventory": [],
+      "collected": [],
+      "opened": [],
+      "visited": [
+        "harbor.room.A"
+      ],
+      "recorded": [],
+      "completed": false
+    },
+    "harbor": {
+      "version": 1,
+      "levelId": "harbor.1",
+      "grants": [],
+      "exposures": []
+    },
+    "events": {
+      "broadcastOn": false,
+      "broadcastElapsed": 0,
+      "encounterStarted": false,
+      "knockDone": false,
+      "knockInvited": false,
+      "knockReplyAt": -1,
+      "revealSeen": false
+    },
+    "rooms": 9,
+    "doors": 6,
+    "anchors": 9
+  },
+  "probes": [
+    {
+      "id": "harbor.item.tools",
+      "tag": "harbor.item.tools",
+      "position": [
+        6,
+        -0.7,
+        43
+      ],
+      "approach": [
+        6,
+        0,
+        46.2
+      ]
+    },
+    {
+      "id": "harbor.item.power",
+      "tag": "harbor.item.power",
+      "position": [
+        18,
+        -0.7,
+        44
+      ],
+      "approach": [
+        18,
+        0,
+        47.2
+      ]
+    },
+    {
+      "id": "harbor.item.load-module",
+      "tag": "harbor.item.load-module",
+      "position": [
+        48,
+        -8.7,
+        58
+      ],
+      "approach": [
+        48,
+        -8,
+        61.2
+      ]
+    },
+    {
+      "id": "harbor.item.broadcast",
+      "tag": "harbor.item.broadcast",
+      "position": [
+        72,
+        -8.7,
+        58
+      ],
+      "approach": [
+        72,
+        -8,
+        61.2
+      ]
+    },
+    {
+      "id": "harbor.item.employee-card",
+      "tag": "harbor.item.employee-card",
+      "position": [
+        83,
+        -8.7,
+        56
+      ],
+      "approach": [
+        83,
+        -8,
+        59.2
+      ]
+    },
+    {
+      "id": "harbor.item.diversion",
+      "tag": "harbor.item.diversion",
+      "position": [
+        108,
+        -8.7,
+        60
+      ],
+      "approach": [
+        108,
+        -8,
+        63.2
+      ]
+    },
+    {
+      "id": "harbor.item.port-record",
+      "tag": "harbor.item.port-record",
+      "position": [
+        118,
+        -0.7,
+        16
+      ],
+      "approach": [
+        118,
+        0,
+        19.2
+      ]
+    },
+    {
+      "id": "harbor.item.shortcut",
+      "tag": "harbor.item.shortcut",
+      "position": [
+        119,
+        -0.7,
+        34
+      ],
+      "approach": [
+        119,
+        0,
+        37.2
+      ]
+    },
+    {
+      "id": "harbor.item.cargo-near",
+      "tag": "harbor.item.cargo-near",
+      "position": [
+        44,
+        -20.7,
+        88
+      ],
+      "approach": [
+        44,
+        -20,
+        91.2
+      ]
+    },
+    {
+      "id": "harbor.item.cargo-deep",
+      "tag": "harbor.item.cargo-deep",
+      "position": [
+        75,
+        -20.7,
+        98
+      ],
+      "approach": [
+        75,
+        -20,
+        101.2
+      ]
+    },
+    {
+      "id": "harbor.item.exit-mechanism",
+      "tag": "harbor.item.exit-mechanism",
+      "position": [
+        118,
+        -20.7,
+        92
+      ],
+      "approach": [
+        118,
+        -20,
+        95.2
+      ]
+    },
+    {
+      "id": "harbor.item.exit",
+      "tag": "harbor.item.exit",
+      "position": [
+        113,
+        -20.7,
+        99
+      ],
+      "approach": [
+        113,
+        -20,
+        95.8
+      ]
+    }
+  ],
+  "evidence": {
+    "id": "harbor.exposure.1",
+    "roomId": "harbor.room.B",
+    "position": [
+      72,
+      3,
+      34
+    ],
+    "direction": [
+      -0.5970223141259937,
+      0.39801487608399566,
+      -0.6965260331469922
+    ],
+    "capturedAt": 1.8949000000953662,
+    "targetId": "harbor.asset.rescue-pod",
+    "targetVisible": true,
+    "unobstructed": true,
+    "distance": 20.026699590761798,
+    "stableSeconds": 1.3997999999999993,
+    "lightOn": true,
+    "threat": "calm"
+  },
+  "center": [
+    59.969637287050425,
+    10.905887866994638,
+    20.07749999001622
+  ],
+  "projected": [
+    -0.0036703868308498432,
+    -0.0056561896953563435,
+    0.9933394548751798
+  ],
+  "hits": [
+    [
+      "",
+      "harbor.asset.rescue-pod",
+      15.908385157616623
+    ],
+    [
+      "",
+      "harbor.asset.rescue-pod",
+      17.07102929305605
+    ],
+    [
+      "harbor.static.reference.hull",
+      "harbor-world",
+      45.5964717307262
+    ]
+  ],
+  "errors": []
+}

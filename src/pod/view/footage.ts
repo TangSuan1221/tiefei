@@ -19,7 +19,7 @@ import { clamp01 } from '@/core/util';
 import { valueNoise2 } from '@/core/rng';
 import { PALETTE, rgba } from '@/render/palette';
 import { cjk, mono } from '@/ui/typography';
-import type { FootageRequest, PodRun } from '../sim/run';
+import type { FootageRequest, PodRun, TapeRecord } from '../sim/run';
 import { armOut } from '../sim/manipulator';
 import { failureLine, fetchVideoContent, requestVideo, VIDEO_ENABLED } from '../net/video';
 import { remapFootagePixels } from './degrade';
@@ -241,7 +241,8 @@ export function readyReel(run: PodRun): HTMLVideoElement | null {
 
 const LAB_FRAMES=new Map<string,HTMLImageElement>();
 /** Playback belongs to the analysis bench and follows the selected archive, not the current shot. */
-export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:number,h:number):string {
+const sensorReels=new WeakMap<TapeRecord,HTMLImageElement[]>();
+export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:number,h:number, localPlayback?:{time:number;paused:boolean}):string {
   const tape=run.selectedTape;
   const notice=(title:string,detail:string)=>{
     ctx.fillStyle='#03080b';ctx.fillRect(0,0,w,h);ctx.fillStyle='#e4b981';ctx.font=cjk(Math.max(14,h*.065),500);
@@ -260,6 +261,18 @@ export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:numbe
     }
     drawFootageFrame(ctx,w,h,reel.video,{time:reel.video.currentTime,corruption:0,light:1});
     return '录像回放 · 远端生成';
+  }
+  if(tape.sensorFrames&&tape.sensorFrames.length>=3){
+    let frames=sensorReels.get(tape);
+    if(!frames){frames=tape.sensorFrames.map(src=>{const frame=new Image();frame.src=src;return frame;});sensorReels.set(tape,frames);}
+    const frameIndex=Math.floor((localPlayback?.time??run.clock)*2)%frames.length;
+    const frame=frames[frameIndex];
+    if(frame.complete&&frame.naturalWidth){
+      const scale=Math.min(w/frame.naturalWidth,h/frame.naturalHeight),vw=frame.naturalWidth*scale,vh=frame.naturalHeight*scale;
+      ctx.fillStyle='#020406';ctx.fillRect(0,0,w,h);ctx.drawImage(frame,(w-vw)/2,(h-vh)/2,vw,vh);
+      return `本地感光录像 · 非AI · ${localPlayback?.paused?'已暂停':'播放中／循环'} · ${(frames.length/2).toFixed(1)}秒 / 2fps · ${frameIndex+1}/${frames.length}`;
+    }
+    return notice('读取机载感光录像','真实曝光帧序列 · 非AI生成');
   }
   return notice(tape.videoResult==='prompt'?'GM 提示词模式 · 未请求视频':'无可播放视频 · 不使用图片冒充录像',tape.videoError??'视频未生成、未加载或缓存已释放；请检查任务日志。');
 }

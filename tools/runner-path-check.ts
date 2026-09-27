@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {Box3,Vector3} from 'three';
+import {runnerNavigation} from '../src/pod/sim/runner-path';
+const box=(x:number,y:number,z:number,X:number,Y:number,Z:number)=>new Box3(new Vector3(x,y,z),new Vector3(X,Y,Z));
+const room=[box(-15,-3,-15,15,3,15)],obstacle=box(-2,-3,-2,2,3,2);
+const nav=runnerNavigation(new Vector3(0,0,8),room,[obstacle]);
+const i=nav.nodes.findIndex(n=>n.p.z<-5);assert(i>=0);const path=nav.path(i);
+for(let j=1;j<path.length;j++)assert(nav.segment(path[j-1],path[j]));
+const sealed=runnerNavigation(new Vector3(0,0,8),room,[box(-15,-3,-1,15,3,1)]);
+assert(!sealed.nodes.some(n=>n.p.z<0));
+console.log('PASS routes around solid obstacle; closed full-width door blocks traversal; swept segments clear');

@@ -1,0 +1,50 @@
+{
+  "routes": [
+    {
+      "edge": "harbor.edge.A-C",
+      "ok": true
+    },
+    {
+      "edge": "harbor.edge.A-B",
+      "ok": true
+    },
+    {
+      "edge": "harbor.edge.C-B",
+      "ok": true
+    },
+    {
+      "edge": "harbor.edge.B-D",
+      "ok": true
+    },
+    {
+      "edge": "harbor.edge.D-E",
+      "ok": true
+    },
+    {
+      "edge": "harbor.edge.E-G",
+      "ok": true
+    },
+    {
+      "edge": "harbor.edge.B-H",
+      "ok": true
+    },
+    {
+      "edge": "harbor.edge.H-G",
+      "ok": true
+    },
+    {
+      "edge": "harbor.edge.D-F",
+      "ok": true
+    },
+    {
+      "edge": "harbor.edge.E-F",
+      "ok": true
+    },
+    {
+      "edge": "harbor.edge.G-I",
+      "ok": true
+    }
+  ],
+  "failures": [],
+  "method": "Door-unlocked physical movement probes, room centres via authored paths; not unassisted playthrough"
+}

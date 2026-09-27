@@ -13,6 +13,7 @@
  */
 
 import type { PodRun } from '../sim/run';
+import {createExpedition} from '../content/expedition';
 
 const FLAG_KEY = 'ironlung.gm.novideo';
 
@@ -69,6 +70,7 @@ function setNoVideo(on: boolean): string {
 
 const HELP = [
   'GM 指令',
+  '  进入关卡 1—7        直接进入指定关卡（测试会话，不覆盖正式存档）',
   '  无视频模式 [开|关]   拍摄只生成描述提示词，不消耗视频额度',
   '  怪物入侵 [秒数]     立即进入撞击预警；默认120秒后真实攻击（15–300秒）',
   '                       航行中会进入当前关卡；手动曝光才提交视频生成',
@@ -87,6 +89,10 @@ export function executeGm(raw: string): string {
   const parts = text.split(/\s+/);
   const name = parts[0] ?? '';
   const arg = (parts[1] ?? '').toLowerCase();
+  if(name==='进入关卡'||name==='关卡'||name.toLowerCase()==='level'){
+    const result=hook?.run()?.gmEnterLevel(Number(arg))??'请先开始游戏。';echo(result);syncBadge();
+    if(result.startsWith('GM · 已进入'))closeGmConsole();return result;
+  }
   if(name==='怪物入侵'||name.toLowerCase()==='invasion'){
     const seconds=arg?Number(arg):120;
     const run=hook?.run();
@@ -117,6 +123,7 @@ function ensureGmApi(): void {
       noVideo: (on?: boolean) => setNoVideo(on ?? !isNoVideoMode()),
       help: () => executeGm('help'),
       怪物入侵: (seconds=120) => executeGm(`怪物入侵 ${seconds}`),
+      进入关卡: (level:number) => executeGm(`进入关卡 ${level}`),
     },
   );
   (window as unknown as { GM: typeof fn }).GM = fn;
@@ -173,16 +180,17 @@ function ensureLauncher(): void {
 
 function syncBadge(): void {
   let el = document.getElementById('gm-badge');
-  if (!isNoVideoMode()) {
+  const testing=!!hook?.run()?.gmLevelSession;
+  if (!isNoVideoMode()&&!testing) {
     el?.remove();
     return;
   }
   if (!el) {
     el = document.createElement('div');
     el.id = 'gm-badge';
-    el.textContent = 'GM · 无视频模式';
     document.body.append(el);
   }
+  el.textContent=testing?`GM · 选关测试（不保存）${isNoVideoMode()?' · 无视频':''}`:'GM · 无视频模式';
 }
 
 function echo(text: string): void {
@@ -209,9 +217,10 @@ export function toggleGmConsole(): void {
     return;
   }
   box.classList.remove('hidden');
+  if(document.pointerLockElement)document.exitPointerLock();
   const input = box.querySelector('input') as HTMLInputElement;
   input.value = '';
-  input.focus();
+  (box.querySelector('button') as HTMLButtonElement|null)?.focus();
 }
 
 export function closeGmConsole(): boolean {
@@ -228,11 +237,15 @@ function ensureConsole(): HTMLElement {
   box = document.createElement('div');
   box.className = 'gm-console hidden';
   box.innerHTML = `
-    <header>GM 指令台 · 输入「无视频模式」回车 · Esc 关闭</header>
-    <div class="gm-log"><div>可用：无视频模式 [开|关]</div></div>
+    <header>GM 测试菜单 · Esc / F10 收起</header>
+    <div class="gm-actions"><button type="button" data-gm="怪物入侵">怪物入侵</button><button type="button" data-gm="无视频模式">切换无视频模式</button><button type="button" data-close>收起</button></div>
+    <div class="gm-levels">${Array.from({length:7},(_,i)=>`<button type="button" data-gm="进入关卡 ${i+1}">第${i+1}关 · ${createExpedition(i).name}</button>`).join('')}</div>
+    <div class="gm-log"><div>选关会重置目标关卡机关，保留艇体资源；测试会话不覆盖正式存档。不会自动请求视频。</div></div>
     <div class="gm-row"><span>›</span><input type="text" spellcheck="false" autocomplete="off" placeholder="无视频模式" /></div>
   `;
   document.body.append(box);
+  box.querySelectorAll<HTMLButtonElement>('[data-gm]').forEach(btn=>btn.addEventListener('click',()=>executeGm(btn.dataset.gm!)));
+  box.querySelector('[data-close]')?.addEventListener('click',()=>closeGmConsole());
   const input = box.querySelector('input') as HTMLInputElement;
   input.addEventListener('keydown', (e) => {
     e.stopPropagation();

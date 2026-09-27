@@ -1,0 +1,298 @@
+{
+  "result": {
+    "events": [
+      {
+        "id": "harbor.item.tools",
+        "arm": "extending",
+        "inventory": [
+          "harbor.token.permit"
+        ]
+      },
+      {
+        "id": "harbor.item.power",
+        "arm": "stowed",
+        "inventory": [
+          "harbor.token.permit",
+          "harbor.token.repair-tool",
+          "harbor.token.shore-power"
+        ]
+      },
+      {
+        "id": "harbor.item.load-module",
+        "arm": "extending",
+        "inventory": [
+          "harbor.token.permit",
+          "harbor.token.repair-tool",
+          "harbor.token.shore-power"
+        ]
+      },
+      {
+        "id": "harbor.item.broadcast",
+        "arm": "stowed",
+        "inventory": [
+          "harbor.token.repair-tool",
+          "harbor.token.shore-power",
+          "harbor.evidence.load-module",
+          "harbor.token.permit",
+          "harbor.fact.pod-present",
+          "harbor.fact.evacuation-discrepancy",
+          "harbor.event.broadcast-started"
+        ]
+      },
+      {
+        "id": "harbor.item.broadcast",
+        "arm": "stowed",
+        "inventory": [
+          "harbor.token.repair-tool",
+          "harbor.token.shore-power",
+          "harbor.evidence.load-module",
+          "harbor.token.permit",
+          "harbor.fact.pod-present",
+          "harbor.fact.evacuation-discrepancy",
+          "harbor.event.broadcast-started"
+        ]
+      },
+      {
+        "id": "harbor.item.broadcast",
+        "arm": "stowed",
+        "inventory": [
+          "harbor.token.repair-tool",
+          "harbor.token.shore-power",
+          "harbor.evidence.load-module",
+          "harbor.token.permit",
+          "harbor.fact.pod-present",
+          "harbor.fact.evacuation-discrepancy",
+          "harbor.event.broadcast-started"
+        ]
+      },
+      {
+        "id": "harbor.item.broadcast",
+        "arm": "stowed",
+        "inventory": [
+          "harbor.token.repair-tool",
+          "harbor.token.shore-power",
+          "harbor.evidence.load-module",
+          "harbor.event.broadcast-started",
+          "harbor.token.permit",
+          "harbor.fact.pod-present",
+          "harbor.fact.evacuation-discrepancy",
+          "harbor.fact.retrieval-complete"
+        ]
+      },
+      {
+        "id": "harbor.item.employee-card",
+        "arm": "extending",
+        "inventory": [
+          "harbor.token.repair-tool",
+          "harbor.token.shore-power",
+          "harbor.evidence.load-module",
+          "harbor.event.broadcast-started",
+          "harbor.token.permit",
+          "harbor.fact.pod-present",
+          "harbor.fact.evacuation-discrepancy",
+          "harbor.fact.retrieval-complete"
+        ]
+      },
+      {
+        "id": "harbor.item.diversion",
+        "arm": "stowed",
+        "inventory": [
+          "harbor.token.repair-tool",
+          "harbor.token.shore-power",
+          "harbor.evidence.load-module",
+          "harbor.event.broadcast-started",
+          "harbor.token.permit",
+          "harbor.fact.pod-present",
+          "harbor.fact.evacuation-discrepancy",
+          "harbor.fact.retrieval-complete",
+          "harbor.evidence.employee-card",
+          "harbor.evidence.diversion"
+        ]
+      },
+      {
+        "id": "harbor.item.exit-mechanism",
+        "arm": "stowed",
+        "inventory": [
+          "harbor.token.repair-tool",
+          "harbor.token.shore-power",
+          "harbor.evidence.load-module",
+          "harbor.event.broadcast-started",
+          "harbor.evidence.employee-card",
+          "harbor.evidence.diversion",
+          "harbor.token.permit",
+          "harbor.fact.pod-present",
+          "harbor.fact.evacuation-discrepancy",
+          "harbor.fact.retrieval-complete",
+          "harbor.fact.card-analyzed",
+          "harbor.fact.downward-route",
+          "harbor.token.exit-ready"
+        ]
+      },
+      {
+        "id": "harbor.item.exit",
+        "arm": "stowed",
+        "inventory": [
+          "harbor.token.repair-tool",
+          "harbor.token.shore-power",
+          "harbor.evidence.load-module",
+          "harbor.event.broadcast-started",
+          "harbor.evidence.employee-card",
+          "harbor.evidence.diversion",
+          "harbor.token.exit-ready",
+          "harbor.token.permit",
+          "harbor.fact.pod-present",
+          "harbor.fact.evacuation-discrepancy",
+          "harbor.fact.retrieval-complete",
+          "harbor.fact.card-analyzed",
+          "harbor.fact.downward-route",
+          "harbor.token.depth-ready"
+        ]
+      }
+    ],
+    "exposure": {
+      "id": "harbor.exposure.1",
+      "roomId": "harbor.room.B",
+      "position": [
+        60,
+        0,
+        34
+      ],
+      "direction": [
+        0,
+        0.6178215519319036,
+        -0.7863183388224229
+      ],
+      "capturedAt": 17.64870000028622,
+      "targetId": "harbor.asset.rescue-pod",
+      "targetVisible": true,
+      "unobstructed": true,
+      "distance": 17.68545500092652,
+      "stableSeconds": 0.9500000000000003,
+      "lightOn": true,
+      "threat": "calm"
+    },
+    "frames": 10,
+    "videoResult": "failed",
+    "report": [
+      "本地感光录像备份 · 非AI，逐帧传感记录",
+      "现场录像核验：救生舱仍在泊位。",
+      "交叉核验：救生舱仍连接泊位，载荷模块没有离泊记录。撤离报告与现场不符。"
+    ],
+    "complete": true,
+    "depart": true,
+    "snapshot": {
+      "index": 0,
+      "levelId": "harbor.1",
+      "position": [
+        113,
+        -20,
+        95.8
+      ],
+      "state": {
+        "version": 1,
+        "levelId": "harbor.1",
+        "inventory": [
+          "harbor.token.repair-tool",
+          "harbor.token.shore-power",
+          "harbor.evidence.load-module",
+          "harbor.event.broadcast-started",
+          "harbor.evidence.employee-card",
+          "harbor.evidence.diversion",
+          "harbor.token.exit-ready",
+          "harbor.token.permit",
+          "harbor.fact.pod-present",
+          "harbor.fact.evacuation-discrepancy",
+          "harbor.fact.retrieval-complete",
+          "harbor.fact.card-analyzed",
+          "harbor.fact.downward-route",
+          "harbor.token.depth-ready"
+        ],
+        "collected": [
+          "harbor.item.tools",
+          "harbor.item.power",
+          "harbor.item.load-module",
+          "harbor.item.broadcast",
+          "harbor.item.employee-card",
+          "harbor.item.diversion",
+          "harbor.item.exit-mechanism",
+          "harbor.item.exit"
+        ],
+        "opened": [
+          "harbor.item.tools",
+          "harbor.item.load-module",
+          "harbor.item.employee-card"
+        ],
+        "visited": [
+          "harbor.room.A",
+          "harbor.room.C",
+          "harbor.room.D",
+          "harbor.room.B",
+          "harbor.room.E"
+        ],
+        "recorded": [
+          "harbor.item.diversion"
+        ],
+        "completed": true
+      },
+      "harbor": {
+        "version": 1,
+        "levelId": "harbor.1",
+        "grants": [
+          "harbor.token.permit",
+          "harbor.fact.pod-present",
+          "harbor.fact.evacuation-discrepancy",
+          "harbor.fact.retrieval-complete",
+          "harbor.fact.card-analyzed",
+          "harbor.fact.downward-route",
+          "harbor.token.depth-ready"
+        ],
+        "exposures": [
+          {
+            "id": "harbor.exposure.1",
+            "roomId": "harbor.room.B",
+            "position": [
+              60,
+              0,
+              34
+            ],
+            "direction": [
+              0,
+              0.6178215519319036,
+              -0.7863183388224229
+            ],
+            "capturedAt": 17.64870000028622,
+            "targetId": "harbor.asset.rescue-pod",
+            "targetVisible": true,
+            "unobstructed": true,
+            "distance": 17.68545500092652,
+            "stableSeconds": 0.9500000000000003,
+            "lightOn": true,
+            "threat": "calm",
+            "valid": true,
+            "status": "ready",
+            "analyzed": true,
+            "source": "controlled-video",
+            "mediaId": "tape.1"
+          }
+        ]
+      },
+      "events": {
+        "broadcastOn": false,
+        "broadcastElapsed": 11.000000000000021,
+        "encounterStarted": true,
+        "knockDone": false,
+        "knockInvited": false,
+        "knockReplyAt": -1,
+        "revealSeen": true
+      },
+      "rooms": 9,
+      "doors": 6,
+      "anchors": 9
+    },
+    "nextLeg": 1,
+    "nextPhase": "transit",
+    "checkpoint": true
+  },
+  "errors": [],
+  "method": "QA positioning; real interactions and simulation, API blocked"
+}

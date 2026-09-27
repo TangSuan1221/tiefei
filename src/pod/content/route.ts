@@ -91,7 +91,14 @@ export interface Leg {
  *
  * 长度仍是 7，给离线脚本和提示词探针一个稳定的骨架。
  */
-export const ROUTE: readonly Leg[] = ACTS.map((a) => cloneLeg(a.leg));
+export const ROUTE: readonly Leg[] = ACTS.map((a,index) => {
+  const leg=cloneLeg(a.leg);
+  if(index!==0)return leg;
+  return {...leg,name:'坠落接驳港',siteName:'坠落接驳港',depth:1012,
+    brief:['公司调查艇三号，我是调度员万斯。沿目标回波进入接驳港，先接岸电。'],
+    arrival:['坠落接驳港，深度1012米。核对救生舱、取回撤离记录，确认下行通道。'],
+    clear:['人员没有从这里上浮。完成耐压准备，继续下潜核验转移去向。']};
+});
 
 export { ACT_COUNT };
 

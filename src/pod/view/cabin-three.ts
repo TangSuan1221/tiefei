@@ -3,7 +3,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { PodRun } from '../sim/run';
 import { canonicalStation, type StationId } from '../types';
 import { HitMap } from './chrome';
-import { drawStationView, drawStationScreen, drawObservationWindow, type StationView } from './stations';
+import { drawStationView, drawStationScreen, drawObservationWindow, drawDrivingSonarInstrument, type StationView } from './stations';
 import { createReferenceMaterials } from './deepsea/reference-materials';
 import { addCabinDressing } from './cabin-dressing';
 import { buildIndustrialHelm } from './cabin-helm';
@@ -23,6 +23,7 @@ export class CabinThree {
   private focusedFace: StationId | null = null;
   private look = new THREE.Vector3(0, 1.15, -1.5);
   private frame = 0;
+  private sonarRepeater:{canvas:HTMLCanvasElement;texture:THREE.CanvasTexture}|null=null;
   private eye = new THREE.Vector3(0,1.36,1.25);
   private yaw = 0;
   private pitch = -.06;
@@ -179,10 +180,31 @@ export class CabinThree {
     // Six equipment faces. The manipulator repeater retains the merged camera controls.
     this.terminal('life',[-.94,1.12,.72],Math.PI/2,.74,.65);
     this.terminal('radio',[-.94,1.29,-.20],Math.PI/2,.74,.56);
-    this.terminal('camera',[0,1.23,-1.53],0,1.72,.94);
+    // Separate port instruments from the optical aperture: neither glass nor
+    // its text safe area sits behind the repeater housing.
+    this.terminal('camera',[.23,1.23,-1.53],0,1.24,.94);
     this.terminal('nav',[.97,1.25,-1.03],-Math.PI/2,.65,.55);
     this.terminal('lab',[.94,1.14,-.20],-Math.PI/2,.74,.60);
     this.terminal('salvage',[.94,1.12,.72],-Math.PI/2,.63,.47);
+    // A bolted repeater carried by the port window pillar, not camera-feed graphics.
+    const radar=new THREE.Group();radar.name='helm-sonar-repeater';radar.position.set(-.76,1.27,-1.60);radar.rotation.y=.08;s.add(radar);
+    this.box(radar,[.49,.48,.22],[0,0,-.11],m.hull,.035);
+    this.box(radar,[.43,.41,.035],[0,.025,.012],m.rubber,.015);
+    this.box(radar,[.035,.49,.27],[-.27,0,-.1],m.steel,.008);
+    this.box(radar,[.26,.055,.23],[-.33,-.16,-.18],m.steel,.008);
+    this.pipe(s,[[-1.07,1.03,-1.66],[-.95,1.03,-1.63],[-.76,1.03,-1.63]],.022,m.steel);
+    this.pipe(s,[[-.76,1.03,-1.69],[-.87,.83,-1.69],[-1.03,.83,-1.69],[-1.03,.42,-1.69]],.018,m.rubber);
+    for(const xx of [-.218,.218])for(const yy of [-.207,.207]){
+      const bolt=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.015,6),m.steel);bolt.rotation.x=Math.PI/2;bolt.position.set(xx,yy,.035);radar.add(bolt);
+    }
+    for(const xx of [-.14,.14]){
+      const knob=new THREE.Mesh(new THREE.CylinderGeometry(.024,.024,.035,16),m.rubber);knob.rotation.x=Math.PI/2;knob.position.set(xx,-.195,.045);radar.add(knob);
+      this.box(radar,[.004,.018,.005],[xx,-.191,.066],m.yellow);
+    }
+    const radarCanvas=document.createElement('canvas');radarCanvas.width=512;radarCanvas.height=512;
+    const radarTexture=new THREE.CanvasTexture(radarCanvas);radarTexture.colorSpace=THREE.SRGBColorSpace;radarTexture.minFilter=THREE.LinearFilter;radarTexture.generateMipmaps=false;
+    const radarGlass=new THREE.Mesh(new THREE.PlaneGeometry(.395,.36),new THREE.MeshBasicMaterial({map:radarTexture,toneMapped:false}));radarGlass.position.set(0,.026,.033);radar.add(radarGlass);
+    this.sonarRepeater={canvas:radarCanvas,texture:radarTexture};
     // Tank rack, taped supply crate, film magazines and electrical service boxes.
     for(let i=0;i<3;i++) {
       const tank=new THREE.Mesh(new THREE.CapsuleGeometry(.09,.42,6,12),m.yellow);
@@ -223,14 +245,14 @@ export class CabinThree {
     if(id==='camera') {
       // Recessed, chamfered pressure-window surround, not two monitor bezels.
       const outline=(width:number,height:number)=>[
-        [-width/2+.13,-height/2],[width/2-.13,-height/2],[width/2,-height/2+.13],[width/2,height/2-.13],
-        [width/2-.13,height/2],[-width/2+.13,height/2],[-width/2,height/2-.13],[-width/2,-height/2+.13],
+        [-width/2+.07,-height/2],[width/2-.07,-height/2],[width/2,-height/2+.07],[width/2,height/2-.07],
+        [width/2-.07,height/2],[-width/2+.07,height/2],[-width/2,height/2-.07],[-width/2,-height/2+.07],
       ].map(p=>new THREE.Vector2(p[0],p[1]));
       const shape=new THREE.Shape(outline(w+.19,h+.19));
       shape.holes.push(new THREE.Path(outline(w-.035,h-.035).reverse()));
       const rim=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.105,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.015,bevelThickness:.015}),m.steel);
       rim.position.z=.065;rim.castShadow= rim.receiveShadow=true;group.add(rim);
-      for(const x of [-.86,-.43,0,.43,.86]) for(const y of [-.52,.52]) {
+      for(const x of [-w/2,-w/4,0,w/4,w/2]) for(const y of [-h/2-.05,h/2+.05]) {
         const bolt=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,.018,6),m.yellow);
         bolt.rotation.x=Math.PI/2;bolt.position.set(x,y,.19);group.add(bolt);
       }
@@ -256,6 +278,9 @@ export class CabinThree {
       target.mesh.getWorldPosition(look);
       const distance=target.id==='camera'?1.10:this.camera.aspect<1.3?1.05:.77;
       pos.copy(target.group.localToWorld(new THREE.Vector3(0,target.id==='camera'?.09:.025,distance)));
+      // Keep the established helm seat; resizing the optical aperture must not
+      // pull the operator backwards or sideways away from physical controls.
+      if(target.id==='camera'){pos.x=0;look.x=0;}
       if(target.id==='camera') look.y-=.08+Math.tan(this.helmLook)*distance;
     }
     const k=1-Math.exp(-view.dt*5);
@@ -282,6 +307,7 @@ export class CabinThree {
     });
     this.flood.position.y=.015+run.flood*.65+Math.sin(view.time*1.7)*run.flood*.006;
     this.frame++;
+    if(this.sonarRepeater){const r=this.sonarRepeater;drawDrivingSonarInstrument(r.canvas.getContext('2d')!,run,512,512,view.time);r.texture.needsUpdate=true;}
     for(const [index,screen] of this.screens.entries()) {
       // Focused terminal stays live; peripheral terminals update at reduced rate.
       if(screen!==target && this.frame!==1 && this.frame%6!==index) continue;
@@ -358,6 +384,6 @@ export class CabinThree {
   dispose() {
     this.scene.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();if(!Array.isArray(o.material))o.material.dispose();}});
     this.helmLabels.forEach(t=>t.dispose());
-    this.screens.forEach(s=>s.texture.dispose());this.materials.dispose();this.renderer.dispose();
+    this.sonarRepeater?.texture.dispose();this.screens.forEach(s=>s.texture.dispose());this.materials.dispose();this.renderer.dispose();
   }
 }

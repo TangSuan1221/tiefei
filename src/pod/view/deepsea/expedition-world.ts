@@ -19,6 +19,10 @@ import { createExpeditionShells } from './expedition-shells';
 import { createIncidentSites } from './expedition-incident-sites';
 import { createPassageDetails } from './expedition-passage-details';
 import type { ExpeditionSurfaceMaps } from './expedition-surface-maps';
+import { createHarborWorld } from './harbor-world';
+import {passageEmergency} from './passage-emergency';
+import { createHarborMaterials } from './harbor-materials';
+import { addHarborRoomIdentity } from './harbor-room-identity';
 
 type V3 = [number, number, number];
 type Rect = { x0: number; x1: number; z0: number; z1: number; ceiling?:number };
@@ -48,6 +52,14 @@ const bounds = (p: V3, s: V3) => new Box3().setFromCenterAndSize(new Vector3(...
 
 /** Connected pressure hull; no cameras, lights, movement, progression or shared-material ownership. */
 export function createExpeditionWorld(level: ExpeditionLevel, materials: ReferenceMaterials, surfaceMaps?:ExpeditionSurfaceMaps): ExpeditionWorld {
+  if (level.index === 0) {
+    const harborMaterials=createHarborMaterials(materials);
+    const world=createHarborWorld(level,harborMaterials);
+    const disposeIdentity=addHarborRoomIdentity(level,world,harborMaterials);
+    const dispose=world.dispose.bind(world);let disposed=false;
+    world.dispose=()=>{if(disposed)return;disposed=true;disposeIdentity();dispose();harborMaterials.dispose();};
+    return world;
+  }
   const root = new Group(); root.name = `expedition-world.${level.id}`;
   const colliders: Box3[] = [], walkable: Box3[] = [];
   const interactables = new Map<string, Object3D>();
@@ -284,8 +296,10 @@ export function createExpeditionWorld(level: ExpeditionLevel, materials: Referen
       box(point(t, -1.994, edge.width / 2 - .4), alongX ? [1.4, .008, .10] : [.10, .008, 1.4], m.yellow);
     }
   }
+  const emergencyDoors=new Map<string,ReturnType<typeof passageEmergency>>();
   for (const { edge, alongX, x, z } of links) {
     const top=edge.ceiling??CEILING,h=top-FLOOR-.18,cy=FLOOR+h/2,w=edge.width;
+    const emergency=passageEmergency(w,h);emergency.root.position.set(x,cy,z);emergency.root.rotation.y=alongX?Math.PI/2:0;root.add(emergency.root);emergencyDoors.set(edge.id,emergency);
     const mesh = new Group(); mesh.name = `door.${edge.id}`; mesh.userData.doorId = edge.id;
     mesh.userData.profile=EXPEDITION_ENVELOPES[level.index].door;
     mesh.position.set(x, 0, z); mesh.rotation.y = alongX ? Math.PI / 2 : 0; root.add(mesh);
@@ -558,6 +572,7 @@ export function createExpeditionWorld(level: ExpeditionLevel, materials: Referen
       const first = previousTime === undefined;
       const dt = first ? 0 : Math.max(0, Math.min(.1, time - previousTime!)); previousTime = time;
       const opened = new Set(state.opened), collected = new Set(state.collected);
+      for(const [id,lights] of emergencyDoors)lights.update(opened.has(id));
       for (const d of doorAnimation) {
         const target = opened.has(d.id) ? 1 : 0;
         d.amount = first ? target : d.amount + Math.sign(target - d.amount) * Math.min(Math.abs(target - d.amount), dt * 1.8);
@@ -584,7 +599,7 @@ export function createExpeditionWorld(level: ExpeditionLevel, materials: Referen
       for (const g of geometry) g.dispose(); geometry.clear();
       for (const material of ownedMaterials) material.dispose();
       for (const texture of textures) texture.dispose();
-      colliders.length = 0; walkable.length = 0; doors.clear(); interactables.clear();
+      emergencyDoors.forEach(x=>x.dispose());colliders.length = 0; walkable.length = 0; doors.clear(); interactables.clear();
     },
   };
 }

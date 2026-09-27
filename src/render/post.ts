@@ -62,6 +62,8 @@ export const POST_CHANNEL_COUNT = POST_CHANNELS.length;
 // ============================================================================
 
 export interface PostExtras {
+  /** Optional visor wear gain; defaults preserve other scenes. */
+  glassWear?: number;
   /** -1(吸气末) .. +1(呼气末)，由 AudioEngine / 生理模块共享同一个相位 */
   breathPhase: number;
   /** 0..1 心跳冲击，收缩期为 1 */
@@ -502,6 +504,7 @@ uniform float uVignette;
 uniform float uTunnel;
 uniform float uBarrel;
 uniform float uFog;
+uniform float uGlassWear;
 uniform float uHudGain;
 uniform float uCorruption;
 uniform float uHeart;
@@ -573,11 +576,11 @@ void main(){
   float scratch = pow(max(sc, sc2), 12.0);
   float sheenPos = fract(uTime * 0.043);
   float sheen = exp(-pow((vUv.x - (sheenPos * 1.6 - 0.3) - vUv.y * 0.25) * 4.2, 2.0));
-  col += uBone * scratch * (0.012 + sheen * 0.42) * 0.42;
+  col += uBone * scratch * (0.012 + sheen * 0.42) * 0.42 * uGlassWear;
 
   // 玻璃整体反光：一道很淡的斜向梯度，让平面「有厚度」
   float gloss = smoothstep(0.75, 0.0, abs(vUv.x * 0.7 + vUv.y - 0.95 - sheenPos * 0.4));
-  col += vec3(0.055, 0.065, 0.085) * gloss * 0.16;
+  col += vec3(0.055, 0.065, 0.085) * gloss * 0.16 * uGlassWear;
 
   // [16] 起雾：呼气时从下缘与四角爬上来
   if (uFog > 0.001) {
@@ -1028,6 +1031,7 @@ export class PostPipeline {
       .f('uTunnel', p.tunnel)
       .f('uBarrel', p.barrel)
       .f('uFog', clamp01(extras.fog))
+      .f('uGlassWear', clamp01(extras.glassWear ?? 1))
       .f('uHudGain', clamp01(extras.hudGain))
       .f('uCorruption', clamp01(extras.corruption))
       .f('uHeart', heart)

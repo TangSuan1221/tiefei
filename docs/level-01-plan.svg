@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1280" viewBox="0 0 1500 1280">
+<title>第一关坠落接驳港 平面与深度关系</title>
+<desc>九个区域以两条回环和下行出口组成独立地图。房间尺寸按比例，连接为规划净宽，箭头表示主线而非禁止回访。</desc>
+<defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#223440" stroke-width="1"/></pattern><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7" fill="#edbd74"/></marker></defs>
+<rect width="1500" height="1280" fill="#0c171e"/>
+<g font-family="Microsoft YaHei, sans-serif" fill="#e2eaeb">
+<text x="60" y="58" font-size="30">坠落接驳港  第一关空间方案</text>
+<text x="60" y="91" font-size="17" fill="#9cbbc8">规划平面按米制比例 · 主线深度 1012 → 1020 → 1032 m · 下潜航段继续至第二关</text>
+<rect x="60" y="120" width="1090" height="860" fill="url(#grid)"/>
+<!-- Coordinates scaled 8 px/m, origin 76,140. -->
+<g stroke="#5d7480" stroke-width="56" fill="none" stroke-linejoin="round">
+<path d="M164 300V380 M252 220H332 M252 420H332 M428 460V556 M780 300H876 M524 628H604 M780 628H876 M428 700V796 M692 700V796 M980 460V556 M980 732V812"/>
+</g>
+<g stroke="#95afb9" stroke-width="2">
+<rect x="76" y="140" width="176" height="160" fill="#203744"/>
+<rect x="332" y="140" width="448" height="320" fill="#203744"/>
+<rect x="76" y="380" width="176" height="160" fill="#203744"/>
+<rect x="332" y="556" width="192" height="144" fill="#284047"/>
+<rect x="604" y="556" width="176" height="144" fill="#284047"/>
+<rect x="332" y="796" width="448" height="176" fill="#34414b"/>
+<rect x="876" y="556" width="208" height="176" fill="#284047"/>
+<rect x="876" y="140" width="208" height="320" fill="#203744"/>
+<rect x="876" y="812" width="208" height="160" fill="#34414b"/>
+</g>
+<!-- Hero object and fixed obstacles -->
+<g stroke="#708992" fill="#14252e" stroke-width="2">
+<rect x="360" y="166" width="52" height="42"/><rect x="700" y="168" width="54" height="58"/>
+<path d="M386 260L704 198M386 272L704 210"/>
+<rect x="482" y="246" width="166" height="64" rx="25" transform="rotate(-14 565 278)"/>
+<path d="M490 264L442 177M629 250L715 176M574 300L626 426"/>
+<rect x="352" y="834" width="104" height="28"/><rect x="483" y="925" width="128" height="26"/>
+<rect x="702" y="844" width="52" height="86"/>
+</g>
+<g text-anchor="middle" font-size="19">
+<text x="164" y="191">A 检查气闸</text><text x="164" y="219" font-size="15">22 × 20 m</text>
+<text x="164" y="245" font-size="15">1012 m</text>
+<text x="556" y="354">B 倒悬主港</text><text x="556" y="384" font-size="16">56 × 40 m · 净高24 m</text>
+<text x="556" y="410" font-size="15" fill="#edbd74">同一救生舱的首次远望</text>
+<text x="164" y="446">C 岸电维修湾</text><text x="164" y="478" font-size="15">工具 / 回补 / 岸电</text>
+<text x="428" y="604">D 登船计量坞</text><text x="428" y="635" font-size="15">24 × 18 m</text><text x="428" y="663" font-size="15">1020 m · 载荷模块</text>
+<text x="692" y="603">E 行李检修廊</text><text x="692" y="635" font-size="15">22 × 18 m</text><text x="692" y="663" font-size="15">广播断路 / 工卡</text>
+<text x="556" y="884">F 下沉货仓</text><text x="556" y="913" font-size="15">56 × 22 m · 1032 m · 可选物资环</text>
+<text x="980" y="603">G 撤离分流井</text><text x="980" y="635" font-size="15">26 × 22 m</text><text x="980" y="663" font-size="15">路线核验 / 新敲击</text><text x="980" y="698" font-size="15">1020 m</text>
+<text x="980" y="274">H 港务记录侧湾</text><text x="980" y="308" font-size="15">26 × 40 m</text><text x="980" y="338" font-size="15">可选原始记录</text><text x="980" y="369" font-size="15">由此打开下行捷径</text>
+<text x="980" y="861">I 下潜准备坞</text><text x="980" y="894" font-size="15">26 × 20 m · 1032 m</text><text x="980" y="926" font-size="15">准备不足可返回补给</text>
+</g>
+<g stroke="#edbd74" stroke-width="3" fill="none" marker-end="url(#arrow)">
+<path d="M164 278V396"/><path d="M220 420H366"/><path d="M428 432V571"/>
+<path d="M505 628H620"/><path d="M757 628H895"/><path d="M980 716V830"/>
+<path d="M1037 954V1008"/>
+</g>
+<g font-size="14" fill="#edbd74"><text x="467" y="515">下降8 m</text><text x="1019" y="780">下降12 m</text></g>
+<g stroke="#e8cd93" stroke-width="5"><path d="M294 190V250 M286 390V450 M554 598V658 M950 501H1010 M950 774H1010"/></g>
+<g transform="translate(1182 147)" font-size="17">
+<text y="0" font-size="21">图例</text><path d="M0 34H50" stroke="#edbd74" stroke-width="3" marker-end="url(#arrow)"/><text y="64">主线推进方向</text>
+<path d="M0 101H50" stroke="#5d7480" stroke-width="16"/><text y="136">双向工程通道</text>
+<path d="M23 170V207" stroke="#e8cd93" stroke-width="5"/><text y="238">可操作门 / 条件门</text>
+<text y="295" font-size="21">两条回环</text><text y="330">A — C — B — A</text><text y="362">B — H — G — E</text><text y="389">— D — B</text>
+<text y="439">F 连接 D 与 E</text><text y="467">形成可选物资环</text>
+<text y="525" font-size="21">净空假设</text><text y="559">艇宽 2.8 m</text><text y="588">主道宽 7—9 m</text><text y="617">受限道 ≥ 5.5 m</text><text y="646">需实际船模复核</text>
+<path d="M0 730H160 M0 724V736 M80 724V736 M160 724V736" stroke="#e2eaeb" fill="none"/><text y="765">0　　　　 10　　　　20 m</text><text y="798" font-size="14">连接带示意净宽 7 m</text>
+</g>
+<text x="60" y="1035" font-size="23">深度关系  与平面图一致  竖向示意不按比例</text>
+<g stroke="#90aab5" fill="none" stroke-width="2"><path d="M80 1086H440L550 1130H895L1005 1174H1140"/><path d="M1140 1174L1260 1224" stroke="#edbd74" marker-end="url(#arrow)"/></g>
+<g font-size="17"><text x="100" y="1072">A / B / C / H · 1012 m</text><text x="570" y="1116">D / E / G · 1020 m</text><text x="960" y="1158">F / I · 1032 m</text><text x="1180" y="1250">下一段航行</text></g>
+<text x="60" y="1244" font-size="15" fill="#9cbbc8">设计提案 · 区域和尺寸可用于灰盒起稿 · 最终船体扫掠 路径长度 性能与探索时长均需实测</text>
+</g></svg>

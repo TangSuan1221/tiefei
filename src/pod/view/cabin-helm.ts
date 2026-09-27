@@ -151,4 +151,10 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
       }
     }
   });
+  for(const [i,id,title] of [[0,'weapon.decoy','7 声诱饵'],[1,'weapon.pulse','8 冲击弹']] as const){
+    const control=new THREE.Group();control.position.set(-.64+i*.18,-.19,.09);control.userData.control=id;panel.add(control);
+    cylinder(control,.031,.034,.012,0,0,0,metal);
+    const key=cylinder(control,.024,.024,.012,0,0,.012,ochre);key.userData.control=id;
+    plate(control,title,0,-.047,.003,.16,.035,true);
+  }
 }

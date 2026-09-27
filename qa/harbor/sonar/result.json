@@ -1,0 +1,20 @@
+{
+  "result": {
+    "moved": 0.8879772472136143,
+    "lamp": false,
+    "calm": {
+      "amber": 1854,
+      "red": 143
+    },
+    "threat": {
+      "amber": 1854,
+      "red": 191
+    },
+    "cleared": {
+      "amber": 1811,
+      "red": 143
+    }
+  },
+  "errors": [],
+  "method": "Actual formal-entry renderer and pilot; short lamp-off drive, not full unassisted level"
+}

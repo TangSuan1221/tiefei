@@ -8,6 +8,8 @@
 import { clamp01 } from '@/core/util';
 import { PALETTE, rgba } from '@/render/palette';
 import { SonarScope } from '@/render/sonar';
+import {drawSonarSweep} from './sonar-sweep';
+import {sonarEchoAlpha} from '../sim/navigation-sonar';
 import { cjk, layoutCJK, mono, tracked } from '@/ui/typography';
 import { STATIONS, canonicalStation, stationRef, type StationId } from '../types';
 import { drawLocker, lockerControls, performLockerControl } from './locker';
@@ -49,6 +51,47 @@ export interface StationView {
 }
 
 const TAU = Math.PI * 2;
+const evidenceReadouts=new WeakMap<PodRun,{time:number;lines:string[]}>();
+const localPlaybackStates=new WeakMap<PodRun,{id:string;time:number;last:number;paused:boolean}>();
+function localPlaybackFor(run:PodRun){
+  const id=run.selectedTape?.id??'';
+  let state=localPlaybackStates.get(run);
+  if(!state||state.id!==id){state={id,time:0,last:run.clock,paused:false};localPlaybackStates.set(run,state);}
+  if(!state.paused)state.time+=Math.min(.25,Math.max(0,run.clock-state.last));
+  state.last=run.clock;return state;
+}
+
+/** Transitional read-only contract: runtime owns objective and evidence semantics. */
+export function stationObjective(run: PodRun): string {
+  const site = run.authoredSite as (NonNullable<PodRun['authoredSite']> & { objective?: string }) | null;
+  return site?.objective?.trim() || (site ? '接驳港调查 · 核对救生舱、撤离记录与下行通道' : run.openingGuide || run.campaign.objective);
+}
+
+function drawObjective(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: number): void {
+  ctx.save();ctx.textAlign='left';ctx.fillStyle='#cbbb98';ctx.font=cjk(h*.023,500);
+  const lines=layoutCJK(ctx, `调查任务 · ${stationObjective(run)}`, w*.86);
+  lines.slice(0,2).forEach((line,i)=>ctx.fillText(line,w*.07,h*(.90+i*.035)));
+  ctx.restore();
+}
+
+function drawVerifiedRecording(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: number): string {
+  const tape=run.selectedTape;
+  // Local exposure footage is independent of remote generation. The player owns
+  // its loading/playback status and source label; never relabel it as a still.
+  if ((tape?.sensorFrames?.length ?? 0) >= 3) return drawLabRecording(ctx,run,w,h,localPlaybackFor(run));
+  const evidence=(tape as (typeof tape & {siteEvidence?: unknown}))?.siteEvidence;
+  const unavailable=tape?.videoResult==='prompt' ? '提示词测试 · 未请求视频'
+    : tape?.videoResult==='failed' ? '视频生成失败 · 无可播放视频' : '';
+  if(unavailable){
+    ctx.save();ctx.fillStyle='#04080b';ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#c9b99b';ctx.textAlign='left';ctx.font=cjk(Math.max(12,h*.065),500);
+    ctx.fillText(unavailable,w*.05,h*.45,w*.9);
+    ctx.fillText(evidence?'确定性现场底片另行核验 · 非生成视频':'请查阅任务日志后重新曝光',w*.05,h*.60,w*.9);
+    ctx.restore();return unavailable;
+  }
+  const status=drawLabRecording(ctx,run,w,h);
+  return evidence && tape?.videoResult!=='video' ? '确定性现场底片 · 非生成视频' : status;
+}
 
 export function drawStationView(
   ctx: CanvasRenderingContext2D,
@@ -407,7 +450,13 @@ function drawRadio(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: num
     ctx.fillText('耳塞在。你听不见它，它也听不见你。', w * 0.06, h * 0.16);
   }
 
-  const lines = run.heard.slice(-8);
+  // Full narrative text belongs to the radio, not the camera window.
+  if (run.storyCaptionLeft > 0 && run.storyCaption) {
+    ctx.save();ctx.textAlign='left';ctx.fillStyle='#ddd3bd';ctx.font=cjk(h*.028,400);
+    layoutCJK(ctx,run.storyCaption,w*.86).slice(0,4).forEach((line,i)=>ctx.fillText(line,w*.07,h*(.22+i*.06)));
+    ctx.restore();drawObjective(ctx,run,w,h);return;
+  }
+  const lines = run.heard.slice(-3);
   let y = h * 0.20;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
@@ -428,7 +477,7 @@ function drawRadio(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: num
       ctx.fillText(wrapped[i]!, w * 0.06, y);
       y += h * 0.062;
     }
-    if (y > h * 0.92) break;
+    if (y > h * 0.70) break;
   }
   if (!lines.length) {
     ctx.fillStyle = rgba(PALETTE.boneWhisper, 0.7);
@@ -436,6 +485,7 @@ function drawRadio(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: num
     ctx.fillText('频道是空的。万斯还没有叫你。', w * 0.06, h * 0.36);
     ctx.fillText('指示灯亮的时候，接听。', w * 0.06, h * 0.44);
   }
+  drawObjective(ctx,run,w,h);
 }
 
 // ============================================================================
@@ -447,9 +497,26 @@ function drawRadio(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: num
  * 不上卷，习性不会自己长到日志里。
  */
 function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: number): void {
+  const evidenceReport=evidenceReadouts.get(run);
+  if(evidenceReport && !run.labVideoExpanded){
+    screenTitle(ctx,w*.06,h*.08,w*.88,'LAB  EVIDENCE',h);
+    ctx.textAlign='left';ctx.fillStyle='#cbbb98';ctx.font=cjk(h*.025,500);
+    ctx.fillText(`来源：已持有实物记录 · 核验 T+${evidenceReport.time.toFixed(0)}s`,w*.06,h*.18,w*.88);
+    ctx.fillStyle='#d8d5ca';ctx.font=cjk(h*.029,400);
+    let row=0;
+    for(const line of evidenceReport.lines){
+      for(const wrapped of layoutCJK(ctx,line,w*.86)){
+        if(row>=10)break;
+        ctx.fillText(wrapped,w*.07,h*(.28+row++*.05));
+      }
+    }
+    ctx.fillStyle='#a4aca9';ctx.font=cjk(h*.022,400);
+    ctx.fillText('1 / 2 返回片盒 · 3 查看所选录像分析',w*.07,h*.90);
+    return;
+  }
   if(run.labVideoExpanded&&run.selectedTape){
     ctx.save();ctx.translate(w*.03,h*.12);
-    const status=drawLabRecording(ctx,run,w*.94,h*.72);
+    const status=drawVerifiedRecording(ctx,run,w*.94,h*.72);
     ctx.restore();ctx.fillStyle='#accbc1';ctx.font=cjk(h*.025,500);
     ctx.fillText(`${status} · 按 4 返回分析布局`,w*.04,h*.90);return;
   }
@@ -497,7 +564,7 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
   if (!tape) return;
   ctx.save();ctx.translate(bodyX,h*.30);
   ctx.fillStyle='#03080b';ctx.fillRect(0,0,bodyW,h*.34);
-  const recordingStatus=drawLabRecording(ctx,run,bodyW,h*.34);
+  const recordingStatus=drawVerifiedRecording(ctx,run,bodyW,h*.34);
   ctx.restore();
   ctx.strokeStyle='#6d9990';ctx.strokeRect(bodyX,h*.30,bodyW,h*.34);
   ctx.fillStyle='#accbc1';ctx.font=cjk(h*.023,500);ctx.fillText(recordingStatus,bodyX,h*.68);
@@ -512,7 +579,9 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
     h * 0.275,
   );
 
-  const lines = tape.analyzed
+  const lines = (tape.sensorFrames?.length ?? 0) < 3 && (tape.videoResult==='failed' || tape.videoResult==='prompt')
+    ? ['未取得生成视频。不能据此判断怪物是否出现。', '现场证据与视频生成状态分开核验。']
+    : tape.analyzed
     ? tape.report
     : [
         `${TAPE_PURPOSE_CN[tape.purpose]} · 第 ${run.tapeCursor + 1}/${run.tapes.length} 卷`,
@@ -550,7 +619,11 @@ function drawNav(
   h: number,
   view: StationView,
 ): void {
-  if(run.phase==='site' && run.authoredSite){run.authoredSite.drawMap(ctx,w,h);return;}
+  if(run.phase==='site' && run.authoredSite){
+    ctx.save();ctx.beginPath();ctx.rect(0,0,w,h*.84);ctx.clip();
+    run.authoredSite.drawMap(ctx,w,h*.84);ctx.restore();
+    drawObjective(ctx,run,w,h);return;
+  }
   const sonar = view.sonar;
   sonar.contacts = run.contacts;
   sonar.shadows = [];
@@ -835,13 +908,14 @@ function drawCamera(
   drawCameraFeed(ctx, w, h, { run, time: view.time, aim, reveal });
   if(run.phase==='site' && run.authoredSite){
     if(!run.shot.viewing)run.authoredSite.drawInteraction?.(ctx,w,h);
-    ctx.fillStyle='#c8d9d0';ctx.font=cjk(Math.max(14,h*.026),500);ctx.textAlign='center';
-    ctx.fillText(run.shot.viewing?`${run.videoStatus} · 按 2 返回驾驶`:run.authoredSite.hint,w*.5,h*.94,w*.9);
-    if(run.shot.phase==='ready'){
-      ctx.fillStyle='#dcc491';ctx.font=cjk(h*.023,500);
-      ctx.fillText('录像已送分析台 · 摄像窗保持实时监视',w*.5,h*.89,w*.9);
-    }
-    if(run.shot.phase==='exposing'||run.shot.phase==='developing') drawShotStatus(ctx,run,w,h,view.time);
+    const shot=run.shot;
+    const status=shot.phase==='exposing'?`曝光中 · ${shot.exposeLeft.toFixed(1)}s`
+      :shot.phase==='developing'?'冲洗中 · 可继续驾驶'
+      :shot.phase==='failed'?'视频未生成 · 分析台查阅'
+      :shot.phase==='ready'?'片盒有记录 · 分析台核验'
+      :run.mode==='alert'?'舱外异响 · 留意声源与推进噪声':'LIVE · 实时监视';
+    ctx.fillStyle='#c8d9d0';ctx.font=cjk(Math.max(12,h*.019),500);ctx.textAlign='left';
+    ctx.fillText(status,w*.10,h*.92,w*.80);
     return;
   }
   // 臂画在实景之上、读数之下：它是镜头前的东西，不是屏幕上的东西
@@ -849,6 +923,26 @@ function drawCamera(
   drawShotStatus(ctx, run, w, h, view.time);
   drawArmReadout(ctx, run, w, h, view.time);
   drawFieldFx(ctx, run, w, h, view.time);
+}
+
+/** Physical repeater texture only; never composited over the observation window. */
+export function drawDrivingSonarInstrument(ctx:CanvasRenderingContext2D,run:PodRun,w:number,h:number,time:number){
+  ctx.fillStyle='#030a0e';ctx.fillRect(0,0,w,h);
+  if(run.authoredSite?.drawDrivingSonar){run.authoredSite.drawDrivingSonar(ctx,w,h,time,true);return;}
+  {
+    const radius=Math.min(w*.40,h*.36),cx=w*.5,cy=h*.46;
+    ctx.save();ctx.fillStyle='rgba(3,10,14,.92)';ctx.beginPath();ctx.arc(cx,cy,radius+12,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#43575c';ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.stroke();
+    for(const contact of run.contacts){
+      ctx.globalAlpha=sonarEchoAlpha(time,contact.bearing);
+      ctx.strokeStyle=['anomaly','listener'].includes(contact.kind)?'#ff5367':'#edba73';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(cx,cy,Math.max(.04,contact.range)*radius,contact.bearing-Math.PI/2-contact.arc/2,contact.bearing-Math.PI/2+contact.arc/2);ctx.stroke();
+    }
+    ctx.globalAlpha=1;drawSonarSweep(ctx,cx,cy,radius,time);
+    ctx.fillStyle='#e9f1ea';ctx.beginPath();ctx.moveTo(cx,cy-6);ctx.lineTo(cx-4,cy+4);ctx.lineTo(cx+4,cy+4);ctx.fill();
+    ctx.font=cjk(Math.max(12,h*.02),500);ctx.textAlign='center';ctx.fillText('航渡声呐 · 艇首向上',cx,cy+radius+30);
+    ctx.restore();
+  }
 }
 
 /**
@@ -1783,8 +1877,10 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
     case 'lab': {
       const tape = run.selectedTape;
       return filterControls([
-        { id: 'lab.prev', key: '1', label: '上一卷', hint: '', state: run.tapes.length > 1 ? 'normal' : 'disabled' },
-        { id: 'lab.next', key: '2', label: '下一卷', hint: '', state: run.tapes.length > 1 ? 'normal' : 'disabled' },
+        { id: 'lab.prev', key: '1', label: '上一卷', hint: '', state: run.tapes.length > 1 || evidenceReadouts.has(run) ? 'normal' : 'disabled' },
+        { id: 'lab.next', key: '2', label: '下一卷', hint: '', state: run.tapes.length > 1 || evidenceReadouts.has(run) ? 'normal' : 'disabled' },
+        { id: 'lab.evidence', key: '7', label: '核验实物', hint: '已持有记录 · 交叉核验', state: run.powered && run.authoredSite?.analyzeEvidence ? 'normal' : 'disabled' },
+        { id: 'lab.localPlayback', key: '5', label: localPlaybackStates.get(run)?.paused?'继续播放':'暂停播放', hint:'本地感光序列 · 非AI', state: tape?.ready && (tape.sensorFrames?.length??0)>=3 && tape.videoResult!=='video'?'normal':'disabled' },
         { id: 'lab.expand', key: '4', label: run.labVideoExpanded?'缩回录像':'放大录像', hint:'分析台全屏查看', state:tape?.ready?'active':'disabled' },
         {
           id: 'lab.analyze',
@@ -1888,6 +1984,7 @@ function filterControls(list: (Control | null)[]): Control[] {
 
 /** 处理一次点击/按键。返回是否消耗了这次输入。 */
 export function performControl(run: PodRun, actionId: string): boolean {
+  if(actionId==='weapon.decoy'||actionId==='weapon.pulse')return run.fireWeapon(actionId==='weapon.decoy'?'decoy':'pulse');
   if(actionId.startsWith('story.')) {
     const choice=actionId.slice(6);
     return run.at==='radio' && (choice==='relay'||choice==='seal'||choice==='archive') && run.chooseTransmission(choice);
@@ -2026,17 +2123,34 @@ export function performControl(run: PodRun, actionId: string): boolean {
       run.depart();
       return true;
     case 'lab.prev':
+      evidenceReadouts.delete(run);
       run.cycleTape(-1);
       return true;
     case 'lab.next':
+      evidenceReadouts.delete(run);
       run.cycleTape(1);
       return true;
     case 'lab.analyze':
+      evidenceReadouts.delete(run);
       run.analyzeTape();
       return true;
+    case 'lab.evidence': {
+      const lines=run.authoredSite?.analyzeEvidence?.(undefined);
+      if(lines){
+        run.labVideoExpanded=false;
+        evidenceReadouts.set(run,{time:run.clock,lines:lines.length?lines:['没有新增可交叉核验的实物记录。']});
+        run.pushLog(`分析台 · 来源：已持有实物记录 · 核验时间 T+${run.clock.toFixed(0)}s`,'system');
+        for(const line of lines)run.pushLog(line,'system');
+      }
+      return true;
+    }
     case 'lab.expand':
       if(run.selectedTape?.ready)run.labVideoExpanded=!run.labVideoExpanded;
       return true;
+    case 'lab.localPlayback': {
+      const playback=localPlaybackFor(run);playback.paused=!playback.paused;
+      return true;
+    }
     default:
       return false;
   }

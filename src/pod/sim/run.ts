@@ -53,6 +53,7 @@ import { ACT_COUNT, actAt } from '../content/acts';
 import { hunterProfile, huntAct, type HunterProfile } from '../content/hunters';
 import { legAt, ROUTE, TOTAL_DISTANCE, type Leg, type Wreck } from '../content/route';
 import { buildFootagePrompt, type FootagePromptInput } from '../content/footage';
+import type {WeaponId,CombatRecord} from './weapon-feedback';
 import { directFootage, footageCacheKey, FOOTAGE_STATE_CN, type FootageDirection, type FootageState } from '../content/footage-director';
 import { san01 } from '../content/sanity';
 import { cacheFootageTell, sonarHides, trapFootageTell } from '../gen/traps';
@@ -439,6 +440,10 @@ export type ShotPhase = 'idle' | 'exposing' | 'developing' | 'ready' | 'failed';
 export type ShotPurpose = 'identify' | 'survey' | 'reshoot';
 
 export interface ShotRuntime {
+  sensorFrames?:string[];
+  sensorSampleLeft?:number;
+  siteEvidence?:unknown;
+  pendingResult?:{ok:boolean;reason?:string;creatureMissing?:boolean;promptOnly?:boolean};
   capture?: FootagePromptInput;
   keyframe?: string;
   cacheKey?: string;
@@ -504,6 +509,12 @@ export interface FootageRequest {
 
 /** 冲好、进了片盒的一卷。分析台读的是这个，不是摄像头上正在放的那一帧 */
 export interface TapeRecord {
+  simulationReport?:string[];
+  /** Actual successive camera frames; UI plays these as a labelled local backup. */
+  sensorFrames?:string[];
+  siteEvidence?:unknown;
+  /** Local five-second sensor exposure; never an AI video success flag. */
+  sensorEvidence?:boolean;
   videoResult?: 'video' | 'failed' | 'prompt';
   videoError?: string;
   keyframe?: string;
@@ -543,6 +554,7 @@ const ANALYZE_BREATHS = 6;
 const ANALYZE_POWER = 0.045;
 
 export class PodRun {
+  gmLevelSession=false;
   readonly pilot=new PilotMotion();
   authoredSite:AuthoredSite|null=null;
   createAuthoredSite:((index:number)=>AuthoredSite)|null=null;
@@ -574,7 +586,7 @@ export class PodRun {
   private tickPilot(dt:number):void {
     if(this.driveBlock || (this.at!=='camera' && this.at!=='nav')) {this.pilot.stop();return;}
     const input=this.clock<this.pilotInputUntil?this.pilotInput:{thrust:0,yaw:0,pitch:0,brake:false};
-    if(this.clock<this.pilotImpactUntil){this.pilot.stop();return;}
+    if(!this.authoredSite&&this.clock<this.pilotImpactUntil){this.pilot.stop();return;}
     const motion=this.pilot.step(dt,input.thrust,input.yaw,input.pitch,input.brake,this.clock<this.heaveUntil?this.heaveInput:0);
     if(Math.abs(motion.vertical)>.00001){
       if(this.phase==='site'){
@@ -582,7 +594,7 @@ export class PodRun {
       }else this.transitElevation=clamp(this.transitElevation+motion.vertical,-40,40);
       this.power=clamp01(this.power-Math.abs(motion.vertical)*.001);
     }
-    this.heading=(this.heading+motion.yaw+360)%360;
+    this.heading=this.authoredSite?.turn?.(motion.yaw)??(this.heading+motion.yaw+360)%360;
     this.pitch=clamp(this.pitch+motion.pitch,-65,65);
     if(Math.abs(motion.distance)<.00001)return;
     if(this.clock>=this.pilotSoundAt){this.onCue?.('hull.groan',.10+Math.abs(this.pilot.speed)*.12);this.pilotSoundAt=this.clock+2.5;}
@@ -611,7 +623,7 @@ export class PodRun {
     if(this.phase==='site') return this.shot.phase==='exposing'?'保持机位，等待曝光完成。'
       :this.shot.phase==='developing'?'正在显影。完成后按 5 前往分析台读片。'
       :this.unanalyzedCount>0?'录像已回收。按 5 前往分析台，分析本关胶片。'
-      :'已到采矿模块。按 4 前往摄像窗，点击操纵台上的「曝光」。';
+      :this.authoredSite?.objective ?? '已到坠落接驳港。沿岸电缆找到维修湾，恢复港内控制电源。';
     if(!this.openingScanned) return this.at==='nav'?'按 2 发出常规声呐脉冲，确认目标回波。':'按 6 前往领航台，再按 2 扫描目标。';
     return this.at==='nav'?`将船头对准声呐目标，点击「接通推进」。距设施 ${this.remaining.toFixed(0)} 米。`
       :'按 6 返回领航台，沿目标回波航行；到站后拍摄事故现场。';
@@ -868,6 +880,10 @@ export class PodRun {
   videoStatus = '本地底片 · 未连接视频服务';
   /** View-owned synchronous shutter snapshot; no DOM dependency in simulation. */
   captureKeyframe: (() => string) | null = null;
+  /** Local recording sampler (512x360 JPEG supplied by presentation). Independent of API keyframe. */
+  captureSensorFrame: (() => string) | null = null;
+  /** First authored harbor save barrier. Null allows headless callers to depart. */
+  onBeforeDepart: (() => boolean) | null = null;
 
   constructor(seed: number) {
     this.seed = seed >>> 0;
@@ -877,7 +893,7 @@ export class PodRun {
     this.memory = makeContainerMemory(this.containerRng.fork('person'));
     this.flags = new Flags(this.bus, () => this.breaths);
     this.vitals = new VitalsEngine({ bus: this.bus, oxygenMax: 1450 });
-    // restore() 是加算。恐惧从基线再抬一点：你刚从解体里被弹出来。
+    // restore() 是加算。独自接近失联基地，恐惧从基线略微抬高。
     this.vitals.restore({ fear: 10 });
 
     for (const [id, n] of STARTING_STOCK) this.stock.set(id, n);
@@ -886,9 +902,9 @@ export class PodRun {
     this.chart.push(first.volume);
     this.volumeAt = entryNode(first.volume).id;
 
-    this.pushLog('三号逃生舱 · 自持供电已切换至内部电池。', 'system');
-    this.pushLog('浮力舱 B 象限报警。上浮功能锁定。只能下潜，去 D-9 油井的逃生电梯。', 'bad');
-    this.pushLog('声呐只给废墟回波。到站拍第一卷，送到分析台，全息屏才会长出内部。', 'system');
+    this.pushLog('公司调查艇三号 · 正在接近坠落接驳港。内部电池供电，调度员万斯正在呼叫。', 'system');
+    this.pushLog('事故区域结构不稳。碰撞、失电和艇体破损都可能致命；低速进港，优先恢复岸电。', 'bad');
+    this.pushLog('接听万斯，沿声呐回波抵港，再跟随岸电缆寻找维修湾。现场底片须完成曝光、显影后送到分析台核验。', 'system');
     this.beginLeg(0);
   }
 
@@ -1063,7 +1079,7 @@ export class PodRun {
 
   get depth(): number {
     const l = this.leg;
-    const prev = this.legIndex > 0 ? legAt(this.legIndex - 1).depth : 1080;
+    const prev = this.legIndex > 0 ? legAt(this.legIndex - 1).depth : 900;
     const along = lerp(prev, l.depth, clamp01(this.traveled / l.length));
     if(this.phase==='site'&&this.authoredSite)return along-(this.authoredSite.elevation??0);
     if(this.phase!=='site')return along-this.transitElevation;
@@ -1538,7 +1554,8 @@ export class PodRun {
     this.zoom = damp(this.zoom, this.at ? 1 : 0, 9, dt);
 
     // 噪音总是往底噪掉。底噪取决于你有没有在动
-    const floor = this.blackout ? 0.012 : 0.045 + this.throttle * 0.02;
+    if(this.phase==='site')this.authoredSite?.tick?.(dt);
+    const floor = Math.max(this.blackout ? 0.012 : 0.045 + this.throttle * 0.02,this.authoredSite?.noiseFloor??0);
     this.noise = Math.max(floor, this.noise - dt * 0.09);
 
     if (this.flareLeft > 0) this.flareLeft = Math.max(0, this.flareLeft - dt);
@@ -1940,7 +1957,7 @@ export class PodRun {
 
   nudgeHeading(deg: number): void {
     if (this.driveBlock) return;
-    this.heading = (this.heading + deg + 360) % 360;
+    this.heading = this.authoredSite?.turn?.(deg) ?? (this.heading + deg + 360) % 360;
     this.onCue?.('ui.hover', 0.3);
   }
 
@@ -1959,9 +1976,13 @@ export class PodRun {
       const distance=(pulseDistance??SITE_PULSE[this.throttle]??0)*direction;
       if(!distance)return;
       if(!this.authoredSite.move(distance)){
-        this.pilot.stop();this.navDriveEngaged=false;this.pilotImpactUntil=this.clock+1.2;
-        this.pushLog('艇体接近设施或关闭的门。停推，调整航向或操作门锁。','system');
-        this.onCue?.('hull.groan',.3);
+        // Contact stops forward motion, not the rudder or reverse controls.
+        this.pilot.speed=0;this.navDriveEngaged=false;
+        if(this.clock>=this.pilotImpactUntil){
+          this.pilotImpactUntil=this.clock+.6;
+          this.pushLog('艇体接近设施或关闭的门。可倒退、转舵脱离，或操作门锁。','system');
+          this.onCue?.('hull.groan',.3);
+        }
       }
       const cost=Math.abs(distance)/SITE_PULSE[1];
       this.power=clamp01(this.power-.004*cost);this.addNoise(.30*cost);
@@ -2333,6 +2354,14 @@ export class PodRun {
       this.pushLog('井口已就绪。先去无线电台选择：转发载波、切断载波，或封存证据。','system');
       return;
     }
+    if(this.legIndex===0 && this.authoredSite?.index===0 && this.onBeforeDepart){
+      let allowed=false;
+      try {allowed=this.onBeforeDepart();}catch{/* A failed save must never unload the harbor. */}
+      if(!allowed){
+        this.pushLog('离关保存检查未通过。接驳港仍保留，请完成保存后重试下潜。','bad');
+        return;
+      }
+    }
     if (this.bench.length) this.lashDown();
     this.campaign.record(this.legIndex,'departure');
     this.authoredSite?.dispose();this.authoredSite=null;
@@ -2553,6 +2582,11 @@ export class PodRun {
       return;
     }
     s.keyframe = keyframe;
+    s.sensorFrames=[];
+    try {const frame=this.captureSensorFrame?.();if(frame)s.sensorFrames.push(frame);}catch{/* A missing sensor frame is not replaced with the API PNG. */}
+    s.sensorSampleLeft=.5;
+    s.siteEvidence=this.authoredSite?.captureEvidence ? structuredClone(this.authoredSite.captureEvidence()) : undefined;
+    s.pendingResult=undefined;
     s.token++;
     s.phase = 'exposing';
     s.legId = purpose === 'survey' ? actAt(this.legIndex + 1).leg.id : this.leg.id;
@@ -2577,7 +2611,9 @@ export class PodRun {
         ? '快门开了。五秒。你现在必须站在这台机子前面，而那个东西正在靠近。'
         : purpose === 'reshoot'
             ? '快门开了。同一扇气闸。你怀疑里面已经不是刚才那张脸。'
-            : '快门开了。五秒。镜头对着设施内部。冲出来之后送到分析台，全息屏才会长出房间。';
+            : this.legIndex===0
+              ? '快门开了。保持机位五秒；显影期间可以继续调查。完成后到分析台核验现场记录。'
+              : '快门开了。五秒。镜头对着设施内部。冲出来之后送到分析台，全息屏才会长出房间。';
     this.pushLog(wait, this.mode === 'alert' ? 'bad' : 'system');
   }
 
@@ -2586,6 +2622,7 @@ export class PodRun {
   }
 
   private nextShotPurpose(): ShotPurpose {
+    if(this.authoredSite?.captureEvidence)return 'identify';
     const v = this.volume;
     if (!v || !v.identified) return 'identify';
     if (this.canSurvey) return 'survey';
@@ -2616,6 +2653,14 @@ export class PodRun {
     });
     const node = vol?.nodes.find(n => n.id === this.volumeAt) ?? (vol ? entryNode(vol) : null);
     return {
+      simulationReport: active ? [
+        `曝光快照：${t.creature.name}；${FOOTAGE_STATE_CN[state]}。`,
+        `习性：${ATTRACTOR_CN[t.creature.attractor]}。`,
+        `行为前兆：${t.hunter.tell}`,
+        ...(this.spatialRunnerReport(t.creature.id)),
+        ...(this.lastCombat?.encounter===t.encounter?[`战斗验证：${({missed:'未命中，未驱逐',interrupted:'暂时打断，未驱逐',returned:'已恢复追击，未驱逐',repelled:'已确认驱逐'})[this.lastCombat.outcome??'interrupted']}。`]:[]),
+      ] : this.lastCombat?.encounter===this.encounterSerial ? [`战斗验证：${this.lastCombat.outcome==='repelled'?'已确认驱逐；不是击杀':'当前无活动接触；不能据此确认击杀或驱逐'}。`] : ['本次曝光没有记录到活动怪物。'],
+      encounterObservation: this.lastCombat&&this.lastCombat.encounter===this.encounterSerial&&(!active||t.encounter===this.lastCombat.encounter)?{appearance:this.lastCombat.appearance,combat:{...this.lastCombat}}:active?{appearance:t.creature.footage}:undefined,
       leg, direction, depth: this.depth, lamp: this.lit,
       narrativeTrace: CAMPAIGN_STORY[act]?.film,
       corruption: clamp01(this.corruption + san01(this.vitals.vitals.san) * 0.5),
@@ -2804,6 +2849,14 @@ export class PodRun {
       }
       // 那个东西有没有进过取景框。进过一次就算拍到了。
       s.caught = !!s.capture?.direction?.identified;
+      if(s.siteEvidence!==undefined){
+        s.sensorSampleLeft=(s.sensorSampleLeft??.5)-dt;
+        if(s.sensorSampleLeft<=0 && (s.sensorFrames?.length??0)<10){
+          s.sensorSampleLeft+=.5;
+          // One actual render per sample, never duplicate a frame to fill a time jump.
+          try {const frame=this.captureSensorFrame?.();if(frame)s.sensorFrames?.push(frame);}catch{/* Missing samples cannot count as footage. */}
+        }
+      }
       s.exposeLeft = Math.max(0, s.exposeLeft - dt);
       if (s.exposeLeft > 0) return;
 
@@ -2824,7 +2877,7 @@ export class PodRun {
         frameHash2=Math.imul(frameHash2,33)^char.charCodeAt(0);
       }
       s.cacheKey = footageCacheKey(prompt, fallbackPrompt) + `:frame:${s.keyframe?.length??0}:${frameHash>>>0}:${frameHash2>>>0}`;
-      this.commitAnalysis(s.purpose);
+      if(s.siteEvidence===undefined)this.commitAnalysis(s.purpose);
       this.archiveTape(false);
       const tape = this.tapes.at(-1)!;
       tape.prompt = prompt;
@@ -2850,6 +2903,17 @@ export class PodRun {
 
     if (s.phase === 'developing') {
       s.developed += dt;
+      if(s.siteEvidence!==undefined && s.developed>=12){
+        const local=this.tapes.find(t=>t.id===`tape.${s.token}`);
+        if(local && !local.ready){
+          local.ready=true;
+          this.pushLog('机载调查底片显影完成，可在分析台读取。远端视频状态单独显示。','system');
+        }
+      }
+      if(s.siteEvidence!==undefined && s.developed>=12 && s.pendingResult){
+        const r=s.pendingResult;s.pendingResult=undefined;
+        this.settleShot(s.token,r.ok,r.reason,r.creatureMissing,r.promptOnly);return;
+      }
       if (s.developed >= s.developMax) {
         this.settleShot(s.token, false, '显影超时，读取机载磁带。');
       }
@@ -2865,6 +2929,9 @@ export class PodRun {
   private settleShot(token: number, ok: boolean, reason?: string, creatureMissing?: boolean, promptOnly?: boolean): void {
     const s = this.shot;
     if (token !== s.token || s.phase !== 'developing') return;
+    if(s.siteEvidence!==undefined && s.developed<12){
+      s.pendingResult={ok,reason,creatureMissing,promptOnly};return;
+    }
     s.reason = reason ?? '';
     if (!ok) {
       this.videoStatus = '本地底片 · 非生成视频';
@@ -2895,7 +2962,7 @@ export class PodRun {
 
     // 拍到了那个东西 —— 冲出来就等于看清了。这是摄影机在警报态里
     // 真正的用处：你花九秒和一格电，换一个「它到底是什么」。
-    if (ok && !promptOnly && s.caught && this.threat && tape?.direction?.encounter === this.threat.encounter && tape?.caughtThreat === this.threat.creature.id && !this.threat.known
+    if (s.siteEvidence===undefined && ok && !promptOnly && s.caught && this.threat && tape?.direction?.encounter === this.threat.encounter && tape?.caughtThreat === this.threat.creature.id && !this.threat.known
       && this.threat.phase !== 'struck' && this.threat.phase !== 'repelled') {
       this.pushLog('片子的第三秒，它在画面里。', 'eerie');
       this.identify();
@@ -2914,6 +2981,10 @@ export class PodRun {
     const siteName =
       s.purpose === 'survey' ? actAt(Math.min(this.legIndex + 1, ACT_COUNT - 1)).leg.siteName : this.leg.siteName;
     this.tapes.push({
+      simulationReport:s.capture?.simulationReport?.slice(),
+      sensorFrames:s.sensorFrames?.slice(),
+      siteEvidence:s.siteEvidence,
+      sensorEvidence:s.siteEvidence!==undefined,
       keyframe: s.keyframe,
       ready: false,
       direction: s.capture?.direction,
@@ -2956,6 +3027,11 @@ export class PodRun {
       this.onCue?.('ui.error', 0.5);
       return;
     }
+    if(tape.videoResult==='prompt'&&tape.ready!==false&&this.at==='lab'&&this.powered){
+      tape.report=['GM 模拟分析 · 非AI视频识别 · 仅读取曝光时的系统快照',...(tape.simulationReport??['旧录像未保存模拟分析快照，请在无视频模式下重新曝光。']),'该报告不授予正式剧情证据，也不能验证生成视频质量。'];
+      tape.analyzed=true;this.onCue?.('knowledge.gain',.6);
+      for(const line of tape.report)this.pushLog(line,'system');return;
+    }
     if (tape.analyzed) {
       this.pushLog('这一卷已经拆过。报告还在屏上。', 'system');
       return;
@@ -2968,6 +3044,30 @@ export class PodRun {
       this.pushLog('读片机是电的。总闸拉着，灯丝是冷的。', 'bad');
       this.onCue?.('ui.error', 0.55);
       return;
+    }
+    if(tape.siteEvidence!==undefined){
+      if(this.at!=='lab'){this.pushLog('请在分析台读取调查底片。','system');return;}
+      if(tape.legId!==this.leg.id || !this.authoredSite?.analyzeEvidence){
+        this.pushLog('本卷调查底片不属于当前设施。','system');return;
+      }
+      const generated=tape.videoResult==='video';
+      const playable=generated || (tape.sensorFrames?.length??0)>=3;
+      if(!playable){this.pushLog('无可播放录像：本地感光帧不足，请重新曝光。','system');return;}
+      const lines=this.authoredSite.analyzeEvidence({capture:structuredClone(tape.siteEvidence),media:{
+        playable,mediaId:tape.id,source:generated?'generated-video':'controlled-video'
+      }});
+      this.power = clamp01(this.power - ANALYZE_POWER);
+      tape.report=[generated?'远端生成录像 · 调查核验':'本地感光录像备份 · 非AI，逐帧传感记录',...lines];
+      tape.analyzed=true;
+      const evidenceReady=this.authoredSite.evidenceReady;
+      if(evidenceReady===true || (this.legIndex!==0 && evidenceReady===undefined && lines.length>0))
+        this.campaign.record(this.legIndex,'film');
+      this.onCue?.('knowledge.gain',.75);
+      for(const line of tape.report)this.pushLog(line,'system');
+      return;
+    }
+    if(tape.videoResult!=='video'){
+      this.pushLog('未收到有效视频，不能据此确认生物或取得录像证据。','system');return;
     }
     this.power = clamp01(this.power - ANALYZE_POWER);
     this.addNoise(0.08);
@@ -4260,7 +4360,7 @@ export class PodRun {
     }
     const t = this.threat;
     if (!t) {
-      if (this.phase === 'site' && this.clock >= this.huntRecoveryUntil) {
+      if (this.phase === 'site' && !this.authoredSite?.managesThreats && this.clock >= this.huntRecoveryUntil) {
         const ecology = hunterProfile(creature(huntAct(this.legIndex).creature), this.legIndex);
         const stimulus = this.noise * ecology.sound + (this.powered && this.lit ? ecology.light : 0)
           + (this.blackout ? 0 : this.throttle / 3 * ecology.motion);
@@ -4287,6 +4387,7 @@ export class PodRun {
     }
 
     // Warning is a separate clock: noise and wrong counters cannot erase the response window.
+    if(this.authoredSite?.spatialThreat)return;
     if (t.behavior === 'warning') {
       t.warningLeft = Math.max(0, t.warningLeft - dt);
       t.cueLeft -= dt;
@@ -4366,6 +4467,7 @@ export class PodRun {
    * 这让「到站」这件事本身带着分量。
    */
   private checkThreatBeats(): void {
+    if(this.authoredSite?.managesThreats)return;
     if (this.phase !== 'site') return;
     if (this.clock < this.huntRecoveryUntil) return;
     if (this.siteBreaths < SITE_PATIENCE) return;
@@ -4374,6 +4476,7 @@ export class PodRun {
 
   /** 把站点上还没出来的那个东西叫出来 */
   private wakeSite(line: string, forced?: CreatureId): void {
+    if(this.authoredSite?.managesThreats)return;
     if (this.phase !== 'site' || this.threat) return;
     if (this.clock < this.huntRecoveryUntil) return;
     const leg = this.leg;
@@ -4391,6 +4494,23 @@ export class PodRun {
   }
 
   /** Explicit GM fixture: real attack state, without submitting video requests. */
+  gmEnterLevel(level:number):string {
+    if(!Number.isInteger(level)||level<1||level>ACT_COUNT)return '关卡编号必须是1—7的整数。';
+    if(this.outcome.kind!=='alive')return '请先开始一局存活中的游戏。';
+    if(['exposing','developing'].includes(this.shot.phase))return '请等待当前曝光／显影结束后再切换关卡。';
+    if(!this.createAuthoredSite)return '场景加载器尚未就绪。';
+    this.gmLevelSession=true;this.pilot.stop();this.navDriveEngaged=false;
+    this.pilotInput={thrust:0,yaw:0,pitch:0,brake:false};this.pilotInputUntil=0;this.heaveUntil=0;
+    this.authoredSite?.dispose();this.authoredSite=null;this.authoredSiteError='';
+    this.legIndex=level-1;this.phase='transit';this.threat=null;this.mode='calm';
+    this.pending.length=0;this.storyCaption='';this.storyCaptionLeft=0;
+    this.campaign.resetForGm(this.legIndex);this.firedBeats.clear();this.resetShot();
+    this.arm=newArm();this.charging=false;this.camPan=this.camTilt=0;this.camZoom=1;
+    this.openingReceived=true;this.beginLeg(this.legIndex);this.arrive();
+    this.walkTo('camera');
+    const message=this.authoredSiteError||`GM · 已进入第${level}关：${this.leg.siteName}。本次为测试会话，不覆盖正式存档；关卡机关重新开始。`;
+    this.pushLog(message,'system');return message;
+  }
   gmInvasion(seconds=120):string {
     if(this.outcome.kind!=='alive')return '请先开始一局存活中的游戏。';
     if(this.shot.phase==='exposing'||this.shot.phase==='developing')return '当前曝光或生成尚未结束，请等待后再触发。';
@@ -4442,6 +4562,32 @@ export class PodRun {
     this.bus.emit('shake', { amount: 0.3 });
   }
 
+  weaponAmmo:Record<WeaponId,number>={decoy:4,pulse:3};
+  private spatialRunnerReport(id:CreatureId):string[]{
+    if(id==='cre.runner'&&this.authoredSite?.spatialThreat)return ['空间突进者：短暂预警后快速绕障接近，蓄势后冲撞，冲撞后有恢复窗口。','应对：冲击弹需瞄准，命中暂时打断；声诱饵暂时干扰。关闭压力门可阻挡，武器命中不等于驱逐。'];
+    const c=creature(id);return [`驱离条件：${c.weakness.map(counterLine).join('，或')}。`,c.advice];
+  }
+  weaponReadyAt=-Infinity;
+  lastCombat:CombatRecord|null=null;
+  fireWeapon(weapon:WeaponId):boolean {
+    const t=this.threat;
+    if(this.at!=='camera'||this.outcome.kind!=='alive'||!t||['repelled','struck'].includes(t.phase))return false;
+    if(this.clock<this.weaponReadyAt||this.weaponAmmo[weapon]<=0){this.pushLog('发射器冷却中或弹药耗尽。','system');return false;}
+    this.weaponAmmo[weapon]--;this.weaponReadyAt=this.clock+5;
+    const hit=weapon==='decoy'||this.cameraOnTarget()>.55;
+    let result='Projectile misses; creature continues its previous movement.';
+    if(hit){
+      if(weapon==='decoy'){t.bearing+=.8;t.range=Math.min(1,t.range+.25);t.fuse+=12;result='Acoustic decoy draws the creature sideways away from the camera; it remains alive and dangerous.';}
+      else {t.range=Math.min(1,t.range+.35);t.fuse+=18;result='Pressure pulse strikes the creature; it recoils away from the camera, alive, not killed.';}
+      if(t.behavior==='warning'){t.behavior='investigate';t.warningLeft=0;}
+    }
+    this.lastCombat={weapon,encounter:t.encounter,at:this.clock,creature:t.creature.id,appearance:t.creature.footage,hit,result,outcome:hit?'interrupted':'missed'};
+    if(hit)this.authoredSite?.weaponResponse?.(weapon);
+    this.onCue?.('hull.crack',.65);this.onShake?.(.3);
+    this.pushLog(`${weapon==='decoy'?'声诱饵':'冲击弹'}已发射 · 余量 ${this.weaponAmmo[weapon]} · ${hit?'回波发生位移':'未命中'}。可再次曝光，去分析台验证反应。`,'system');
+    return true;
+  }
+
   /** 摄像头看清了 */
   private identify(): void {
     const t = this.threat;
@@ -4466,10 +4612,13 @@ export class PodRun {
 
   /** 玩家做出了一个可能是应对的动作 */
   tryCounter(action: CounterAction): void {
+    if(this.authoredSite?.canCounter?.(action)===false)return;
+    if((this.authoredSite?.noiseFloor??0)>=.15 && ['fullstop','lampoff','blackout'].includes(action.kind))return;
     const t = this.threat;
     if (!t || t.phase === 'repelled' || t.phase === 'struck') return;
 
     if (t.creature.weakness.some((w) => sameCounter(w, action))) {
+      if(this.lastCombat?.encounter===t.encounter)this.lastCombat.outcome='repelled';
       t.phase = 'repelled';
       this.suspicion = 0;
       this.huntRecoveryUntil = this.clock + huntAct(this.legIndex).recovery;
