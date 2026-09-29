@@ -31,6 +31,19 @@ check('5 chapters / 15 unique scenes / 3 per chapter',()=>{
  for(const s of campaign.scenes){assert.ok(s.scoutFootage&&s.scoutFacts.length&&s.resolveText);assert.ok(s.choices.length>=2);assert.ok(s.resolutions.length>=2);assert.equal(new Set(s.choices.map(c=>c.id)).size,s.choices.length);for(const c of s.choices)assert.ok(c.resultText&&c.consequence&&c.evidence.length,`${s.id}/${c.id}: incomplete loop`);}
 });
 check('detached state cannot mutate engine',()=>{const e=new StoryEngine(campaign),a=e.serialize();e.state.pod.power=-999;e.state.world.injected=true;e.state.knowledge.player.push('invented');assert.equal(e.serialize(),a);});
+check('keep current plumbing preserves a previously stopped pump',()=>{
+ const e=new StoryEngine(campaign);
+ while(e.scene.id!=='l2-02'){
+  ok(e.resupply());capture(e);ok(e.act(e.getChoices().find(c=>c.allowed)!.id));capture(e);
+  ok(e.resolve(e.getResolutions().find(r=>r.allowed)!.resolution.id));ok(e.advance());
+ }
+ ok(e.resupply());capture(e);ok(e.act('public-backwash'));capture(e);
+ ok(e.act('stop-and-reroute'));capture(e);
+ assert.equal(e.snapshot().world.wet2FlowStopped,true);
+ ok(e.resolve('leave-current-circuit'));
+ assert.equal(e.snapshot().world.wet2FlowStopped,true,'keeping configuration must not restart the pump');
+ assert.equal(e.snapshot().world.wet2Connected,true,'stopping flow must not erase prior contamination');
+});
 check('before evidence, action/advance/analyze cannot grant progression',()=>{const e=new StoryEngine(campaign),s=e.snapshot();assert.equal(e.act(campaign.scenes[0].choices[0].id).ok,false);assert.equal(e.advance().ok,false);assert.equal(e.analyze('nonexistent').ok,false);assert.deepEqual(e.snapshot().world,s.world);assert.deepEqual(e.snapshot().knowledge,s.knowledge);});
 check('5 + 12 seconds, explicit knowledge and radio propagation',()=>{
  const e=new StoryEngine(campaign),world=e.snapshot().world,knowledge=e.snapshot().knowledge;

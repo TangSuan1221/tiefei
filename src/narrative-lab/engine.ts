@@ -120,7 +120,7 @@ export class StoryEngine {
     next.selectedChoice=choiceId;next.phase='result';next.epoch++;
     this.data=next;
     this.event(`action:${choiceId}`,`${candidate.choice.label}：${candidate.choice.consequence}`);
-    return ok('行动已发生。拍摄结果片，再核验实际后果。');
+    return ok('操作完成。请拍摄现场，查看结果。');
   }
   shoot():ActionResult {
     if(this.busy)return no('已有曝光或显影任务，不能并行拍摄。');
@@ -135,7 +135,7 @@ export class StoryEngine {
     this.data.pod.power-=.06;this.data.tapes.push(tape);this.data.activeTapeId=tape.id;
     this.data.captureRemaining=5;this.data.developRemaining=12;
     this.event('exposure',`${tape.id}：${tape.kind==='scout'?'侦察':'结果'}曝光开始，事实已锁定。`);
-    return ok('曝光 5 秒后显影 12 秒；这是可执行分镜，不是生成视频。');
+    return ok('正在拍摄。曝光需要 5 秒，之后等待 12 秒显影。');
   }
   tick(seconds:number):void {
     if(!finite(seconds)||seconds<0)throw new RangeError('时间增量必须为有限非负秒。');
@@ -156,7 +156,7 @@ export class StoryEngine {
   analyze(tapeId?:string):ActionResult {
     const tape=tapeId?this.data.tapes.find(t=>t.id===tapeId):this.data.tapes.at(-1);
     if(!tape?.ready)return no('录像尚未完成曝光与显影。');
-    if(tape.analyzed)return ok('此卷已分析；重复播放不改变事实或重复收费。');
+    if(tape.analyzed)return ok('这段录像已经看过，可以随时重看。');
     if(this.busy)return no('等待当前曝光与显影完成。');
     if(tape.sceneId!==this.current.id||tape.epoch!==this.data.epoch)return no('旧片可作历史记录，但不能授权当前现场的新操作。');
     if(tape.kind!==this.data.phase)return no('这卷不属于当前待核验阶段。');
@@ -166,7 +166,7 @@ export class StoryEngine {
     this.data.phase=tape.kind==='scout'?'decision':'resolve';
     const source=[...this.data.events].reverse().find(e=>e.type==='exposure'&&e.detail.startsWith(`${tape.id}：`));
     this.event('analysis',`${tape.id}：${tape.text}`,source?.id);
-    return ok('已分析，只有玩家获得本卷知识。向万斯报告需要单独操作。');
+    return ok('录像已看完。万斯还没收到这段内容，你可以向他报告。');
   }
   report():ActionResult {
     if(this.irreversible())return no('最后行动已经执行，不能补交报告改写撤离依据。');
@@ -209,7 +209,7 @@ export class StoryEngine {
     const next=this.planned(candidate.resolution)!;
     next.selectedResolution=id;next.phase='next';next.epoch++;
     this.data=next;this.event(`resolution:${id}`,candidate.resolution.text);
-    return ok('根据结果作出的后续行动已执行，可以继续。');
+    return ok('后续操作完成。查看下方的结果，然后继续前进。');
   }
   advance():ActionResult {
     if(this.busy||this.data.phase!=='next')return no('先分析结果，并根据结果完成后续决策，再继续。');
@@ -221,7 +221,7 @@ export class StoryEngine {
     }
     this.event('resolve',this.current.resolveText);
     this.data.sceneIndex++;this.data.phase='scout';this.data.selectedChoice=null;this.data.selectedResolution=null;this.data.epoch++;
-    this.event('enter',this.current.entryText);return ok('进入下一摄影环节。');
+    this.event('enter',this.current.entryText);return ok('已到达下一处地点。先拍摄周围的情况。');
   }
   resupply():ActionResult {
     if(this.irreversible())return no('最后行动已经执行，维护通路已离开，不能再补给。');
@@ -229,13 +229,13 @@ export class StoryEngine {
     if(this.data.phase==='ended')return no('本次演练已结束。');
     this.data.pod.power=1;this.data.pod.oxygen=Math.max(3600,this.data.pod.oxygen);this.data.pod.hull=Math.max(.75,this.data.pod.hull);
     this.event('resupply','返回本场景维护点补电、补氧与维修；不复活人物，不撤销世界后果。');
-    return ok('资源已补充，原录像、选择和人物状态保留。');
+    return ok('补电、补氧和艇壳维修完成。');
   }
   serialize():string {return JSON.stringify(this.data);}
   restore(json:string):ActionResult {
     try{
       const value:unknown=JSON.parse(json);this.validateSave(value);
-      this.data=copy(value as StoryState);return ok('叙事存档已恢复；没有重播动作或重复发奖。');
+      this.data=copy(value as StoryState);return ok('存档已读取，可以从这里继续。');
     }catch(error){return no(`未读取存档，当前状态保留：${error instanceof Error?error.message:String(error)}`);}
   }
   private validateSave(value:unknown):void {

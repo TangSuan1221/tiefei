@@ -254,6 +254,8 @@ ARM常量：伸出3.4s、夹取1.8s、收回2.6s，基础运动段合计7.8s，�
 
 AI只能在合法候选ID中提议，不能写身份、生死、旧证据或代玩家提交动作。公开提议上下文不含隐藏世界状态；超时、非法回复和过期epoch回退至确定性候选。默认没有配置外部LLM。末场二次决定执行后不得补报、补给或改路线。
 
+玩家文案必须先交代人物位置、困境和行动目的；设备首次出现应解释用途，后文保持同名。禁止把程序断言、分支守恒说明或作者评价写进场景和对白。结果录像只描述操作完成、收臂之后能拍见的现状，不能倒放拍摄前的操作；无线电消息要说明来源，不能混充镜头画面。二次决策完成后展示对应结果正文，不得重新显示场景开头。完整阅读稿见 `docs/narrative-reading-copy.md`；编辑器仍负责展示条件与效果。
+
 五章3600秒是作者的旅行/阅读/操作预算，不是60分钟实测证据。模型按设计提供抽象补给，不能据此证明真实地图资源可达；原生Articy导入、真实五关设备与人物演出、人类盲测均未完成。本轮有界模型检查不宣称穷尽所有状态组合。
 
 依据：`src/narrative-lab/types.ts`；`src/narrative-lab/campaign.ts`；`src/narrative-lab/engine.ts`；`src/narrative-lab/director.ts`；`src/narrative-lab/model-port.ts`；`docs/narrative-canon.md`；`docs/narrative-pipeline.md`；`docs/narrative-engine-contract.md`；`docs/narrative-audit.md`；`tools/narrative-audit.ts`；`tools/narrative-engine-check.ts`；`tools/narrative-model-check.ts`；`tools/narrative-browser-check.mjs`。

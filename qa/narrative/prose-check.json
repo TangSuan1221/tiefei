@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "checks": [
+    "new opening",
+    "action context",
+    "second decision outcome",
+    "fresh blueprint"
+  ],
+  "errors": [],
+  "method": "Browser UI with explicit test fast-forward; not a duration measurement."
+}

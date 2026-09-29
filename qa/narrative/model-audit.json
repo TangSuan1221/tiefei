@@ -5,6 +5,7 @@
   "passed": [
     "5 chapters / 15 unique scenes / 3 per chapter",
     "detached state cannot mutate engine",
+    "keep current plumbing preserves a previously stopped pump",
     "before evidence, action/advance/analyze cannot grant progression",
     "5 + 12 seconds, explicit knowledge and radio propagation",
     "save round trip at capture/develop/decision/result/resolve",
