@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-level-metrics",
-  "revision": "2026-09-30-v7-radio-photo-revision",
+  "revision": "2026-09-30-v8-chapter-three-horror",
   "defaultRuntimeProfile": "main-authored",
   "documents": [
     { "path": "docs/level-metrics.md", "kind": "level-metrics", "priority": 100 }

@@ -5,7 +5,7 @@ const root=document.querySelector<HTMLDivElement>('#app')!;
 const header=document.createElement('header');
 header.innerHTML='<span>迟到的目击者 / 当前剧情稿</span><a href="/narrative.html">旧版状态机（未迁移）</a>';
 const notice=document.createElement('p');notice.className='notice';
-notice.textContent='剧情阅读与审查 · 非实机演示。已删除楼梯指路任务，协作改为无线电线索 → 摄影 → 延迟判断 → 行动与结果回收。';
+notice.textContent='剧情阅读与审查 · 非实机演示。本轮重写第三章：调查、危险补给、会合、跟随威胁与撤离。每轮按项目约束复核，未实现项单独保留。';
 const layout=document.createElement('div');layout.className='reading-layout';
 const nav=document.createElement('nav');nav.setAttribute('aria-label','章节目录');
 const article=document.createElement('article');
