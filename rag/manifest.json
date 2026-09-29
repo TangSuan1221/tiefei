@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-level-metrics",
-  "revision": "2026-09-30-v5-story-constraints",
+  "revision": "2026-09-30-v6-split-route-story",
   "defaultRuntimeProfile": "main-authored",
   "documents": [
     { "path": "docs/level-metrics.md", "kind": "level-metrics", "priority": 100 }
