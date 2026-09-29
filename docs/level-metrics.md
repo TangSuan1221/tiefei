@@ -245,3 +245,15 @@ ARM常量：伸出3.4s、夹取1.8s、收回2.6s，基础运动段合计7.8s，�
 另一个未解决边界：若未来实时视野完整展示怪物且可持续照明，延迟摄影可能被替代。此时需产品级决定；不得由关卡作者临时让怪物隐身或相机透视。未验证的功能在关卡任务中标为阻断/待实现，不能以剧情文字宣布完成。
 
 依据：上述代码核验及本轮用户要求。
+
+## MET-024 五关叙事实验与 AI 权限
+
+状态：IMPLEMENTED / GAP。关键词：narrative-lab Articy 状态机 AI 知识 因果 60分钟 叙事。
+
+`/narrative.html` 的 `narrative-lab` 是独立可执行五章文字分镜与条件/指令工作台，非正式七章场景迁移。每环节侦察摄影、行动、结果摄影、二次决定分别有状态；角色知识、世界事实、关系与曝光快照分离。5秒曝光/12秒本地分镜处理只用于此模型，不替代真实影像可读性验收。
+
+AI只能在合法候选ID中提议，不能写身份、生死、旧证据或代玩家提交动作。公开提议上下文不含隐藏世界状态；超时、非法回复和过期epoch回退至确定性候选。默认没有配置外部LLM。末场二次决定执行后不得补报、补给或改路线。
+
+五章3600秒是作者的旅行/阅读/操作预算，不是60分钟实测证据。模型按设计提供抽象补给，不能据此证明真实地图资源可达；原生Articy导入、真实五关设备与人物演出、人类盲测均未完成。本轮有界模型检查不宣称穷尽所有状态组合。
+
+依据：`src/narrative-lab/types.ts`；`src/narrative-lab/campaign.ts`；`src/narrative-lab/engine.ts`；`src/narrative-lab/director.ts`；`src/narrative-lab/model-port.ts`；`docs/narrative-canon.md`；`docs/narrative-pipeline.md`；`docs/narrative-engine-contract.md`；`docs/narrative-audit.md`；`tools/narrative-audit.ts`；`tools/narrative-engine-check.ts`；`tools/narrative-model-check.ts`；`tools/narrative-browser-check.mjs`。

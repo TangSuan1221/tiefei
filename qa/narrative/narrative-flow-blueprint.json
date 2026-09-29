@@ -1,0 +1,4072 @@
+{
+  "format": "ironlung.articy-style-blueprint",
+  "nativeArticyProject": false,
+  "campaign": {
+    "id": "late-witness-five",
+    "version": 1,
+    "title": "迟到的目击者 · 五关叙事实验",
+    "chapters": [
+      {
+        "id": 1,
+        "title": "第一个活人",
+        "depth": 1180,
+        "dramaticQuestion": "怎样把确实被困的人安全带出来？"
+      },
+      {
+        "id": 2,
+        "title": "请再说一遍",
+        "depth": 1460,
+        "dramaticQuestion": "会回应的声音，究竟证明了什么？"
+      },
+      {
+        "id": 3,
+        "title": "里面还剩多少",
+        "depth": 1810,
+        "dramaticQuestion": "工作仍在继续，做这份工作的人还在吗？"
+      },
+      {
+        "id": 4,
+        "title": "请留在镜头里",
+        "depth": 2170,
+        "dramaticQuestion": "身份确凿之后，如何对待仍会保护你的危险同伴？"
+      },
+      {
+        "id": 5,
+        "title": "最后一张照片",
+        "depth": 2540,
+        "dramaticQuestion": "怎样把拍到的安全变成能持续保持的安全？"
+      }
+    ],
+    "scenes": [
+      {
+        "id": "l1-01",
+        "chapter": 1,
+        "title": "笼外的动静",
+        "location": "接收层 · 防护维修笼南侧观察泊位",
+        "entryText": "入口的关节灯在水里晃。M-04维修服停在笼内，埃利亚斯只报位置：北侧维修笼，门还闭着。万斯把救援登记停在“已接触”，没有提前填获救。邻仓绞盘和货闸都能从外部供电。",
+        "scoutFootage": "镜头沿格栅缓慢扫过。笼内的人举手确认，笼外货架底下有完整的多肢轮廓；缆索被拖动，货物没有随水流同向漂移。画面同时保留邻仓的绞盘和畅通入口。",
+        "scoutFacts": [
+          "e.l1.elias-trapped",
+          "e.l1.predator-outside",
+          "e.l1.winch-path"
+        ],
+        "plannedSeconds": {
+          "travel": 70,
+          "reading": 55,
+          "action": 75
+        },
+        "choices": [
+          {
+            "id": "low-pulse",
+            "label": "低档短试绞盘，收臂后记录响应",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.lureTested",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.winchReady",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l1.vibration-response"
+            ],
+            "resultText": "绞盘完成设定短试后停转。结果片连续记录怪物离开货架、抓住仍在摆动的吊索，又返回邻仓门口；笼门始终关闭。它对这一次振动有响应，录像没有证明声音能控制所有生物。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "电流曲线收到了。把动作留在片里，我们再决定。"
+              },
+              {
+                "speaker": "elias",
+                "text": "我听见它离远了一点。门还关着。"
+              }
+            ],
+            "consequence": "获得可复验的诱离规律，设备余量完整。"
+          },
+          {
+            "id": "high-pulse",
+            "label": "用高档短试压过环境噪声",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.06
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.lureTested",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.winchReady",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.winchWorn",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l1.vibration-response",
+              "e.l1.winch-wear"
+            ],
+            "resultText": "目标迅速扑向吊索。电机保护器随后跳开，支架留下新裂纹。怪物响应被清楚记录，但不能把设备冒烟误认成隔离成功。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "保护器跳了。先撤负载，不要再硬推。"
+              }
+            ],
+            "consequence": "得到同一规律，额外耗电并留下需要低负载复位的绞盘磨损。"
+          },
+          {
+            "id": "reset-test",
+            "label": "先复位保护器，以低负载重新试动",
+            "condition": {
+              "path": "world.winchWorn",
+              "op": "eq",
+              "value": true
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              },
+              {
+                "path": "world.winchWorn",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.lureTested",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.winchReady",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l1.vibration-response",
+              "e.l1.winch-reset"
+            ],
+            "resultText": "复位后电机按低档稳定运转。连续影像把目标、吊索和机械止挡留在同一画面，确认可以维持诱离，无须再靠过载争取注意。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "我等你。别为了快一点再把它弄停。"
+              }
+            ],
+            "consequence": "花费时间和电力恢复设备，修正过载而不改写旧片。"
+          }
+        ],
+        "resolveText": "现在知道的是怪物对此处振动的反应。下一步要把它留在能真正锁住的空间里。埃利亚斯没有替你宣布安全。",
+        "implementationNotes": [
+          "实验文本采用自主短试后记录稳定响应；正式3D不得伸臂与曝光同时进行。"
+        ],
+        "resolutions": [
+          {
+            "id": "keep-low-load",
+            "label": "依据响应保持低负载，让目标继续靠近仓口",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.lureMaintained",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你将绞盘切为低负载保持，消耗一段电量。接下来的门控阶段有持续诱导，不能把刚才短试的旧画面当成持续保证。"
+          },
+          {
+            "id": "reserve-power",
+            "label": "先停绞盘保留电量，到门控位再重新启动",
+            "instructions": [
+              {
+                "path": "world.lureMaintained",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              }
+            ],
+            "text": "你停止诱导，保留电量，花时间转到门控位。下一场要重新维持目标行为，而不是认为它永远停在旧画面的位置。"
+          }
+        ]
+      },
+      {
+        "id": "l1-02",
+        "chapter": 1,
+        "title": "门必须真的关上",
+        "location": "接收层 · 装卸仓侧面控制泊位",
+        "entryText": "装卸仓入口比潜艇宽得多，门轨一侧积着碎片。维修笼仍然封闭；即使本次隔离失败，埃利亚斯也不会凭剧情需要走出来。",
+        "scoutFootage": "低速绞盘仍在转。镜头同时拍到入口、货闸底沿与锁销孔：目标前肢已入仓，尾端暂留门槛；右轨有一段断钢带。",
+        "scoutFacts": [
+          "e.l1.gate-clearance",
+          "e.l1.threshold-tail",
+          "e.l1.track-debris"
+        ],
+        "plannedSeconds": {
+          "travel": 45,
+          "reading": 60,
+          "action": 105
+        },
+        "choices": [
+          {
+            "id": "clear-and-hold",
+            "label": "清轨、保持低速诱导，再落闸插销",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -4
+              },
+              {
+                "path": "world.predatorIsolated",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.gateJammed",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "evidence": [
+              "e.l1.predator-isolated",
+              "e.l1.lock-engaged"
+            ],
+            "resultText": "清除断钢带后，目标完全进入仓内。货闸落到底，实体锁销穿过固定孔。停止绞盘以后，冲撞仍来自门后，钢格栅保持连续。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "锁位回执稳定。影像再看门底，不只看绿灯。"
+              }
+            ],
+            "consequence": "威胁被物理隔离。确认后它不会在下一场景无故逃脱。"
+          },
+          {
+            "id": "close-early",
+            "label": "趁前肢已入仓立即落闸",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.predatorIsolated",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.gateJammed",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l1.gate-obstructed"
+            ],
+            "resultText": "门底卡在尾端和钢带上，锁销顶住孔边，没有穿过。怪物退向仓口；维修笼仍保护被困者。面板上的“关闭指令已发送”并不等于门已关严。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "我听见它又回来了。我留在这里。"
+              }
+            ],
+            "consequence": "隔离未成立，救援入口保持锁定；可以抬闸、清轨并重新诱导。"
+          },
+          {
+            "id": "recover-gate",
+            "label": "抬闸清障、重新诱入，复拍锁销",
+            "condition": {
+              "path": "world.gateJammed",
+              "op": "eq",
+              "value": true
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.05
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -6
+              },
+              {
+                "path": "world.predatorIsolated",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.gateJammed",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "evidence": [
+              "e.l1.predator-isolated",
+              "e.l1.lock-engaged",
+              "e.l1.gate-recovered"
+            ],
+            "resultText": "抬闸给尾端留出回仓空间。低速诱导稳定目标后重新落闸，第二卷明确拍到完整锁销。第一卷的失败仍保留在片匣中。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "这次回执没有跳。保留两卷，别把失败那卷覆盖。"
+              }
+            ],
+            "consequence": "用额外电力与操作修复真实错误，恢复救援条件。"
+          }
+        ],
+        "resolveText": "只有实体隔离成立，才进入维修笼的救援操作。旧的卡门录像不能充当本次成功证据。",
+        "resolutions": [
+          {
+            "id": "mechanical-check",
+            "label": "保留笼门关闭，去救援位时再检查机械锁",
+            "instructions": [
+              {
+                "path": "world.preRescueLockCheck",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              }
+            ],
+            "text": "你不立即释放维修笼。无论本卷显示成功或卡门，下一场接驳程序都先完成机械锁复核；坏结果必须先清障重锁。"
+          },
+          {
+            "id": "hold-and-reposition",
+            "label": "维持低档诱导供电，绕行到维修笼接口",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.lureMaintained",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.preRescueLockCheck",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你付出电力维持诱导，再改变泊位。该动作增加补救余裕，不把尚未锁定的闸门改写成已隔离。"
+          }
+        ]
+      },
+      {
+        "id": "l1-03",
+        "chapter": 1,
+        "title": "把他算进去",
+        "location": "接收层 · 维修笼转运接口",
+        "entryText": "埃利亚斯已等到不再需要冲过去的路线。转运托架一直固定在笼侧，接驳导轨和艇外接口都在你第一次全景里出现过。上方套管又传来错位声。",
+        "scoutFootage": "复核机位能检查货闸锁销是否真正穿孔；未锁定时必须先完成隔离，不能开笼。另一机位拍到维修笼出口、托架与艇外独立转接口；导轨末端有一块轻质碎板。服务井剖面标出底部独立检修竖井。",
+        "scoutFacts": [
+          "e.l1.transfer-route",
+          "e.l1.transfer-debris",
+          "e.l1.bottom-exit-map"
+        ],
+        "plannedSeconds": {
+          "travel": 60,
+          "reading": 55,
+          "action": 75
+        },
+        "choices": [
+          {
+            "id": "complete-rescue",
+            "label": "完成隔离复核、清轨并接驳埃利亚斯",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -4
+              },
+              {
+                "path": "world.predatorIsolated",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.gateJammed",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.eliasStatus",
+                "op": "set",
+                "value": "companion"
+              },
+              {
+                "path": "world.eliasDisposition",
+                "op": "set",
+                "value": "companion"
+              },
+              {
+                "path": "world.transferStuck",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.upperRouteBlocked",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.bottomExitVerified",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "relations.elias.trust",
+                "op": "add",
+                "value": 2
+              },
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": 0.12
+              }
+            ],
+            "evidence": [
+              "e.l1.elias-rescued",
+              "e.l1.transfer-sealed",
+              "e.l1.upper-route-blocked",
+              "e.l1.bottom-exit-verified"
+            ],
+            "resultText": "程序先检查并完成货闸锁定，再清轨开笼。埃利亚斯沿安全导轨进入独立套服托架，锁爪闭合，他坐下向镜头确认。随后清障试验只移走一块板，后方是错位岩体；井头回执证明底部电梯尚可动作。补给电池与液压接头入库。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "谢谢。下面的设备我熟。你告诉我需要做什么。",
+                "requires": {
+                  "path": "world.eliasStatus",
+                  "op": "eq",
+                  "value": "companion"
+                }
+              },
+              {
+                "speaker": "vance",
+                "text": "底部限位器回了信号。我们有一个出口，现在往下走。"
+              }
+            ],
+            "consequence": "真实救出核心同伴，取得下潜物资与独立核实的逃生路线；没有身份异常伏笔。"
+          },
+          {
+            "id": "hasty-transfer",
+            "label": "低速试挂，受阻时回退清轨，再完成安全接驳",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.06
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -8
+              },
+              {
+                "path": "world.predatorIsolated",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.gateJammed",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.transferStuck",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.eliasStatus",
+                "op": "set",
+                "value": "companion"
+              },
+              {
+                "path": "world.eliasDisposition",
+                "op": "set",
+                "value": "companion"
+              },
+              {
+                "path": "world.upperRouteBlocked",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.bottomExitVerified",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "relations.elias.trust",
+                "op": "add",
+                "value": 2
+              },
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": 0.12
+              }
+            ],
+            "evidence": [
+              "e.l1.elias-rescued",
+              "e.l1.transfer-sealed",
+              "e.l1.upper-route-blocked",
+              "e.l1.bottom-exit-verified"
+            ],
+            "resultText": "程序先完成闸门隔离。低速试挂发现托架受碎板阻挡，按预设回退后清轨再接驳；结果片记录接口确实扣紧，埃利亚斯坐下确认。清障机位与井头回执分别证明上路阻断、底部出口可用，补给电池与液压接头入库。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "刚才轨道卡住了。现在固定了，谢谢。",
+                "requires": {
+                  "path": "world.eliasStatus",
+                  "op": "eq",
+                  "value": "companion"
+                }
+              }
+            ],
+            "consequence": "同样真实救出同伴，以更多操作、电力和氧余量承担试挂代价；不形成缺失核心同伴的战役。"
+          }
+        ],
+        "resolveText": "第一章的成果是一个真正获救的伙伴。确认接驳与出口后，下潜去取得深层航程需要的冷却和轴封物资。",
+        "implementationNotes": [
+          "本场两种操作方案都完成真实救援与出口核验，避免缺失核心同伴的另一套未编写战役。"
+        ],
+        "resolutions": [
+          {
+            "id": "reserve-crew-oxygen",
+            "label": "接通同伴独立供氧，再补充个人应急瓶",
+            "instructions": [
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": 25
+              },
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.crewOxygenReserve",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "真实接驳已经核验。你花电力驱动补气，把个人应急瓶补足；后续仍由独立套服接口保护同伴，不打开不存在的公共舱门。"
+          },
+          {
+            "id": "reserve-battery",
+            "label": "保持独立供氧原配置，换上额外推进电池",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": 0.06
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -10
+              },
+              {
+                "path": "world.crewOxygenReserve",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "text": "你把补给操作用于换电池，付出停留时间并保留较少氧余量。埃利亚斯仍已真实加入，准备差异只影响后续资源。"
+          }
+        ]
+      },
+      {
+        "id": "l2-01",
+        "chapter": 2,
+        "title": "同一个女人，两个房间",
+        "location": "生活层 · 双隔离舱外的观察池",
+        "entryText": "两个方位同时传来同一个女人的求救，连断续咳嗽都重合。埃利亚斯指出远摄器的回收接口，没有替你认定门内的人是谁。",
+        "scoutFootage": "远摄器第一轮返回：西舱地上躺着广播器；东舱墙面组织随声音收缩，门把手下只有一只空衣袖。封存标签和发射器时间记录都处于镜头内。",
+        "scoutFacts": [
+          "e.l2.replay-source",
+          "e.l2.vocal-tissue",
+          "e.l2.remote-camera"
+        ],
+        "plannedSeconds": {
+          "travel": 75,
+          "reading": 75,
+          "action": 90
+        },
+        "choices": [
+          {
+            "id": "challenge-and-box",
+            "label": "核验原始记录，以隔离工具盒回收广播器",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.voiceTool",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.sourceQuarantined",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l2.first-call-human",
+              "e.l2.voice-not-identity",
+              "e.l2.voice-tool-tested"
+            ],
+            "resultText": "原始片连续拍到值班员发出求救，之后倒下。新动作挑战排除西舱旧录音，东舱组织却能回应。广播器封入透声工具盒后原位短试，邻近目标在开放水路中靠近；工具盒没有释放附着物。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "把原始发射时间留住。我们收到求救就出发，这一点没有错。",
+                "requires": {
+                  "path": "knowledge.vance",
+                  "op": "has",
+                  "value": "e.l2.first-call-human"
+                }
+              }
+            ],
+            "consequence": "保留首发求救为真人的证据，并取得后关可用、受水路条件限制的便携诱饵。"
+          },
+          {
+            "id": "seal-sources",
+            "label": "封闭两个声源，保留原片而不回收诱饵",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.sourceQuarantined",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l2.first-call-human",
+              "e.l2.voice-not-identity"
+            ],
+            "resultText": "两扇实体隔断闭合。原始片仍证明第一声求救是真的，回应者的形态则证明现在的声音不能代表原主人。广播器留在封闭舱内。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "还有一个弱信号，在独立救生舱那边。",
+                "requires": {
+                  "any": [
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "companion"
+                    },
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "cooperate"
+                    }
+                  ]
+                }
+              }
+            ],
+            "consequence": "不增加艇外携带风险；第五章没有这个便携诱饵时改用机械护栅。"
+          },
+          {
+            "id": "recover-tool",
+            "label": "打开外检修盒，重新完成隔离回收与低音量测试",
+            "condition": {
+              "all": [
+                {
+                  "path": "world.sourceQuarantined",
+                  "op": "eq",
+                  "value": true
+                },
+                {
+                  "path": "world.voiceTool",
+                  "op": "eq",
+                  "value": false
+                }
+              ]
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.05
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              },
+              {
+                "path": "world.voiceTool",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l2.voice-tool-tested"
+            ],
+            "resultText": "主舱门保持关闭，检修口提供局部回收路径。隔离工具盒取回后才短试，镜头记录开放水路的响应与实心隔断后的不响应。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "只拿封住的这一件，不打开主门。"
+              }
+            ],
+            "consequence": "用额外时间和电力补齐后续工具，不凭空发放诱饵。"
+          }
+        ],
+        "resolveText": "新的弱信号不因此自动可信。下一次救援仍需独立影像和隔离条件。",
+        "resolutions": [
+          {
+            "id": "retain-equipment",
+            "label": "保持声源隔离，保留已经取回的工具盒",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.01
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.sourceQuarantined",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你检查隔离容器并保持主舱关闭。若已回收工具盒，它继续随艇；没有取回的设备不会因这一确认凭空出现。"
+          },
+          {
+            "id": "leave-all-sources",
+            "label": "把广播器及工具盒留在封闭检修仓",
+            "instructions": [
+              {
+                "path": "world.voiceTool",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.sourceQuarantined",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -4
+              }
+            ],
+            "text": "你主动放弃便携诱饵，封闭检修仓。第五章只能使用机械护栅等独立方案，不能再调用这件设备。"
+          }
+        ]
+      },
+      {
+        "id": "l2-02",
+        "chapter": 2,
+        "title": "撤销版图纸",
+        "location": "生活层 · 供氧与反冲洗支路",
+        "entryText": "万斯照图读出一个泄放阀，现场却多了一块新挂牌。滤芯仓的公共反冲洗能快速释放下层物资；埃利亚斯说这是通常的维护程序。",
+        "scoutFootage": "镜头拍到旧图编号、新挂牌和实际歧管走向。备用氧瓶组仍接在泄放口后；公共反冲洗管通向第三层，单支路机械隔离接口就在旁边。",
+        "scoutFacts": [
+          "e.l2.revised-manifold",
+          "e.l2.backwash-flow",
+          "e.l2.local-isolation"
+        ],
+        "plannedSeconds": {
+          "travel": 70,
+          "reading": 70,
+          "action": 100
+        },
+        "choices": [
+          {
+            "id": "local-backwash",
+            "label": "按现场挂牌隔离瓶组，只反冲滤芯支路",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.06
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -4
+              },
+              {
+                "path": "world.coolingReady",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l2.oxygen-preserved",
+              "e.l2.local-backwash-complete"
+            ],
+            "resultText": "瓶组压力保持，滤芯释放。本次局部操作未转动公共泵，没有新增组织越界；如果此前已放通，边界外污染仍保留。冷却滤芯和轴封物资收回。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "我把所有图纸版本都开放。你看现场，我核编号。",
+                "requires": {
+                  "path": "knowledge.vance",
+                  "op": "has",
+                  "value": "e.l2.revised-manifold"
+                }
+              }
+            ],
+            "consequence": "多耗电，保留备用氧与较干净的第三层路径。"
+          },
+          {
+            "id": "public-backwash",
+            "label": "先按旧图泄放，再启动公共反冲洗",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -8
+              },
+              {
+                "path": "world.coolingReady",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.wet2Connected",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.oxygenLost",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l2.oxygen-loss",
+              "e.l2.downstream-contamination"
+            ],
+            "resultText": "压力下降触发你关阀，备用氧有损失但未归零。滤芯释放的同时，透明管内组织被送过第三层边界。后来的停泵不能把已通过的污染倒回去。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "压力掉了，先关阀。图纸责任等你回来再记。"
+              }
+            ],
+            "consequence": "省下一部分供电，却损失氧余量并永久记录本段扩散事实。"
+          },
+          {
+            "id": "stop-and-reroute",
+            "label": "停止公共泵，改接局部反冲并限制后续扩散",
+            "condition": {
+              "path": "world.wet2Connected",
+              "op": "eq",
+              "value": true
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.05
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -4
+              },
+              {
+                "path": "world.coolingReady",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.wet2FlowStopped",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l2.flow-stopped-after-spread"
+            ],
+            "resultText": "公共流量归零，局部反冲完成。边界外留下的组织仍在原位；结果片只证明后续流动被截断，不证明第三层恢复干净。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "把已经过去的也记上。不能只记最后的零流量。"
+              }
+            ],
+            "consequence": "付出电力阻止更多扩散，保留既有污染供后关回收。"
+          }
+        ],
+        "resolveText": "冷却与轴封物资足以继续下潜。现场版本证据是否交给万斯，由玩家显式报告决定。",
+        "resolutions": [
+          {
+            "id": "cap-public-flow",
+            "label": "按结果关闭公共供水，机械锁定后离开",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.wet2FlowStopped",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你锁停公共流量。若组织已经越界，第三层仍保留污染；此动作只防止继续通过，不擦除旧结果。"
+          },
+          {
+            "id": "leave-current-circuit",
+            "label": "保留本次反冲配置，把余电留给救生小舱",
+            "instructions": [
+              {
+                "path": "world.wet2FlowStopped",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "player.stress",
+                "op": "add",
+                "value": 2
+              }
+            ],
+            "text": "你不追加隔离动作。局部反冲原本未连通时仍未连通；公共回路已经开启时会保持相连，第三层按污染路径进入。"
+          }
+        ]
+      },
+      {
+        "id": "l2-03",
+        "chapter": 2,
+        "title": "第三个弱信号",
+        "location": "生活层 · 独立救生小舱",
+        "entryText": "尼科没有重复求救，只问你能不能看见小舱左边的急救包。他留着独立氧瓶，外部挂轨却被组织缠住。标准挂架只有一个，载荷标牌没有被藏起来。",
+        "scoutFootage": "连续动作挑战拍到尼科把急救包移到新的位置，舱内耗氧记录与独立封签可见。外部挂钩上附着组织，软管转弯处余量不足。影像支持按未知暴露者转运，不保证绝对未感染。",
+        "scoutFacts": [
+          "e.l2.niko-responsive",
+          "e.l2.single-rack",
+          "e.l2.transfer-hazards"
+        ],
+        "plannedSeconds": {
+          "travel": 60,
+          "reading": 65,
+          "action": 115
+        },
+        "choices": [
+          {
+            "id": "rescue-niko",
+            "label": "隔离外部组织、清挂轨，独立封舱转运",
+            "condition": {
+              "path": "world.nikoStatus",
+              "op": "ne",
+              "value": "left"
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.06
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              },
+              {
+                "path": "world.nikoRescued",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.nikoStatus",
+                "op": "set",
+                "value": "aboard"
+              },
+              {
+                "path": "world.nikoTransferFailed",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "relations.niko.trust",
+                "op": "add",
+                "value": 2
+              }
+            ],
+            "evidence": [
+              "e.l2.niko-secured",
+              "e.l2.niko-seal-complete"
+            ],
+            "resultText": "机械护栅将组织隔离在挂轨之外。清障后两个锁爪落位，软管顺直，尼科的小舱保持独立。他在窗内点头，舱号进入实际转运名单。",
+            "npcLines": [
+              {
+                "speaker": "niko",
+                "text": "请把艾文也记上。他没出来。",
+                "requires": {
+                  "path": "world.nikoStatus",
+                  "op": "eq",
+                  "value": "aboard"
+                }
+              },
+              {
+                "speaker": "elias",
+                "text": "艾文，名字最后没有e。他一直坐我旁边。",
+                "requires": {
+                  "any": [
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "companion"
+                    },
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "cooperate"
+                    }
+                  ]
+                }
+              }
+            ],
+            "consequence": "尼科成为持续在场的被救者，占用单挂架与供电。"
+          },
+          {
+            "id": "hasty-hook",
+            "label": "先试挂小舱，暂不清理外侧附着物",
+            "condition": {
+              "all": [
+                {
+                  "path": "world.nikoRescued",
+                  "op": "eq",
+                  "value": false
+                },
+                {
+                  "path": "world.nikoStatus",
+                  "op": "eq",
+                  "value": "waiting"
+                }
+              ]
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.nikoTransferFailed",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l2.niko-hook-obstructed"
+            ],
+            "resultText": "小舱停在限位之前，一条末端缠住挂钩，软管形成折角。尼科仍在原来的独立舱内，不计为已获救；结果片给出明确可处理的位置。",
+            "npcLines": [
+              {
+                "speaker": "niko",
+                "text": "舱在晃。我关着内门，别继续拉。",
+                "requires": {
+                  "path": "world.nikoStatus",
+                  "op": "eq",
+                  "value": "waiting"
+                }
+              }
+            ],
+            "consequence": "可以使用完整清轨转运程序补救；原位独立供氧保留余裕。"
+          },
+          {
+            "id": "leave-niko",
+            "label": "留下路线副本，明确放弃带走尼科",
+            "condition": {
+              "path": "world.nikoRescued",
+              "op": "eq",
+              "value": false
+            },
+            "instructions": [
+              {
+                "path": "world.nikoStatus",
+                "op": "set",
+                "value": "left"
+              },
+              {
+                "path": "world.nikoRescued",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "evidence": [
+              "e.l2.niko-left"
+            ],
+            "resultText": "挂架收回，封舱仍留在原位。最后一卷只记录你离开时他的独立小舱，不生成成功接驳画面。这个镜头不能证明他已死亡，也不会让他在终局继续作为随艇乘员说话。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "转运名单没有增加。我把这个决定记下来。"
+              }
+            ],
+            "consequence": "不占挂架；放弃一名可救者，后续按没有尼科的路线与对白运行。"
+          }
+        ],
+        "resolveText": "离开前确认名单。技术员的授权可留下，但授权不是获救者，后关不能生成一个不存在的小舱。",
+        "resolutions": [
+          {
+            "id": "close-transfer-window",
+            "label": "核对挂架与实际名单后结束本次转运窗口",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.01
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.nikoWindowClosed",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "已接收的小舱随艇；仍留在原位的小舱不算获救。关闭本次窗口后离开，不会在下一章自动补上一位乘员。"
+          },
+          {
+            "id": "top-up-niko",
+            "label": "从艇用氧储备补充尼科的独立小舱",
+            "condition": {
+              "path": "world.nikoRescued",
+              "op": "eq",
+              "value": true
+            },
+            "instructions": [
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -25
+              },
+              {
+                "path": "world.nikoOxygenTopped",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.nikoWindowClosed",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "relations.niko.trust",
+                "op": "add",
+                "value": 1
+              }
+            ],
+            "text": "你转出艇用氧给已核验接驳的小舱，改善它的转运余量，也减少自己的应急储备。该动作只对实际获救的尼科开放。"
+          },
+          {
+            "id": "leave-empty-rack",
+            "label": "明确留下未接收的小舱，携空挂架离开",
+            "condition": {
+              "path": "world.nikoRescued",
+              "op": "eq",
+              "value": false
+            },
+            "instructions": [
+              {
+                "path": "world.nikoStatus",
+                "op": "set",
+                "value": "left"
+              },
+              {
+                "path": "world.nikoWindowClosed",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "player.stress",
+                "op": "add",
+                "value": 5
+              }
+            ],
+            "text": "你明确结束救援。小舱留在原位，不生成最后一刻自动登艇；空挂架将在第四章直接用于莱娜。"
+          }
+        ]
+      },
+      {
+        "id": "l3-01",
+        "chapter": 3,
+        "title": "实验还在继续",
+        "location": "实验层 · 排液缝与限位取物槽",
+        "entryText": "微型摄影器穿过排液缝。实验桌下，一只手重复把盖子压在空培养盒上。切割头放在同一张桌子边，带限位的取物槽与外部机械接口相连。",
+        "scoutFootage": "窄角度先看见手、盒子和切割头，无法看见整个身体。另一张固定机位图显示取物槽的行程足以推开空盒并取回工具，不需要开启主体隔离门。",
+        "scoutFacts": [
+          "e.l3.repeated-lab-action",
+          "e.l3.retrieval-slot"
+        ],
+        "plannedSeconds": {
+          "travel": 80,
+          "reading": 80,
+          "action": 100
+        },
+        "choices": [
+          {
+            "id": "move-box",
+            "label": "把空盒推离惯常位置，收臂后换角度拍摄",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.cutterReady",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.toolDamaged",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "evidence": [
+              "e.l3.body-replaced",
+              "e.l3.sample-chain",
+              "e.l3.cutter-retrieved"
+            ],
+            "resultText": "手伸到不可能由正常手臂覆盖的位置，侧面连续影像揭示它接在墙面组织上。将空盒留在远侧后，机械臂从取物槽取回切割头并复闭。钻头残留、封签与工伤卡构成样本先接触、体征后改变的独立证据。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "切割头拿到了？先把槽关上。",
+                "requires": {
+                  "any": [
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "companion"
+                    },
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "cooperate"
+                    }
+                  ]
+                }
+              }
+            ],
+            "consequence": "取得工具与转化机制证据；熟练的工作动作不再足以证明身体完整。"
+          },
+          {
+            "id": "open-lab",
+            "label": "打开主体门，直接伸臂取工具",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              },
+              {
+                "path": "world.cutterReady",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.toolDamaged",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l3.body-replaced",
+              "e.l3.sample-chain",
+              "e.l3.claw-damage"
+            ],
+            "resultText": "组织把夹爪当作新物件拖向桌面。你卸开受力夹爪脱离，再用备用末端从取物槽取回切割头；切割工具保住，原夹爪受损。连续侧片记录手臂与墙面组织的连接。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "液压负荷超限。卸末端，别拖着整条臂硬退。"
+              }
+            ],
+            "consequence": "推进主线但留下维修负担，不能把获得工具当成无损成功。"
+          },
+          {
+            "id": "repair-claw",
+            "label": "从本层备用架换夹爪，复核限位取物槽",
+            "condition": {
+              "path": "world.toolDamaged",
+              "op": "eq",
+              "value": true
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -6
+              },
+              {
+                "path": "world.toolDamaged",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.cutterReady",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l3.claw-restored"
+            ],
+            "resultText": "备用夹爪安装后完成空载夹合；取物槽机械止挡复位。维修只恢复机械臂，不使隔离门内的组织消失。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "夹爪恢复。门里的东西留在门里。"
+              }
+            ],
+            "consequence": "额外操作恢复后续机械能力，不消耗终局专用接点备件。"
+          },
+          {
+            "id": "clean-side-retrieval",
+            "label": "利用二层保留的干净支路，从侧检修位完成盒子试验与取物",
+            "condition": {
+              "all": [
+                {
+                  "path": "world.wet2Connected",
+                  "op": "eq",
+                  "value": false
+                },
+                {
+                  "path": "world.toolDamaged",
+                  "op": "eq",
+                  "value": false
+                }
+              ]
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -2
+              },
+              {
+                "path": "world.cutterReady",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l3.body-replaced",
+              "e.l3.sample-chain",
+              "e.l3.cutter-retrieved"
+            ],
+            "resultText": "未受公共反冲洗污染的侧检修位可直接靠泊。你同样移动培养盒并换角度，记录手臂接在墙面组织上，再从限位槽取回工具和封签。省下的是外廊防护操作，不是省略关键身份物证。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "二层没送水过来，这个侧位还能用。"
+              }
+            ],
+            "consequence": "第二层保持局部反冲的选择在第三层解锁较省资源的真实取物路径。"
+          }
+        ],
+        "resolveText": "工伤卡里出现M-04维护员的编号。此刻只有暴露关联，没有服内确证。",
+        "resolutions": [
+          {
+            "id": "inspect-tool",
+            "label": "检修取物夹爪，必要时换用本层备用末端",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              },
+              {
+                "path": "world.toolDamaged",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "text": "你用本层零件完成夹爪检查与修复，付出电力和时间。不是使用最终电梯控制用的接点备件，两种物料不混算。"
+          },
+          {
+            "id": "accept-tool-wear",
+            "label": "保留当前夹爪状况，把电量留给医疗供能",
+            "instructions": [
+              {
+                "path": "player.stress",
+                "op": "add",
+                "value": 1
+              }
+            ],
+            "text": "你不追加维修。完好的工具继续完好，已有损伤则保留到后续操作记录；备用电力没有被本场检修消耗。"
+          }
+        ]
+      },
+      {
+        "id": "l3-02",
+        "chapter": 3,
+        "title": "他怎样托住了它",
+        "location": "实验层 · 外部检修托架",
+        "entryText": "涡流扫过外挂设备，埃利亚斯把滑落的载荷推回接口。有尼科时是救生小舱，否则是工具架。帮助确实发生，画面边缘的肘部动作却需要另一个角度。",
+        "scoutFootage": "远机位保留托回载荷的连续动作。肘部看似越过金属限位，但遮挡不足以排除透视；固定检修托架可同时拍到断开的供电接头与实体限位。",
+        "scoutFacts": [
+          "e.l3.elias-helped",
+          "e.l3.motion-needs-check"
+        ],
+        "plannedSeconds": {
+          "travel": 65,
+          "reading": 90,
+          "action": 105
+        },
+        "choices": [
+          {
+            "id": "private-test",
+            "label": "以维护检查为由断开伺服，再记录小幅动作",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.motionChecked",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l3.identity-motion"
+            ],
+            "resultText": "断开的供电接头与右臂同时在画面内。套服肘部仍跨过金属限位，皮套内有非机械方式牵动。托回载荷是真实帮助；这卷把解释变成强疑点，却未拍到完整服内结构。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "只是检修？好，你说什么时候动。",
+                "requires": {
+                  "any": [
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "companion"
+                    },
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "cooperate"
+                    }
+                  ]
+                }
+              }
+            ],
+            "consequence": "玩家获得未必公开的强疑点，埃利亚斯不会隔空得知你分析出了什么。"
+          },
+          {
+            "id": "accept-help",
+            "label": "先确认载荷归位，暂不安排身份检查",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "relations.elias.trust",
+                "op": "add",
+                "value": 1
+              }
+            ],
+            "evidence": [
+              "e.l3.payload-secured"
+            ],
+            "resultText": "片中接口重新扣紧，小舱或工具架不再滑动。机位没有补足肘部盲区，系统不会把未取得的断电影像加入证据。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "谢谢。先把载荷固定。"
+              }
+            ],
+            "consequence": "维持信任，身份强疑点仍未知；第四章仍可获得直接证据。"
+          },
+          {
+            "id": "vance-check",
+            "label": "依万斯收到的异常原片，公开要求限制活动并复检",
+            "condition": {
+              "path": "knowledge.vance",
+              "op": "has",
+              "value": "e.l3.identity-motion"
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.suspicionPublic",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.motionChecked",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "relations.elias.trust",
+                "op": "add",
+                "value": -1
+              },
+              {
+                "path": "relations.vance.respect",
+                "op": "add",
+                "value": 1
+              }
+            ],
+            "evidence": [
+              "e.l3.identity-motion",
+              "e.l3.public-boundary"
+            ],
+            "resultText": "你明确引用已交给万斯的那一卷，要求埃利亚斯留在检修线外。复片再次拍到断电牵动；外廊边界已被实际划定，后续检查走公开对峙路线。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "我收到的原片和你这次检查是一回事。先限制接驳权限。",
+                "requires": {
+                  "path": "knowledge.vance",
+                  "op": "has",
+                  "value": "e.l3.identity-motion"
+                }
+              },
+              {
+                "speaker": "elias",
+                "text": "你要我留在哪里？说清楚。",
+                "requires": {
+                  "any": [
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "companion"
+                    },
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "cooperate"
+                    }
+                  ]
+                }
+              }
+            ],
+            "consequence": "关系受影响但身份不变；角色只能引用确实收到的证据。"
+          }
+        ],
+        "resolveText": "保护动作没有被取消，异常动作也没有被善意解释掉。是否报告原片，将改变下一次对话的已知前提。",
+        "resolutions": [
+          {
+            "id": "keep-findings-private",
+            "label": "暂不公开新判断，保留对同伴的观察距离",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.01
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.privateObservation",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你不向埃利亚斯解释片匣结论。已经公开的质问不会被撤销；未公开证据仍只属于看过片的人，向万斯报告是另一项明确操作。"
+          },
+          {
+            "id": "announce-restriction",
+            "label": "据现有疑点公开限制同伴接近转接口",
+            "instructions": [
+              {
+                "path": "world.suspicionPublic",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "relations.elias.trust",
+                "op": "add",
+                "value": -1
+              },
+              {
+                "path": "relations.elias.respect",
+                "op": "add",
+                "value": 1
+              }
+            ],
+            "text": "你明确宣布行为边界。即使未做断电试验，也只能说还需要核验，不能声称已经看见服内结构；同伴从此知道你在怀疑。"
+          }
+        ]
+      },
+      {
+        "id": "l3-03",
+        "chapter": 3,
+        "title": "给谁通电",
+        "location": "实验层 · 医疗馈线分流柜",
+        "entryText": "莱娜的医疗端失电。埃利亚斯建议恢复整层循环，管图则显示医疗馈线与生活泵联动。双联承架挂在旁边的转运架上，标着额外载荷与降低横向机动的代价。",
+        "scoutFootage": "微摄记录联动接触器、中间隔离槽和第四层流向。双联承架有两个独立限位。热屏蔽外套与局部调压件可从安全检修侧取出。",
+        "scoutFacts": [
+          "e.l3.medical-pump-link",
+          "e.l3.buffer-boundary",
+          "e.l3.dual-rack-visible"
+        ],
+        "plannedSeconds": {
+          "travel": 75,
+          "reading": 80,
+          "action": 105
+        },
+        "choices": [
+          {
+            "id": "medical-only",
+            "label": "拆备用加热单元旁接医疗端，同时取得双联承架",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.06
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              },
+              {
+                "path": "world.medicalPowered",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.dualRack",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.developHeaterReduced",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.thermalReady",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l3.medical-only",
+              "e.l3.dual-rack-secured"
+            ],
+            "resultText": "医疗灯亮，循环泵轴保持锁定，二者不同状态出现在同一卷中；若此前已经放通，第四层既有污染仍保留。承架固定，热屏蔽与调压件入库；代价是备用加热和横向机动余量减少。莱娜的独立氧系统没有因这个选择凭空充满。",
+            "npcLines": [
+              {
+                "speaker": "lena",
+                "text": "电回来了。别让M-04进排水舱。穿上那套服装以前，他已经不是正常人体了。",
+                "requires": {
+                  "path": "world.lenaStatus",
+                  "op": "eq",
+                  "value": "waiting"
+                }
+              }
+            ],
+            "consequence": "保留较干净的第四层撤离路径，准备双人转运；医官证词仍须验证。"
+          },
+          {
+            "id": "restore-main",
+            "label": "恢复整层循环，先取热屏蔽与调压件",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.medicalPowered",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.wet3Connected",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.thermalReady",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l3.medical-with-spread"
+            ],
+            "resultText": "医疗灯亮，循环泵也启动。镜头记录组织越过第四层边界；中间隔离槽已经排空，停泵只能限制后续流入。热屏蔽与调压件完成回收。",
+            "npcLines": [
+              {
+                "speaker": "lena",
+                "text": "通信恢复了。你们先别把水送进来。",
+                "requires": {
+                  "path": "world.lenaStatus",
+                  "op": "eq",
+                  "value": "waiting"
+                }
+              }
+            ],
+            "consequence": "省电但污染第四层外廊；没有取得双联承架，可在后关分次转运。"
+          },
+          {
+            "id": "cut-after-flow",
+            "label": "切主循环、改医疗旁接，并补取双联承架",
+            "condition": {
+              "path": "world.wet3Connected",
+              "op": "eq",
+              "value": true
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.06
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -6
+              },
+              {
+                "path": "world.wet3FlowStopped",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.medicalPowered",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.dualRack",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.developHeaterReduced",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l3.medical-rerouted-after-spread",
+              "e.l3.dual-rack-secured"
+            ],
+            "resultText": "泵轴被锁住，医疗端持续供电。边界外既有组织仍可见，第四层必须走干侧转运。补取承架减少后续接驳次数，不能抵消已发生的污染。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "停的是后续水流。前面的那一段，照实写。"
+              }
+            ],
+            "consequence": "增加操作和电力成本限制恶化，并补足第二名伤员的转运准备。"
+          }
+        ],
+        "resolveText": "莱娜给出位置和一句直接指控。第四章不靠换一个广播者相信，而是拍摄服内结构。",
+        "implementationNotes": [
+          "备用加热降低属于正式设备设计；实验曝光显影仍用统一规则，不假称已实现可变12秒计时。"
+        ],
+        "resolutions": [
+          {
+            "id": "isolate-before-descent",
+            "label": "锁停公共泵，保持医疗馈线后进入下一层",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.wet3FlowStopped",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.medicalPowered",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你在离开前追加机械隔离，医疗供能保持。已经越过边界的组织不会因停泵消失，第四层仍须按既有污染安排转运。"
+          },
+          {
+            "id": "prepare-second-rack",
+            "label": "多花一次拆装取得双联承架，接受横向机动损失",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -6
+              },
+              {
+                "path": "world.dualRack",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你补取或重新固定双联承架，为第二名伤员预留真实承载。第四章一次双舱转运因此可用；不是凭关系值增加容量。"
+          }
+        ]
+      },
+      {
+        "id": "l4-01",
+        "chapter": 4,
+        "title": "请留在镜头里",
+        "location": "隔离医疗层 · M-04检修架",
+        "entryText": "莱娜提供病理序列和检修接口图，证词不能代替影像。外机位记录右臂，微机位沿破损接口进入；两枚校时标先在同一机位下验证，再分别固定。",
+        "scoutFootage": "服外编号M-04清楚可见。初始内片只拍到机械骨架旁活动组织，尚不能排除外侧附着。检修架有实际限位，能在对峙路线限制大幅动作。",
+        "scoutFacts": [
+          "e.l4.suit-interface",
+          "e.l4.sync-calibrated"
+        ],
+        "plannedSeconds": {
+          "travel": 75,
+          "reading": 100,
+          "action": 105
+        },
+        "choices": [
+          {
+            "id": "controlled-inspection",
+            "label": "用检修架固定套服，完成内外同步动作核验",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.05
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              },
+              {
+                "path": "world.inspectionComplete",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.suspicionPublic",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l4.identity-confirmed",
+              "e.l4.medical-delay"
+            ],
+            "resultText": "右手转动、停住、反向时，服内组织与外部手臂同步牵动。微机位沿固定导轨拍到内部已没有完整人形躯干。连续病理记录显示变化发生在穿上套服以前；复工反对意见和观察延误记录同时存在。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "你看完了吗？现在能把夹具松开了吗？",
+                "requires": {
+                  "any": [
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "companion"
+                    },
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "cooperate"
+                    }
+                  ]
+                }
+              },
+              {
+                "speaker": "lena",
+                "text": "我当时想给他时间。这一页是我签的。",
+                "requires": {
+                  "path": "world.lenaStatus",
+                  "op": "eq",
+                  "value": "waiting"
+                }
+              }
+            ],
+            "consequence": "确证固定世界身份，转向如何处理他；公开检查使对方知道你在查证。"
+          },
+          {
+            "id": "cooperative-inspection",
+            "label": "利用已有信任，请他自行完成维修动作，暂不公开结论",
+            "condition": {
+              "path": "relations.elias.trust",
+              "op": "gte",
+              "value": 2
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.inspectionComplete",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l4.identity-confirmed",
+              "e.l4.medical-delay"
+            ],
+            "resultText": "他按要求转手、停住、再反转。同步内外片展示同一事实：身体被组织替换，活动沿套服骨架传递。服外传来平静的维修回应；片匣结论仍只有看过它的人知道。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "可以了。接下来还要做什么？",
+                "requires": {
+                  "any": [
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "companion"
+                    },
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "cooperate"
+                    }
+                  ]
+                }
+              }
+            ],
+            "consequence": "关系只改变检查方式和信息公开程度，不改变服内真相。"
+          },
+          {
+            "id": "share-boundary",
+            "label": "对已经收到原片的万斯确认接驳权限限制",
+            "condition": {
+              "path": "knowledge.vance",
+              "op": "has",
+              "value": "e.l4.identity-confirmed"
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.inspectionComplete",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.suspicionPublic",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "relations.vance.respect",
+                "op": "add",
+                "value": 1
+              }
+            ],
+            "evidence": [
+              "e.l4.identity-confirmed",
+              "e.l4.boundary-declared"
+            ],
+            "resultText": "检修架重新复位，外廊隔离线和套服在同一画面。原片没有被新说法覆盖；接驳权限已明确暂停，仍需下一场实际选择拘束、有限合作或毁伤。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "原片收到了。能帮助你和能进入转运舱，是两件事。",
+                "requires": {
+                  "path": "knowledge.vance",
+                  "op": "has",
+                  "value": "e.l4.identity-confirmed"
+                }
+              }
+            ],
+            "consequence": "万斯依据显式收到的证据回应；宣布限制不等于已经物理拘束成功。"
+          }
+        ],
+        "resolveText": "第四章前半段完成身份揭露，之后保留充分行动空间。你救过他，他救过你；这些都没有使排水旁路安全。",
+        "resolutions": [
+          {
+            "id": "preserve-originals",
+            "label": "封存服内原片与病理序列，保留独立追责证据",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.01
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.originalEvidencePreserved",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你保存未经重写的原始片匣。它支持后续追责，但不会自动提交给万斯，也不改变已经发生的转化。"
+          },
+          {
+            "id": "confront-elias",
+            "label": "向埃利亚斯明确说明已确认的服内事实",
+            "condition": {
+              "path": "knowledge.player",
+              "op": "has",
+              "value": "e.l4.identity-confirmed"
+            },
+            "instructions": [
+              {
+                "path": "world.suspicionPublic",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "relations.elias.trust",
+                "op": "add",
+                "value": -1
+              },
+              {
+                "path": "relations.elias.respect",
+                "op": "add",
+                "value": 1
+              }
+            ],
+            "text": "你让他知道自己已经看完服内证据。之后不再允许他以完全未被怀疑的方式对话；身体身份没有发生新的切换。"
+          }
+        ]
+      },
+      {
+        "id": "l4-02",
+        "chapter": 4,
+        "title": "已经锁住了吗",
+        "location": "隔离医疗层 · 维修夹具与剪切架",
+        "entryText": "夹具的一个卡槽里有碎金属。外廊服务口、剪切架和回收接头都在视线里。决定怎么对待埃利亚斯，不能代替检查装置实际做到了什么。",
+        "scoutFootage": "双锁爪的闭合轨迹、被堵的卡槽与可封闭服务口有完整机位。液压接头可回收；剪切架会一并损坏套服接头，需要动用随艇备用件。",
+        "scoutFacts": [
+          "e.l4.restraint-debris",
+          "e.l4.cooperation-boundary",
+          "e.l4.shear-cost"
+        ],
+        "plannedSeconds": {
+          "travel": 65,
+          "reading": 85,
+          "action": 130
+        },
+        "choices": [
+          {
+            "id": "restrain",
+            "label": "清卡槽、验锁销，拘束并收回液压接头",
+            "condition": {
+              "path": "world.eliasStatus",
+              "op": "ne",
+              "value": "damaged"
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.05
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              },
+              {
+                "path": "world.eliasStatus",
+                "op": "set",
+                "value": "restrained"
+              },
+              {
+                "path": "world.eliasDisposition",
+                "op": "set",
+                "value": "restrained"
+              },
+              {
+                "path": "world.restraintLoose",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "evidence": [
+              "e.l4.restraint-confirmed"
+            ],
+            "resultText": "碎片清除后，两枚锁爪同时闭合，锁销穿过固定孔。他拉动套服，维修架保持不动。液压接头收回，独立机械锁保持，不依赖下一幕的电力。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "你要把我留在这里。",
+                "requires": {
+                  "path": "world.eliasStatus",
+                  "op": "eq",
+                  "value": "restrained"
+                }
+              },
+              {
+                "speaker": "player",
+                "text": "我知道你帮过我。我也看见了那些管线。"
+              }
+            ],
+            "consequence": "终局没有自由行动的埃利亚斯；不得为戏剧效果自动逃脱。"
+          },
+          {
+            "id": "limited-cooperation",
+            "label": "保留湿侧合作，封服务口并限制接驳权限",
+            "condition": {
+              "path": "world.eliasStatus",
+              "op": "ne",
+              "value": "damaged"
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.eliasStatus",
+                "op": "set",
+                "value": "cooperate"
+              },
+              {
+                "path": "world.eliasDisposition",
+                "op": "set",
+                "value": "cooperate"
+              },
+              {
+                "path": "world.restraintLoose",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "relations.elias.respect",
+                "op": "add",
+                "value": 1
+              }
+            ],
+            "evidence": [
+              "e.l4.limited-cooperation"
+            ],
+            "resultText": "他在指定外廊递来接口，另一只手靠近服务管。你实际关闭该服务口并保留实体隔断；影像同时记录帮助与边界试探。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "我没有让你死。",
+                "requires": {
+                  "path": "world.eliasStatus",
+                  "op": "eq",
+                  "value": "cooperate"
+                }
+              },
+              {
+                "speaker": "player",
+                "text": "我知道。你也让我做过别的事。"
+              }
+            ],
+            "consequence": "后关保留外部协助，同时保留会尝试未获许可旁路的风险。"
+          },
+          {
+            "id": "damage-suit",
+            "label": "引入剪切架毁伤主体，再封闭排液槽",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              },
+              {
+                "path": "world.eliasStatus",
+                "op": "set",
+                "value": "damaged"
+              },
+              {
+                "path": "world.eliasDisposition",
+                "op": "set",
+                "value": "damaged"
+              },
+              {
+                "path": "world.spareParts",
+                "op": "set",
+                "value": 0
+              },
+              {
+                "path": "world.residualTissueSealed",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l4.suit-disabled",
+              "e.l4.residual-sealed"
+            ],
+            "resultText": "主体套服停止活动，一段组织退向排液槽。封闭槽口的结果片只支持已控制这条路径，不保证每一块组织死亡。损坏的接头无法回收，备用接点投入当前接口维修。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "记录失去活动，不写彻底死亡。"
+              }
+            ],
+            "consequence": "失去同伴外部协助和随艇修复备件，残留组织按已封闭状态延续。"
+          },
+          {
+            "id": "hasty-restraint",
+            "label": "未清卡槽就闭合夹具",
+            "condition": {
+              "path": "world.eliasStatus",
+              "op": "ne",
+              "value": "damaged"
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.restraintLoose",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.eliasStatus",
+                "op": "set",
+                "value": "cooperate"
+              },
+              {
+                "path": "world.eliasDisposition",
+                "op": "set",
+                "value": "loose"
+              }
+            ],
+            "evidence": [
+              "e.l4.restraint-failed"
+            ],
+            "resultText": "一只锁爪停在碎片上，另一只手仍能抽动。画面明确否定永久拘束；埃利亚斯仍在外廊，系统不能把他记成已经安全留置。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "只有一侧扣上。不能按成功登记。"
+              }
+            ],
+            "consequence": "需选择清卡槽后拘束，或明确接受有限合作；忽略结果留下真实行动风险。"
+          }
+        ],
+        "resolveText": "下一关只调用实际仍有行动权限的人。拘束、毁伤与合作不是三种口吻，而是三种物理状态。",
+        "resolutions": [
+          {
+            "id": "close-adjacent-service",
+            "label": "另外封闭相邻服务口，保留已执行的同伴处置",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.residualTissueSealed",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.adjacentServiceClosed",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你封闭独立服务口，减少一条可能的旁路。拘束是否成功仍按夹具结果，毁伤不会复活，有限合作也没有被此动作偷偷变为拘束。"
+          },
+          {
+            "id": "save-current-boundary",
+            "label": "保留当前隔离边界，不追加服务口施工",
+            "instructions": [
+              {
+                "path": "world.adjacentServiceClosed",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "player.stress",
+                "op": "add",
+                "value": 2
+              }
+            ],
+            "text": "你保存当前处置。松动夹具仍算松动，确认拘束仍算拘束；节省下的电量以少一层物理保护为代价。"
+          }
+        ]
+      },
+      {
+        "id": "l4-03",
+        "chapter": 4,
+        "title": "第二名乘客",
+        "location": "隔离医疗层 · 独立供氧暂存坞",
+        "entryText": "莱娜把健康证明举到镜头前，划去结论，只留下检测日期：“那天我不知道该查什么。”标准挂架、双联接口和带独立供氧的暂存坞都能拍到。",
+        "scoutFootage": "莱娜进入独立转运套舱。门槽需要检查；前关若放通主循环，外廊有组织残留，不能把封签替代脱污。暂存坞供氧与往返路程明示，先补气再分次转运可行。",
+        "scoutFacts": [
+          "e.l4.lena-unknown-exposure",
+          "e.l4.staging-oxygen",
+          "e.l4.transfer-capacity"
+        ],
+        "plannedSeconds": {
+          "travel": 85,
+          "reading": 80,
+          "action": 115
+        },
+        "choices": [
+          {
+            "id": "staged-rescue",
+            "label": "先检查、脱污并补气，必要时分两次转运",
+            "condition": {
+              "path": "world.lenaStatus",
+              "op": "ne",
+              "value": "left"
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.06
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -6
+              },
+              {
+                "path": "world.lenaRescued",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.lenaStatus",
+                "op": "set",
+                "value": "aboard"
+              },
+              {
+                "path": "world.transferClean",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.wellAdapter",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.wasteTank",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "relations.lena.trust",
+                "op": "add",
+                "value": 2
+              }
+            ],
+            "evidence": [
+              "e.l4.lena-secured",
+              "e.l4.transfer-clean",
+              "e.l4.well-equipment"
+            ],
+            "resultText": "结果序列逐一记录真实名单内的小舱：有人占用挂架时先送入独立供氧暂存位，再取莱娜；没有尼科时直接接单舱。清理门槽后封门连续，供氧补足。接口、废液罐和复位扳手入库。",
+            "npcLines": [
+              {
+                "speaker": "lena",
+                "text": "我延长过观察。这份记录跟我一起出去。",
+                "requires": {
+                  "path": "world.lenaStatus",
+                  "op": "eq",
+                  "value": "aboard"
+                }
+              }
+            ],
+            "consequence": "安全救出莱娜，无双联承架也能完成，代价是更多航程与操作。"
+          },
+          {
+            "id": "dual-rescue",
+            "label": "使用已取得的双联承架，逐舱脱污后一次转运",
+            "condition": {
+              "all": [
+                {
+                  "path": "world.dualRack",
+                  "op": "eq",
+                  "value": true
+                },
+                {
+                  "path": "world.lenaStatus",
+                  "op": "ne",
+                  "value": "left"
+                }
+              ]
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -4
+              },
+              {
+                "path": "world.lenaRescued",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.lenaStatus",
+                "op": "set",
+                "value": "aboard"
+              },
+              {
+                "path": "world.transferClean",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.wellAdapter",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.wasteTank",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "relations.lena.trust",
+                "op": "add",
+                "value": 2
+              }
+            ],
+            "evidence": [
+              "e.l4.lena-secured",
+              "e.l4.transfer-clean",
+              "e.l4.well-equipment"
+            ],
+            "resultText": "双联承架承载实际存在的小舱，空位保持空置。每个锁爪与独立封门均有结果片；已清理的门槽不再留下组织。油井接口与分流废液设备也完成回收。",
+            "npcLines": [
+              {
+                "speaker": "lena",
+                "text": "不要因为我会回答，就给我的舱开内门。",
+                "requires": {
+                  "path": "world.lenaStatus",
+                  "op": "eq",
+                  "value": "aboard"
+                }
+              }
+            ],
+            "consequence": "回收第三章承架准备，节省一次往返；不能凭空补回已放弃的尼科。"
+          },
+          {
+            "id": "leave-lena",
+            "label": "取走油井设备，明确不带莱娜撤离",
+            "condition": {
+              "path": "world.lenaRescued",
+              "op": "eq",
+              "value": false
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.lenaStatus",
+                "op": "set",
+                "value": "left"
+              },
+              {
+                "path": "world.lenaRescued",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.wellAdapter",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.wasteTank",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l4.lena-left",
+              "e.l4.well-equipment"
+            ],
+            "resultText": "设备入库，莱娜的独立套舱仍留在暂存位。结果片不播放成功挂接，也不提供她仅在同意同行后交出的责任补充证词；主线病理物证仍然保留。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "设备收到了。乘员名单没有增加。"
+              }
+            ],
+            "consequence": "放弃第二名可救者，终局名单保持真实；没有两名乘员就不生成双舱问题。"
+          },
+          {
+            "id": "clean-corridor-rescue",
+            "label": "利用三层保留的干净外廊，沿短路完成独立转运",
+            "condition": {
+              "all": [
+                {
+                  "path": "world.wet3Connected",
+                  "op": "eq",
+                  "value": false
+                },
+                {
+                  "path": "world.lenaStatus",
+                  "op": "ne",
+                  "value": "left"
+                }
+              ]
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.lenaRescued",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.lenaStatus",
+                "op": "set",
+                "value": "aboard"
+              },
+              {
+                "path": "world.transferClean",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.wellAdapter",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.wasteTank",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "relations.lena.trust",
+                "op": "add",
+                "value": 2
+              }
+            ],
+            "evidence": [
+              "e.l4.lena-secured",
+              "e.l4.transfer-clean",
+              "e.l4.well-equipment"
+            ],
+            "resultText": "第三层未放通公共循环，外廊没有新增组织阻塞。你仍逐一检查实际小舱的封门与挂钩，有尼科时按承架容量暂存或双联转运，但不必绕干侧清障长路。油井设备随行。",
+            "npcLines": [
+              {
+                "speaker": "lena",
+                "text": "这条外廊没有进水。你们保住了它。",
+                "requires": {
+                  "path": "world.lenaStatus",
+                  "op": "eq",
+                  "value": "aboard"
+                }
+              }
+            ],
+            "consequence": "医疗单支路供电的代价在第四层兑现：节省绕行与清障资源，不降低未知暴露者的隔离标准。"
+          }
+        ],
+        "resolveText": "零、一、两名人类幸存者分别进入末章。埃利亚斯是另一项同伴状态，不混入已确认人类伤员人数。",
+        "resolutions": [
+          {
+            "id": "retain-contained-transfer",
+            "label": "保持所有实际小舱独立封闭，给转运接口做二次加固",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.transferReinforced",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你加固现有接口，不打开乘员舱。有人时加强实际挂接，无人时只固定玩家接口；没有任何失踪乘员因此被补进名单。"
+          },
+          {
+            "id": "retain-solo-reserve",
+            "label": "保留现有合格接口，把电力留作底站维修储备",
+            "instructions": [
+              {
+                "path": "world.transferReinforced",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              }
+            ],
+            "text": "你检查当前接口后停止追加施工，保留电量用于下层。既有成功密封仍然成立，但没有额外加固层。"
+          }
+        ]
+      },
+      {
+        "id": "l5-01",
+        "chapter": 5,
+        "title": "门两边的人",
+        "location": "旧油井层 · 底部转运坞",
+        "entryText": "干式井筒的本地控制台在密封短通道后，检修柜与片匣检视台一开始就能看见。入坞空载试验证明：本地维持开关与艇内远控是不同回路。",
+        "scoutFootage": "镜头拍转运导轨、机械护栅和可封闭支路。按名单准备人员小舱；零乘员时准备玩家密封通道。埃利亚斯是否在湿侧，只由第四章的实际处置决定。",
+        "scoutFacts": [
+          "e.l5.local-control",
+          "e.l5.repair-cabinet",
+          "e.l5.transfer-route"
+        ],
+        "plannedSeconds": {
+          "travel": 70,
+          "reading": 70,
+          "action": 80
+        },
+        "choices": [
+          {
+            "id": "mechanical-corridor",
+            "label": "布置机械护栅，低速扶正实际载荷与通道",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.06
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              },
+              {
+                "path": "world.finalTransferSecured",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l5.transfer-secured"
+            ],
+            "resultText": "护栅形成连续隔离，导轨复位。画面只记录实际名单中的小舱；无乘员时记录玩家通道密封。艇外人员没有被许可接近干侧排水。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "底站电流稳定。正式提升前，先做低幅度试验。"
+              }
+            ],
+            "consequence": "无论同伴是否在场都可完成，消耗较多电力；不凭空出现诱饵。"
+          },
+          {
+            "id": "use-voice-tool",
+            "label": "在连通水路布置已回收的声源工具盒",
+            "condition": {
+              "path": "world.voiceTool",
+              "op": "eq",
+              "value": true
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.finalTransferSecured",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l5.voice-tool-used",
+              "e.l5.transfer-secured"
+            ],
+            "resultText": "工具盒在开放水路短试，影像确认附近目标离开转运区，随后护栅闭合。实际载荷逐一落座；隔着实心闸的区域不被假定受到诱导。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "用的是第二层那一件。先看响应，再送载荷。"
+              }
+            ],
+            "consequence": "第二章的准备节省末章操作，工具用途仍受已验证条件限制。"
+          },
+          {
+            "id": "elias-help",
+            "label": "允许仍在外廊的埃利亚斯扶正载荷",
+            "condition": {
+              "all": [
+                {
+                  "any": [
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "companion"
+                    },
+                    {
+                      "path": "world.eliasStatus",
+                      "op": "eq",
+                      "value": "cooperate"
+                    }
+                  ]
+                },
+                {
+                  "path": "relations.elias.trust",
+                  "op": "gte",
+                  "value": 1
+                }
+              ]
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.finalTransferSecured",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.eliasProtected",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l5.elias-protected",
+              "e.l5.transfer-secured"
+            ],
+            "resultText": "他关掉一条有利于转化体通行的支路，折断锁柄，然后扶正伤员小舱；零伤员时扶正玩家密封通道。这个动作确实损害传播路径，却不撤销他可能接近其他旁路的风险。",
+            "npcLines": [
+              {
+                "speaker": "elias",
+                "text": "先让他们过去。",
+                "requires": {
+                  "all": [
+                    {
+                      "any": [
+                        {
+                          "path": "world.eliasStatus",
+                          "op": "eq",
+                          "value": "companion"
+                        },
+                        {
+                          "path": "world.eliasStatus",
+                          "op": "eq",
+                          "value": "cooperate"
+                        }
+                      ]
+                    },
+                    {
+                      "any": [
+                        {
+                          "path": "world.nikoRescued",
+                          "op": "eq",
+                          "value": true
+                        },
+                        {
+                          "path": "world.lenaRescued",
+                          "op": "eq",
+                          "value": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "speaker": "elias",
+                "text": "你先过去。",
+                "requires": {
+                  "all": [
+                    {
+                      "any": [
+                        {
+                          "path": "world.eliasStatus",
+                          "op": "eq",
+                          "value": "companion"
+                        },
+                        {
+                          "path": "world.eliasStatus",
+                          "op": "eq",
+                          "value": "cooperate"
+                        }
+                      ]
+                    },
+                    {
+                      "path": "world.nikoRescued",
+                      "op": "eq",
+                      "value": false
+                    },
+                    {
+                      "path": "world.lenaRescued",
+                      "op": "eq",
+                      "value": false
+                    }
+                  ]
+                }
+              }
+            ],
+            "consequence": "保留有代价的真实保护行为；感谢不等于取消隔离。"
+          },
+          {
+            "id": "force-transfer",
+            "label": "强拉卡住的导轨，再以护栅保住转运通道",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.03
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -4
+              },
+              {
+                "path": "world.finalTransferSecured",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.remoteDamaged",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l5.transfer-secured",
+              "e.l5.remote-damaged"
+            ],
+            "resultText": "导轨移到止挡，载荷保住；强拉同时扯断远控线束。护栅封闭后，本地维持开关仍可工作。损坏在这一卷和电气回执里明确出现，不留到结尾突然宣布。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "艇内远控回执断了。本地线还在，先不要正式提升。"
+              }
+            ],
+            "consequence": "转运完成但需要末场修复；无随艇备件时需拆底站检修柜，或在有人可送出时选择留守。"
+          }
+        ],
+        "resolveText": "物理交接已经完成。接下来必须检查水去了哪里，不能只检查人站在哪里。",
+        "resolutions": [
+          {
+            "id": "close-wet-access",
+            "label": "交接后关闭额外湿侧服务口",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.finalWetAccess",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "text": "你停止允许外侧人员接近服务管，保留既有转运结果。若埃利亚斯曾帮助，你接受那份帮助，但不因此开放新的管线权限。"
+          },
+          {
+            "id": "retain-wet-access",
+            "label": "维持当前湿侧检修权限，节省一次机械操作",
+            "instructions": [
+              {
+                "path": "world.finalWetAccess",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "player.stress",
+                "op": "add",
+                "value": 2
+              }
+            ],
+            "text": "你保留外侧维护通路，节省电力。同伴只有原本仍可行动时才可能利用它；被拘束或毁伤者不会因此重新出现。"
+          }
+        ]
+      },
+      {
+        "id": "l5-02",
+        "chapter": 5,
+        "title": "关位不等于关严",
+        "location": "旧油井层 · 总排水阀与人员小舱旁路",
+        "entryText": "大湿坞有固定储液设施，便携废液罐只接人员小舱残液。医官切断的应急旁路通向干侧工业坑，现场管图明示这条流向。总阀上的关闭标记并不能证明旁路贴合。",
+        "scoutFootage": "同步机位一边拍总阀，另一边拍止回件。组织或碎片可能撑住边缘；是否有套服的手取决于同伴是否仍能行动。隐藏机位没有向对方公开。",
+        "scoutFacts": [
+          "e.l5.bypass-destination",
+          "e.l5.valve-not-seal",
+          "e.l5.waste-capacity"
+        ],
+        "plannedSeconds": {
+          "travel": 55,
+          "reading": 80,
+          "action": 95
+        },
+        "choices": [
+          {
+            "id": "collect-and-lock",
+            "label": "用分流储液设施处理废水，清障并插实体锁销",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.05
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -5
+              },
+              {
+                "path": "world.finalIsolation",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.bypassOpen",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.explicitLie",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "evidence": [
+              "e.l5.isolation-locked"
+            ],
+            "resultText": "总阀与旁路分别被拍到：阻挡离开，锁销贯穿固定孔，止回件贴合。大坞废液进入固定罐，小舱残液进入便携罐。若干侧先前已污染，这次锁定只停止新增流入，不能宣布恢复清洁。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "两处都闭合了。已经流出去的，仍按原记录处理。"
+              }
+            ],
+            "consequence": "完成可维持的隔离；保留所有已发生污染及先前报告。"
+          },
+          {
+            "id": "emergency-drain",
+            "label": "恢复应急排水到干侧工业坑",
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.drySideContaminated",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.bypassOpen",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.finalIsolation",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.explicitLie",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "evidence": [
+              "e.l5.dry-contamination"
+            ],
+            "resultText": "连续片拍到污染液沿真实管路进入干侧工业坑。电梯门没有被神秘穿透；现在出现的是通向井筒附属空间的实际接触路径。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "流向和图上一样。干侧已经有水，不能再填清洁。"
+              }
+            ],
+            "consequence": "形成真实污染；应显式向万斯报告并进入检疫，也可关闭旁路限制后续扩散。"
+          },
+          {
+            "id": "conceal-and-drain",
+            "label": "明确截留污染原片，谎报通过并开启应急排水",
+            "condition": {
+              "path": "knowledge.vance",
+              "op": "notHas",
+              "value": "e.l5.dry-contamination"
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -3
+              },
+              {
+                "path": "world.drySideContaminated",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.bypassOpen",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.finalIsolation",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.explicitLie",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l5.dry-contamination",
+              "e.l5.false-clearance-sent"
+            ],
+            "resultText": "录像记录污染水进入干侧坑；你向上方发送的却是“隔离通过”。岸上不能独立读取本地片匣，常规接收据此准备。界面明确标注这是一份假报告，而不是模糊的沉默选项。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "发送：隔离通过。"
+              },
+              {
+                "speaker": "vance",
+                "text": "收到你的通过报告，常规接收准备中。",
+                "requires": {
+                  "path": "world.voluntaryQuarantine",
+                  "op": "eq",
+                  "value": false
+                }
+              }
+            ],
+            "consequence": "若此后仍不提交污染证据，构成传播结局条件；一旦报告原片，万斯锁定检疫，谎言不能覆盖。"
+          },
+          {
+            "id": "stop-contamination",
+            "label": "关闭已开旁路、重新锁定，保留污染原片供报告",
+            "condition": {
+              "path": "world.drySideContaminated",
+              "op": "eq",
+              "value": true
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.04
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -4
+              },
+              {
+                "path": "world.bypassOpen",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.finalIsolation",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.explicitLie",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "evidence": [
+              "e.l5.dry-contamination",
+              "e.l5.flow-stopped"
+            ],
+            "resultText": "旁路重新闭合，干侧积水仍在。结果片把停止新增流入与已发生污染同时保留；重新贴合不生成清洁通行证明。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "接下来按检疫。把污染原片也交出去。"
+              }
+            ],
+            "consequence": "撤回虚假清洁主张、限制扩散；报告须由独立提交动作完成。"
+          }
+        ],
+        "resolveText": "世界污染状态、玩家知道污染、万斯收到污染证据是三个不同记录。此时仍可显式提交原片，改变上端接收措施。",
+        "resolutions": [
+          {
+            "id": "request-isolated-reception",
+            "label": "根据当前不确定性，明确要求上端隔离接收",
+            "instructions": [
+              {
+                "path": "world.voluntaryQuarantine",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.explicitLie",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "text": "你请求上端保持检疫隔离。这是新的接收指令，不假称万斯已经看过原片；是否提交原始污染证据仍可单独操作。"
+          },
+          {
+            "id": "retain-current-report",
+            "label": "保留当前报告与接收安排，继续底站试升",
+            "instructions": [
+              {
+                "path": "player.stress",
+                "op": "add",
+                "value": 2
+              }
+            ],
+            "text": "你维持已发送的安排。污染但如实处理、污染且明确瞒报、没有污染会导向不同接收；旧报告记录不能在后台自动变清洁。"
+          }
+        ]
+      },
+      {
+        "id": "l5-03",
+        "chapter": 5,
+        "title": "你确定都上去了吗",
+        "location": "旧油井层 · 电梯底站与本地控制间",
+        "entryText": "轿厢停在最低限位。你仍在湿坞潜艇里，可以先做空载或实际小舱的低幅度提升。底站检修柜中有可拆用的接点，取出需要额外操作；没有一个在结局才出现的秘密出口。",
+        "scoutFootage": "镜头记录真实名单的舱号与挂钩。零乘员时试空轿厢。远控线束、制动锁和本地维持开关都有机位；损坏线束是否存在来自前场实际操作。",
+        "scoutFacts": [
+          "e.l5.manifest-test",
+          "e.l5.repair-route",
+          "e.l5.local-hold-required"
+        ],
+        "plannedSeconds": {
+          "travel": 50,
+          "reading": 65,
+          "action": 95
+        },
+        "choices": [
+          {
+            "id": "repair-and-ascend",
+            "label": "必要时拆柜修复远控，试升回落，准备撤离",
+            "condition": {
+              "path": "world.departureMode",
+              "op": "eq",
+              "value": "pending"
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.06
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -6
+              },
+              {
+                "path": "world.remoteDamaged",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.lastPassengerSecured",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.preparedDepartureMode",
+                "op": "set",
+                "value": "ascend"
+              }
+            ],
+            "evidence": [
+              "e.l5.manifest-confirmed",
+              "e.l5.remote-restored",
+              "e.l5.departure-record"
+            ],
+            "resultText": "你先复核线路；损坏时拆用已见过的检修柜接点，完好时完成空载测试。低幅提升记录每个实际小舱与制动动作，随后回落锁定轿厢。玩家仍在艇内看准备结果片，尚未进入电梯；上端采用哪种接收，由正式执行前的真实污染和报告决定。",
+            "npcLines": [
+              {
+                "speaker": "vance",
+                "text": "提升供电准备好了。接收模式按你已经提交的记录执行。"
+              },
+              {
+                "speaker": "niko",
+                "text": "我在。舱号没有变。",
+                "requires": {
+                  "path": "world.nikoStatus",
+                  "op": "eq",
+                  "value": "aboard"
+                }
+              },
+              {
+                "speaker": "lena",
+                "text": "名单按实际报。别替没上来的人填到达。",
+                "requires": {
+                  "path": "world.lenaStatus",
+                  "op": "eq",
+                  "value": "aboard"
+                }
+              }
+            ],
+            "consequence": "修复与试验保证确定可完成的撤离路线；既有污染不会因电梯恢复而消失。"
+          },
+          {
+            "id": "choose-quarantine",
+            "label": "完成检修试升并回落，准备检疫撤离",
+            "condition": {
+              "path": "world.departureMode",
+              "op": "eq",
+              "value": "pending"
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.06
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -6
+              },
+              {
+                "path": "world.remoteDamaged",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.lastPassengerSecured",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.voluntaryQuarantine",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.preparedDepartureMode",
+                "op": "set",
+                "value": "ascend"
+              },
+              {
+                "path": "world.explicitLie",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "evidence": [
+              "e.l5.manifest-confirmed",
+              "e.l5.quarantine-requested"
+            ],
+            "resultText": "实际小舱完成低幅测试后回落，远控在必要检修后恢复。你请求预留检疫停靠位，但轿厢仍锁在底站，玩家仍在艇内。影像只证明准备条件，不证明已经上升或已经感染。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "到上面以后，门先别开。我接受检疫。"
+              },
+              {
+                "speaker": "vance",
+                "text": "收到。电梯可以升，有人区的门保持关闭。"
+              }
+            ],
+            "consequence": "把不确定性转为明确接收措施，保留生命与证据。"
+          },
+          {
+            "id": "stay-at-control",
+            "label": "暂不拆柜，验证本地维持回路，准备留守方案",
+            "condition": {
+              "all": [
+                {
+                  "path": "world.departureMode",
+                  "op": "eq",
+                  "value": "pending"
+                },
+                {
+                  "path": "world.remoteDamaged",
+                  "op": "eq",
+                  "value": true
+                },
+                {
+                  "path": "world.spareParts",
+                  "op": "eq",
+                  "value": 0
+                },
+                {
+                  "any": [
+                    {
+                      "path": "world.nikoRescued",
+                      "op": "eq",
+                      "value": true
+                    },
+                    {
+                      "path": "world.lenaRescued",
+                      "op": "eq",
+                      "value": true
+                    }
+                  ]
+                }
+              ]
+            },
+            "instructions": [
+              {
+                "path": "pod.power",
+                "op": "add",
+                "value": -0.02
+              },
+              {
+                "path": "pod.oxygen",
+                "op": "add",
+                "value": -4
+              },
+              {
+                "path": "world.preparedDepartureMode",
+                "op": "set",
+                "value": "sacrifice"
+              },
+              {
+                "path": "world.lastPassengerSecured",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "evidence": [
+              "e.l5.local-hold-prepared"
+            ],
+            "resultText": "短试记录本地维持回路可以驱动低幅提升，松开后停止，艇内远控仍无回执。实际伤员舱在试验后回落固定，轿厢留在底站，玩家已返回艇内查看准备片，尚未开始正式留守提升。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "如果选择留守，我要从密封短通道去本地台。先不正式升井。"
+              },
+              {
+                "speaker": "vance",
+                "text": "听见了。我留在线上。"
+              }
+            ],
+            "consequence": "明确设备损坏、无随艇替件且实际有人可送出时才可选择；并非死亡才是真结局。"
+          },
+          {
+            "id": "enter-wet-side",
+            "label": "已知转化后检查湿侧进入路径，准备作最后决定",
+            "condition": {
+              "all": [
+                {
+                  "path": "world.departureMode",
+                  "op": "eq",
+                  "value": "pending"
+                },
+                {
+                  "path": "knowledge.player",
+                  "op": "has",
+                  "value": "e.l4.identity-confirmed"
+                }
+              ]
+            },
+            "instructions": [
+              {
+                "path": "world.preparedDepartureMode",
+                "op": "set",
+                "value": "changed"
+              }
+            ],
+            "evidence": [
+              "e.l5.wet-entry-prepared"
+            ],
+            "resultText": "记录拍到自身隔离门、外部污染湿侧和可由内部操作的释放机构。玩家仍在密封艇内，没有解除隔离、没有接触，也没有发生转化。埃利亚斯仍按此前处置留在对应位置；这卷只为最后的明确决定提供空间证据。",
+            "npcLines": [
+              {
+                "speaker": "player",
+                "text": "先停在这里。我要在打开任何东西以前把片子看完。"
+              }
+            ],
+            "consequence": "主动异化结局；不因看错一卷或关系分改变而突然感染。"
+          }
+        ],
+        "resolveText": "准备结果片已取得，玩家仍能在艇内复看、显式报告或更换尚未执行的准备方案。二次决策才执行升井、留守提升或湿侧接触；执行后不再补交改变本次接收的原片。",
+        "implementationNotes": [
+          "预算不是实测；远控维修和主动异化的时间跳转在文本实验中表达，不冒称真实3D已实现。"
+        ],
+        "resolutions": [
+          {
+            "id": "execute-ascent",
+            "label": "确认试升结果，携原片入梯，按当前接收安排正式升井",
+            "condition": {
+              "path": "world.preparedDepartureMode",
+              "op": "eq",
+              "value": "ascend"
+            },
+            "instructions": [
+              {
+                "path": "world.departureMode",
+                "op": "set",
+                "value": "ascend"
+              },
+              {
+                "path": "world.originalEvidencePreserved",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你在最后一次可报告窗口结束前确认当前安排，收走原片，经已核验密封通道入梯，执行正式提升。上端按已提交的信息和接收指令处理；原片随身携带不等于此前已经报告。"
+          },
+          {
+            "id": "execute-quarantine-ascent",
+            "label": "依据结果改为检疫接收，再入梯正式升井",
+            "condition": {
+              "path": "world.preparedDepartureMode",
+              "op": "eq",
+              "value": "ascend"
+            },
+            "instructions": [
+              {
+                "path": "world.departureMode",
+                "op": "set",
+                "value": "ascend"
+              },
+              {
+                "path": "world.voluntaryQuarantine",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.explicitLie",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.originalEvidencePreserved",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你明确要求万斯保持上端有人区隔离，收到接收安排后才入梯、正式升井。这项二次决定改变实际接收措施，不声称自己已经感染。"
+          },
+          {
+            "id": "execute-local-hold",
+            "label": "确认伤员已装载，带片匣进入本地间并留守提升",
+            "condition": {
+              "all": [
+                {
+                  "path": "world.preparedDepartureMode",
+                  "op": "eq",
+                  "value": "sacrifice"
+                },
+                {
+                  "path": "world.remoteDamaged",
+                  "op": "eq",
+                  "value": true
+                },
+                {
+                  "path": "world.spareParts",
+                  "op": "eq",
+                  "value": 0
+                },
+                {
+                  "any": [
+                    {
+                      "path": "world.nikoRescued",
+                      "op": "eq",
+                      "value": true
+                    },
+                    {
+                      "path": "world.lenaRescued",
+                      "op": "eq",
+                      "value": true
+                    }
+                  ]
+                }
+              ]
+            },
+            "instructions": [
+              {
+                "path": "world.departureMode",
+                "op": "set",
+                "value": "sacrifice"
+              },
+              {
+                "path": "world.originalEvidencePreserved",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你依据试验结果确认真实伤员名单，带片匣穿过密封短通道到本地控制间，持续维持提升。现在轿厢才正式离开底站，玩家留在下方，不能再回到艇内改选身份路线。"
+          },
+          {
+            "id": "execute-isolated-local-hold",
+            "label": "先要求伤员检疫接收，再留守本地维持提升",
+            "condition": {
+              "all": [
+                {
+                  "path": "world.preparedDepartureMode",
+                  "op": "eq",
+                  "value": "sacrifice"
+                },
+                {
+                  "path": "world.remoteDamaged",
+                  "op": "eq",
+                  "value": true
+                },
+                {
+                  "path": "world.spareParts",
+                  "op": "eq",
+                  "value": 0
+                },
+                {
+                  "any": [
+                    {
+                      "path": "world.nikoRescued",
+                      "op": "eq",
+                      "value": true
+                    },
+                    {
+                      "path": "world.lenaRescued",
+                      "op": "eq",
+                      "value": true
+                    }
+                  ]
+                }
+              ]
+            },
+            "instructions": [
+              {
+                "path": "world.departureMode",
+                "op": "set",
+                "value": "sacrifice"
+              },
+              {
+                "path": "world.voluntaryQuarantine",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.explicitLie",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "world.originalEvidencePreserved",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "text": "你先把接收安排改为检疫，再进入本地间维持正式提升。送出的仍是已经装载的人，留守者不会在尾声名单里被登记为上行。"
+          },
+          {
+            "id": "execute-wet-entry",
+            "label": "确认放弃自己的上行，保持他人封舱后进入污染湿侧",
+            "condition": {
+              "all": [
+                {
+                  "path": "world.preparedDepartureMode",
+                  "op": "eq",
+                  "value": "changed"
+                },
+                {
+                  "path": "knowledge.player",
+                  "op": "has",
+                  "value": "e.l4.identity-confirmed"
+                }
+              ]
+            },
+            "instructions": [
+              {
+                "path": "world.departureMode",
+                "op": "set",
+                "value": "changed"
+              },
+              {
+                "path": "world.playerExposed",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.transformationAccepted",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "world.finalWetAccess",
+                "op": "set",
+                "value": false
+              }
+            ],
+            "text": "看完准备片后，你明确取消自己的上行，保留实际伤员小舱的独立封闭，随后才解除自身隔离并接触污染湿侧。这是不可逆行动；转化经过的时间和后来回收的影像只在尾声出现。"
+          }
+        ]
+      }
+    ],
+    "initialWorld": {
+      "eliasNature": "transformed",
+      "eliasStatus": "trapped",
+      "eliasDisposition": "trapped",
+      "eliasPresent": true,
+      "nikoStatus": "waiting",
+      "lenaStatus": "waiting",
+      "lureTested": false,
+      "winchReady": false,
+      "winchWorn": false,
+      "predatorIsolated": false,
+      "gateJammed": false,
+      "transferStuck": false,
+      "upperRouteBlocked": false,
+      "bottomExitVerified": false,
+      "voiceTool": false,
+      "sourceQuarantined": false,
+      "coolingReady": false,
+      "wet2Connected": false,
+      "wet2FlowStopped": false,
+      "oxygenLost": false,
+      "nikoRescued": false,
+      "nikoTransferFailed": false,
+      "cutterReady": false,
+      "toolDamaged": false,
+      "motionChecked": false,
+      "suspicionPublic": false,
+      "medicalPowered": false,
+      "wet3Connected": false,
+      "wet3FlowStopped": false,
+      "dualRack": false,
+      "developHeaterReduced": false,
+      "thermalReady": false,
+      "inspectionComplete": false,
+      "restraintLoose": false,
+      "spareParts": 1,
+      "residualTissueSealed": false,
+      "lenaRescued": false,
+      "transferClean": false,
+      "wellAdapter": false,
+      "wasteTank": false,
+      "finalTransferSecured": false,
+      "eliasProtected": false,
+      "remoteDamaged": false,
+      "finalIsolation": false,
+      "bypassOpen": false,
+      "drySideContaminated": false,
+      "explicitLie": false,
+      "voluntaryQuarantine": false,
+      "lastPassengerSecured": false,
+      "departureMode": "pending",
+      "preparedDepartureMode": "pending",
+      "playerExposed": false,
+      "transformationAccepted": false,
+      "lureMaintained": false,
+      "preRescueLockCheck": false,
+      "crewOxygenReserve": false,
+      "nikoWindowClosed": false,
+      "nikoOxygenTopped": false,
+      "privateObservation": false,
+      "originalEvidencePreserved": false,
+      "adjacentServiceClosed": false,
+      "transferReinforced": false,
+      "finalWetAccess": false
+    },
+    "endings": [
+      {
+        "id": "handover",
+        "title": "交班",
+        "priority": 10,
+        "condition": {
+          "all": [
+            {
+              "path": "world.departureMode",
+              "op": "eq",
+              "value": "ascend"
+            },
+            {
+              "path": "world.drySideContaminated",
+              "op": "eq",
+              "value": false
+            },
+            {
+              "path": "world.voluntaryQuarantine",
+              "op": "eq",
+              "value": false
+            },
+            {
+              "path": "knowledge.vance",
+              "op": "notHas",
+              "value": "e.l5.dry-contamination"
+            }
+          ]
+        },
+        "summary": "物理隔离完成后撤离，按真实小舱名单交班。埃利亚斯留在隔离边界之外，记录可写“转化、留置，未确认死亡”。不知道的内容没有被填成死亡确认。"
+      },
+      {
+        "id": "quarantine",
+        "title": "上面也有一扇门",
+        "priority": 20,
+        "condition": {
+          "all": [
+            {
+              "path": "world.departureMode",
+              "op": "eq",
+              "value": "ascend"
+            },
+            {
+              "any": [
+                {
+                  "path": "world.voluntaryQuarantine",
+                  "op": "eq",
+                  "value": true
+                },
+                {
+                  "path": "knowledge.vance",
+                  "op": "has",
+                  "value": "e.l5.dry-contamination"
+                },
+                {
+                  "all": [
+                    {
+                      "path": "world.drySideContaminated",
+                      "op": "eq",
+                      "value": true
+                    },
+                    {
+                      "path": "world.explicitLie",
+                      "op": "eq",
+                      "value": false
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "summary": "轿厢抵达无人检疫停靠位。万斯留在门另一侧按流程接收；没有证据宣布你已感染，也没有因友情取消隔离。门外摄像头开始工作，这次你是等待被验证的人。"
+      },
+      {
+        "id": "spread",
+        "title": "救援完成",
+        "priority": 30,
+        "condition": {
+          "all": [
+            {
+              "path": "world.departureMode",
+              "op": "eq",
+              "value": "ascend"
+            },
+            {
+              "path": "world.drySideContaminated",
+              "op": "eq",
+              "value": true
+            },
+            {
+              "path": "world.explicitLie",
+              "op": "eq",
+              "value": true
+            },
+            {
+              "path": "world.voluntaryQuarantine",
+              "op": "eq",
+              "value": false
+            },
+            {
+              "path": "knowledge.vance",
+              "op": "notHas",
+              "value": "e.l5.dry-contamination"
+            }
+          ]
+        },
+        "summary": "常规接收依据你明确发送的假报告展开，干侧工业坑中的污染已形成向上端接触的路径。原片、流向与接触记录证明第二处事故具备条件；不是一声咳嗽就宣告世界末日。"
+      },
+      {
+        "id": "stay",
+        "title": "留一盏灯",
+        "priority": 40,
+        "condition": {
+          "path": "world.departureMode",
+          "op": "eq",
+          "value": "sacrifice"
+        },
+        "summary": "真实伤员舱上升，玩家留在底站维持提升。万斯没有挂断通信。最终名单区分上行乘员与本地留守者，不把零乘员的空轿厢包装成牺牲救人。"
+      },
+      {
+        "id": "changed",
+        "title": "仍在值班",
+        "priority": 50,
+        "condition": {
+          "path": "world.departureMode",
+          "op": "eq",
+          "value": "changed"
+        },
+        "summary": "主动接触后经过时间推进，后来的片匣记录一个继续指引来者的身影。它做着熟悉的救援动作，目的却已改变。既有同伴处置保持不变。"
+      }
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "case": 1,
+    "platinum": "authored-order",
+    "amber": "context-telemetry",
+    "sameChoice": true
+  },
+  {
+    "case": 2,
+    "platinum": "context-telemetry",
+    "amber": "authored-order",
+    "sameChoice": false
+  },
+  {
+    "case": 3,
+    "platinum": "authored-order",
+    "amber": "context-telemetry",
+    "sameChoice": true
+  },
+  {
+    "case": 4,
+    "platinum": "context-telemetry",
+    "amber": "authored-order",
+    "sameChoice": false
+  },
+  {
+    "case": 5,
+    "platinum": "authored-order",
+    "amber": "context-telemetry",
+    "sameChoice": true
+  },
+  {
+    "case": 6,
+    "platinum": "context-telemetry",
+    "amber": "authored-order",
+    "sameChoice": false
+  }
+]

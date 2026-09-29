@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {StoryEngine} from '../src/narrative-lab/engine';
+import {campaign} from '../src/narrative-lab/campaign';
+import {proposeWithModel,publicProposalContext} from '../src/narrative-lab/model-port';
+const e=new StoryEngine(campaign);assert.equal(e.shoot().ok,true);e.tick(17);assert.equal(e.analyze().ok,true);
+const context=publicProposalContext(e),before=e.serialize();
+assert.equal('world'in context,false);assert.equal(JSON.stringify(context).includes('transformed'),false);
+const candidate=e.getChoices().find(c=>c.allowed)!;
+assert.equal((await proposeWithModel(e,async()=>candidate.id)).source,'model');
+assert.equal((await proposeWithModel(e,async()=>({instructions:[{path:'world.eliasNature',value:'human'}]}))).source,'fallback');
+assert.equal((await proposeWithModel(e,async()=>{throw Error('offline');})).source,'fallback');
+assert.equal((await proposeWithModel(e,()=>new Promise(()=>{}),1)).source,'fallback');
+assert.equal(e.serialize(),before,'model may not mutate state');
+const result=await proposeWithModel(e,async()=>{assert.equal(e.act(candidate.id).ok,true);return candidate.id;});
+assert.equal(result.source,'stale-discarded');assert.equal(result.candidate,null,'stale decision not executed in result phase');
+console.log('PASS model port: public-only context, constrained IDs, timeout/offline fallback, non-authoritative output, stale epoch discard.');

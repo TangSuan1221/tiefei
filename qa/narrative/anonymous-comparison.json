@@ -1,0 +1,455 @@
+{
+  "method": "Label-blinded agent review of executable model transcripts. Not human blind play. Both policies use identical legal choices, scene data and guard checks; only suggestion order differs.",
+  "cases": [
+    {
+      "id": "CASE-1",
+      "scene": "笼外的动静",
+      "publicContext": {
+        "power": 0.85,
+        "hull": 1,
+        "scout": "镜头沿格栅缓慢扫过。笼内的人举手确认，笼外货架底下有完整的多肢轮廓；缆索被拖动，货物没有随水流同向漂移。画面同时保留邻仓的绞盘和畅通入口。",
+        "known": [
+          "e.l1.elias-trapped",
+          "e.l1.predator-outside",
+          "e.l1.winch-path"
+        ]
+      },
+      "variants": [
+        {
+          "label": "方案 铂",
+          "proposal": "低档短试绞盘，收臂后记录响应",
+          "recordedResult": "绞盘完成设定短试后停转。结果片连续记录怪物离开货架、抓住仍在摆动的吊索，又返回邻仓门口；笼门始终关闭。它对这一次振动有响应，录像没有证明声音能控制所有生物。",
+          "postActionResources": {
+            "power": 0.715,
+            "hull": 1,
+            "oxygen": 3563,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "依据响应保持低负载，让目标继续靠近仓口",
+            "先停绞盘保留电量，到门控位再重新启动"
+          ],
+          "valid": true
+        },
+        {
+          "label": "方案 琥珀",
+          "proposal": "低档短试绞盘，收臂后记录响应",
+          "recordedResult": "绞盘完成设定短试后停转。结果片连续记录怪物离开货架、抓住仍在摆动的吊索，又返回邻仓门口；笼门始终关闭。它对这一次振动有响应，录像没有证明声音能控制所有生物。",
+          "postActionResources": {
+            "power": 0.715,
+            "hull": 1,
+            "oxygen": 3563,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "依据响应保持低负载，让目标继续靠近仓口",
+            "先停绞盘保留电量，到门控位再重新启动"
+          ],
+          "valid": true
+        }
+      ]
+    },
+    {
+      "id": "CASE-2",
+      "scene": "同一个女人，两个房间",
+      "publicContext": {
+        "power": 0.24,
+        "hull": 1,
+        "scout": "远摄器第一轮返回：西舱地上躺着广播器；东舱墙面组织随声音收缩，门把手下只有一只空衣袖。封存标签和发射器时间记录都处于镜头内。",
+        "known": [
+          "e.l1.elias-trapped",
+          "e.l1.predator-outside",
+          "e.l1.winch-path",
+          "e.l1.vibration-response",
+          "e.l1.gate-clearance",
+          "e.l1.threshold-tail",
+          "e.l1.track-debris",
+          "e.l1.predator-isolated",
+          "e.l1.lock-engaged",
+          "e.l1.transfer-route",
+          "e.l1.transfer-debris",
+          "e.l1.bottom-exit-map",
+          "e.l1.elias-rescued",
+          "e.l1.transfer-sealed",
+          "e.l1.upper-route-blocked",
+          "e.l1.bottom-exit-verified",
+          "e.l2.replay-source",
+          "e.l2.vocal-tissue",
+          "e.l2.remote-camera"
+        ]
+      },
+      "variants": [
+        {
+          "label": "方案 铂",
+          "proposal": "封闭两个声源，保留原片而不回收诱饵",
+          "recordedResult": "两扇实体隔断闭合。原始片仍证明第一声求救是真的，回应者的形态则证明现在的声音不能代表原主人。广播器留在封闭舱内。",
+          "postActionResources": {
+            "power": 0.115,
+            "hull": 1,
+            "oxygen": 3568,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "保持声源隔离，保留已经取回的工具盒",
+            "把广播器及工具盒留在封闭检修仓"
+          ],
+          "valid": true
+        },
+        {
+          "label": "方案 琥珀",
+          "proposal": "核验原始记录，以隔离工具盒回收广播器",
+          "recordedResult": "原始片连续拍到值班员发出求救，之后倒下。新动作挑战排除西舱旧录音，东舱组织却能回应。广播器封入透声工具盒后原位短试，邻近目标在开放水路中靠近；工具盒没有释放附着物。",
+          "postActionResources": {
+            "power": 0.09499999999999999,
+            "hull": 1,
+            "oxygen": 3568,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "保持声源隔离，保留已经取回的工具盒",
+            "把广播器及工具盒留在封闭检修仓"
+          ],
+          "valid": true
+        }
+      ]
+    },
+    {
+      "id": "CASE-3",
+      "scene": "撤销版图纸",
+      "publicContext": {
+        "power": 0.85,
+        "hull": 1,
+        "scout": "镜头拍到旧图编号、新挂牌和实际歧管走向。备用氧瓶组仍接在泄放口后；公共反冲洗管通向第三层，单支路机械隔离接口就在旁边。",
+        "known": [
+          "e.l1.elias-trapped",
+          "e.l1.predator-outside",
+          "e.l1.winch-path",
+          "e.l1.vibration-response",
+          "e.l1.gate-clearance",
+          "e.l1.threshold-tail",
+          "e.l1.track-debris",
+          "e.l1.predator-isolated",
+          "e.l1.lock-engaged",
+          "e.l1.transfer-route",
+          "e.l1.transfer-debris",
+          "e.l1.bottom-exit-map",
+          "e.l1.elias-rescued",
+          "e.l1.transfer-sealed",
+          "e.l1.upper-route-blocked",
+          "e.l1.bottom-exit-verified",
+          "e.l2.replay-source",
+          "e.l2.vocal-tissue",
+          "e.l2.remote-camera",
+          "e.l2.first-call-human",
+          "e.l2.voice-not-identity",
+          "e.l2.voice-tool-tested",
+          "e.l2.revised-manifold",
+          "e.l2.backwash-flow",
+          "e.l2.local-isolation"
+        ]
+      },
+      "variants": [
+        {
+          "label": "方案 铂",
+          "proposal": "按现场挂牌隔离瓶组，只反冲滤芯支路",
+          "recordedResult": "瓶组压力保持，滤芯释放。本次局部操作未转动公共泵，没有新增组织越界；如果此前已放通，边界外污染仍保留。冷却滤芯和轴封物资收回。",
+          "postActionResources": {
+            "power": 0.6849999999999999,
+            "hull": 1,
+            "oxygen": 3562,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "按结果关闭公共供水，机械锁定后离开",
+            "保留本次反冲配置，把余电留给救生小舱"
+          ],
+          "valid": true
+        },
+        {
+          "label": "方案 琥珀",
+          "proposal": "按现场挂牌隔离瓶组，只反冲滤芯支路",
+          "recordedResult": "瓶组压力保持，滤芯释放。本次局部操作未转动公共泵，没有新增组织越界；如果此前已放通，边界外污染仍保留。冷却滤芯和轴封物资收回。",
+          "postActionResources": {
+            "power": 0.6849999999999999,
+            "hull": 1,
+            "oxygen": 3562,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "按结果关闭公共供水，机械锁定后离开",
+            "保留本次反冲配置，把余电留给救生小舱"
+          ],
+          "valid": true
+        }
+      ]
+    },
+    {
+      "id": "CASE-4",
+      "scene": "实验还在继续",
+      "publicContext": {
+        "power": 0.24,
+        "hull": 1,
+        "scout": "窄角度先看见手、盒子和切割头，无法看见整个身体。另一张固定机位图显示取物槽的行程足以推开空盒并取回工具，不需要开启主体隔离门。",
+        "known": [
+          "e.l1.elias-trapped",
+          "e.l1.predator-outside",
+          "e.l1.winch-path",
+          "e.l1.vibration-response",
+          "e.l1.gate-clearance",
+          "e.l1.threshold-tail",
+          "e.l1.track-debris",
+          "e.l1.predator-isolated",
+          "e.l1.lock-engaged",
+          "e.l1.transfer-route",
+          "e.l1.transfer-debris",
+          "e.l1.bottom-exit-map",
+          "e.l1.elias-rescued",
+          "e.l1.transfer-sealed",
+          "e.l1.upper-route-blocked",
+          "e.l1.bottom-exit-verified",
+          "e.l2.replay-source",
+          "e.l2.vocal-tissue",
+          "e.l2.remote-camera",
+          "e.l2.first-call-human",
+          "e.l2.voice-not-identity",
+          "e.l2.voice-tool-tested",
+          "e.l2.revised-manifold",
+          "e.l2.backwash-flow",
+          "e.l2.local-isolation",
+          "e.l2.oxygen-preserved",
+          "e.l2.local-backwash-complete",
+          "e.l2.niko-responsive",
+          "e.l2.single-rack",
+          "e.l2.transfer-hazards",
+          "e.l2.niko-secured",
+          "e.l2.niko-seal-complete",
+          "e.l3.repeated-lab-action",
+          "e.l3.retrieval-slot"
+        ]
+      },
+      "variants": [
+        {
+          "label": "方案 铂",
+          "proposal": "利用二层保留的干净支路，从侧检修位完成盒子试验与取物",
+          "recordedResult": "未受公共反冲洗污染的侧检修位可直接靠泊。你同样移动培养盒并换角度，记录手臂接在墙面组织上，再从限位槽取回工具和封签。省下的是外廊防护操作，不是省略关键身份物证。",
+          "postActionResources": {
+            "power": 0.115,
+            "hull": 1,
+            "oxygen": 3564,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "检修取物夹爪，必要时换用本层备用末端",
+            "保留当前夹爪状况，把电量留给医疗供能"
+          ],
+          "valid": true
+        },
+        {
+          "label": "方案 琥珀",
+          "proposal": "把空盒推离惯常位置，收臂后换角度拍摄",
+          "recordedResult": "手伸到不可能由正常手臂覆盖的位置，侧面连续影像揭示它接在墙面组织上。将空盒留在远侧后，机械臂从取物槽取回切割头并复闭。钻头残留、封签与工伤卡构成样本先接触、体征后改变的独立证据。",
+          "postActionResources": {
+            "power": 0.09499999999999999,
+            "hull": 1,
+            "oxygen": 3563,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "检修取物夹爪，必要时换用本层备用末端",
+            "保留当前夹爪状况，把电量留给医疗供能"
+          ],
+          "valid": true
+        }
+      ]
+    },
+    {
+      "id": "CASE-5",
+      "scene": "给谁通电",
+      "publicContext": {
+        "power": 0.85,
+        "hull": 0.6,
+        "scout": "微摄记录联动接触器、中间隔离槽和第四层流向。双联承架有两个独立限位。热屏蔽外套与局部调压件可从安全检修侧取出。",
+        "known": [
+          "e.l1.elias-trapped",
+          "e.l1.predator-outside",
+          "e.l1.winch-path",
+          "e.l1.vibration-response",
+          "e.l1.gate-clearance",
+          "e.l1.threshold-tail",
+          "e.l1.track-debris",
+          "e.l1.predator-isolated",
+          "e.l1.lock-engaged",
+          "e.l1.transfer-route",
+          "e.l1.transfer-debris",
+          "e.l1.bottom-exit-map",
+          "e.l1.elias-rescued",
+          "e.l1.transfer-sealed",
+          "e.l1.upper-route-blocked",
+          "e.l1.bottom-exit-verified",
+          "e.l2.replay-source",
+          "e.l2.vocal-tissue",
+          "e.l2.remote-camera",
+          "e.l2.first-call-human",
+          "e.l2.voice-not-identity",
+          "e.l2.voice-tool-tested",
+          "e.l2.revised-manifold",
+          "e.l2.backwash-flow",
+          "e.l2.local-isolation",
+          "e.l2.oxygen-preserved",
+          "e.l2.local-backwash-complete",
+          "e.l2.niko-responsive",
+          "e.l2.single-rack",
+          "e.l2.transfer-hazards",
+          "e.l2.niko-secured",
+          "e.l2.niko-seal-complete",
+          "e.l3.repeated-lab-action",
+          "e.l3.retrieval-slot",
+          "e.l3.body-replaced",
+          "e.l3.sample-chain",
+          "e.l3.cutter-retrieved",
+          "e.l3.elias-helped",
+          "e.l3.motion-needs-check",
+          "e.l3.identity-motion",
+          "e.l3.medical-pump-link",
+          "e.l3.buffer-boundary",
+          "e.l3.dual-rack-visible"
+        ]
+      },
+      "variants": [
+        {
+          "label": "方案 铂",
+          "proposal": "拆备用加热单元旁接医疗端，同时取得双联承架",
+          "recordedResult": "医疗灯亮，循环泵轴保持锁定，二者不同状态出现在同一卷中；若此前已经放通，第四层既有污染仍保留。承架固定，热屏蔽与调压件入库；代价是备用加热和横向机动余量减少。莱娜的独立氧系统没有因这个选择凭空充满。",
+          "postActionResources": {
+            "power": 0.6849999999999999,
+            "hull": 0.6,
+            "oxygen": 3561,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "锁停公共泵，保持医疗馈线后进入下一层",
+            "多花一次拆装取得双联承架，接受横向机动损失"
+          ],
+          "valid": true
+        },
+        {
+          "label": "方案 琥珀",
+          "proposal": "拆备用加热单元旁接医疗端，同时取得双联承架",
+          "recordedResult": "医疗灯亮，循环泵轴保持锁定，二者不同状态出现在同一卷中；若此前已经放通，第四层既有污染仍保留。承架固定，热屏蔽与调压件入库；代价是备用加热和横向机动余量减少。莱娜的独立氧系统没有因这个选择凭空充满。",
+          "postActionResources": {
+            "power": 0.6849999999999999,
+            "hull": 0.6,
+            "oxygen": 3561,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "锁停公共泵，保持医疗馈线后进入下一层",
+            "多花一次拆装取得双联承架，接受横向机动损失"
+          ],
+          "valid": true
+        }
+      ]
+    },
+    {
+      "id": "CASE-6",
+      "scene": "第二名乘客",
+      "publicContext": {
+        "power": 0.24,
+        "hull": 1,
+        "scout": "莱娜进入独立转运套舱。门槽需要检查；前关若放通主循环，外廊有组织残留，不能把封签替代脱污。暂存坞供氧与往返路程明示，先补气再分次转运可行。",
+        "known": [
+          "e.l1.elias-trapped",
+          "e.l1.predator-outside",
+          "e.l1.winch-path",
+          "e.l1.vibration-response",
+          "e.l1.gate-clearance",
+          "e.l1.threshold-tail",
+          "e.l1.track-debris",
+          "e.l1.predator-isolated",
+          "e.l1.lock-engaged",
+          "e.l1.transfer-route",
+          "e.l1.transfer-debris",
+          "e.l1.bottom-exit-map",
+          "e.l1.elias-rescued",
+          "e.l1.transfer-sealed",
+          "e.l1.upper-route-blocked",
+          "e.l1.bottom-exit-verified",
+          "e.l2.replay-source",
+          "e.l2.vocal-tissue",
+          "e.l2.remote-camera",
+          "e.l2.first-call-human",
+          "e.l2.voice-not-identity",
+          "e.l2.voice-tool-tested",
+          "e.l2.revised-manifold",
+          "e.l2.backwash-flow",
+          "e.l2.local-isolation",
+          "e.l2.oxygen-preserved",
+          "e.l2.local-backwash-complete",
+          "e.l2.niko-responsive",
+          "e.l2.single-rack",
+          "e.l2.transfer-hazards",
+          "e.l2.niko-secured",
+          "e.l2.niko-seal-complete",
+          "e.l3.repeated-lab-action",
+          "e.l3.retrieval-slot",
+          "e.l3.body-replaced",
+          "e.l3.sample-chain",
+          "e.l3.cutter-retrieved",
+          "e.l3.elias-helped",
+          "e.l3.motion-needs-check",
+          "e.l3.identity-motion",
+          "e.l3.medical-pump-link",
+          "e.l3.buffer-boundary",
+          "e.l3.dual-rack-visible",
+          "e.l3.medical-only",
+          "e.l3.dual-rack-secured",
+          "e.l4.suit-interface",
+          "e.l4.sync-calibrated",
+          "e.l4.identity-confirmed",
+          "e.l4.medical-delay",
+          "e.l4.restraint-debris",
+          "e.l4.cooperation-boundary",
+          "e.l4.shear-cost",
+          "e.l4.restraint-confirmed",
+          "e.l4.lena-unknown-exposure",
+          "e.l4.staging-oxygen",
+          "e.l4.transfer-capacity"
+        ]
+      },
+      "variants": [
+        {
+          "label": "方案 铂",
+          "proposal": "取走油井设备，明确不带莱娜撤离",
+          "recordedResult": "设备入库，莱娜的独立套舱仍留在暂存位。结果片不播放成功挂接，也不提供她仅在同意同行后交出的责任补充证词；主线病理物证仍然保留。",
+          "postActionResources": {
+            "power": 0.115,
+            "hull": 1,
+            "oxygen": 3563,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "保持所有实际小舱独立封闭，给转运接口做二次加固",
+            "保留现有合格接口，把电力留作底站维修储备"
+          ],
+          "valid": true
+        },
+        {
+          "label": "方案 琥珀",
+          "proposal": "先检查、脱污并补气，必要时分两次转运",
+          "recordedResult": "结果序列逐一记录真实名单内的小舱：有人占用挂架时先送入独立供氧暂存位，再取莱娜；没有尼科时直接接单舱。清理门槽后封门连续，供氧补足。接口、废液罐和复位扳手入库。",
+          "postActionResources": {
+            "power": 0.075,
+            "hull": 1,
+            "oxygen": 3560,
+            "armStowed": true
+          },
+          "availableResultDecisions": [
+            "保持所有实际小舱独立封闭，给转运接口做二次加固",
+            "保留现有合格接口，把电力留作底站维修储备"
+          ],
+          "valid": true
+        }
+      ]
+    }
+  ]
+}

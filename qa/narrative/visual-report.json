@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "method": "Visual layout regression with valid saved-state fixture, not a new playthrough.",
+  "dimensions": {
+    "width": 390,
+    "scrollWidth": 390,
+    "scrollY": 812,
+    "footer": 843.96875,
+    "height": 844
+  },
+  "errors": []
+}
