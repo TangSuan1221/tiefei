@@ -6,7 +6,7 @@ const browser=await chromium.launch({channel:'msedge',headless:true});
 try {
  const page=await browser.newPage({viewport:{width:1600,height:1000}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://127.0.0.1:5174/narrative.html');
+ await page.goto('http://127.0.0.1:5174/narrative.html?view=legacy');
  await page.waitForFunction(()=>!!window.__narrativeLab);
  assert.match(await page.locator('.copy').innerText(),/我是维修员埃利亚斯/);
  assert.doesNotMatch(await page.locator('.copy').innerText(),/维修服停在笼内|救援登记/);

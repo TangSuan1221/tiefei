@@ -9,7 +9,7 @@ const page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.m
 page.on('dialog',d=>d.accept());
 await context.route('**/*',r=>{const u=new URL(r.request().url());return ['127.0.0.1','localhost'].includes(u.hostname)||!/^https?:$/.test(u.protocol)?r.continue():r.abort();});
 try{
- await page.goto(process.env.NARRATIVE_URL??'http://127.0.0.1:5174/narrative.html');
+ await page.goto(process.env.NARRATIVE_URL??'http://127.0.0.1:5174/narrative.html?view=legacy');
  await page.waitForFunction(()=>!!window.__narrativeLab);
  const initial=await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage)));
  await page.screenshot({path:'qa/narrative/workspace-desktop.png'});

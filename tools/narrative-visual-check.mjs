@@ -5,7 +5,7 @@ const browser=await chromium.launch({channel:'msedge',headless:true});
 const page=await browser.newPage({viewport:{width:1600,height:1000}});
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 try{
- await page.goto('http://127.0.0.1:5174/narrative.html');await page.waitForFunction(()=>!!window.__narrativeLab);
+ await page.goto('http://127.0.0.1:5174/narrative.html?view=legacy');await page.waitForFunction(()=>!!window.__narrativeLab);
  await page.locator('[data-tab="branches"]').click();await page.screenshot({path:'qa/narrative/branches-desktop.png'});
  const report=JSON.parse(await readFile('qa/narrative/browser-report.json','utf8'));
  const restored=await page.evaluate(save=>window.__narrativeLab.engine.restore(JSON.stringify(save)),report.steps.at(-1));
