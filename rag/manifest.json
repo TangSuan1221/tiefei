@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "ironlung-level-metrics",
+  "revision": "2026-09-29-v2-whitebox",
+  "defaultRuntimeProfile": "main-authored",
+  "documents": [
+    { "path": "docs/level-metrics.md", "kind": "level-metrics", "priority": 100 }
+  ],
+  "evidenceFiles": [
+    "src/pod/sim/harbor-navigation.ts",
+    "src/pod/view/deepsea/pod-expedition.ts",
+    "src/pod/sim/run.ts",
+    "src/pod/sim/pilot.ts",
+    "src/pod/sim/manipulator.ts",
+    "src/pod/sim/navigation-sonar.ts",
+    "src/pod/sim/harbor-progress.ts",
+    "src/pod/gen/interior.ts",
+    "src/pod/content/expedition.ts",
+    "src/pod/view/camera-room.ts",
+    "src/pod/view/deepsea/expedition-runtime.ts",
+    "src/pod/view/deepsea/preview-collision.ts",
+    "docs/passage-door-standard.md",
+    "docs/monster-ai.md",
+    "docs/chapter-one-rescue-revision.md"
+  ]
+}

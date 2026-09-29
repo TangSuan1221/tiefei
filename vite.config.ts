@@ -69,6 +69,7 @@ export default defineConfig(({ mode }) => {
           deepsea: fileURLToPath(new URL('./deepsea.html', import.meta.url)),
           reference: fileURLToPath(new URL('./reference.html', import.meta.url)),
           expedition: fileURLToPath(new URL('./expedition.html', import.meta.url)),
+          whitebox: fileURLToPath(new URL('./whitebox.html', import.meta.url)),
         },
       },
     },

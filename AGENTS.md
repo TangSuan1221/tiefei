@@ -1,0 +1,15 @@
+# 本项目关卡工作约束
+
+设计、修改或评审任何关卡前，阅读 `docs/level-metrics.md`，并用本地知识库检索相关约束：
+
+```powershell
+node tools/level-rag.mjs query "本次关卡涉及的机制和尺寸"
+node tools/level-rag.mjs check
+```
+
+- 默认主游戏 `/` 的 `PodRun → PodExpedition`；必须区分首关、后续关卡、独立探索和旧生成器参数。
+- 保留每条规则的IMPLEMENTED、REQUIRED、NOT_IMPLEMENTED、GAP状态。未实现能力不可当作现成机制；设计标准不可冒称已全关验收。
+- 若检索索引过期，先核查代码/用户决定与规范，再build；不得只重建索引掩盖语义差异。
+- 用户最新指示优先。修改有关机制或规范时同步 `rag/manifest.json` 与索引，并验证查询。
+- 第一章按 `docs/chapter-one-rescue-revision.md`：真实救出埃利亚斯成为同伴，无其撒谎或身份异常线索。
+- 这是一套本地检索资料；未实际写入外部服务时，不声称外部RAG已经同步。
