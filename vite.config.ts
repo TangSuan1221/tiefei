@@ -71,6 +71,7 @@ export default defineConfig(({ mode }) => {
           expedition: fileURLToPath(new URL('./expedition.html', import.meta.url)),
           whitebox: fileURLToPath(new URL('./whitebox.html', import.meta.url)),
           narrative: fileURLToPath(new URL('./narrative.html', import.meta.url)),
+          story: fileURLToPath(new URL('./story.html', import.meta.url)),
         },
       },
     },

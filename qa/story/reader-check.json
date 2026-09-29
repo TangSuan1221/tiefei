@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "errors": [],
+  "mobileOverflow": false,
+  "checks": [
+    "current draft",
+    "chapter navigation inspected",
+    "mobile legacy link navigation",
+    "mobile width"
+  ],
+  "scope": "reading interface only, not story gameplay"
+}
