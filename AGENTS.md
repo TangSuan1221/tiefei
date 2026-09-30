@@ -18,3 +18,4 @@ node tools/level-rag.mjs check
 - 每次剧情重写必须执行 MET-031 的完整约束审查并留下当次记录：逐条列依据、冲突、修改和未实现项，不只检查本次最显眼的反馈。会合、读记录、过场不得计作主要遭遇；恐怖感不能由构建通过或Agent自评分证明。本次第三章记录见 `docs/chapter-three-rewrite-audit.md`。
 - 正文和制作说明必须遵守 MET-032 分离；五章现行稿是连续小说式叙事，其他选择见 `docs/story-alternate-scenes.md`，因果与技术资料见 `docs/story-branch-design-2026-09-30.md`，最新整轮审查见 `docs/story-prose-rewrite-audit.md`。勿把作者禁令塞回对白或正文。
 - MET-033：补全场景间因果、行动和转场；莱娜须先介绍与寻找再接通，尼科录音不得写成现场真人发言；调查员需要恐惧、追问和撤退考虑。最新审查为 `docs/story-continuity-audit.md`。
+- MET-034：五章需有连续事故调查，现场证据与历史记录核验推动下一步行动；不可只增追问和日志。最新审查见 `docs/story-investigation-audit.md`。
