@@ -1,11 +1,15 @@
-import story from '../docs/story-split-route-2026-09-30.md?raw';
+import mainStory from '../docs/story-split-route-2026-09-30.md?raw';
+import alternateScenes from '../docs/story-alternate-scenes.md?raw';
+import designNotes from '../docs/story-branch-design-2026-09-30.md?raw';
+const view=new URLSearchParams(location.search).get('view');
+const story=view==='branches'?alternateScenes:view==='design'?designNotes:mainStory;
 import './story-reader.css';
 
 const root=document.querySelector<HTMLDivElement>('#app')!;
 const header=document.createElement('header');
-header.innerHTML='<span>迟到的目击者 / 当前剧情稿</span><a href="/narrative.html?view=legacy">旧版状态机（未迁移）</a>';
+header.innerHTML='<span>迟到的目击者</span><a href="/narrative.html" target="_top">剧情工具</a>';
 const notice=document.createElement('p');notice.className='notice';
-notice.textContent='剧情阅读与审查 · 非实机演示。本轮重写第三章：调查、危险补给、会合、跟随威胁与撤离。每轮按项目约束复核，未实现项单独保留。';
+notice.textContent=view==='branches'?'分支场景 · 其他选择对应的经历':view==='design'?'制作资料 · 保留因果与机制说明，非小说正文':'五章正文';
 const layout=document.createElement('div');layout.className='reading-layout';
 const nav=document.createElement('nav');nav.setAttribute('aria-label','章节目录');
 const article=document.createElement('article');

@@ -16,3 +16,4 @@ node tools/level-rag.mjs check
 - 这是一套本地检索资料；未实际写入外部服务时，不声称外部RAG已经同步。
 - 摄影协作还必须遵守 MET-030：角色能安全走近看清的事，不得强迫玩家摄影代办；关键调查需要无线电线索、拍摄目标、延迟期间未证实信息、看片决策和结果回收。普通走路与喘息不硬凑谜题。现行稿默认在 `/narrative.html` 的剧情阅读页展示，也可独立访问 `/story.html`；旧状态机入口为 `/narrative.html?view=legacy`，不代表新稿已接入模拟。
 - 每次剧情重写必须执行 MET-031 的完整约束审查并留下当次记录：逐条列依据、冲突、修改和未实现项，不只检查本次最显眼的反馈。会合、读记录、过场不得计作主要遭遇；恐怖感不能由构建通过或Agent自评分证明。本次第三章记录见 `docs/chapter-three-rewrite-audit.md`。
+- 正文和制作说明必须遵守 MET-032 分离；五章现行稿是连续小说式叙事，其他选择见 `docs/story-alternate-scenes.md`，因果与技术资料见 `docs/story-branch-design-2026-09-30.md`，最新整轮审查见 `docs/story-prose-rewrite-audit.md`。勿把作者禁令塞回对白或正文。

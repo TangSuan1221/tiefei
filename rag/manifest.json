@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-level-metrics",
-  "revision": "2026-09-30-v9-story-tool-entry",
+  "revision": "2026-09-30-v10-fiction-prose",
   "defaultRuntimeProfile": "main-authored",
   "documents": [
     { "path": "docs/level-metrics.md", "kind": "level-metrics", "priority": 100 }
