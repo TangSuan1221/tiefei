@@ -624,7 +624,7 @@ export class PodRun {
       :this.shot.phase==='developing'?'正在显影。完成后按 5 前往分析台读片。'
       :this.unanalyzedCount>0?'录像已回收。按 5 前往分析台，分析本关胶片。'
       :this.authoredSite?.objective ?? '已到坠落接驳港。沿岸电缆找到维修湾，恢复港内控制电源。';
-    if(!this.openingScanned) return this.at==='nav'?'按 2 发出常规声呐脉冲，确认目标回波。':'按 6 前往领航台，再按 2 扫描目标。';
+    if(!this.openingScanned) return this.at==='nav'?'按 2 开启主动声纳，再按 3 发出常规脉冲。':'摄像台左侧是声纳仪表。按 6 前往，再按 2 开机、按 3 扫描。';
     return this.at==='nav'?`将船头对准声呐目标，点击「接通推进」。距设施 ${this.remaining.toFixed(0)} 米。`
       :'按 6 返回领航台，沿目标回波航行；到站后拍摄事故现场。';
   }
@@ -684,6 +684,8 @@ export class PodRun {
 
   // --- 噪音 ---------------------------------------------------------------
   noise = 0.05;
+  /** 主动声纳换能器总电源。被动阵列不依赖它。 */
+  activeSonarEnabled = false;
 
   // --- 航行 ---------------------------------------------------------------
   legIndex = 0;
@@ -1555,7 +1557,8 @@ export class PodRun {
 
     // 噪音总是往底噪掉。底噪取决于你有没有在动
     if(this.phase==='site')this.authoredSite?.tick?.(dt);
-    const floor = Math.max(this.blackout ? 0.012 : 0.045 + this.throttle * 0.02,this.authoredSite?.noiseFloor??0);
+    const sonarHum = this.activeSonarEnabled && this.powered ? 0.035 : 0;
+    const floor = Math.max(this.blackout ? 0.012 + sonarHum : 0.045 + this.throttle * 0.02 + sonarHum,this.authoredSite?.noiseFloor??0);
     this.noise = Math.max(floor, this.noise - dt * 0.09);
 
     if (this.flareLeft > 0) this.flareLeft = Math.max(0, this.flareLeft - dt);
@@ -1698,6 +1701,11 @@ export class PodRun {
       this.onCue?.('ui.error', 0.6);
       return;
     }
+    if (power > 0 && !this.activeSonarEnabled) {
+      this.pushLog('主动声纳尚未通电。先打开换能器电源。', 'system');
+      this.onCue?.('ui.error', 0.6);
+      return;
+    }
     const cost = [2, 4, 6][power];
     if(this.legIndex===0 && power>0) this.openingScanned=true;
     const noise = [0.04, 0.42, 0.95][power];
@@ -1714,6 +1722,23 @@ export class PodRun {
 
     if (power === 2) {
       this.pushLog('全功率脉冲。整条沟都听见了。', 'bad');
+    }
+  }
+
+  toggleActiveSonar(): void {
+    if (!this.powered) {
+      this.pushLog('没有电。主动声纳换能器无法启动。', 'bad');
+      this.onCue?.('ui.error', 0.6);
+      return;
+    }
+    this.activeSonarEnabled = !this.activeSonarEnabled;
+    this.onCue?.('ui.toggle', 0.65);
+    if (this.activeSonarEnabled) {
+      this.power = clamp01(this.power - 0.006);
+      this.addNoise(0.08);
+      this.pushLog('主动声纳已通电。换能器的低鸣会抬高舱外噪声；发射脉冲会进一步暴露位置。', 'bad');
+    } else {
+      this.pushLog('主动声纳已断电。被动阵列仍在监听。', 'system');
     }
   }
 
@@ -1766,6 +1791,28 @@ export class PodRun {
     // 安全走廊：相对舱首的开口方向
     const openRad = ((this.leg.safeHeading - this.heading) * Math.PI) / 180;
     const half = (this.leg.tolerance * Math.PI) / 180;
+
+    // 被动阵列只听得到正在发声的目标。它能给出宽泛方位，
+    // 但没有往返时间，因此绝不提供距离或墙体轮廓。
+    if (power === 0) {
+      if (this.phase === 'transit') {
+        out.push({
+          id: 'passive.target', bearing: openRad, range: 0.82,
+          strength: 0.62, arc: Math.max(0.34, half * 1.7), kind: 'door',
+          label: `${this.leg.siteName} · 距离未知`,
+        });
+      }
+      const t = this.threat;
+      if (t && (t.phase === 'contact' || t.phase === 'identified')) {
+        out.push({
+          id: 'passive.threat', bearing: t.bearing, range: 0.82,
+          strength: 0.9, arc: 0.30,
+          kind: t.phantom && this.corruption > 0.4 ? 'artifact' : 'anomaly',
+          label: `${t.known ? t.creature.name : t.creature.designation} · 距离未知`,
+        });
+      }
+      return out;
+    }
 
     if (this.phase === 'transit') {
       // ── 远场：一圈墙，一道缝，一个目标点 ──────────────────────────────

@@ -331,7 +331,7 @@ function play(seed: number, verbose: boolean, reckless: boolean): Report {
 
     // 打一发脉冲，看清走廊
     run.walkTo('nav');
-    run.ping(1);
+    if(!run.activeSonarEnabled)run.toggleActiveSonar();run.ping(1);
     if (!sampled) {
       sampled = true;
       for (const c of run.contacts) rep.firstPing[c.kind] = (rep.firstPing[c.kind] ?? 0) + 1;
@@ -462,7 +462,7 @@ console.log('\n──── 航渡 / 到站 探针 ────');
 
   // 航渡途中声呐要有目标点，且距离随推进收拢
   run.walkTo('nav');
-  run.ping(1);
+  if(!run.activeSonarEnabled)run.toggleActiveSonar();run.ping(1);
   const target0 = run.contacts.find((c) => c.id === 'target');
   ok('航渡声呐有目标点', !!target0, target0 ? `range=${target0.range.toFixed(2)}` : '缺失');
   ok('航渡声呐没有阴影图', run.siteShadow.length === 0);
@@ -479,7 +479,7 @@ console.log('\n──── 航渡 / 到站 探针 ────');
 
   // 到站之后：声呐只有未知废墟，没有近场几何
   ok('到站没有近场阴影图', run.siteShadow.length === 0, `${run.siteShadow.length} 个扇区`);
-  run.ping(1);
+  if(!run.activeSonarEnabled)run.toggleActiveSonar();run.ping(1);
   ok('到站声呐没有目标点了', !run.contacts.some((c) => c.id === 'target'));
   ok('到站声呐有未知废墟', run.contacts.some((c) => c.kind === 'wreck'), run.contacts.find((c) => c.kind === 'wreck')?.label ?? '');
 

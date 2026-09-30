@@ -12,9 +12,12 @@ test('opening persists until actual reception and advances only on successful ac
  assert.equal(r.storyCaption,OPENING_CALL);assert.match(r.openingGuide!,/按 6/);
  r.walkTo('nav');assert.match(r.openingGuide!,/按 2/);
  r.ping(0);assert.equal(r.openingScanned,false);
+ assert.ok(r.contacts.length>0);assert.ok(r.contacts.every(c=>c.range===.82&&c.label?.includes('距离未知')));
+ r.ping(1);assert.equal(r.openingScanned,false,'主动声纳未通电时不能发射');
+ const quiet=r.noise;r.toggleActiveSonar();assert.equal(r.activeSonarEnabled,true);assert.ok(r.noise>quiet);
  r.ping(1);assert.equal(r.openingScanned,true);assert.match(r.openingGuide!,/接通推进/);
 });
 test('no power does not complete scan; opening hints end with source film',()=>{
- const r=new PodRun(42);r.power=0;r.ping(1);assert.equal(r.openingScanned,false);
+ const r=new PodRun(42);r.power=0;r.toggleActiveSonar();r.ping(1);assert.equal(r.openingScanned,false);
  r.campaign.record(0,'film');assert.equal(r.openingGuide,null);
 });

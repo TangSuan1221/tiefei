@@ -27,7 +27,7 @@ function tapesForSave(run:PodRun):Obj[] {
   return tapes;
 }
 const numbers = ['breaths','clock','power','hull','flood','leak','scrubber','cabinTemp','noise','traveled','siteBreaths','heading','pitch','collisions','camPan','camTilt','camZoom','flareLeft','corruption','suspicion','huntRecoveryUntil'] as const;
-const booleans = ['blackout','lamp','openingReceived','openingScanned','earsPlugged'] as const;
+const booleans = ['blackout','lamp','openingReceived','openingScanned','earsPlugged','activeSonarEnabled'] as const;
 const maps = ['stock','salvaged','containers','containerItems'] as const;
 const sets = ['filed','askedOnce'] as const;
 const arrays = ['bench','pending','heard','chart'] as const;

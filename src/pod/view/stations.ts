@@ -640,6 +640,11 @@ function drawNav(
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
+  ctx.font = cjk(h * 0.021, 600);
+  ctx.fillStyle = rgba(PALETTE.phosphorMid, 0.92);
+  ctx.fillText(`被动声纳 · 常开 · 仅方位${run.sweepPower===0?' · 当前':''}`,cx,h*.058);
+  ctx.fillStyle=rgba(run.activeSonarEnabled?PALETTE.bloodHot:PALETTE.boneDim,.88);
+  ctx.fillText(`主动声纳 · ${run.activeSonarEnabled?'已通电 · 噪声外泄':'已断电'}${run.sweepPower>0?' · 当前':''}`,cx,h*.092);
   ctx.fillStyle = rgba(PALETTE.boneWhisper, 0.65);
   ctx.font = mono(h * 0.028, 500);
   ctx.fillText('PPI  回波', cx, h * 0.96);
@@ -666,7 +671,7 @@ function drawNav(
     ctx.fillText(`目标 ${run.leg.siteName}`, rx, h * 0.17);
     ctx.fillStyle = rgba(PALETTE.ember, 0.92);
     ctx.font = mono(h * 0.044, 700);
-    ctx.fillText(`${run.remaining.toFixed(0)} m`, rx, h * 0.23);
+    ctx.fillText(run.sweepPower===0?'距离未知':`${run.remaining.toFixed(0)} m`, rx, h * 0.23);
     drawBar(ctx, rx, h * 0.255, rw, h * 0.018, run.traveled / run.leg.length, PALETTE.ember, '', h);
   }
 
@@ -1910,9 +1915,10 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
       const site = run.phase === 'site';
       const atCharge = site && run.volume?.nodes.find((n) => n.id === run.volumeAt)?.role === 'charge';
       return filterControls([
-        { id: 'nav.ping0', key: '1', label: '被动聆听', hint: '安静' },
-        { id: 'nav.ping1', key: '2', label: '常规脉冲', hint: '4口气' },
-        { id: 'nav.ping2', key: '3', label: '全功率', hint: '整条沟都听见', state: 'danger' },
+        { id: 'nav.ping0', key: '1', label: '被动聆听', hint: '只报方位 · 无距离' },
+        { id: 'nav.active', key: '2', label: run.activeSonarEnabled?'关闭主动声纳':'开启主动声纳', hint: run.activeSonarEnabled?'换能器正在低鸣':'启动会产生噪声', state: run.activeSonarEnabled?'danger':undefined },
+        { id: 'nav.ping1', key: '3', label: '常规脉冲', hint: run.activeSonarEnabled?'测距 · 有噪声':'先开启主动声纳', state: run.activeSonarEnabled?undefined:'disabled' },
+        { id: 'nav.ping2', key: 'Q', label: '全功率', hint: run.activeSonarEnabled?'整条沟都听见':'先开启主动声纳', state: run.activeSonarEnabled?'danger':'disabled' },
         { id: 'nav.left', key: 'A', label: '航向 −5°', hint: '' },
         { id: 'nav.right', key: 'D', label: '航向 +5°', hint: '' },
         { id: 'nav.pitchUp', key: 'W', label: '上浮', hint: '潜深 −' },
@@ -2062,6 +2068,9 @@ export function performControl(run: PodRun, actionId: string): boolean {
       return true;
     case 'nav.ping0':
       run.ping(0);
+      return true;
+    case 'nav.active':
+      run.toggleActiveSonar();
       return true;
     case 'nav.ping1':
       run.ping(1);

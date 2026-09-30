@@ -1,7 +1,9 @@
 export type Atom=string|number|boolean;
 export type Condition={path:string;op:'eq'|'ne'|'gte'|'lte'|'has'|'notHas';value:Atom}|{all:Condition[]}|{any:Condition[]};
 export interface Effect {path:string;op:'set'|'add';value:Atom}
-export interface NpcLine {speaker:'vance'|'elias'|'niko'|'lena'|'player';text:string;requires?:Condition}
+export type CharacterId='vance'|'elias'|'vera'|'delroy';
+export type ObservationMode='camera'|'mobile-camera'|'passive-sonar'|'active-sonar'|'system';
+export interface NpcLine {speaker:CharacterId|'player';text:string;requires?:Condition}
 export interface Choice {
  id:string;label:string;condition?:Condition;instructions:Effect[];
  /** Facts visible in the stable result recording, granted only by analysis. */
@@ -10,6 +12,7 @@ export interface Choice {
 export interface Resolution {id:string;label:string;condition?:Condition;instructions:Effect[];text:string}
 export interface StoryScene {
  id:string;chapter:number;title:string;location:string;entryText:string;
+ observation:ObservationMode;
  scoutFootage:string;scoutFacts:string[];choices:Choice[];resolveText:string;
  resolutions:Resolution[];
  plannedSeconds:{travel:number;reading:number;action:number};
@@ -20,6 +23,8 @@ export interface StoryEnding {id:string;title:string;condition:Condition;summary
 export interface Chapter {id:number;title:string;depth:number;dramaticQuestion:string}
 export interface Campaign {
  id:string;version:number;title:string;chapters:Chapter[];scenes:StoryScene[];endings:StoryEnding[];
+ premise:string;
+ prologue:{title:string;location:string;text:string;stateChanges:string[]};
  initialWorld:Record<string,Atom>;
 }
 export type Phase='scout'|'decision'|'result'|'resolve'|'next'|'ended';
@@ -34,9 +39,9 @@ export interface StoryState {
  schemaVersion:1;campaignId:string;campaignVersion:number;
  sceneIndex:number;phase:Phase;clock:number;epoch:number;selectedChoice:string|null;selectedResolution:string|null;
  player:{alive:boolean;stress:number};pod:{power:number;hull:number;oxygen:number;armStowed:boolean};
- relations:Record<'vance'|'elias'|'niko'|'lena',{trust:number;respect:number}>;
+ relations:Record<CharacterId,{trust:number;respect:number}>;
  world:Record<string,Atom>;
- knowledge:{player:string[];vance:string[];elias:string[];niko:string[];lena:string[]};
+ knowledge:{player:string[];vance:string[];elias:string[];vera:string[];delroy:string[]};
  tapes:Tape[];activeTapeId:string|null;captureRemaining:number;developRemaining:number;
  events:StoryEvent[];endingId:string|null;
 }

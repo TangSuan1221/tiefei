@@ -2,14 +2,14 @@ import assert from 'node:assert/strict';
 import { StoryEngine } from '../src/narrative-lab/engine';
 import type { Campaign, StoryScene } from '../src/narrative-lab/types';
 
-const scene=(id:string):StoryScene=>({id,chapter:1,title:id,location:'维护区',entryText:'抵达独立分镜。',
+const scene=(id:string):StoryScene=>({id,chapter:1,title:id,location:'维护区',entryText:'抵达独立分镜。',observation:'camera',
   scoutFootage:'稳定笼体中有一位被困者。',scoutFacts:[`${id}.seen`],resolveText:'根据结果继续。',
   plannedSeconds:{travel:5,reading:15,action:5},
   choices:[
     {id:'isolate',label:'关闭隔离',instructions:[{path:'world.gateClosed',op:'set',value:true},{path:'world.eliasDisposition',op:'set',value:'isolated'}],evidence:[`${id}.closed`],resultText:'隔离门已经关闭。',consequence:'真实关门',npcLines:[{speaker:'elias',text:'不应出现'},{speaker:'vance',text:'本台词故意没有 requires；仍必须等到报告才能说。'}]},
     {id:'repair',label:'维护旁路',instructions:[{path:'world.repaired',op:'set',value:true}],evidence:[`${id}.repaired`],resultText:'旁路已有新的维修标记。',consequence:'修复旁路',npcLines:[]},
   ],resolutions:[{id:'continue',label:'按已核验结果继续',instructions:[],text:'已确认后续行动。'}]});
-const campaign:Campaign={id:'engine-fixture',version:1,title:'引擎边界测试',chapters:[{id:1,title:'测试',depth:1000,dramaticQuestion:'事实是否守恒？'}],
+const campaign:Campaign={id:'engine-fixture',version:1,title:'引擎边界测试',premise:'测试',prologue:{title:'测试',location:'测试',text:'测试',stateChanges:[]},chapters:[{id:1,title:'测试',depth:1000,dramaticQuestion:'事实是否守恒？'}],
   scenes:[scene('a'),scene('b')],initialWorld:{eliasNature:'transformed',eliasDisposition:'companion',gateClosed:false,repaired:false},
   endings:[{id:'end',title:'完成',priority:0,condition:{all:[]},summary:'隔离状态守恒。'}]};
 const engine=new StoryEngine(campaign);

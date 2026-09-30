@@ -4,7 +4,7 @@ const copy = <T>(value:T):T => structuredClone(value);
 const ok = (message:string):ActionResult => ({ok:true,message});
 const no = (message:string):ActionResult => ({ok:false,message});
 const clamp = (value:number,min:number,max:number) => Math.max(min,Math.min(max,value));
-const people = ['vance','elias','niko','lena'] as const;
+const people = ['vance','elias','vera','delroy'] as const;
 const own = (value:object,key:string) => Object.prototype.hasOwnProperty.call(value,key);
 const isObject = (v:unknown):v is Record<string,unknown> => !!v && typeof v==='object' && !Array.isArray(v);
 const finite = (v:unknown):v is number => typeof v==='number' && Number.isFinite(v);
@@ -34,8 +34,8 @@ export class StoryEngine {
     this.data={schemaVersion:1,campaignId:this.campaign.id,campaignVersion:this.campaign.version,
       sceneIndex:0,phase:'scout',clock:0,epoch:0,selectedChoice:null,selectedResolution:null,
       player:{alive:true,stress:0},pod:{power:.88,hull:1,oxygen:3600,armStowed:true},
-      relations:{vance:{trust:0,respect:0},elias:{trust:0,respect:0},niko:{trust:0,respect:0},lena:{trust:0,respect:0}},
-      world:copy(this.campaign.initialWorld),knowledge:{player:[],vance:[],elias:[],niko:[],lena:[]},
+      relations:{vance:{trust:0,respect:0},elias:{trust:0,respect:0},vera:{trust:0,respect:0},delroy:{trust:0,respect:0}},
+      world:copy(this.campaign.initialWorld),knowledge:{player:[],vance:[],elias:[],vera:[],delroy:[]},
       tapes:[],activeTapeId:null,captureRemaining:0,developRemaining:0,events:[],endingId:null};
     this.event('enter',this.current.entryText);
   }
@@ -68,7 +68,7 @@ export class StoryEngine {
   private validateEffect(effect:Effect):void {
     const path=effect.path;
     const world=path.startsWith('world.')&&path.split('.').length===2&&own(this.campaign.initialWorld,path.slice(6))&&path!=='world.eliasNature';
-    const relation=/^relations\.(vance|elias|niko|lena)\.(trust|respect)$/.test(path);
+    const relation=/^relations\.(vance|elias|vera|delroy)\.(trust|respect)$/.test(path);
     const resource=/^pod\.(power|hull|oxygen)$/.test(path)||path==='player.stress';
     if(!world&&!relation&&!resource)throw new Error(`禁止剧情效果写入：${path}`);
     if(!['set','add'].includes(effect.op)||!['string','number','boolean'].includes(typeof effect.value)||
@@ -120,10 +120,10 @@ export class StoryEngine {
     next.selectedChoice=choiceId;next.phase='result';next.epoch++;
     this.data=next;
     this.event(`action:${choiceId}`,`${candidate.choice.label}：${candidate.choice.consequence}`);
-    return ok('操作完成。请拍摄现场，查看结果。');
+    return ok('操作完成。请再次记录现场，查看结果。');
   }
   shoot():ActionResult {
-    if(this.busy)return no('已有曝光或显影任务，不能并行拍摄。');
+    if(this.busy)return no('已有取证或处理任务，不能并行记录。');
     if(!this.data.player.alive||!this.data.pod.armStowed)return no('需要玩家可行动且机械臂已收回。');
     if(this.data.phase!=='scout'&&this.data.phase!=='result')return no('此阶段无需新授权录像；先行动或继续。');
     if(this.data.pod.power<.06||this.data.pod.oxygen<17)return no('摄影资源不足；维护补给后可以重拍。');
@@ -134,8 +134,9 @@ export class StoryEngine {
       text:this.data.phase==='scout'?this.current.scoutFootage:choice!.resultText,ready:false,analyzed:false,source:'authored-storyboard'};
     this.data.pod.power-=.06;this.data.tapes.push(tape);this.data.activeTapeId=tape.id;
     this.data.captureRemaining=5;this.data.developRemaining=12;
-    this.event('exposure',`${tape.id}：${tape.kind==='scout'?'侦察':'结果'}曝光开始，事实已锁定。`);
-    return ok('正在拍摄。曝光需要 5 秒，之后等待 12 秒显影。');
+    const mode=this.current.observation;
+    this.event('exposure',`${tape.id}：${tape.kind==='scout'?'侦察':'结果'}记录开始（${mode}），事实已锁定。`);
+    return ok(mode==='passive-sonar'||mode==='active-sonar'?'正在记录声纳回波。采样需要 5 秒，之后等待 12 秒解析。':'正在拍摄。曝光需要 5 秒，之后等待 12 秒显影。');
   }
   tick(seconds:number):void {
     if(!finite(seconds)||seconds<0)throw new RangeError('时间增量必须为有限非负秒。');
@@ -255,7 +256,7 @@ export class StoryEngine {
     if(!Array.isArray(s.events)||s.events.some((e,i)=>!isObject(e)||e.id!==i+1||!finite(e.at)||e.at<0||e.at>s.clock||(i>0&&e.at<s.events[i-1].at)||typeof e.type!=='string'||typeof e.detail!=='string'||!this.campaign.scenes.some(c=>c.id===e.sceneId)||(e.causedBy!==undefined&&(!Number.isInteger(e.causedBy)||e.causedBy<1||e.causedBy>=e.id))))fail('事件因果链无效');
     const replay=copy(s);replay.world=copy(this.campaign.initialWorld);
     for(const person of people)replay.relations[person]={trust:0,respect:0};
-    replay.knowledge={player:[],vance:[],elias:[],niko:[],lena:[]};
+    replay.knowledge={player:[],vance:[],elias:[],vera:[],delroy:[]};
     const performed=new Set<string>();
     let entered=-1,replayedPhase:StoryState['phase']='scout',expectedEpoch=0,lastChoice:string|null=null,lastResolution:string|null=null;
     for(const event of s.events){
@@ -307,7 +308,7 @@ export class StoryEngine {
       if(!authored.some(a=>a.text===t.text&&JSON.stringify(a.facts)===JSON.stringify(t.facts)))fail('录像内容不是已登记的分镜');
     }
     const known=new Set(s.tapes.filter(t=>t.analyzed).flatMap(t=>t.facts));
-    if(s.knowledge.player.some(f=>!known.has(f))||[...known].some(f=>!s.knowledge.player.includes(f))||s.knowledge.vance.some(f=>!s.knowledge.player.includes(f))||['elias','niko','lena'].some(p=>s.knowledge[p as 'elias'|'niko'|'lena'].length>0))fail('知识缺少已分析录像来源');
+    if(s.knowledge.player.some(f=>!known.has(f))||[...known].some(f=>!s.knowledge.player.includes(f))||s.knowledge.vance.some(f=>!s.knowledge.player.includes(f))||['elias','vera','delroy'].some(p=>s.knowledge[p as 'elias'|'vera'|'delroy'].length>0))fail('知识缺少已分析取证来源');
     if(s.knowledge.vance.length>0&&!s.events.some(e=>e.type==='report'))fail('万斯知识缺少显式报告');
     const active=s.tapes.find(t=>t.id===s.activeTapeId);
     if(s.activeTapeId!==null&&(!active||active.ready||active.sceneId!==this.campaign.scenes[s.sceneIndex].id||active.epoch!==s.epoch||!['scout','result'].includes(s.phase)||s.captureRemaining+s.developRemaining<=0))fail('进行中的摄影状态无效');
