@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-level-metrics",
-  "revision": "2026-09-30-v12-investigation",
+  "revision": "2026-09-30-v13-panacea",
   "defaultRuntimeProfile": "main-authored",
   "documents": [
     { "path": "docs/level-metrics.md", "kind": "level-metrics", "priority": 100 }

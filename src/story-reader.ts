@@ -7,9 +7,9 @@ import './story-reader.css';
 
 const root=document.querySelector<HTMLDivElement>('#app')!;
 const header=document.createElement('header');
-header.innerHTML='<span>迟到的目击者</span><a href="/narrative.html" target="_top">剧情工具</a>';
+header.innerHTML='<span>深海静默 · Panacea</span><a href="/narrative.html" target="_top">剧情工具</a>';
 const notice=document.createElement('p');notice.className='notice';
-notice.textContent=view==='branches'?'分支场景 · 其他选择对应的经历':view==='design'?'制作资料 · 保留因果与机制说明，非小说正文':'五章正文';
+notice.textContent=view==='branches'?'分支场景 · 其他选择对应的经历':view==='design'?'制作资料 · 保留因果与机制说明，非小说正文':'序章与五章正文';
 const layout=document.createElement('div');layout.className='reading-layout';
 const nav=document.createElement('nav');nav.setAttribute('aria-label','章节目录');
 const article=document.createElement('article');
