@@ -4,7 +4,7 @@ import {StoryEngine} from './engine';
 import {rankCandidates} from './director';
 import type {Condition,StoryScene} from './types';
 import currentStory from '../../docs/story-split-route-2026-09-30.md?raw';
-import rewriteAudit from '../../docs/story-prose-rewrite-audit.md?raw';
+import rewriteAudit from '../../docs/story-continuity-audit.md?raw';
 
 const engine=new StoryEngine(campaign);
 const root=document.querySelector<HTMLDivElement>('#app')!;
@@ -56,7 +56,7 @@ function inspector(){
 function render(){
  if(tab==='story'||tab==='story-audit'||tab==='story-branches'||tab==='story-design'){
   const chapter=storyChapters[storyChapter-1];
-  root.innerHTML=`<div style="height:100vh;display:flex;flex-direction:column;background:#11191e"><header class="top" style="flex-shrink:0;flex-wrap:wrap;padding:12px 20px"><div class="brand"><div class="mark">◇</div><div><strong>迟到的目击者</strong><small>五章正文 · 小说式修订</small></div></div><div class="toolbar" style="flex-wrap:wrap"><button data-tab="story">当前剧情</button><button data-tab="story-branches">分支场景</button><button data-tab="story-design">制作资料</button><button data-tab="story-audit">本轮约束检查</button><button data-tab="flow">旧稿状态机（未迁移）</button></div></header><nav style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 20px;flex-shrink:0;border-bottom:1px solid #34434b" aria-label="当前剧情章节">${storyChapters.map((c,i)=>`<button data-story-chapter="${i+1}" style="${storyChapter===i+1?'border-color:#d6b579;color:#ffd38d':''}">${esc(c.title)}</button>`).join('')}</nav>${tab!=='story-audit'?`<iframe title="当前剧情阅读稿" src="/story.html${tab==='story-branches'?'?view=branches':tab==='story-design'?'?view=design':'#'+(chapter?.anchor??'')}" style="width:100%;flex:1;min-height:0;border:0"></iframe>`:`<main style="overflow:auto;flex:1;min-height:0;padding:28px"><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-width:1100px;margin:auto;font:16px/1.9 'Microsoft YaHei',sans-serif;color:#dbe5e7">${esc(rewriteAudit)}</pre></main>`}</div>`;
+  root.innerHTML=`<div style="height:100vh;display:flex;flex-direction:column;background:#11191e"><header class="top" style="flex-shrink:0;flex-wrap:wrap;padding:12px 20px"><div class="brand"><div class="mark">◇</div><div><strong>迟到的目击者</strong><small>五章正文 · 连续性修订</small></div></div><div class="toolbar" style="flex-wrap:wrap"><button data-tab="story">当前剧情</button><button data-tab="story-branches">分支场景</button><button data-tab="story-design">制作资料</button><button data-tab="story-audit">本轮约束检查</button><button data-tab="flow">旧稿状态机（未迁移）</button></div></header><nav style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 20px;flex-shrink:0;border-bottom:1px solid #34434b" aria-label="当前剧情章节">${storyChapters.map((c,i)=>`<button data-story-chapter="${i+1}" style="${storyChapter===i+1?'border-color:#d6b579;color:#ffd38d':''}">${esc(c.title)}</button>`).join('')}</nav>${tab!=='story-audit'?`<iframe title="当前剧情阅读稿" src="/story.html${tab==='story-branches'?'?view=branches':tab==='story-design'?'?view=design':'#'+(chapter?.anchor??'')}" style="width:100%;flex:1;min-height:0;border:0"></iframe>`:`<main style="overflow:auto;flex:1;min-height:0;padding:28px"><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-width:1100px;margin:auto;font:16px/1.9 'Microsoft YaHei',sans-serif;color:#dbe5e7">${esc(rewriteAudit)}</pre></main>`}</div>`;
   return;
  }
  const opened=new Set(Array.from(root.querySelectorAll('details[open]')).map(d=>d.querySelector('summary')?.textContent));
