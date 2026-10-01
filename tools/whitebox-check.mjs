@@ -4,9 +4,10 @@ import { mkdir, writeFile } from 'node:fs/promises';
 
 // Real browser frames only: no teleport, injected grants, or synthetic frame(dt).
 const base = process.env.WHITEBOX_URL ?? 'http://127.0.0.1:5174/whitebox.html';
-const dir = 'qa/whitebox';
+const variant = process.env.WHITEBOX_NEGATIVE ? 'negative' : 'normal';
+const dir = `qa/whitebox/${variant}`;
 await mkdir(dir, { recursive: true });
-const report = { method: 'Edge; normal input API; real animation frames; isolated storage', url: base, passed: false, errors: [], steps: [], shots: [], blocked: [] };
+const report = { method: 'Engineering regression, NOT blind play: Edge; known route coordinates; normal input API; real animation frames; isolated storage', url: base, passed: false, errors: [], steps: [], shots: [], blocked: [], navigations: [] };
 report.startedAt=Date.now();report.negative=!!process.env.WHITEBOX_NEGATIVE;
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 process.once('SIGINT',async()=>{await browser.close();process.exit(130);});
@@ -20,6 +21,7 @@ await context.route('**/*', route => {
 });
 const page = await context.newPage();
 page.on('pageerror', e => report.errors.push(e.message));
+page.on('framenavigated', frame => { if (frame === page.mainFrame()) report.navigations.push({ url: frame.url(), time: Date.now() }); });
 
 async function snapshot(label) {
   const value = await page.evaluate(() => ({ time: performance.now(), site: window.__whitebox?.site?.snapshot(), clock: window.__whitebox?.run.clock, resources: window.__whitebox ? {power:window.__whitebox.run.power,hull:window.__whitebox.run.hull,oxygen:window.__whitebox.run.vitals.vitals.oxygen}:null, shot: window.__whitebox?.run.shot.phase }));
@@ -48,6 +50,7 @@ async function shoot(label,analyze=true){
   const exposed=await page.evaluate(()=>({wall:performance.now(),clock:window.__whitebox.run.clock}));
   await page.waitForFunction(()=>window.__whitebox.run.selectedTape?.ready===true,null,{timeout:35000});
   const ready=await page.evaluate(()=>{const r=window.__whitebox.run,t=r.selectedTape;return {wall:performance.now(),clock:r.clock,id:t.id,frames:t.sensorFrames?.length,distinct:new Set(t.sensorFrames).size,capture:t.siteEvidence};});
+  assert.ok(!report.shots.some(s=>s.ready.id===ready.id),`${label}: new tape id must not collide with an earlier recording`);
   assert.ok(exposed.clock-start.clock>=4.95,'five second exposure');assert.ok(ready.clock-exposed.clock>=11.8,'twelve second development');assert.ok(ready.frames>=3,'genuine frame sequence');
   report.shots.push({label,start,exposed,ready});
   if(analyze)await page.evaluate(()=>{const r=window.__whitebox.run;r.walkTo('lab');r.analyzeTape();});
@@ -64,6 +67,13 @@ try {
   await snapshot('entry'); await screenshot('entry');
   if(process.env.WHITEBOX_NEGATIVE){await drive(0,4,180);await shoot('wrong-direction');assert.equal((await snapshot('wrong-rejected')).site.identified,false);}
   await drive(0,4);await shoot('threat');assert.equal((await snapshot('threat-confirmed')).site.identified,true);
+  if(!process.env.WHITEBOX_NEGATIVE){
+    await page.waitForFunction(()=>JSON.parse(sessionStorage.getItem('ironlung.whitebox.checkpoint.v2')??'null')?.site?.identified===true,null,{timeout:10000});
+    await page.reload();await page.locator('#whitebox-continue').click();
+    await page.waitForFunction(()=>window.__whitebox?.site?.identified===true,null,{timeout:30000});
+    assert.equal((await snapshot('mid-route-checkpoint-reloaded')).site.powered,false);
+    report.midRouteCheckpointReloaded=true;
+  }
   await drive(0,4.5);await drive(-12,4.5);await drive(-12,3.75);await interact();assert.equal((await snapshot('power')).site.powered,true);
   await drive(-12,4.5);
   await drive(12,4,90);await interact();
@@ -80,9 +90,42 @@ try {
   await shoot('lure');assert.equal((await snapshot('lure-confirmed')).site.lured,true);
   await drive(12,4,90);await interact();await drive(12,4);await shoot('gate');assert.equal((await snapshot('gate-confirmed')).site.verified,true);
   await drive(0,4);await drive(0,-8);await interact();assert.equal((await snapshot('rescued')).site.rescued,true);
+  assert.equal((await snapshot('departure-not-yet-confirmed')).site.departureConfirmed,false,'rescue alone must not confirm the separated route');
+  await page.waitForTimeout(4500);await shoot('departure');
+  assert.equal((await snapshot('departure-confirmed')).site.departureConfirmed,true);
   await drive(0,-7.5);await drive(0,4);await drive(0,18.75);await drive(12,18.75);await drive(12,18);await interact();
   assert.equal((await snapshot('complete')).site.complete,true);await screenshot('complete');
-  assert.deepEqual(report.errors,[]);report.passed=true;
+  assert.deepEqual(report.errors,[]);
+  const ending=await page.evaluate(()=>({outcome:window.__whitebox.run.outcome,power:window.__whitebox.run.power,oxygen:window.__whitebox.run.vitals.vitals.oxygen}));
+  assert.equal(ending.outcome.kind,'alive','completion must leave player alive');
+  assert.ok(ending.power>0.02,'completion retains usable power');
+  assert.ok(ending.oxygen>0,'completion retains oxygen');
+  report.ending=ending;
+  // Separate persistence contract check after normal play is complete. This
+  // never grants progress or supplies to the route above.
+  report.restoreChecks=await page.evaluate(()=>{
+    const s=window.__whitebox.site, saved=s.snapshot();
+    const invalid=[null,{...saved,version:999},{...saved,position:[9999,2,9999]},
+      {...saved,verified:false,rescued:true},{...saved,departureConfirmed:false,complete:true},
+      {...saved,heading:NaN}];
+    const rejected=invalid.map(value=>{const before=JSON.stringify(s.snapshot());const accepted=s.restore(value);return {accepted,unchanged:before===JSON.stringify(s.snapshot())};});
+    const restored=s.restore(saved), after=s.snapshot();
+    return {rejected,restored,roundTrip:['identified','powered','lured','gateClosed','monsterInside','verified','rescued','complete','departureConfirmed','epoch'].every(k=>saved[k]===after[k])};
+  });
+  assert.ok(report.restoreChecks.rejected.every(c=>!c.accepted&&c.unchanged),'invalid checkpoints must be rejected atomically');
+  assert.ok(report.restoreChecks.restored&&report.restoreChecks.roundTrip,'completed checkpoint round trip');
+  await page.waitForFunction(()=>{
+    const saved=JSON.parse(sessionStorage.getItem('ironlung.whitebox.checkpoint.v2')??'null');
+    return saved?.site?.complete===true;
+  },null,{timeout:10000});
+  await page.reload();await page.locator('#whitebox-continue').click();
+  await page.waitForFunction(()=>window.__whitebox?.site?.complete===true,null,{timeout:30000});
+  const resumed=await snapshot('checkpoint-reloaded');
+  assert.equal(resumed.site.departureConfirmed,true);
+  assert.equal(resumed.site.rescued,true);
+  assert.ok(resumed.resources.power>0.02);
+  report.checkpointReloaded=true;
+  report.passed=true;
 } catch (error) {
   report.failure = String(error?.stack ?? error);
   await screenshot('failure').catch(() => {});

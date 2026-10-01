@@ -34,3 +34,11 @@ tmp/
 /tools/.container-probe*.ts
 /tools/.r4-measure.ts
 /tools/.run5.mjs
+
+# Keep final first-level reports and representative evidence; other captures are local QA output.
+/qa/whitebox/normal/*
+/qa/whitebox/negative/*
+!/qa/whitebox/normal/report.json
+!/qa/whitebox/negative/report.json
+!/qa/whitebox/normal/complete.png
+!/qa/whitebox/normal/departure-frame-0.jpg

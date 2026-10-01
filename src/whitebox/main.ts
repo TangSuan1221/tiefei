@@ -3,22 +3,28 @@ import { PodRun, type FootageRequest } from '../pod/sim/run';
 import { PodView } from '../pod/view/present';
 import { PodSession } from '../pod/view/session';
 import { WhiteboxSite } from './site';
+import { installGuidance } from './guidance';
+import { clearCheckpoint, readCheckpoint, restoreCheckpoint } from './checkpoint';
 
 // This module is loaded only by whitebox.html. It never restores or writes a
 // campaign save and never installs the production video service.
 const root = document.getElementById('ui-root')!;
 root.innerHTML = `<section class="title-screen">
-  <div><div class="title-mark">独立灰盒 · 原驾驶与摄影系统</div>
-  <h1 class="title-cn">接驳港 · 救援演练</h1>
+  <div><div class="title-mark">第一关 · 独立关卡验证</div>
+  <h1 class="title-cn">接驳港 · 断桥来声</h1>
   <p class="title-tag"><span>观察、诱导、隔离，然后救援。</span>
   <span>曝光 5 秒，机载显影 12 秒；在分析台核验真实感光录像。</span>
-  <span>本次从零开始，不读取或覆盖正式游戏存档。</span></p></div>
-  <p class="title-tag">空格前进 · N 倒车 · J / L 转向 · Shift 刹车 · F 操作设施<br>2 摄影工位 · 5 分析台；靠近面板前先转正，离开时先倒退。</p>
+  <span>断桥另一端，一名维修员正在呼救。你只能靠返回的影像确认水里有什么。</span></p></div>
+  <p class="title-tag">按住空格前进 · N 倒车 · J / L 转向 · Shift 刹车 · F 操作设施<br>摄影台按 1 拍摄 · 分析台按 3 核验；下方也有可点击按钮。<br>独立检查点仅保留在本标签页，正式存档不受影响。</p>
   <nav class="menu"><button class="menu-item" id="whitebox-start" data-idx="01">
-  <span>进入灰盒</span><span class="sub">仅本地录像 · 无网络生成</span></button></nav>
+  <span>开始第一关</span><span class="sub">从入口开始</span></button>
+  ${readCheckpoint()?'<button class="menu-item" id="whitebox-continue"><span>继续检查点</span><span class="sub">恢复本标签页的关卡进度</span></button>':''}</nav>
 </section>`;
+document.getElementById('whitebox-continue')?.addEventListener('click',()=>{sessionStorage.setItem('ironlung.whitebox.resume','1');document.getElementById('whitebox-start')!.click();});
 
 document.getElementById('whitebox-start')!.addEventListener('click', () => {
+  let resume=false;try{resume=sessionStorage.getItem('ironlung.whitebox.resume')==='1';sessionStorage.removeItem('ironlung.whitebox.resume');}catch{/* no storage */}
+  if(!resume)clearCheckpoint();
   root.replaceChildren();
   root.style.pointerEvents = 'none';
   const canvas = document.getElementById('post-canvas') as HTMLCanvasElement;
@@ -44,7 +50,7 @@ document.getElementById('whitebox-start')!.addEventListener('click', () => {
     }
     return added;
   };
-  const chapter = { ...run.campaign.current, title: '接驳港 · 独立救援灰盒',
+  const chapter = { ...run.campaign.current, title: '接驳港 · 断桥来声',
     question: '录像中的实际状态是否支持下一步操作？' };
   Object.defineProperties(run.campaign, {
     current: { get: () => chapter },
@@ -93,15 +99,18 @@ document.getElementById('whitebox-start')!.addEventListener('click', () => {
   run.depart = () => run.pushLog(run.authoredSite?.complete
     ? '本次独立救援演练已完成。可使用右上角按钮从零重启。'
     : '请完成现场救援，再靠近实体下潜接口操作。', 'system');
-  run.pushLog('独立灰盒：先在观察位拍摄，显影后前往分析台核验。', 'system');
+  run.pushLog('艾里亚斯〔港口应急频道〕：我是这里的维修员。我在断桥北面，门口有东西。请帮帮我。', 'radio');
   run.pushLog('使用原驾驶、实体交互与工位控制；曝光 5 秒，显影 12 秒。正式存档不受影响。', 'system');
+  const site=run.authoredSite as WhiteboxSite;
+  if(resume&&!restoreCheckpoint(run,site))run.pushLog('检查点无法恢复，已回到入口；原记录仍保留。','system');
+  installGuidance(run,site);
 
   Object.defineProperty(window, '__whitebox', {
     configurable: true,
     value: { run, get site() { return run.authoredSite as WhiteboxSite | null; } },
   });
   const restart = document.createElement('button');
-  restart.textContent = '重启灰盒';
+  restart.textContent = '重新开始';
   restart.setAttribute('aria-label', '从零重启独立灰盒');
   restart.style.cssText = 'position:fixed;right:12px;top:12px;z-index:100;padding:8px 12px;background:var(--abyss);color:var(--bone);border:1px solid var(--rust-dim);font:inherit;cursor:pointer';
   restart.addEventListener('pointerdown', event => event.stopPropagation());
@@ -110,3 +119,4 @@ document.getElementById('whitebox-start')!.addEventListener('click', () => {
   new PodSession(run, view).start();
   void view.unlockAudio();
 }, { once: true });
+try{if(sessionStorage.getItem('ironlung.whitebox.resume')==='1')document.getElementById('whitebox-start')!.click();}catch{/* start manually */}

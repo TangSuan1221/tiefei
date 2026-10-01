@@ -46,5 +46,17 @@ for (const [name,origin,target] of [
   const blocked=world.solids.some(box=>{const hit=ray.intersectBox(box,new Vector3());return hit!==null&&hit.distanceTo(origin)<distance-.3;});
   result(`${name}: static centre sightline`,!blocked,{distance});
 }
+for (const key of ['power','control','rescue','exit']) {
+  const origin=world.anchors[key], target=world.anchors[key+'Panel'];
+  const distance=origin.distanceTo(target), heading=bearing(origin,target);
+  result(`${key}: panel within real interaction reach`,distance<=3.4,{distance});
+  result(`${key}: hull fits while aiming at panel`,harborHullClear(origin,heading,world.walkable,world.solids),{heading});
+  const ray=new Ray(origin,target.clone().sub(origin).normalize());
+  const blocked=world.solids.some(box=>{
+    if(box.containsPoint(target))return false;
+    const hit=ray.intersectBox(box,new Vector3());return hit!==null&&hit.distanceTo(origin)<distance-.3;
+  });
+  result(`${key}: panel has unobstructed interaction ray`,!blocked);
+}
 console.log(`Static geometry checks complete: ${failures} failure(s). Not a rendered or interactive acceptance test.`);
 process.exitCode=failures?1:0;
