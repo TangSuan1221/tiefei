@@ -77,6 +77,7 @@ function drawObjective(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h:
 
 function drawVerifiedRecording(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: number): string {
   const tape=run.selectedTape;
+  if(tape?.testDescription){ctx.save();ctx.fillStyle='#071113';ctx.fillRect(0,0,w,h);ctx.fillStyle='#d9d4bf';ctx.textAlign='left';ctx.font=cjk(Math.max(12,h*.085),500);const text=tape.ready===false?'曝光已回收，正在显影……':tape.testDescription;layoutCJK(ctx,text,w*.88).forEach((line,i)=>ctx.fillText(line,w*.06,h*.14+i*h*.12));ctx.restore();return '无视频测试 · 曝光快照描述';}
   // Local exposure footage is independent of remote generation. The player owns
   // its loading/playback status and source label; never relabel it as a still.
   if ((tape?.sensorFrames?.length ?? 0) >= 3) return drawLabRecording(ctx,run,w,h,localPlaybackFor(run));
@@ -582,7 +583,7 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
     h * 0.275,
   );
 
-  const lines = (tape.sensorFrames?.length ?? 0) < 3 && (tape.videoResult==='failed' || tape.videoResult==='prompt')
+  const lines = tape.testDescription ? (tape.analyzed?tape.report:['3 核验本次拍摄描述']) : (tape.sensorFrames?.length ?? 0) < 3 && (tape.videoResult==='failed' || tape.videoResult==='prompt')
     ? ['未取得生成视频。不能据此判断怪物是否出现。', '现场证据与视频生成状态分开核验。']
     : tape.analyzed
     ? tape.report

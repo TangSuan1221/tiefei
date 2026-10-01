@@ -12,7 +12,7 @@ root.innerHTML = `<section class="title-screen">
   <div><div class="title-mark">第一关 · 独立关卡验证</div>
   <h1 class="title-cn">接驳港 · 断桥来声</h1>
   <p class="title-tag"><span>观察、诱导、隔离，然后救援。</span>
-  <span>曝光 5 秒，机载显影 12 秒；在分析台核验真实感光录像。</span>
+  <span>曝光 5 秒，机载显影 12 秒；默认无视频测试：分析台返回拍摄描述。</span>
   <span>断桥另一端，一名维修员正在呼救。你只能靠返回的影像确认水里有什么。</span></p></div>
   <p class="title-tag">按住空格前进 · N 倒车 · J / L 转向 · Shift 刹车 · F 操作设施<br>摄影台按 1 拍摄 · 分析台按 3 核验。<br>独立检查点仅保留在本标签页，正式存档不受影响。</p>
   <nav class="menu"><button class="menu-item" id="whitebox-start" data-idx="01">
@@ -65,8 +65,8 @@ document.getElementById('whitebox-start')!.addEventListener('click', () => {
     try { return capture?.() ?? ''; }
     finally { if (site) site.recording = false; }
   };
-  run.captureSensorFrame = recorded(run.captureSensorFrame);
-  run.captureKeyframe = recorded(run.captureKeyframe);
+  run.captureSensorFrame = new URLSearchParams(location.search).get('video')==='1'?recorded(run.captureSensorFrame):()=>'';
+  run.captureKeyframe = new URLSearchParams(location.search).get('video')==='1'?recorded(run.captureKeyframe):()=>'';
 
   let pending: FootageRequest | null = null;
   run.footageSink = request => { pending = request; };
@@ -78,7 +78,7 @@ document.getElementById('whitebox-start')!.addEventListener('click', () => {
     if (run.shot.phase !== 'developing' || run.shot.developed < 12) return;
     const request = pending;
     pending = null;
-    request.settle(request.token, false, '机载感光序列已显影：本次未提交网络视频生成。');
+    request.settle(request.token, false, '本地测试结果已返回。',false,!!run.authoredSite?.descriptionOnly);
   };
 
   // Receive the original opening gate, then enter this independent site's

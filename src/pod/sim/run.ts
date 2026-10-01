@@ -509,6 +509,7 @@ export interface FootageRequest {
 
 /** 冲好、进了片盒的一卷。分析台读的是这个，不是摄像头上正在放的那一帧 */
 export interface TapeRecord {
+  testDescription?:string;
   simulationReport?:string[];
   /** Actual successive camera frames; UI plays these as a labelled local backup. */
   sensorFrames?:string[];
@@ -3029,6 +3030,7 @@ export class PodRun {
     const siteName =
       s.purpose === 'survey' ? actAt(Math.min(this.legIndex + 1, ACT_COUNT - 1)).leg.siteName : this.leg.siteName;
     this.tapes.push({
+      testDescription:this.gmLevelSession&&this.authoredSite?.descriptionOnly?this.authoredSite.describeEvidence?.(s.siteEvidence):undefined,
       simulationReport:s.capture?.simulationReport?.slice(),
       sensorFrames:s.sensorFrames?.slice(),
       siteEvidence:s.siteEvidence,
@@ -3075,7 +3077,7 @@ export class PodRun {
       this.onCue?.('ui.error', 0.5);
       return;
     }
-    if(tape.videoResult==='prompt'&&tape.ready!==false&&this.at==='lab'&&this.powered){
+    if(tape.videoResult==='prompt'&&!tape.testDescription&&tape.ready!==false&&this.at==='lab'&&this.powered){
       tape.report=['GM 模拟分析 · 非AI视频识别 · 仅读取曝光时的系统快照',...(tape.simulationReport??['旧录像未保存模拟分析快照，请在无视频模式下重新曝光。']),'该报告不授予正式剧情证据，也不能验证生成视频质量。'];
       tape.analyzed=true;this.onCue?.('knowledge.gain',.6);
       for(const line of tape.report)this.pushLog(line,'system');return;
@@ -3099,13 +3101,14 @@ export class PodRun {
         this.pushLog('本卷调查底片不属于当前设施。','system');return;
       }
       const generated=tape.videoResult==='video';
-      const playable=generated || (tape.sensorFrames?.length??0)>=3;
+      const descriptionTest=this.gmLevelSession&&this.authoredSite.descriptionOnly&&!!tape.testDescription;
+      const playable=generated || descriptionTest || (tape.sensorFrames?.length??0)>=3;
       if(!playable){this.pushLog('无可播放录像：本地感光帧不足，请重新曝光。','system');return;}
       const lines=this.authoredSite.analyzeEvidence({capture:structuredClone(tape.siteEvidence),media:{
-        playable,mediaId:tape.id,source:generated?'generated-video':'controlled-video'
+        playable,mediaId:tape.id,source:descriptionTest?'geometry-description-test':generated?'generated-video':'controlled-video'
       }});
       this.power = clamp01(this.power - ANALYZE_POWER);
-      tape.report=[generated?'远端生成录像 · 调查核验':'本地感光录像备份 · 非AI，逐帧传感记录',...lines];
+      tape.report=[descriptionTest?'无视频测试 · 曝光快照描述核验':generated?'远端生成录像 · 调查核验':'本地感光录像备份 · 非AI，逐帧传感记录',...lines];
       tape.analyzed=true;
       const evidenceReady=this.authoredSite.evidenceReady;
       if(evidenceReady===true || (this.legIndex!==0 && evidenceReady===undefined && lines.length>0))

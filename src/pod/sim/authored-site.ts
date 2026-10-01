@@ -15,6 +15,8 @@ export interface AuthoredSite {
   readonly objective?:string;
   readonly diegeticGuidance?:boolean;
   readonly navigationConsole?:NavigationConsole;
+  readonly descriptionOnly?:boolean;
+  describeEvidence?(capture:unknown):string;
   sonarPulse?(power:0|1|2):void;
   /** Authoritative evidence state after analysis; report text is not success. */
   readonly evidenceReady?:boolean;

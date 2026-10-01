@@ -21,7 +21,7 @@ export function restoreCheckpoint(run:PodRun,site:WhiteboxSite):boolean{
 export function installCheckpoint(run:PodRun,site:WhiteboxSite){
  let signature='';let note='抵达安全节点后自动保存';
  const timer=window.setInterval(()=>{
-  const next=[site.stage,site.powered,site.verified,site.dockReached,site.navigationConsole.target?.join()].join(':');
+  const next=[site.stage,site.powered,site.verified,site.dockReached,site.navigationConsole.captured,site.navigationConsole.heard,site.navigationConsole.target?.join()].join(':');
   if(next===signature||run.outcome.kind!=='alive'||run.power<.08||run.shot.viewing||['exposing','developing'].includes(run.shot.phase)||run.arm.phase!=='stowed')return;
   if(site.lureTime>0&&!site.monsterInside)return;
   try{

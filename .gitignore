@@ -39,6 +39,8 @@ tmp/
 /qa/whitebox/normal/*
 /qa/whitebox/negative/*
 !/qa/whitebox/normal/report.json
+!/qa/whitebox/normal/receiver-check.json
+!/qa/whitebox/normal/saved-coordinate-log.png
 !/qa/whitebox/negative/report.json
 !/qa/whitebox/normal/complete.png
 !/qa/whitebox/normal/departure-frame-0.jpg

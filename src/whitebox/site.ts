@@ -16,6 +16,12 @@ type Evidence={version:1; epoch:number; kind:'threat'|'lure'|'gate'|'departure'|
 export class WhiteboxSite implements AuthoredSite {
  readonly index=0; readonly managesThreats=true; readonly spatialThreat=false;
  readonly diegeticGuidance=true; readonly navigationConsole=new PortNavigation(this); dockReached=false;
+ readonly descriptionOnly=new URLSearchParams(location.search).get('video')!=='1';
+ private radioStep=-1; private radioWait=0;
+ startRadio(){this.radioStep=0;this.radioWait=0;}
+ replayRadio(){this.startRadio();}
+ private radioLine(text:string){this.speak(text);if('speechSynthesis' in window){const u=new SpeechSynthesisUtterance(text);u.lang='zh-CN';u.rate=.95;window.speechSynthesis.cancel();window.speechSynthesis.speak(u);}}
+ describeEvidence(value:unknown){const e=value as Evidence;if(!e?.visible)return '测试拍摄描述：画面是昏暗的港口设施，没有拍到需要确认的目标。';return '测试拍摄描述：'+({threat:'断桥对面有一名穿潜水服的人。隔间外伏着肢体反折的生物，挡住了门口。',lure:'生物已经完全进入东侧货仓，货箱停在里面，隔离门仍然敞开。',gate:e.monsterInside?'隔离门落到底，生物留在观察窗后。门外的通道空了。':'隔离门已关闭，生物却还在仓外。',departure:'艾里亚斯穿过内侧门，在门后向潜艇挥手。两条撤离路线被断桥分开。',empty:'镜头没有拍到可辨认的目标。'}[e.kind]);}
  readonly world=createWhiteboxWorld(); readonly position=new T.Vector3(0,2,18);
  recording=false; complete=false; identified=false; powered=false; lured=false; verified=false; rescued=false;
  gateClosed=false; monsterInside=false; epoch=0; lureTime=0; elapsed=0;
@@ -76,6 +82,7 @@ export class WhiteboxSite implements AuthoredSite {
   if(!harborHullClear(new T.Vector3(...s.position),s.heading,this.world.walkable,solids))return false;
   this.navigationConsole.target=Array.isArray(s.navigationTarget)&&s.navigationTarget.length===2&&s.navigationTarget.every(Number.isFinite)?s.navigationTarget:s.identified?[0,4]:null;
   this.dockReached=s.dockReached??s.identified;
+  if(s.radio){this.navigationConsole.frequency=Number.isFinite(s.radio.frequency)?s.radio.frequency:37.8;this.navigationConsole.captured=!!s.radio.captured;this.navigationConsole.heard=!!s.radio.heard;}
   for(const k of flags)this[k]=s[k];
   this.position.set(...s.position);this.run.heading=s.heading;this.epoch=s.epoch;this.elapsed=s.elapsed;this.lureTime=s.lureTime;this.departureTime=s.departureTime;
   this.world.monster.position.set(s.monsterInside?12:3,2,-10);
@@ -152,7 +159,8 @@ export class WhiteboxSite implements AuthoredSite {
  tick(dt:number){
   this.elapsed+=dt;
   this.navigationConsole.tick(dt);
-  if(!this.dockReached&&this.navigationConsole.target&&this.position.distanceTo(new T.Vector3(0,2,4))<5){this.dockReached=true;this.speak('万斯：你到接驳港了。下面信号会断，注意……〔载波中断〕 艾里亚斯：有人吗？我是港口维修员艾里亚斯。我在断桥北面，门外有东西在爬。你能拍清它吗？我不敢开门。');}
+  if(this.radioStep>=0){this.radioWait-=dt;if(this.radioWait<=0){const lines=['艾里亚斯：有人收到吗？我是接驳港维修员艾里亚斯。我困在断桥另一边。','罗温：听见了。我是来调查事故的，正在驾驶潜艇。你受伤了吗？门外是什么？','艾里亚斯：我没受伤。我不知道那是什么，它一直在门口爬。你在港口坐标附近把镜头朝北，帮我看看它。拍完去读片台，告诉我你看到了什么。'];if(this.radioStep<lines.length){this.radioLine(lines[this.radioStep]);this.radioWait=[8,8,16][this.radioStep++];}else this.radioStep=-1;}}
+  if(!this.dockReached&&this.navigationConsole.target&&this.position.distanceTo(new T.Vector3(0,2,4))<5){this.dockReached=true;this.speak('万斯：你到接驳港了。下面信号会断，注意……〔载波中断〕');this.run.onCue?.('radio.squelch',.35);}
   this.soundBeat-=dt;
   if(this.soundBeat<=0&&!this.complete){this.soundBeat=this.lureTime>0&&!this.monsterInside?2:11;this.run.onCue?.(this.lureTime>0&&!this.monsterInside?'arm.pump-start':this.gateClosed?'hull.ping-return':'creature.skitter',this.gateClosed?.12:.22);}
   if(this.rescued){const before=this.departureTime;this.departureTime+=dt;this.world.elias.position.set(-Math.min(1,this.departureTime/2)*1.6,2,-13-Math.max(0,Math.min(1,(this.departureTime-2)/2))*.8);if(before<4&&this.departureTime>=4)this.say('艾里亚斯：我到内侧门了，看见我了吗？我在门后等你。');}
@@ -163,11 +171,11 @@ export class WhiteboxSite implements AuthoredSite {
   this.pose();this.world.monster.visible=this.recording;this.world.scene.updateMatrixWorld(true);
   if(this.size!==`${w}:${h}`){this.renderer.setSize(w,h,false);this.composer.setSize(w,h);this.size=`${w}:${h}`;}this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
   this.lamp.position.copy(this.position);this.lamp.position.y-=.18;this.lamp.target.position.copy(this.position).addScaledVector(this.camera.getWorldDirection(new T.Vector3()),12);
-  this.lamp.intensity=this.run.lit?90:0;this.fill.position.copy(this.position);this.fill.intensity=this.run.lit?2.1:0;
+  this.lamp.intensity=this.run.lit?(this.recording?90:1.5):0;this.fill.position.copy(this.position);this.fill.intensity=this.run.lit?(this.recording?2.1:.015):0;this.renderer.toneMappingExposure=this.recording?1.05:.13;
   this.atmosphere.update(time,this.camera,this.lamp);this.water.update(this.run.lit?.5:0);this.composer.render();ctx.drawImage(this.renderer.domElement,0,0,w,h);
  }
  drawInteraction(_ctx:CanvasRenderingContext2D,_w:number,_h:number){}
  drawMap(ctx:CanvasRenderingContext2D,w:number,h:number){this.navigationConsole.draw(ctx,w,h);}
- snapshot(){return {version:2,levelId:'whitebox.chapter1',index:0,navigationTarget:this.navigationConsole.target,dockReached:this.dockReached,position:this.position.toArray() as [number,number,number],heading:this.run.heading,identified:this.identified,powered:this.powered,lureTime:this.lureTime,lured:this.lured,gateClosed:this.gateClosed,monsterInside:this.monsterInside,verified:this.verified,rescued:this.rescued,departureConfirmed:this.departureConfirmed,departureTime:this.departureTime,complete:this.complete,epoch:this.epoch,elapsed:this.elapsed,objective:this.objective,events:this.events};}
+ snapshot(){return {version:2,levelId:'whitebox.chapter1',index:0,navigationTarget:this.navigationConsole.target,dockReached:this.dockReached,radio:{frequency:this.navigationConsole.frequency,captured:this.navigationConsole.captured,heard:this.navigationConsole.heard},position:this.position.toArray() as [number,number,number],heading:this.run.heading,identified:this.identified,powered:this.powered,lureTime:this.lureTime,lured:this.lured,gateClosed:this.gateClosed,monsterInside:this.monsterInside,verified:this.verified,rescued:this.rescued,departureConfirmed:this.departureConfirmed,departureTime:this.departureTime,complete:this.complete,epoch:this.epoch,elapsed:this.elapsed,objective:this.objective,events:this.events};}
  dispose(){this.atmosphere.dispose();this.ao.dispose();this.composer.dispose();this.renderer.dispose();this.world.scene.traverse(o=>{if(o instanceof T.Mesh){o.geometry.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});}
 }

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "checks": [
+    "out-of-zone capture/play rejected",
+    "coordinate entry does not engage propulsion",
+    "saved coordinate record accessible",
+    "active sonar on/off"
+  ],
+  "errors": []
+}

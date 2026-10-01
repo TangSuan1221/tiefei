@@ -49,9 +49,9 @@ async function shoot(label,analyze=true){
   await page.waitForFunction(()=>window.__whitebox.run.shot.phase==='developing',null,{timeout:20000});
   const exposed=await page.evaluate(()=>({wall:performance.now(),clock:window.__whitebox.run.clock}));
   await page.waitForFunction(()=>window.__whitebox.run.selectedTape?.ready===true,null,{timeout:35000});
-  const ready=await page.evaluate(()=>{const r=window.__whitebox.run,t=r.selectedTape;return {wall:performance.now(),clock:r.clock,id:t.id,frames:t.sensorFrames?.length,distinct:new Set(t.sensorFrames).size,capture:t.siteEvidence};});
+  const ready=await page.evaluate(()=>{const r=window.__whitebox.run,t=r.selectedTape;return {wall:performance.now(),clock:r.clock,id:t.id,frames:t.sensorFrames?.length,distinct:new Set(t.sensorFrames).size,capture:t.siteEvidence,description:t.testDescription};});
   assert.ok(!report.shots.some(s=>s.ready.id===ready.id),`${label}: new tape id must not collide with an earlier recording`);
-  assert.ok(exposed.clock-start.clock>=4.95,'five second exposure');assert.ok(ready.clock-exposed.clock>=11.8,'twelve second development');assert.ok(ready.frames>=3,'genuine frame sequence');
+  assert.ok(exposed.clock-start.clock>=4.95,'five second exposure');assert.ok(ready.clock-exposed.clock>=11.8,'twelve second development');assert.equal(ready.frames,0,'description mode produces no video frames');assert.ok(ready.description?.startsWith('测试拍摄描述：'),'description derives from exposure snapshot');
   report.shots.push({label,start,exposed,ready});
   if(analyze)await page.evaluate(()=>{const r=window.__whitebox.run;r.walkTo('lab');r.analyzeTape();});
   await page.waitForTimeout(1200);await screenshot(label);const frames=await page.evaluate(()=>window.__whitebox.run.selectedTape.sensorFrames);for(const i of [0,Math.floor(frames.length/2),frames.length-1]){const data=frames[i];if(data)await writeFile(dir+'/'+label+'-frame-'+i+'.jpg',Buffer.from(data.split(',')[1],'base64'));}return ready;
@@ -77,7 +77,16 @@ try {
   await screenshot('sonar-active');await page.keyboard.press('2');
   await snapshot('entry'); await screenshot('entry');
   if(process.env.WHITEBOX_NEGATIVE){await drive(0,4,180);await shoot('wrong-direction');assert.equal((await snapshot('wrong-rejected')).site.identified,false);}
-  await drive(0,4);await shoot('threat');assert.equal((await snapshot('threat-confirmed')).site.identified,true);
+  await drive(0,4);
+  await page.evaluate(()=>window.__whitebox.run.walkTo('nav'));
+  await page.keyboard.press('1');
+  await page.keyboard.press('p');assert.equal(await page.evaluate(()=>window.__whitebox.site.navigationConsole.heard),false);
+  for(let i=0;i<6;i++)await page.keyboard.press('e');
+  await page.keyboard.press('c');assert.equal(await page.evaluate(()=>window.__whitebox.site.navigationConsole.captured),true);
+  await page.keyboard.press('p');await page.waitForFunction(()=>window.__whitebox.site.events.some(e=>e.event.startsWith('罗温：听见了')),null,{timeout:20000});
+  await page.waitForFunction(()=>window.__whitebox.site.events.some(e=>e.event.startsWith('艾里亚斯：我没受伤')),null,{timeout:20000});
+  await screenshot('radio-tuned');
+  await shoot('threat');assert.equal((await snapshot('threat-confirmed')).site.identified,true);
   if(!process.env.WHITEBOX_NEGATIVE){
     await page.waitForFunction(()=>JSON.parse(sessionStorage.getItem('ironlung.whitebox.checkpoint.v2')??'null')?.site?.identified===true,null,{timeout:10000});
     await page.reload();await page.locator('#whitebox-continue').click();
