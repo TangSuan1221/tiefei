@@ -180,6 +180,7 @@ function drawStationViewInner(
   });
 
   const controls = stationControls(run, id);
+  if(instrument?.screenAction)hits.add({id:instrument.screenAction,x:screenX,y:screenY,w:screenW,h:screenH});
   if(instrument){const columns=instrument.editing?4:3;for(let i=0;i<controls.length;i+=columns)drawControls(ctx,hits,x+pad,ctrlY+Math.floor(i/columns)*h*.115,w-pad*2,h*.102,controls.slice(i,i+columns),view.hovered,view.time);}
   else drawControls(ctx, hits, x + pad, ctrlY, w - pad * 2, ctrlH, controls, view.hovered, view.time);
 

@@ -1,7 +1,7 @@
 {
   "passed": true,
   "checks": [
-    "out-of-zone capture/play rejected",
+    "approach signal available; mistimed click and unbuffered play rejected; pointer mouse capture succeeds",
     "coordinate entry does not engage propulsion",
     "saved coordinate record accessible",
     "active sonar on/off"

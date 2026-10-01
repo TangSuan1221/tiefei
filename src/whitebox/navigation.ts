@@ -6,7 +6,11 @@ import type { WhiteboxSite } from './site';
 /** Inertial coordinates and acoustic observations are separate data sources. */
 export class PortNavigation implements NavigationConsole {
  editing=false; logOpen=false; tuning=false; frequency=37.8; captured=false; heard=false; axis=0; fields=['','']; target:number[]|null=null;
- get inSignal(){return this.site.position.distanceTo(new T.Vector3(0,2,4))<7&&!this.site.rescued;}
+ private scanTime=0; private missLeft=0;
+ get screenAction(){return this.tuning?'port.capture':undefined;}
+ // The approach lies inside the port transmitter's acoustic footprint. Once
+ // docked, loss of a tiny position trigger must never cut the rescue channel.
+ get inSignal(){return (this.site.dockReached||this.site.position.distanceTo(new T.Vector3(0,2,-13))<48)&&!this.site.rescued;}
  get reception(){return this.inSignal?Math.max(0,1-Math.abs(this.frequency-38.4)/.65):0;}
  get bearingLabel(){if(!this.inSignal)return '方位未知';const d=new T.Vector3(0,2,-13).sub(this.site.position);const a=(Math.atan2(d.x,-d.z)*180/Math.PI-this.site.run.heading+360)%360;return ['前方','右前方','右舷','右后方','后方','左后方','左舷','左前方'][Math.round(a/45)%8];}
  readonly receivedCoordinates='万斯 · 接驳港  X 0 / Z 4';
@@ -15,14 +19,14 @@ export class PortNavigation implements NavigationConsole {
  constructor(private site:WhiteboxSite){}
  briefing(){this.site.speak('万斯：接驳港坐标，X 零，Z 四。我发到左侧导航台的通信记录里了，忘了就翻记录。输入坐标，再把艇开过去。被动监听一直开着，主动声纳有独立电源。发射时，水里也能听见你。');}
  controls():Control[]{
-  if(this.tuning)return [{id:'port.down',key:'q',label:'频率 −'},{id:'port.up',key:'e',label:'频率 ＋'},{id:'port.capture',key:'c',label:'捕捉信号',state:this.reception>.8?'normal':'disabled'},{id:'port.play',key:'p',label:'播放录存',state:this.captured?'normal':'disabled'},{id:'port.tune',key:'1',label:'返回声纳'},{id:'port.vance',key:'v',label:'通信记录'}];
+  if(this.tuning)return [{id:'port.capture',key:'c',label:this.captured?'已捕捉':'点击锁定',hint:'指针经过波峰时'},{id:'port.play',key:'p',label:'播放录存',state:this.captured?'normal':'disabled'},{id:'port.rescan',key:'r',label:'重新扫描'},{id:'port.tune',key:'1',label:'返回声纳'},{id:'port.vance',key:'v',label:'通信记录'}];
   if(this.editing)return ['1','2','3','Backspace','4','5','6','Tab','7','8','9','-','0','.','Enter','Escape'].map(key=>({id:'port.key.'+key,key,label:({Backspace:'退格',Tab:'切换 X / Z',Enter:'写入航点',Escape:'取消'} as Record<string,string>)[key]??key}));
   return [{id:'port.tune',key:'1',label:'调频接收',hint:'被动接收常开'},{id:'nav.active',key:'2',label:this.site.run.activeSonarEnabled?'关闭主动声纳':'开启主动声纳',state:this.site.run.activeSonarEnabled?'active':'normal'},{id:'nav.ping1',key:'3',label:'发射脉冲',hint:this.site.run.activeSonarEnabled?'通电就绪':'电源关闭',state:this.site.run.activeSonarEnabled?'normal':'disabled'},{id:'port.coords',key:'r',label:'输入坐标'},{id:'nav.thrust',key:'4',label:'驾驶操纵'},{id:'port.vance',key:'v',label:this.logOpen?'返回声纳':'通信记录',hint:'万斯 · 接驳港坐标'}];
  }
  action(id:string){
-  if(id==='port.tune'){this.tuning=!this.tuning;this.logOpen=false;return true;}
-  if(id==='port.down'||id==='port.up'){this.frequency=Math.round(Math.max(35,Math.min(45,this.frequency+(id==='port.up'?.1:-.1)))*10)/10;return true;}
-  if(id==='port.capture'){if(this.reception<=.8)return false;this.captured=true;this.site.run.onCue?.('radio.squelch',.4);return true;}
+  if(id==='port.tune'){this.tuning=!this.tuning;this.logOpen=false;if(this.tuning&&!this.captured){this.scanTime=0;this.frequency=35;this.site.speak('罗温：接收机在自动扫频。等指针经过那道高峰，我就把信号锁住。');}return true;}
+  if(id==='port.rescan'){this.captured=false;this.scanTime=0;this.frequency=35;return true;}
+  if(id==='port.capture'){if(this.captured)return true;if(!this.inSignal||Math.abs(this.frequency-38.4)>.65){this.missLeft=1.2;return false;}this.captured=true;this.site.run.onCue?.('radio.squelch',.4);return true;}
   if(id==='port.play'){if(!this.captured)return false;if(!this.heard){this.heard=true;this.site.startRadio();}else this.site.replayRadio();return true;}
 if(id==='port.coords'){this.logOpen=false;this.editing=true;this.axis=0;this.fields=this.target?.map(String)??['',''];this.site.run.pilot.stop();return true;}if(id==='port.vance'){this.tuning=false;this.logOpen=!this.logOpen;return true;}if(id.startsWith('port.key.'))return this.key(id.slice(9));return false;}
  key(key:string){if(!this.editing)return false;
@@ -37,6 +41,8 @@ if(id==='port.coords'){this.logOpen=false;this.editing=true;this.axis=0;this.fie
   return true;
  }
  tick(dt:number){
+  this.missLeft=Math.max(0,this.missLeft-dt);
+  if(this.tuning&&!this.captured){this.scanTime+=dt;const t=(this.scanTime%10)/5;this.frequency=35+10*(t<=1?t:2-t);}
   this.age+=dt;this.sampleClock+=dt;
   if(this.sampleClock<.5)return;this.sampleClock%=.5;this.sampleId++;
 
@@ -61,10 +67,13 @@ if(id==='port.coords'){this.logOpen=false;this.editing=true;this.axis=0;this.fie
   ctx.save();ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle='#061114';ctx.fillRect(0,0,w,h);ctx.fillStyle='#a4d8bc';ctx.font=`${Math.max(12,h*.06)}px "Microsoft YaHei"`;
   if(this.editing){ctx.fillText('航点输入 / 本地接驳坐标',w*.05,h*.23);ctx.fillText(`${this.axis===0?'▸':''} X ${this.fields[0]||'____'}     ${this.axis===1?'▸':''} Z ${this.fields[1]||'____'}`,w*.05,h*.57);ctx.fillStyle='#e5c78f';ctx.fillText(this.receivedCoordinates,w*.05,h*.85);ctx.restore();return;}
   if(this.tuning){
-   ctx.fillText('水声接收机 / 调频',w*.05,h*.12);ctx.font=`${Math.max(18,h*.12)}px monospace`;ctx.fillText(this.frequency.toFixed(1)+' kHz',w*.05,h*.34);
-   ctx.fillStyle='#194239';ctx.fillRect(w*.05,h*.45,w*.9,h*.1);ctx.fillStyle='#95c9ac';ctx.fillRect(w*.05,h*.45,w*.9*this.reception,h*.1);
-   ctx.font=`${Math.max(12,h*.06)}px "Microsoft YaHei"`;ctx.fillText(this.reception>.8?'载波清晰 / 可捕捉':this.inSignal?'载波失谐 / 调节频率':'没有接收到载波',w*.05,h*.68);
-   ctx.fillText(this.captured?'录存就绪 / P 播放':'缓冲区空 / C 捕捉',w*.05,h*.85);ctx.restore();return;
+   ctx.fillText('水声接收机 / 自动扫描',w*.05,h*.12);
+   const x=w*.07,y=h*.24,gw=w*.86,gh=h*.38;
+   ctx.fillStyle='#0b2725';ctx.fillRect(x,y,gw,gh);ctx.strokeStyle='#97d6b1';ctx.beginPath();
+   for(let i=0;i<=160;i++){const f=35+i/16;const peak=this.inSignal?Math.exp(-(((f-38.4)/.55)**2))*(.68+.12*Math.sin(this.site.elapsed*6)**2):0;const amp=.04+.035*Math.sin(i*1.7+this.site.elapsed*9)**2+peak;const px=x+i/160*gw,py=y+gh*(1-amp);if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}ctx.stroke();
+   const px=x+(this.frequency-35)/10*gw;ctx.strokeStyle=this.captured?'#9dedb3':'#efc576';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,y);ctx.lineTo(px,y+gh);ctx.stroke();ctx.fillStyle=ctx.strokeStyle;ctx.beginPath();ctx.moveTo(px,y+8);ctx.lineTo(px-6,y-3);ctx.lineTo(px+6,y-3);ctx.fill();
+   ctx.font=`${Math.max(12,h*.055)}px "Microsoft YaHei"`;ctx.fillStyle='#b7d1c6';ctx.fillText('35',x,h*.71);ctx.textAlign='center';ctx.fillText(this.frequency.toFixed(1)+' kHz',x+gw*.5,h*.71);ctx.textAlign='right';ctx.fillText('45',x+gw,h*.71);ctx.textAlign='left';
+   ctx.fillText(this.captured?'信号已锁定 · P 播放':this.missLeft?'未锁住 · 继续扫描':this.inSignal?'指针经过高峰时，点击声谱锁定':'载波微弱 · 驶近接驳港',x,h*.85);ctx.restore();return;
   }
   if(this.logOpen){
    ctx.fillText('通信记录 / 已保存',w*.05,h*.12);ctx.fillStyle='#e5c78f';ctx.font=`${Math.max(14,h*.085)}px "Microsoft YaHei"`;ctx.fillText('接驳港   X 0 / Z 4',w*.05,h*.31);

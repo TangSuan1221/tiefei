@@ -81,7 +81,7 @@ try {
   await page.evaluate(()=>window.__whitebox.run.walkTo('nav'));
   await page.keyboard.press('1');
   await page.keyboard.press('p');assert.equal(await page.evaluate(()=>window.__whitebox.site.navigationConsole.heard),false);
-  for(let i=0;i<6;i++)await page.keyboard.press('e');
+  await page.waitForFunction(()=>Math.abs(window.__whitebox.site.navigationConsole.frequency-38.4)<.35,null,{timeout:12000});
   await page.keyboard.press('c');assert.equal(await page.evaluate(()=>window.__whitebox.site.navigationConsole.captured),true);
   await page.keyboard.press('p');await page.waitForFunction(()=>window.__whitebox.site.events.some(e=>e.event.startsWith('罗温：听见了')),null,{timeout:20000});
   await page.waitForFunction(()=>window.__whitebox.site.events.some(e=>e.event.startsWith('艾里亚斯：我没受伤')),null,{timeout:20000});

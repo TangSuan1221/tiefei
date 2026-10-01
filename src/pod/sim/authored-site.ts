@@ -1,6 +1,7 @@
 import type { Control } from '../view/chrome';
 export interface NavigationConsole {
  readonly editing:boolean;
+ readonly screenAction?:string;
  controls():Control[];
  action(id:string):boolean;
  key(key:string):boolean;
