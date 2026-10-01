@@ -262,6 +262,7 @@ export class PodSession {
   private onVisibility = (): void => { if(document.hidden)this.saveCheckpoint();this.keys.clear(); this.syncInputBlock(); };
 
   private applyHeld(dt: number): void {
+    if(this.run.authoredSite?.navigationConsole?.editing){this.run.navDriveEngaged=false;this.keys.clear();this.run.pilot.stop();return;}
     if(this.run.at!=='nav' || this.run.driveBlock || this.keys.has('shift') || this.keys.has('n')) this.run.navDriveEngaged=false;
     if(this.run.at!=='camera') this.releaseStick();
     if (this.syncInputBlock() || this.run.outcome.kind !== 'alive') {this.run.navDriveEngaged=false;this.heldPilot=null;this.releaseStick();return;}
@@ -304,6 +305,7 @@ export class PodSession {
     }
     const movementKey = !this.run.at && /^Key[WASD]$/.test(e.code);
     if (this.syncInputBlock() || e.ctrlKey || e.metaKey || e.altKey || (e.isComposing && !movementKey)) return;
+    if(this.run.at==='nav'&&this.run.authoredSite?.navigationConsole?.key(e.key)){e.preventDefault();this.keys.clear();this.run.pilot.stop();return;}
     if(movementKey) {
       e.preventDefault();
       this.keys.add(e.code.slice(3).toLowerCase());

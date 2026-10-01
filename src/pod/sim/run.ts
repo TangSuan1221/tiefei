@@ -1714,6 +1714,7 @@ export class PodRun {
     this.sweepId++;
     this.power = clamp01(this.power - [0.004, 0.014, 0.034][power]);
     this.contacts = this.buildContacts(power);
+    this.authoredSite?.sonarPulse?.(power);
     this.addNoise(noise);
     this.onCue?.(['sonar.passive', 'sonar.chirp', 'sonar.boom'][power], 0.8);
     this.bus.emit('log', { text: '', tone: 'neutral' });

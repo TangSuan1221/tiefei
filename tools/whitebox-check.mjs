@@ -64,6 +64,17 @@ try {
   await page.goto(base);
   await page.locator('#whitebox-start').click();
   await page.waitForFunction(() => !!window.__whitebox?.site, null, { timeout: 30000 });
+  await page.keyboard.press('r');
+  await page.keyboard.press('9');await page.keyboard.press('9');await page.keyboard.press('Tab');await page.keyboard.press('0');await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(()=>window.__whitebox.site.navigationConsole.target),null);
+  await screenshot('coordinate-keypad');
+  await page.keyboard.press('Escape');await page.keyboard.press('r');
+  await page.keyboard.press('0');await page.keyboard.press('Tab');await page.keyboard.press('4');await page.keyboard.press('Enter');
+  assert.deepEqual(await page.evaluate(()=>window.__whitebox.site.navigationConsole.target),[0,4]);
+  assert.equal(await page.evaluate(()=>window.__whitebox.run.activeSonarEnabled),false);
+  await page.keyboard.press('2');await page.keyboard.press('3');
+  assert.equal(await page.evaluate(()=>window.__whitebox.run.activeSonarEnabled),true);
+  await screenshot('sonar-active');await page.keyboard.press('2');
   await snapshot('entry'); await screenshot('entry');
   if(process.env.WHITEBOX_NEGATIVE){await drive(0,4,180);await shoot('wrong-direction');assert.equal((await snapshot('wrong-rejected')).site.identified,false);}
   await drive(0,4);await shoot('threat');assert.equal((await snapshot('threat-confirmed')).site.identified,true);

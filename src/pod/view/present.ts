@@ -288,6 +288,16 @@ export class PodView {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
+    if(run.authoredSite?.diegeticGuidance&&run.outcome.kind==='alive'){
+      if(run.storyCaptionLeft>0&&run.storyCaption){
+        ctx.font=cjk(Math.max(16,h*.023),500);ctx.textAlign='left';ctx.fillStyle='#e5e7da';
+        const lines:string[]=[];let line='';for(const ch of run.storyCaption){if(ctx.measureText(line+ch).width>w*.72){lines.push(line);line='';}line+=ch;}if(line)lines.push(line);
+        const fs=Math.max(16,h*.023);ctx.shadowColor='#000';ctx.shadowBlur=5;
+        lines.forEach((s,i)=>ctx.fillText(s,w*.14,h*.91-(lines.length-1-i)*fs*1.45));ctx.shadowBlur=0;
+      }
+      return;
+    }
+
     const v = run.vitals.perceived();
     const zoomed = this.zoomVisual > 0.55;
     // Full objectives and transcripts live on instruments, never across the window.

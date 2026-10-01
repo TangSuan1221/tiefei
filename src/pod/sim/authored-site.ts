@@ -1,3 +1,11 @@
+import type { Control } from '../view/chrome';
+export interface NavigationConsole {
+ readonly editing:boolean;
+ controls():Control[];
+ action(id:string):boolean;
+ key(key:string):boolean;
+ draw(ctx:CanvasRenderingContext2D,w:number,h:number):void;
+}
 /** Main-game adapter for the authored expedition's space and progression. */
 export interface AuthoredSite {
   readonly index:number;
@@ -5,6 +13,9 @@ export interface AuthoredSite {
   readonly description:string;
   readonly hint:string;
   readonly objective?:string;
+  readonly diegeticGuidance?:boolean;
+  readonly navigationConsole?:NavigationConsole;
+  sonarPulse?(power:0|1|2):void;
   /** Authoritative evidence state after analysis; report text is not success. */
   readonly evidenceReady?:boolean;
   readonly managesThreats?:boolean;

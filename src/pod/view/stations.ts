@@ -68,6 +68,7 @@ export function stationObjective(run: PodRun): string {
 }
 
 function drawObjective(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: number): void {
+  if(run.authoredSite?.diegeticGuidance)return;
   ctx.save();ctx.textAlign='left';ctx.fillStyle='#cbbb98';ctx.font=cjk(h*.023,500);
   const lines=layoutCJK(ctx, `调查任务 · ${stationObjective(run)}`, w*.86);
   lines.slice(0,2).forEach((line,i)=>ctx.fillText(line,w*.07,h*(.90+i*.035)));
@@ -160,8 +161,9 @@ function drawStationViewInner(
   }
 
   const screenY = y + pad + refH * 0.062;
-  const screenH = h * 0.70;
-  const ctrlY = y + h - pad - refH * 0.11;
+  const instrument=id==='nav'?run.authoredSite?.navigationConsole:undefined;
+  const screenH = h * (instrument?(instrument.editing?.30:.57):.70);
+  const ctrlY = instrument?screenY+screenH+pad:y + h - pad - refH * 0.11;
   const ctrlH = refH * 0.10;
   const screenX = x + pad;
   const screenW = w - pad * 2;
@@ -177,7 +179,8 @@ function drawStationViewInner(
   });
 
   const controls = stationControls(run, id);
-  drawControls(ctx, hits, x + pad, ctrlY, w - pad * 2, ctrlH, controls, view.hovered, view.time);
+  if(instrument){const columns=instrument.editing?4:3;for(let i=0;i<controls.length;i+=columns)drawControls(ctx,hits,x+pad,ctrlY+Math.floor(i/columns)*h*.115,w-pad*2,h*.102,controls.slice(i,i+columns),view.hovered,view.time);}
+  else drawControls(ctx, hits, x + pad, ctrlY, w - pad * 2, ctrlH, controls, view.hovered, view.time);
 
   if (run.mode === 'alert' && run.threat) {
     drawFuseRing(ctx, x + w - pad - refH * 0.05, y + pad + refH * 0.09, refH * 0.028, run.threat.fuse / run.threat.fuseMax, view.time);
@@ -619,6 +622,7 @@ function drawNav(
   h: number,
   view: StationView,
 ): void {
+  if(run.authoredSite?.navigationConsole){run.authoredSite.navigationConsole.draw(ctx,w,h);return;}
   if(run.phase==='site' && run.authoredSite){
     ctx.save();ctx.beginPath();ctx.rect(0,0,w,h*.84);ctx.clip();
     run.authoredSite.drawMap(ctx,w,h*.84);ctx.restore();
@@ -1764,6 +1768,7 @@ function cameraDriveControls(run: PodRun): Control[] {
 }
 
 export function stationControls(run: PodRun, id: StationId): Control[] {
+  if(id==='nav'&&run.authoredSite?.navigationConsole)return run.authoredSite.navigationConsole.controls();
   const use = (sid: SupplyId, key: string): Control | null => {
     const n = run.count(sid);
     if (n <= 0) return null;
@@ -1990,6 +1995,8 @@ function filterControls(list: (Control | null)[]): Control[] {
 
 /** 处理一次点击/按键。返回是否消耗了这次输入。 */
 export function performControl(run: PodRun, actionId: string): boolean {
+  if(actionId==='nav.thrust'&&run.at==='nav'&&run.authoredSite?.navigationConsole){run.navDriveEngaged=!run.navDriveEngaged;if(!run.navDriveEngaged)run.pilot.stop();return true;}
+  if(actionId.startsWith('port.')&&run.at==='nav')return run.authoredSite?.navigationConsole?.action(actionId)??false;
   if(actionId==='weapon.decoy'||actionId==='weapon.pulse')return run.fireWeapon(actionId==='weapon.decoy'?'decoy':'pulse');
   if(actionId.startsWith('story.')) {
     const choice=actionId.slice(6);
