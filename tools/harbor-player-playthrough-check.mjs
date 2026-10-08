@@ -18,7 +18,7 @@ try {
  const point=async(station,action)=>p.evaluate(({station,action})=>{const v=window.__podView,c=v.cabin,s=c.screens.find(s=>s.id===station),r=s.hits.rectOf(action);if(!r)throw Error('No hit '+action);const g=s.mesh.geometry.parameters,q=c.camera.position.clone().set(((r.x+r.w/2)/1024-.5)*g.width,(.5-(r.y+r.h/2)/720)*g.height,0).applyMatrix4(s.mesh.matrixWorld).project(c.camera),x=(q.x+1)*innerWidth/2,y=(1-q.y)*innerHeight/2;for(const dy of [0,-1,1,-2,2,-3,3,-4,4,-6,6,-8,8,-12,12,-16,16,-20,20])for(const dx of [0,-1,1,-2,2,-3,3,-4,4,-6,6,-8,8,-12,12,-16,16,-20,20])if(x+dx>0&&x+dx<innerWidth&&y+dy>0&&y+dy<innerHeight&&(v.pick(x+dx,y+dy)==='desk:'+station+':'+action||(action==='sonar.tune.34'&&/^desk:nav:sonar\.tune\.(3[1-7])$/.test(v.pick(x+dx,y+dy)??''))))return{x:x+dx,y:y+dy};throw Error('Unreachable '+action);},{station,action});
  const click=async(s,a)=>{const q=await point(s,a);await p.mouse.click(q.x,q.y);await p.waitForTimeout(180);};
  await hold('w',1500);await p.keyboard.press('e');await p.waitForTimeout(2000);await drag(-415,0);
- for(const [axis,digits] of [[0,'11'],[1,'0'],[2,'16']]){await click('nav','sonar.axis.'+axis);for(const d of digits)await click('nav','sonar.key.'+d);}
+ for(const [axis,digits] of [[0,'11'],[1,'16'],[2,'1012']]){await click('nav','sonar.axis.'+axis);for(const d of digits)await click('nav','sonar.key.'+d);}
  await click('nav','sonar.save');await record('waypoint-set-via-keypad');
  await p.keyboard.down('Space');for(let i=0;i<120;i++){await p.waitForTimeout(250);const s=await state();if(s.position[2]>=17.9)break;if(i===119)throw Error('Unable to reach first door with Space');}await p.keyboard.up('Space');await hold('Shift',2000);
  await record('first-door-before-F');await p.keyboard.press('f');await p.waitForTimeout(1600);const after=await record('first-door-after-F');await p.screenshot({path:dir+'/first-door.png'});
@@ -35,7 +35,7 @@ try {
  await p.screenshot({path:dir+'/arrived-observation.png'});
  await click('nav','sonar.tune.34');await click('nav','sonar.analyze');await click('nav','sonar.play');await click('nav','sonar.reply');
  assert(await p.evaluate(()=>window.__pod.authoredSite.rescue.state.replied));
- for(const [axis,digits] of [[0,'60'],[1,'0'],[2,'27']]){await click('nav','sonar.axis.'+axis);await click('nav','sonar.key.clear');for(const d of digits)await click('nav','sonar.key.'+d);}await click('nav','sonar.save');
+ for(const [axis,digits] of [[0,'60'],[1,'27'],[2,'1012']]){await click('nav','sonar.axis.'+axis);await click('nav','sonar.key.clear');for(const d of digits)await click('nav','sonar.key.'+d);}await click('nav','sonar.save');
  await drag(415,230);
  const physical=async(id)=>p.evaluate(id=>{const v=window.__podView;for(let y=80;y<innerHeight-30;y+=6)for(let x=60;x<innerWidth-60;x+=6)if(v.pick(x,y)==='desk:camera:'+id)return{x,y};throw Error('Unreachable physical '+id);},id);
  const physicalClick=async(id)=>{const q=await physical(id);await p.mouse.click(q.x,q.y);await p.waitForTimeout(200);};

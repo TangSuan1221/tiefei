@@ -4,7 +4,7 @@ export type RescueEvidenceKind='threat'|'lure'|'gate'|'departure';
 export interface RescueEvidence {diagnostic?:string;version:1;id:string;kind:RescueEvidenceKind;epoch:number;visible:boolean;monsterInside:boolean;gateClosed:boolean;departed:boolean}
 export interface HarborRescueState {version:1;epoch:number;signal:boolean;heard:boolean;replied:boolean;identified:boolean;warned:boolean;powered:boolean;gateOpen:boolean;gateClosed:boolean;monsterInside:boolean;lureConfirmed:boolean;isolated:boolean;verified:boolean;departing:boolean;departed:boolean;departureConfirmed:boolean;complete:boolean;failed:boolean;lureSeconds:number;holdSeconds:number;noiseSeconds:number;noiseStrikes:number;damageTotal:number;departureSeconds:number;captures:RescueEvidence[];analyzed:string[]}
 export interface RescueResult {events:string[];damage:number}
-export const RESCUE_TIMING=Object.freeze({lure:9,hold:180,noiseGrace:8,noiseStrike:5,damage:.22,departure:10,lureSafe:25});
+export const RESCUE_TIMING=Object.freeze({lure:9,hold:180,noiseGrace:10,noiseStrike:6,damage:.10,departure:10,lureSafe:25,strikeRange:6});
 const fresh=():HarborRescueState=>({version:1,epoch:0,signal:false,heard:false,replied:false,identified:false,warned:false,powered:false,gateOpen:false,gateClosed:false,monsterInside:false,lureConfirmed:false,isolated:false,verified:false,departing:false,departed:false,departureConfirmed:false,complete:false,failed:false,lureSeconds:0,holdSeconds:0,noiseSeconds:0,noiseStrikes:0,damageTotal:0,departureSeconds:0,captures:[],analyzed:[]});
 const result=(...events:string[]):RescueResult=>({events,damage:0});
 export class HarborRescue {
@@ -28,9 +28,13 @@ export class HarborRescue {
    else if(lureAllowed&&!s.monsterInside){s.lureSeconds+=d;if(s.lureSeconds>=RESCUE_TIMING.lure){s.monsterInside=true;s.holdSeconds=RESCUE_TIMING.hold;out.events.push('拖行声移入03货仓。艇首朝仓内曝光，确认它整个进去了。');}}
    else if(!s.monsterInside&&s.lureSeconds>0){s.lureSeconds=0;out.events.push('声源中断，怪物退回隔间附近。重新保持诱导。');}
    if(input.monsterInside===undefined&&s.monsterInside&&!s.isolated){s.holdSeconds=Math.max(0,s.holdSeconds-d);if(s.holdSeconds===0){this.resetCycle();out.events.push('艾里亚斯：它又从货仓出来了。得重新把它引进去。');}}
-   const safeLure=input.monsterDistance!==undefined?input.monsterDistance>3.5:lureAllowed&&s.lureSeconds<RESCUE_TIMING.lureSafe;
+   const safeLure=input.monsterDistance!==undefined?input.monsterDistance>RESCUE_TIMING.strikeRange:lureAllowed&&s.lureSeconds<RESCUE_TIMING.lureSafe;
    if(lureAllowed&&s.monsterInside)s.lureSeconds+=d;
-   if(s.warned&&!s.isolated&&input.activeSonar&&!safeLure){s.noiseSeconds+=d;const strikes=Math.max(0,Math.floor((s.noiseSeconds-RESCUE_TIMING.noiseGrace)/RESCUE_TIMING.noiseStrike)+1);if(strikes>s.noiseStrikes){const damage=(strikes-s.noiseStrikes)*RESCUE_TIMING.damage;s.noiseStrikes=strikes;s.damageTotal+=damage;out.damage+=damage;out.events.push('怪物追着主动声纳撞击艇壳！立即停止脉冲，屏幕可保持通电。');if(s.damageTotal>=1){s.failed=true;out.events.push('艇壳失压，救援失败。');}}}
+   // While the lured creature waits inside for its entry photograph the pulse is the intended action;
+   // the strike clock only starts once that photograph is confirmed.
+   const awaitingEntryPhoto=s.monsterInside&&!s.lureConfirmed;
+   // Strikes damage the hull only; the rescue fails solely by not isolating the creature.
+   if(s.warned&&!s.isolated&&input.activeSonar&&!safeLure&&!awaitingEntryPhoto){s.noiseSeconds+=d;const strikes=Math.max(0,Math.floor((s.noiseSeconds-RESCUE_TIMING.noiseGrace)/RESCUE_TIMING.noiseStrike)+1);if(strikes>s.noiseStrikes){const damage=(strikes-s.noiseStrikes)*RESCUE_TIMING.damage;s.noiseStrikes=strikes;s.damageTotal+=damage;out.damage+=damage;out.events.push('怪物追着主动声纳撞击艇壳！立即停止脉冲，屏幕可保持通电。');}}
    else {s.noiseSeconds=0;s.noiseStrikes=0;}
    if(s.departing&&!s.departed){s.departureSeconds+=d;if(s.departureSeconds>=RESCUE_TIMING.departure){s.departed=true;out.events.push('艾里亚斯：我已经到内侧门后了。拍下门后的情况，我们分别往下走。');}}
   }return out;
@@ -44,6 +48,7 @@ export class HarborRescue {
    if(!s.monsterInside||!s.lureConfirmed){this.resetCycle();s.gateOpen=false;s.gateClosed=true;return result('艾里亚斯：它还在外面！你没有拍照确认就关门了。重新开闸，再引一次。');}
    s.epoch++;s.gateOpen=false;s.gateClosed=true;s.isolated=true;return result('闸机落下，怪物留在货仓。拍摄关闭的闸门与仓内目标，回分析台核验。');
   }
+  if(zone==='observe')return result(s.powered?'货仓闸机已落下锁定。':'01闸机面板没有电，需先恢复02配电箱供电。');
   if(zone==='rescue'){if(!s.verified)return result('尚未核验怪物隔离结果，不能让艾里亚斯离开。');if(!s.departing){s.departing=true;return result('内侧逃生门接通。艾里亚斯：我沿里面的路走，你留在艇里。');}return result();}
   if(zone==='exit'){if(!s.departureConfirmed)return result('需要核验艾里亚斯撤离的结果片。');s.complete=true;return result('艾里亚斯已真实脱困，双方沿各自通道继续前进。');}
   return result();

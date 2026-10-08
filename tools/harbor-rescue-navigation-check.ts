@@ -36,7 +36,7 @@ assert.equal(replies, 2, 'only initial rejected and accepted replies invoke host
 assert.equal(nav.action('port.play'), true);
 assert.equal(heard, 1, 'replay cannot trigger discovery twice');
 assert.equal(spoken.length, 1);
-assert.ok(nav.receivedCoordinates.includes('X 60 / Y 0 / Z 27'));
+assert.ok(nav.receivedCoordinates.includes('X60 Y27 DEPTH 1012m'));
 const before = { ...host.position };
 assert.equal(nav.setWaypoint([60, 0, 27]), true);
 assert.deepEqual(host.position, before, 'writing waypoint never moves submarine');

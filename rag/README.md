@@ -35,3 +35,17 @@ node tools/level-rag.mjs check
 - 分支/保存/验收：MET-020至023。
 
 当前旧关卡和旧叙事提案不因入库自动获得“已合规”状态。本轮未更改运行机制或关卡地图。
+
+## 视频提示词 RAG（独立）
+
+权威文档：`docs/video-prompts/level-01-harbor-rescue.md`。入口：`tools/video-prompt-rag.mjs`。白名单：`rag/video-prompt.manifest.json`。索引：`rag/video-prompt.index.json`。分块前缀：VR 规则、VP 拍摄点、PT 进程模板。
+
+```powershell
+node tools/video-prompt-rag.mjs list
+node tools/video-prompt-rag.mjs query "货舱诱导 入仓 拍照" --kind VP
+node tools/video-prompt-rag.mjs compose PT-005 --set lamp=on --set monster=outside_cargo
+node tools/video-prompt-rag.mjs compose PT-010 --base PT-003 --json
+node tools/video-prompt-rag.mjs check
+```
+
+`compose` 输出主提示词与审核备用提示词（去掉怪物外形，只留痕迹），校验槽位取值、长度≤2200、无中文、无残留占位符。状态：模板库 REQUIRED；运行时 `buildFootagePrompt` 尚未读取本库（NOT_IMPLEMENTED）。

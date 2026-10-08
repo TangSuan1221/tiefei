@@ -26,6 +26,8 @@ import {advanceEncounter,newEncounterPressure} from '../../sim/harbor-encounters
 import {harborGuide,harborGuideMedia,type HarborGuide} from '../../sim/harbor-guidance';
 import {newHarborProgress,captureHarborEvidence,resolveHarborEvidence,analyzeHarborEvidence,grantHarborEvent,syncHarborInventory,harborObjective,HARBOR_PHOTO_TARGET,type HarborProgress,type HarborResult} from '../../sim/harbor-progress';
 
+const LIVE_SEARCHLIGHT_GAIN=6,LIVE_SEARCHLIGHT_SCATTER=.12;
+
 // One context for all seven chapters, not one WebGL context per room/screen.
 let shared:ReturnType<typeof createShared>|null=null;
 function createShared(){
@@ -87,7 +89,7 @@ export class PodExpedition implements AuthoredSite {
    const navCheck=(p:T.Vector3)=>!solids.some(b=>b.clone().expandByScalar(.55).containsPoint(p))&&this.world.walkable.some(b=>b.containsPoint(p));
    const direction=r.target.clone().sub(r.position).normalize();let remaining=Math.min(dt,.1)*12;
    while(remaining>0){const step=Math.min(.2,remaining),next=r.position.clone().addScaledVector(direction,step);if(!navCheck(next)){r.left=0;break;}r.position.copy(next);remaining-=step;}
-   if(r.position.distanceTo(this.position)<2){this.run.hull=Math.max(.05,this.run.hull-.12);this.run.onShake?.(1);this.run.onCue?.('hull.crack',1);r.left=0;this.feedback('艇体遭到冲撞 · 立即离开原位置');}
+   if(r.position.distanceTo(this.position)<2){this.run.hull=Math.max(.05,this.run.hull-.07);this.run.onShake?.(1);this.run.onCue?.('hull.crack',1);r.left=0;this.feedback('艇体遭到冲撞 · 立即离开原位置');}
    if(r.left<=0||r.position.distanceTo(r.target)<.6){r.stage='recover';r.left=7;}return;
   }
   if(r.repath<=0){
@@ -489,13 +491,16 @@ export class PodExpedition implements AuthoredSite {
   const exposure=renderer.toneMappingExposure,environment=this.scene.environmentIntensity;
   const lightState:Array<[T.Light,number]>=[];
   if(liveOptics){
-   this.scene.traverse(object=>{if(object instanceof T.Light){lightState.push([object,object.intensity]);object.intensity*=.065;}});
+   // Practical and ambient light are crushed to near-black, but the player's
+   // searchlight is compensated for the lowered exposure so that switching it
+   // on still reveals nearby steel in live view.
+   this.scene.traverse(object=>{if(object instanceof T.Light){lightState.push([object,object.intensity]);object.intensity*=object===this.lamp||object===this.fill?LIVE_SEARCHLIGHT_GAIN:.065;}});
    this.scene.environmentIntensity=environment*.035;
    renderer.toneMappingExposure=exposure*.13;
   }
   try{
    this.atmosphere.update(time,this.camera,this.lamp);
-   this.water.update(this.run.lit?(liveOptics?.0325:.5):0);
+   this.water.update(this.run.lit?(liveOptics?LIVE_SEARCHLIGHT_SCATTER:.5):0);
    this.composer.render();ctx.drawImage(renderer.domElement,0,0,w,h);
   }finally{
    // One shared renderer serves live view, captured frames and other scenes.

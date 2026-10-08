@@ -2,6 +2,7 @@ import type { NavigationConsole } from '../../sim/authored-site';
 import type { PodRun } from '../../sim/run';
 import type { Control } from '../chrome';
 import { drawSonarOwnship, sonarHeading } from '../sonar-ownship';
+import { formatCoords } from '../../sim/site-coords';
 
 export type HarborCoordinates = readonly [number, number, number];
 export interface HarborRescueNavigationHost {
@@ -23,6 +24,8 @@ export interface HarborRescueNavigationHost {
   readonly photoCoordinatesReleased?:boolean;
   readonly serialDialogue?:boolean;
   targetReached?(target:readonly number[]):boolean;
+  /** Facilities whose coordinates get a name and description on the nav screen. */
+  readonly waypointCatalog?: readonly {position:HarborCoordinates;name:string;detail:string}[];
 }
 
 /** Formal harbor receiver: passive carrier gating is independent of active power. */
@@ -59,11 +62,13 @@ export class HarborRescueNavigation implements NavigationConsole {
   heard = false;
   replied = false;
   target: number[] | null = null;
+  /** Every written waypoint stays on the sonar until the list exceeds eight. */
+  waypoints: number[][] = [];
   private rows: number[][] = [];
   private sampleClock = 0;
   private sample = 0;
   constructor(private readonly host: HarborRescueNavigationHost) {}
-  private coordinates(v: readonly number[]) { return `X ${v[0]} / Y ${v[1]} / Z ${v[2]}`; }
+  private coordinates(v: readonly number[]) { return formatCoords(v); }
   get receivedCoordinates() {
     return `万斯 · 接驳港 ${this.coordinates(this.host.entryCoordinates)}` +
       ((this.host.photoCoordinatesReleased??this.replied) ? `   艾里亚斯 · 拍摄点 ${this.coordinates(this.host.photoCoordinates)}` : '');
@@ -80,6 +85,7 @@ export class HarborRescueNavigation implements NavigationConsole {
   setFrequency(value: number) { if (Number.isFinite(value)) this.frequency = Math.max(35, Math.min(45, value)); }
   setWaypoint(value: number[]) {
     if (value.length !== 3 || !value.every(Number.isFinite) || value.some(v => Math.abs(v) > 10000)) return false;
+    if (!this.waypoints.some(w => this.same(w, value))) {this.waypoints.push([...value]);if (this.waypoints.length > 8) this.waypoints.shift();}
     this.target = [...value];
     return true;
   }
@@ -130,54 +136,93 @@ export class HarborRescueNavigation implements NavigationConsole {
     ctx.fillText(this.pendingRadioCount ? `新录音 ${this.pendingRadioCount} · 调频自动接收` : '被动接收常开 · 暂无清晰载波', 8, h - 8);
     ctx.restore();
   }
-  drawActive(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  private same(a: readonly number[], b: readonly number[]) { return a.every((v, i) => Math.abs(v - b[i]!) < .05); }
+  /** Registered facility name for a waypoint, or a numbered custom label. */
+  describeWaypoint(v: readonly number[]) {
+    const known = this.host.waypointCatalog?.find(p => Math.hypot(p.position[0] - v[0]!, p.position[2] - v[2]!) <= 1.5 && Math.abs(p.position[1] - v[1]!) <= 1.5);
+    if (known) return { name: known.name, detail: known.detail };
+    const n = this.waypoints.findIndex(w => this.same(w, v)) + 1;
+    return { name: `自定义航点 ${n || this.waypoints.length + 1}`, detail: '未登记设施 · 仅作惯导参考，不代表回波或障碍。' };
+  }
+  selectWaypoint(index: number) {
+    const w = this.waypoints[index];if (!w) return false;
+    this.target = [...w];return true;
+  }
+  private markerAt(v: readonly number[], cx: number, cy: number, radius: number) {
+    const dx = v[0]! - this.host.position.x, dz = v[2]! - this.host.position.z;
+    const a = Math.atan2(dx, -dz) - this.host.run.heading * Math.PI / 180, distance = Math.hypot(dx, dz), d = Math.min(1, distance / 24);
+    return { a, distance, outside: distance > 24, x: cx + Math.sin(a) * radius * d, y: cy - Math.cos(a) * radius * d };
+  }
+  /** Draws the sonar picture; `panel=false` lets a caller draw the info panel unscaled via `drawWaypointPanel`. */
+  drawActive(ctx: CanvasRenderingContext2D, w: number, h: number, panel = true) {
+    this.markerHits = [];
     if (!this.host.run.powered || !this.host.run.activeSonarEnabled) return;
     ctx.save();this.host.drawActive(ctx, w, h);
     // Match PodExpedition's dedicated head-up sonar layout and 24 m range.
     const size = Math.min(w, h / .93), cx = size / 2, cy = size * .48, radius = size * .30;
-    if (this.target) {
-      const dx = this.target[0] - this.host.position.x, dz = this.target[2] - this.host.position.z;
-      const a = Math.atan2(dx, -dz) - this.host.run.heading * Math.PI / 180;
-      const distance = Math.hypot(dx, dz), outside = distance > 24;
-      const d = Math.min(1, distance / 24);
-      const x = cx + Math.sin(a) * radius * d, y = cy - Math.cos(a) * radius * d;
-      // Inertial navigation is cyan; terrain echoes retain their amber palette.
-      // Keep off-range targets on the rim, explicitly labelled rather than
-      // implying that the clipped marker is a measured sonar return.
-      ctx.save();ctx.strokeStyle = '#63fff1';ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);ctx.beginPath();ctx.moveTo(cx, cy);ctx.lineTo(x, y);ctx.stroke();ctx.setLineDash([]);
-      ctx.translate(x, y);if(outside)ctx.rotate(a);
-      ctx.beginPath();
-      if(outside){ctx.moveTo(0,-13);ctx.lineTo(11,9);ctx.lineTo(0,4);ctx.lineTo(-11,9);}
-      else{ctx.moveTo(0,-12);ctx.lineTo(12,0);ctx.lineTo(0,12);ctx.lineTo(-12,0);}
-      ctx.closePath();ctx.fillStyle='#63fff1';ctx.strokeStyle='#031719';ctx.lineWidth=5;ctx.stroke();ctx.fill();
+    // Inertial navigation is cyan; terrain echoes retain their amber palette.
+    // Off-range waypoints sit on the rim as arrows rather than implying a measured return.
+    this.waypoints.forEach((v, index) => {
+      const m = this.markerAt(v, cx, cy, radius), active = !!this.target && this.same(v, this.target);
+      ctx.save();
+      if (active) {ctx.strokeStyle = '#63fff1';ctx.lineWidth = 2;ctx.setLineDash([5, 5]);ctx.beginPath();ctx.moveTo(cx, cy);ctx.lineTo(m.x, m.y);ctx.stroke();ctx.setLineDash([]);}
+      ctx.translate(m.x, m.y);
+      const s = active ? 12 : 8;
+      if (m.outside) {ctx.rotate(m.a);ctx.beginPath();ctx.moveTo(0, -s - 1);ctx.lineTo(s - 1, s * .75);ctx.lineTo(0, s / 3);ctx.lineTo(1 - s, s * .75);}
+      else {ctx.beginPath();ctx.moveTo(0, -s);ctx.lineTo(s, 0);ctx.lineTo(0, s);ctx.lineTo(-s, 0);}
+      ctx.closePath();
+      if (active) {ctx.fillStyle = '#63fff1';ctx.strokeStyle = '#031719';ctx.lineWidth = 5;ctx.stroke();ctx.fill();}
+      else {ctx.strokeStyle = '#7fd8cf';ctx.lineWidth = 2;ctx.stroke();ctx.fillStyle = 'rgba(3,23,25,.75)';ctx.fill();}
+      if (!m.outside) {ctx.fillStyle = active ? '#031719' : '#bff7f0';ctx.font = `bold ${active ? 11 : 9}px monospace`;ctx.textAlign = 'center';ctx.textBaseline = 'middle';ctx.fillText(String(index + 1), 0, 1);}
       ctx.restore();
-      const tx=size+8, tw=Math.max(50,w-tx-8);
-      ctx.fillStyle='#092b2e';ctx.fillRect(tx-4,49,tw+4,142);
-      const label=(value:string,y:number,font=17,color='#63fff1')=>{ctx.fillStyle=color;ctx.font=`bold ${font}px "Microsoft YaHei"`;ctx.fillText(value,tx,y,tw);};
-      const relative=((a*180/Math.PI+540)%360)-180;
-      const photoTarget=this.replied&&[this.host.photoCoordinates,[77,1,7]].some(p=>p.every((v,i)=>Math.abs(v-this.target![i])<.1));
-      const arrived=(distance<=2.5&&Math.abs(this.target[1]-this.host.position.y)<=1)||!!this.host.targetReached?.(this.target);
-      const cameraHeading=this.host.run.heading+this.host.run.camPan*180/Math.PI;
-      const targetHeading=this.target[0]===77&&this.target[2]===7?180:0;
-      const turn=((targetHeading-cameraHeading+540)%360)-180;
-      const guidance=photoTarget&&arrived?this.host.photoGuidance?.():undefined;
-      label('◆ 已写入航点',67,19);
-      label(`X ${this.target[0]}  Y ${this.target[1]}  Z ${this.target[2]}`,92,16,'#e9fff2');
-      label(`水平距离 ${distance.toFixed(1)} m`,117);
-      label(arrived?(guidance?'已到拍摄区 · 按曝光':'位置到达 · Shift 制动'):Math.abs(relative)<3?'艇首已对准':`${relative<0?'左转':'右转'} ${Math.abs(relative).toFixed(0)}°`,142,20);
-      label(arrived&&photoTarget?(Math.abs(turn)<=15?'朝向合适 · 保持水平曝光':`朝北±15° · ${turn<0?'左':'右'}转${Math.abs(turn).toFixed(0)}°`):outside?'超出量程 · 沿边缘箭头':'图中青色菱形为航点',167,15);
-      label(arrived&&photoTarget?'位置±2.5m · 俯仰±10°':'惯导指引 · 非障碍回波',185,12,'#adc7b5');
-      if(guidance){ctx.fillStyle='#092b2e';ctx.fillRect(tx-4,151,tw+4,62);label(guidance.ready?'目标在画内 · 可曝光取证':'可自由曝光 · 目标未确认',167,14,'#63fff1');label(guidance.detail,189,13,'#e9fff2');label('镜头保持当前朝向 · J/L转艇',208,12,'#adc7b5');}
-    }
+      this.markerHits.push({ index, x: m.x, y: m.y, r: 16 });
+    });
     drawSonarOwnship(ctx, cx, cy, 12);
-    ctx.fillStyle = '#e9fff2';ctx.font = '13px "Microsoft YaHei"';ctx.fillText(`艇首 ↑ ${sonarHeading(this.host.run.heading)}`, size + 8, 22, Math.max(50, w - size - 14));
+    if (panel) this.drawWaypointPanel(ctx, size + 8, 0, Math.max(50, w - size - 12), h);
+    ctx.restore();
+  }
+  /** Hit circles of the waypoint markers, in the coordinates `drawActive` was given. */
+  markerHits: { index: number; x: number; y: number; r: number }[] = [];
+  /** Name, description and guidance for the active waypoint, plus the stored list. */
+  drawWaypointPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+    ctx.save();ctx.textAlign = 'left';ctx.textBaseline = 'alphabetic';
+    let cy = y + 20;
+    const line = (value: string, font = 15, color = '#63fff1', bold = true, gap = 1.45) => {
+      ctx.font = `${bold ? 'bold ' : ''}${font}px "Microsoft YaHei"`;ctx.fillStyle = color;
+      let row = '';
+      for (const ch of value) {if (ctx.measureText(row + ch).width > w && row) {ctx.fillText(row, x, cy);cy += font * gap;row = ch;} else row += ch;}
+      if (row) {ctx.fillText(row, x, cy);cy += font * gap;}
+    };
+    line(`艇首 ↑ ${sonarHeading(this.host.run.heading)}`, 13, '#e9fff2', false);
+    if (!this.target) {
+      line('尚未写入航点', 15, '#adc7b5');
+      line('用下方 X / Y / DEPTH 输入坐标后写入。', 12, '#adc7b5', false);
+      ctx.restore();return;
+    }
+    const t = this.target, info = this.describeWaypoint(t);
+    const m = this.markerAt(t, 0, 0, 1);
+    const relative = ((m.a * 180 / Math.PI + 540) % 360) - 180;
+    const photoTarget = this.replied && [this.host.photoCoordinates, [77, 1, 7]].some(p => p.every((v, i) => Math.abs(v - t[i]!) < .1));
+    const arrived = (m.distance <= 2.5 && Math.abs(t[1]! - this.host.position.y) <= 1) || !!this.host.targetReached?.(t);
+    const guidance = photoTarget && arrived ? this.host.photoGuidance?.() : undefined;
+    const depthDelta = t[1]! - this.host.position.y;
+    cy += 4;ctx.fillStyle = '#092b2e';ctx.fillRect(x - 6, cy - 16, w + 10, 2);cy += 8;
+    line(`◆ ${this.waypoints.findIndex(v => this.same(v, t)) + 1} · ${info.name}`, 18, '#63fff1');
+    line(info.detail, 13, '#cfe9df', false, 1.4);
+    cy += 4;
+    line(formatCoords(t), 14, '#e9fff2');
+    line(`水平距离 ${m.distance.toFixed(1)} m`, 15);
+    line(arrived ? (guidance ? '已到拍摄区 · 按曝光' : '位置到达 · Shift 制动') : Math.abs(relative) < 3 ? '艇首已对准' : `${relative < 0 ? '左转' : '右转'} ${Math.abs(relative).toFixed(0)}°`, 17);
+    line(Math.abs(depthDelta) > 1 ? `${depthDelta > 0 ? '上浮' : '下潜'} ${Math.abs(depthDelta).toFixed(1)} m（PageUp / PageDown）` : m.outside ? '超出量程 · 沿边缘箭头' : '深度吻合', 14);
+    if (guidance) {line(guidance.ready ? '目标在画内 · 可曝光取证' : '可自由曝光 · 目标未确认', 14);line(guidance.detail, 12, '#e9fff2', false);}
+    if (this.waypoints.length > 1) {cy += 6;line(`已存 ${this.waypoints.length} 个航点 · 点击声纳图中的菱形切换`, 12, '#adc7b5', false);}
+    else line('惯导指引 · 非障碍回波', 12, '#adc7b5', false);
     ctx.restore();
   }
   draw(ctx: CanvasRenderingContext2D, w: number, h: number) {
     this.drawActive(ctx, w, h);
   }
-  snapshot() { return { radioQueue:structuredClone(this.radioQueue),radioRecords:structuredClone(this.radioRecords),radioSerial:this.radioSerial, frequency: this.frequency, captured: this.captured, heard: this.heard, replied: this.replied, target: this.target ? [...this.target] : null }; }
+  snapshot() { return { radioQueue:structuredClone(this.radioQueue),radioRecords:structuredClone(this.radioRecords),radioSerial:this.radioSerial, frequency: this.frequency, captured: this.captured, heard: this.heard, replied: this.replied, target: this.target ? [...this.target] : null, waypoints: this.waypoints.map(w => [...w]) }; }
   static validateSnapshot(value: unknown): boolean {
     if (!value || typeof value !== 'object') return false;
     const s = value as ReturnType<HarborRescueNavigation['snapshot']>;
@@ -187,6 +232,7 @@ export class HarborRescueNavigation implements NavigationConsole {
     if(s.radioQueue!==undefined&&(!Array.isArray(s.radioQueue)||s.radioQueue.some(r=>!r||typeof r.text!=='string'||!Number.isFinite(r.frequency)||r.frequency<35||r.frequency>45||typeof r.initial!=='boolean')))return false;
     if(s.radioRecords!==undefined&&(!Array.isArray(s.radioRecords)||s.radioRecords.some(r=>!r||typeof r.text!=='string'||!Number.isFinite(r.frequency))))return false;
     if(s.radioSerial!==undefined&&(!Number.isInteger(s.radioSerial)||s.radioSerial<0))return false;
+    if(s.waypoints!==undefined&&(!Array.isArray(s.waypoints)||s.waypoints.length>8||s.waypoints.some(w=>!Array.isArray(w)||w.length!==3||!w.every(Number.isFinite))))return false;
     return true;
   }
   restore(value: unknown) {
@@ -194,6 +240,7 @@ export class HarborRescueNavigation implements NavigationConsole {
     const s = value as ReturnType<HarborRescueNavigation['snapshot']>;
     this.setFrequency(s.frequency);this.captured = s.captured;this.heard = s.heard;this.replied = s.replied;
     this.target = s.target ? [...s.target] : null;this.rows = [];
+    this.waypoints = s.waypoints ? s.waypoints.map(w => [...w]) : this.target ? [[...this.target]] : [];
     this.radioQueue=structuredClone(s.radioQueue??[]);this.radioRecords=structuredClone(s.radioRecords??[]);this.radioSerial=s.radioSerial??this.radioRecords.length;this.tuneLock=0;this.playbackLeft=0;
     return true;
   }

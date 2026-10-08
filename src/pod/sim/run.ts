@@ -1145,7 +1145,7 @@ export class PodRun {
    * 这个 getter 是唯一的口子 —— 瞄准、屏幕、造物可见性全部读它。
    */
   get lit(): boolean {
-    return this.lamp || this.flareLeft > 0 || this.fx.flash > 0;
+    return (this.lamp && this.powered) || this.flareLeft > 0 || this.fx.flash > 0;
   }
 
   /** 全程进度 0..1 */
@@ -1576,7 +1576,7 @@ export class PodRun {
     if(this.outcome.kind!=='alive')return;
     if(!this.powered || !this.activeSonarEnabled)this.stopSonarPulses();
     this.sonarPulseLeft=Math.max(0,this.sonarPulseLeft-dt);
-    if(this.sonarPulseEnabled && this.sonarPulseLeft===0)this.ping(1);
+    if(this.sonarPulseEnabled && this.sonarPulseLeft===0)this.ping(1,true);
     const sonarHum = 0;
     const floor = Math.max(this.blackout ? 0.012 + sonarHum : 0.045 + this.throttle * 0.02 + sonarHum,this.authoredSite?.noiseFloor??0);
     this.noise = Math.max(floor, this.noise - dt * 0.09);
@@ -1719,7 +1719,7 @@ export class PodRun {
    *        1 = 常规脉冲
    *        2 = 全功率（看得远，整片海都知道你在这）
    */
-  ping(power: 0 | 1 | 2): void {
+  ping(power: 0 | 1 | 2, periodic = false): void {
     if (!this.powered) {
       this.pushLog('没有电。换能器一声不吭。', 'bad');
       this.onCue?.('ui.error', 0.6);
@@ -1730,13 +1730,14 @@ export class PodRun {
       this.onCue?.('ui.error', 0.6);
       return;
     }
-    const cost = [2, 4, 6][power];
+    const cost = periodic ? .3 : [2, 4, 6][power];
     if(this.legIndex===0 && power>0) this.openingScanned=true;
     const noise = [0.04, 0.42, 0.95][power];
     this.sweepPower = power;
     this.sweepAtDistance = this.traveled;
     this.sweepId++;
-    this.power = clamp01(this.power - [0.004, 0.014, 0.034][power]);
+    // Continuous scanning repeats every 3s, so each repeat costs far less than a manual ping.
+    this.power = clamp01(this.power - (periodic ? 0.003 : [0.004, 0.014, 0.034][power]));
     this.contacts = this.buildContacts(power);
     if(power>0)this.sonarPulseLeft=3;
     this.authoredSite?.sonarPulse?.(power);
@@ -2008,7 +2009,6 @@ export class PodRun {
     if (this.shot.phase === 'exposing') return '曝光中 · 保持停船';
     // The shutter frame is frozen already; remote generation must not lock escape controls.
     if (this.charging) return '先断开充电';
-    if (!this.powered) return '推进器没有电';
     return null;
   }
 
@@ -2322,11 +2322,6 @@ export class PodRun {
       this.pushLog('推进器在停机位。什么都不会发生。', 'system');
       return;
     }
-    if (!this.powered) {
-      this.pushLog('总闸拉着。推进器不转。', 'bad');
-      this.onCue?.('ui.error', 0.6);
-      return;
-    }
 
     this.power = clamp01(this.power - 0.006 * this.throttle);
     this.addNoise(spec.noise);
@@ -2394,11 +2389,6 @@ export class PodRun {
   depart(): void {
     if (this.driveBlock) { this.pushLog(this.driveBlock, 'system'); return; }
     if (this.phase !== 'site') return;
-    if (!this.powered) {
-      this.pushLog('总闸拉着。推进器不转。', 'bad');
-      this.onCue?.('ui.error', 0.6);
-      return;
-    }
     // 带着一条伸出去的臂起步 = 把它挂在第一根横梁上撇断
     if (armOut(this.arm)) {
       this.pushLog(`机械手还在外面。先回${stationRef('camera')}收回来，再起步。`, 'bad');

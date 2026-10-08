@@ -18,8 +18,9 @@ function lure(r:HarborRescue){r.interact('power');r.interact('observe');tick(r,R
  r.interact('observe');tick(r,10,'lure',true);const old=shoot(r,'old','lure',true);tick(r,RESCUE_TIMING.hold+1);assert.equal(r.state.lureConfirmed,false);tick(r,10,'lure',true);r.analyze(old);assert.equal(r.state.lureConfirmed,false,'stale evidence must not revive confirmation');r.interact('observe');assert.equal(r.state.isolated,false);
 }
 {
- const r=warned();assert.equal(tick(r,7,'none',true).damage,0);assert.ok(tick(r,2,'none',true).damage>0);tick(r,30,'none',true);assert.equal(r.state.failed,true,'persistent sonar causes terminal damage');
- const safe=warned();lure(safe);assert.equal(safe.state.damageTotal,0);tick(safe,30,'lure',true);assert.ok(safe.state.damageTotal>0,'lure position does not give permanent sonar immunity');
+ const r=warned();assert.equal(tick(r,RESCUE_TIMING.noiseGrace-1,'none',true).damage,0);assert.ok(tick(r,2,'none',true).damage>0);tick(r,30,'none',true);assert.ok(r.state.damageTotal>=RESCUE_TIMING.damage*5,'persistent sonar keeps damaging the hull');assert.equal(r.state.failed,false,'hull damage is not a rescue failure');
+ const safe=warned();lure(safe);tick(safe,30,'lure',true);assert.equal(safe.state.damageTotal,0,'no strikes while awaiting the entry photograph');
+ shoot(safe,'entry','lure',true);assert.equal(safe.state.lureConfirmed,true);assert.equal(tick(safe,7,'lure',true).damage,0,'grace after confirmation');tick(safe,30,'lure',true);assert.ok(safe.state.damageTotal>0,'continued pulse after confirmation strikes');
 }
 {
  const r=warned();lure(r);const e=shoot(r,'proof','lure',true);const saved=r.snapshot();saved.lureConfirmed=false;saved.monsterInside=false;saved.powered=false;const before=r.snapshot();assert.equal(r.restore(saved),false);assert.deepEqual(r.snapshot(),before,'invalid restore is atomic');

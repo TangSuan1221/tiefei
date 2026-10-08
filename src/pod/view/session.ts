@@ -50,7 +50,7 @@ export async function startPodSession(resume: boolean): Promise<void> {
 
   const run = new PodRun(seed);
   const view = new PodView(run, outCanvas);
-  if(!saved)run.beginHarborApproach();
+  if(!saved){run.beginHarborApproach();run.power=1;run.hull=1;run.activeSonarEnabled=true;run.sonarPulseEnabled=true;}
   if(saved){
     try{if(!restoreHarborSave(run,saved))throw new Error('关卡恢复接口未就绪或关卡版本不匹配。');}
     catch(error){

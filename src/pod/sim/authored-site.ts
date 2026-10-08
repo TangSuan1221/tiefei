@@ -10,7 +10,12 @@ export interface NavigationConsole {
  analyzeSignal?():{text:string;kind:string}|null;
  reply?():boolean;
  drawWaterfall?(ctx:CanvasRenderingContext2D,w:number,h:number):void;
- drawActive?(ctx:CanvasRenderingContext2D,w:number,h:number):void;
+ drawActive?(ctx:CanvasRenderingContext2D,w:number,h:number,panel?:boolean):void;
+ drawWaypointPanel?(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number):void;
+ /** Waypoint marker hit circles in the coordinates last given to `drawActive`. */
+ readonly markerHits?:readonly {index:number;x:number;y:number;r:number}[];
+ selectWaypoint?(index:number):boolean;
+ readonly target?:readonly number[]|null;
  readonly screenAction?:string;
  controls():Control[];
  action(id:string):boolean;
@@ -54,6 +59,10 @@ export interface AuthoredSite {
   turn?(degrees:number):number;
   moveVertical?(distance:number):boolean;
   readonly elevation?:number;
+  /** Surface-referenced depth of world y=0; player-facing DEPTH = datum − y. */
+  readonly coordinateDatum?:number;
+  /** World-space pod position, for the player-facing X / Y / DEPTH readout. */
+  readonly position?:{readonly x:number;readonly y:number;readonly z:number};
   interact():void;
   armEvent?(kind:'grip'|'stowed',id?:string):boolean;
   draw(ctx:CanvasRenderingContext2D,w:number,h:number,time:number,recording?:boolean):void;

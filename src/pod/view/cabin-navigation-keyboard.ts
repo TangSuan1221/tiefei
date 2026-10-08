@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import type { PodRun } from '../sim/run';
+import { COORD_AXES } from '../sim/site-coords';
 
 
 /** Dedicated physical coordinate console; each cap routes to the existing nav action. */
@@ -19,7 +20,7 @@ export function buildNavigationKeyboard(scene:THREE.Scene,textures:THREE.Texture
  const paint=document.createElement('canvas');paint.width=512;paint.height=512;const g=paint.getContext('2d')!;g.fillStyle='#858777';g.fillRect(0,0,512,512);let seed=981;const rnd=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};for(let i=0;i<900;i++){g.fillStyle=i%3?'rgba(22,19,13,.24)':'rgba(175,165,134,.18)';g.fillRect(rnd()*512,rnd()*512,1+rnd()*5,1+rnd()*2);}const wear=new THREE.CanvasTexture(paint);wear.colorSpace=THREE.SRGBColorSpace;textures.push(wear);metal.map=wear;metal.bumpMap=wear;metal.bumpScale=.0005;
  const label=(text:string,w:number,h:number,x:number,y:number,z:number)=>{const c=document.createElement('canvas');c.width=256;c.height=96;const ctx=c.getContext('2d')!;ctx.fillStyle='#c3baa0';ctx.font='bold 70px Microsoft YaHei';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,128,48,246);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;textures.push(t);const o=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:t,transparent:true,roughness:1,emissive:0xffffff,emissiveMap:t,emissiveIntensity:.35,depthWrite:false}));o.position.set(x,y,z);o.raycast=()=>{};root.add(o);};
  const key=(id:string,text:string,x:number,y:number,w=.058)=>{const o=box(w,.045,.010,x,y+.025,.036,cap.clone());o.name=id;o.userData.control=id;o.userData.station='nav';label(text,w*.93,.037,x,y+.025,.042);return o;};
- ['X','Y','Z'].forEach((a,i)=>key('sonar.axis.'+i,a,-.119+i*.119,.082,.098));
+ COORD_AXES.forEach((a,i)=>key('sonar.axis.'+i,a,-.119+i*.119,.082,.098));
  ['1','2','3','4','5','6','7','8','9','-','0','.'].forEach((k,i)=>key('sonar.key.'+k,k,-.139+i%3*.066,.028-Math.floor(i/3)*.052));
  key('sonar.key.del','退格',.086,.028,.102);key('sonar.key.clear','清空',.086,-.024,.102);key('sonar.save','写入',.086,-.076,.102);
  key('nav.active','电源',.053,-.128,.058);key('nav.ping1','脉冲',.119,-.128,.058);

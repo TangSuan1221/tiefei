@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "ironlung-video-prompts",
+  "revision": "2026-10-08-v1-level01",
+  "scope": "level-01-harbor-rescue",
+  "documents": [
+    {
+      "path": "docs/video-prompts/level-01-harbor-rescue.md",
+      "kind": "video-prompts",
+      "priority": 100
+    }
+  ],
+  "evidenceFiles": [
+    "src/pod/content/footage.ts",
+    "src/pod/content/footage-director.ts",
+    "src/pod/view/footage.ts",
+    "src/pod/sim/run.ts",
+    "src/pod/sim/harbor-rescue.ts",
+    "src/pod/sim/harbor-rescue-dialogue.ts",
+    "src/pod/sim/harbor-pursuit.ts",
+    "src/pod/view/deepsea/harbor-rescue-site.ts",
+    "src/pod/view/deepsea/harbor-rescue-world.ts",
+    "src/pod/view/deepsea/pod-expedition.ts",
+    "src/pod/content/campaign-story.ts",
+    "docs/story-split-route-2026-09-30.md",
+    "docs/video-api-probe.md",
+    "docs/footage-state.md",
+    "qa/video-prompts/runtime-audit-2026-10-08.json"
+  ]
+}

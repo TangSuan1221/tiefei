@@ -2,6 +2,12 @@ import type { PodRun } from '../sim/run';
 import type { HitMap } from './chrome';
 import { drawDrivingSonarInstrument } from './stations';
 import { layoutCJK } from '@/ui/typography';
+import { COORD_AXES, formatCoords, worldFromFields } from '../sim/site-coords';
+
+/** Surface depth of the current site's world y=0, so DEPTH = datum − y. */
+export function coordinateDatum(run:PodRun):number {
+ const site=run.authoredSite;return site?.coordinateDatum??run.depth+(site?.elevation??0);
+}
 
 type RecordEntry={text:string;kind:string;frequency:number;recording?:string};
 type Desk={frequency:number;axis:number;fields:string[];target:number[]|null;page:'home'|'result'|'history';records:RecordEntry[];selected?:number;message:string};
@@ -22,11 +28,16 @@ export function sonarAction(run:PodRun,id:string):boolean {
  if(receiver?.autoReceive&&id.startsWith('sonar.radio.')){const pages=radioPages.get(run)??{list:0,text:0};radioPages.set(run,pages);if(id==='sonar.radio.prev')pages.list=Math.max(0,pages.list-1);if(id==='sonar.radio.next')pages.list++;if(id==='sonar.radio.textPrev')pages.text=Math.max(0,pages.text-1);if(id==='sonar.radio.textNext')pages.text++;if(id.startsWith('sonar.radio.open.')){s.selected=Number(id.slice(17));s.page='result';pages.text=0;}return true;}
  if(id.startsWith('sonar.tune.')){s.frequency=35+Math.max(0,Math.min(100,Number(id.slice(11))))/10;receiver?.setFrequency?.(s.frequency);return true;}
  if(id.startsWith('sonar.axis.')){s.axis=Number(id.at(-1));return true;}
+ if(id.startsWith('sonar.waypoint.')){
+  const ok=receiver?.selectWaypoint?.(Number(id.slice('sonar.waypoint.'.length)))??false;
+  if(ok&&receiver?.target){s.target=[...receiver.target];s.message='已切换惯导航点';}return ok;
+ }
  if(id.startsWith('sonar.key.')){
   const key=id.slice(10);if(key==='clear')s.fields[s.axis]='';else if(key==='del')s.fields[s.axis]=s.fields[s.axis].slice(0,-1);else if(s.fields[s.axis].length<8)s.fields[s.axis]+=key;return true;
  }
  if(id==='sonar.save'){
-  const v=s.fields.map(Number);if(s.fields.some(f=>!f.trim())||!v.every(Number.isFinite)){s.message='坐标格式不正确';return false;}
+  const typed=s.fields.map(Number);if(s.fields.some(f=>!f.trim())||!typed.every(Number.isFinite)){s.message='坐标格式不正确';return false;}
+  const v=worldFromFields(typed,coordinateDatum(run));
   if(receiver?.setWaypoint&&!receiver.setWaypoint(v)){s.message='坐标超出本地航区';return false;}
   s.target=v;s.message='航点已写入 · 手动驾驶';return true;
  }
@@ -66,14 +77,14 @@ export function drawSonarDesk(ctx:CanvasRenderingContext2D,run:PodRun,x:number,y
  screen(20,55,530,300);screen(568,55,436,300);
  text('01 主动声纳 / 地形 · 距离',36,76);
  ctx.save();ctx.beginPath();ctx.rect(28,94,514,249);ctx.clip();ctx.translate(28,94);
- if(run.activeSonarEnabled&&run.powered){if(r?.drawActive)r.drawActive(ctx,514,249);else drawDrivingSonarInstrument(ctx,run,514,249,time);}
+ if(run.activeSonarEnabled&&run.powered){if(r?.drawActive){r.drawActive(ctx,514,249);for(const m of r.markerHits??[])hits.add({id:'sonar.waypoint.'+m.index,x:x+(28+m.x-m.r)*w/1024,y:y+(94+m.y-m.r)*h/720,w:m.r*2*w/1024,h:m.r*2*h/720});}else drawDrivingSonarInstrument(ctx,run,514,249,time);}
  else{text('换能器断电',175,116,24);text('开启电源后显示地形和距离',122,153,17);}
  if(s.target&&!r?.drawActive){
   const pose=run.authoredSite?.snapshot() as {position?:number[]}|undefined;
-  const p=pose?.position;if(p?.length===3){const dx=s.target[0]-p[0],dz=s.target[2]-p[2],a=Math.atan2(dx,-dz)-run.heading*Math.PI/180,d=Math.min(1,Math.hypot(dx,dz)/24);ctx.strokeStyle='#efc576';ctx.strokeRect(257+Math.sin(a)*90*d-4,124-Math.cos(a)*90*d-4,8,8);text('惯导航点 / Y '+s.target[1],20,230,15,'#efc576');}
+  const p=pose?.position;if(p?.length===3){const dx=s.target[0]-p[0],dz=s.target[2]-p[2],a=Math.atan2(dx,-dz)-run.heading*Math.PI/180,d=Math.min(1,Math.hypot(dx,dz)/24);ctx.strokeStyle='#efc576';ctx.strokeRect(257+Math.sin(a)*90*d-4,124-Math.cos(a)*90*d-4,8,8);text('惯导航点 / '+formatCoords(s.target,coordinateDatum(run)),20,230,15,'#efc576');}
  }
  ctx.restore();
- text('02 惯导 / XYZ 航点',585,77);['X','Y','Z'].forEach((a,i)=>button('sonar.axis.'+i,`${s.axis===i?'▸ ':''}${a} ${s.fields[i]||'_'}`,582+i*138,98,128));
+ text('02 惯导 / X·Y·DEPTH 航点',585,77);COORD_AXES.forEach((a,i)=>button('sonar.axis.'+i,`${s.axis===i?'▸ ':''}${a} ${s.fields[i]||'_'}`,582+i*138,98,128));
  const keys=['1','2','3','4','5','6','7','8','9','-','0','.'];keys.forEach((k,i)=>button('sonar.key.'+k,k,582+i%3*64,144+Math.floor(i/3)*40,56));
  button('sonar.key.del','退格',786,144,94);button('sonar.key.clear','清空',890,144,98);
  button('sonar.save','写入航点',786,184,202);
