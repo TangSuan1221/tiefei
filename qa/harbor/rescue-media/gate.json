@@ -1,0 +1,77 @@
+{
+  "id": "tape.3",
+  "kind": "gate",
+  "visible": true,
+  "frames": 10,
+  "ready": true,
+  "analyzed": true,
+  "videoResult": "failed",
+  "report": [
+    "本地感光录像备份 · 非AI，逐帧传感记录",
+    "录像确认闸机闭合，怪物隔离在仓内，外侧通路清空。可以接通内侧逃生门。"
+  ],
+  "state": {
+    "version": 1,
+    "epoch": 4,
+    "signal": true,
+    "heard": true,
+    "replied": true,
+    "identified": true,
+    "warned": true,
+    "powered": true,
+    "gateOpen": false,
+    "gateClosed": true,
+    "monsterInside": true,
+    "lureConfirmed": true,
+    "isolated": true,
+    "verified": true,
+    "departing": false,
+    "departed": false,
+    "departureConfirmed": false,
+    "complete": false,
+    "failed": false,
+    "lureSeconds": 15.372500000000006,
+    "holdSeconds": 161.6442999999986,
+    "noiseSeconds": 0,
+    "noiseStrikes": 0,
+    "damageTotal": 0,
+    "departureSeconds": 0,
+    "captures": [
+      {
+        "version": 1,
+        "id": "rescue-1",
+        "kind": "threat",
+        "epoch": 0,
+        "visible": true,
+        "monsterInside": false,
+        "gateClosed": false,
+        "departed": false
+      },
+      {
+        "version": 1,
+        "id": "rescue-2",
+        "kind": "lure",
+        "epoch": 3,
+        "visible": true,
+        "monsterInside": true,
+        "gateClosed": false,
+        "departed": false
+      },
+      {
+        "version": 1,
+        "id": "rescue-3",
+        "kind": "gate",
+        "epoch": 4,
+        "visible": true,
+        "monsterInside": true,
+        "gateClosed": true,
+        "departed": false
+      }
+    ],
+    "analyzed": [
+      "rescue-1",
+      "rescue-2",
+      "rescue-3"
+    ]
+  }
+}

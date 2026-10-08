@@ -1,4 +1,4 @@
-import {Box3,BoxGeometry,BufferGeometry,Group,Mesh,MeshStandardMaterial,Vector3} from 'three';
+import {Box3,BoxGeometry,BufferGeometry,CanvasTexture,Group,Mesh,MeshStandardMaterial,SRGBColorSpace,Vector3} from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type {ExpeditionLevel} from '../../content/expedition';
 import type {ExpeditionWorld} from './expedition-world';
@@ -8,6 +8,26 @@ import type {ReferenceMaterials} from './reference-materials';
 export function addHarborRoomIdentity(level:ExpeditionLevel,world:ExpeditionWorld,m:ReferenceMaterials){
  const root=new Group();root.name='harbor-room-service-equipment';world.root.add(root);
  const guideGlass=new MeshStandardMaterial({color:0xd9c59b,emissive:0xd9ad69,emissiveIntensity:.65,roughness:.38});
+ const labels:CanvasTexture[]=[],labelMaterials:MeshStandardMaterial[]=[];
+ // Thin, mounted identification plates only: these do not add obstacles, lamps,
+ // interaction targets, or change the state of the equipment they describe.
+ function plate(p:[number,number,number],yaw:number,w:number,h:number,code:string,title:string,detail:string){
+  if(typeof document==='undefined')return; // Geometry/collision tools have no DOM.
+  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=256;
+  const c=canvas.getContext('2d')!;c.fillStyle='#25302f';c.fillRect(0,0,1024,256);
+  c.fillStyle='#aaa48b';c.fillRect(14,14,996,228);c.fillStyle='#26312f';c.fillRect(20,20,984,216);
+  c.fillStyle='#b7aa80';c.fillRect(30,30,175,196);c.fillStyle='#26312f';c.font='bold 108px Arial';c.textAlign='center';c.fillText(code,117,165);
+  c.textAlign='left';c.fillStyle='#cec8ac';c.font='bold 45px "Microsoft YaHei", sans-serif';c.fillText(title,232,106);
+  c.fillStyle='#aba991';c.font='25px Arial';c.fillText(detail,234,170);
+  // Reproducible chipped paint keeps signage integrated with the corroded hull.
+  for(let i=0;i<145;i++){const x=(i*173+31)%1024,y=(i*67+9)%256;c.fillStyle=i%3?'rgba(10,17,15,.17)':'rgba(194,187,160,.09)';c.fillRect(x,y,2+i%9,1+i%3);}
+  const map=new CanvasTexture(canvas);map.colorSpace=SRGBColorSpace;labels.push(map);
+  const mat=new MeshStandardMaterial({map,roughness:.83,metalness:.25,emissive:0x8c8a70,emissiveMap:map,emissiveIntensity:.08});labelMaterials.push(mat);
+  const g=new Group();g.position.set(...p);g.rotation.y=yaw;root.add(g);
+  const backing=new BoxGeometry(w+.06,h+.06,.035),face=new BoxGeometry(w,h,.006);geometries.push(backing,face);
+  g.add(new Mesh(backing,m.steel));const front=new Mesh(face,mat);front.position.z=.021;g.add(front);
+  for(const x of [-w/2+.055,w/2-.055])for(const y of [-h/2+.04,h/2-.04]){const geo=new BoxGeometry(.026,.026,.012);geometries.push(geo);const screw=new Mesh(geo,m.steel);screw.position.set(x,y,.032);g.add(screw);}
+ }
  const reserve:Box3[]=[],batches=new Map<MeshStandardMaterial,BufferGeometry[]>(),geometries:BufferGeometry[]=[];
  for(const edge of level.edges){const p=edge.path??[];for(let i=1;i<p.length;i++)reserve.push(new Box3().setFromPoints([new Vector3(...p[i-1]),new Vector3(...p[i])]).expandByVector(new Vector3(3,1.7,3)));}
  for(const o of world.interactables.values())if(o.userData.approach)reserve.push(new Box3().setFromPoints([o.position,new Vector3(...o.userData.approach)]).expandByVector(new Vector3(2,2,2)));
@@ -30,6 +50,13 @@ export function addHarborRoomIdentity(level:ExpeditionLevel,world:ExpeditionWorl
  }
  for(const [index,r]of level.rooms.entries()){
   const floor=r.floorY??-3,top=floor+(r.ceiling??7),left=r.x-r.width/2,right=r.x+r.width/2;
+  if(index===0)plate([r.x,3.72,r.z+r.depth/2-1.45],Math.PI,3.7,.42,'A','检查气闸','PRESSURE LOCK / INSPECTION');
+  if(index===1)plate([r.x+10,4.32,r.z+3.34],0,3.9,.72,'B','主港 · 登船廊','MAIN HARBOR / BOARDING GANTRY');
+  if(index===2){
+   plate([right-.88,3.08,r.z-5],-Math.PI/2,3.7,.68,'C','岸电维修湾','SHORE POWER / SERVICE BAY');
+   // Cabinet face labels sit on the existing west service bank, not in its approach.
+   for(let k=0;k<3;k++)plate([left+3.47,floor+1.85,r.z-6+k*5],Math.PI/2,.82,.21,'0'+(k+1),'配电','ISOLATOR');
+  }
   // Independent overhead service bays break up empty ceiling planes, safely
   // above the ship. Structural rhythm follows room function rather than colour.
   const spacing=index===1?8:index===5?6:4;
@@ -89,5 +116,5 @@ export function addHarborRoomIdentity(level:ExpeditionLevel,world:ExpeditionWorl
   }
  }
  for(const [material,parts]of batches){const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());if(!g)continue;geometries.push(g);const mesh=new Mesh(g,material);mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);}
- return ()=>{root.removeFromParent();geometries.forEach(g=>g.dispose());guideGlass.dispose();};
+ return ()=>{root.removeFromParent();geometries.forEach(g=>g.dispose());guideGlass.dispose();labels.forEach(t=>t.dispose());labelMaterials.forEach(m=>m.dispose());};
 }

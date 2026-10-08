@@ -1,0 +1,66 @@
+{
+  "id": "tape.2",
+  "kind": "lure",
+  "visible": true,
+  "frames": 10,
+  "ready": true,
+  "analyzed": true,
+  "videoResult": "failed",
+  "report": [
+    "本地感光录像备份 · 非AI，逐帧传感记录",
+    "曝光确认怪物完全进入03货仓。"
+  ],
+  "state": {
+    "version": 1,
+    "epoch": 3,
+    "signal": true,
+    "heard": true,
+    "replied": true,
+    "identified": true,
+    "warned": true,
+    "powered": true,
+    "gateOpen": true,
+    "gateClosed": false,
+    "monsterInside": true,
+    "lureConfirmed": true,
+    "isolated": false,
+    "verified": false,
+    "departing": false,
+    "departed": false,
+    "departureConfirmed": false,
+    "complete": false,
+    "failed": false,
+    "lureSeconds": 15.372500000000006,
+    "holdSeconds": 161.6831999999986,
+    "noiseSeconds": 0,
+    "noiseStrikes": 0,
+    "damageTotal": 0,
+    "departureSeconds": 0,
+    "captures": [
+      {
+        "version": 1,
+        "id": "rescue-1",
+        "kind": "threat",
+        "epoch": 0,
+        "visible": true,
+        "monsterInside": false,
+        "gateClosed": false,
+        "departed": false
+      },
+      {
+        "version": 1,
+        "id": "rescue-2",
+        "kind": "lure",
+        "epoch": 3,
+        "visible": true,
+        "monsterInside": true,
+        "gateClosed": false,
+        "departed": false
+      }
+    ],
+    "analyzed": [
+      "rescue-1",
+      "rescue-2"
+    ]
+  }
+}

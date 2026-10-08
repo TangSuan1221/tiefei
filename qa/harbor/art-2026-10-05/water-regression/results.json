@@ -1,0 +1,8 @@
+{
+  "sameDepthAttachment": true,
+  "shadowReady": [
+    1,
+    1
+  ],
+  "hardwareDepthComparison": true
+}

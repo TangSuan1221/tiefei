@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import type { ExpeditionLevel } from '../../content/expedition';
 import type { ReferenceMaterials } from './reference-materials';
+import {setHarborPigment} from './harbor-scanned-surfaces';
 import type { ExpeditionSurfaceMaps } from './expedition-surface-maps';
 import type { ExpeditionWorld } from './expedition-world';
 import { pressureDisk, pressureFlange, pressureGateHardware, salvageCaseHardware } from './harbor-hardware';
@@ -25,7 +26,7 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
   const batches=new Map<MeshStandardMaterial,BufferGeometry[]>();
   const dressingClearance:Box3[]=[];
   for(const edge of level.edges){const path=edge.path??[];for(let i=1;i<path.length;i++)dressingClearance.push(new Box3().setFromPoints([new Vector3(...path[i-1]),new Vector3(...path[i])]).expandByVector(new Vector3(2.9,1.6,2.9)));}
-  function pigment(source:MeshStandardMaterial,color:string){const m=source.clone();m.color.set(color);owned.push(m);return m;}
+  function pigment(source:MeshStandardMaterial,color:string){const m=source.clone();setHarborPigment(m,color);owned.push(m);return m;}
   const hull=pigment(materials.hull,'#727a76'),steel=pigment(materials.steel,'#424e54'),rust=pigment(materials.hull,'#855035'),deck=pigment(materials.floor,'#555c5b');
   // Caller-owned finishes retain their roughness/normal maps and calibrated strengths.
   if(surfaceMaps)Object.assign(deck,surfaceMaps);
@@ -243,7 +244,9 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
   for(const [i,r] of rooms.entries()){
     const left=r.x-r.width/2+1.15,right=r.x+r.width/2-1.15;
     for(let z=r.z-r.depth/2+2;i!==0&&z<r.z+r.depth/2-1;z+=4){
-      for(const x of [left,right]){box([x,r.floor+1.4,z],[.42,2.8,.4],steel);box([x,r.floor+.25,z],[1.05,.4,1.5],rust);rod([x,r.top-.7,z],[x,r.top-.7,Math.min(z+4,r.z+r.depth/2-1)],.14,steel);}
+      // Wall ribs carry the services without freestanding masonry-like feet.
+      // Generate their mesh and collider together, outside the navigation lane.
+      for(const side of [-1,1]){const x=r.x+side*(r.width/2-.24);box([x,r.floor+1.4,z],[.30,2.8,.4],steel);rod([x,r.top-.7,z],[x,r.top-.7,Math.min(z+4,r.z+r.depth/2-1)],.14,steel);}
     }
     for(const sign of [-1,1]){const x=r.x+sign*(r.width/2-1.4);light(r.id,[x,r.y+1,r.z-2],i===2?'#edc48e':'#c4c9c2',i===1?24:12,i===1?18:10);}
     anchors.push({room:r.id,name:r.name,position:[r.x,r.y,r.z],view:[r.x,r.y,r.z+Math.min(5,r.depth/4)],yaw:0,pitch:0});
@@ -255,8 +258,7 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
       box([r.x+3,r.top-.7,r.z-4.9],[1.5,.65,.85],rust,false);
       for(let j=0;j<9;j++)shape(new TorusGeometry(.10,.035,6,12),steel,[r.x+3,r.top-1.1-j*.12,r.z-4.9],[0,j%2*Math.PI/2,0]);
       for(const z of [2,6,14,18]){
-        box([1,.45,z],[.45,6.6,.48],steel,true);
-        box([1.35,-2.65,z],[1.1,.4,1.1],rust,true);
+        box([.24,.45,z],[.30,6.6,.48],steel,true);
       }
       for(let j=0;j<5;j++){
         rod([1.1,2+j*.23,1],[1.1,2+j*.23,18.4],.085,j===0?amber:steel);
@@ -283,7 +285,6 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
         box([2.6,-1.2,z],[1.3,3.3,.8],pale,true);
         for(let j=0;j<4;j++){box([2.6,-2.2+j*.65,z+.43],[1.05,.46,.08],steel,false);box([2.3,-2.2+j*.65,z+.5],[.09,.12,.05],amber,false);}
       }
-      for(let j=0;j<18;j++){const z=1.5+j*.84;box([3+(j%3)*.32,-2.83,z],[.25,.18,.38],j%2?steel:rust,false,undefined,[0,j*.7,.12]);}
     }
     if(i===2){for(let k=0;k<4;k++){box([left+1,r.floor+1.6,r.z-6+k*3],[1.5,3,2],steel);for(let n=0;n<3;n++)box([left+1.8,r.floor+1+n*.6,r.z-6+k*3],[.1,.22,1.4],amber);}ring([right-1,r.y,r.z],1.3,materials.rubber,[0,Math.PI/2,0]);}
     if(i===3){for(const x of [left+2,right-2]){box([x,r.floor+.35,r.z],[1.2,.6,r.depth-3],amber);rod([x,r.floor+1.3,r.z-6],[x,r.floor+1.3,r.z+6],.09,steel);}}
@@ -447,12 +448,11 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
         light(harbor.id,[wx-side*1.4,harbor.y+5.6,zz],'#c4b398',22,14);
       }
     }
-    // North bulkhead panel grid: the four side entrances remain open.
-    for(let xx=x-25;xx<=x+25;xx+=5){
-      box([xx,harbor.floor+10,z-19.75],[.22,20,.25],steel);
-      for(let yy=harbor.floor+3;yy<top-1;yy+=4)box([xx+2.4,yy,z-19.65],[4.8,.12,.15],rust);
-    }
-    // Torn boarding gangway, hanging well above the shared driving altitude.
+    // Widely spaced service risers frame distinct vessels instead of a wall-wide grid.
+    for(const xx of [34.5,50.5,69,86]){
+      box([xx,harbor.floor+10,z-harbor.depth/2+.25],[.22,20,.25],steel);
+      for(const yy of [harbor.floor+3,harbor.floor+12])box([xx,yy,z-harbor.depth/2+.35],[.65,.22,.3],rust);
+    }    // Torn boarding gangway, hanging well above the shared driving altitude.
     const bridgeY=harbor.y+4.7;
     box([x+10,bridgeY,z+2],[10,.25,2.6],steel);
     box([x+10,bridgeY-.35,z+2],[10,.5,.35],rust);
@@ -578,3 +578,6 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
     dispose(){emergencyDoors.forEach(x=>x.dispose());root.clear();geometries.forEach(g=>g.dispose());owned.forEach(m=>m.dispose());colliders.length=walkable.length=0;interactables.clear();doors.clear();}
   };
 }
+
+
+

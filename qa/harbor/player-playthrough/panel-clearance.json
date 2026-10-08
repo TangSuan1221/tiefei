@@ -1,0 +1,249 @@
+{
+  "method": "Read-only hull sweep and actual visible mesh ray; ±0.15 m approach drift, 0–50° yaw in 0.5° steps",
+  "rows": [
+    {
+      "name": "observe",
+      "dx": -0.15,
+      "dz": -0.15,
+      "blocked": null,
+      "id": "harbor.rescue.observe",
+      "distance": 3.3057242020471076,
+      "reachable": true
+    },
+    {
+      "name": "observe",
+      "dx": -0.15,
+      "dz": 0,
+      "blocked": null,
+      "id": "harbor.rescue.observe",
+      "distance": 3.309451695883307,
+      "reachable": true
+    },
+    {
+      "name": "observe",
+      "dx": -0.15,
+      "dz": 0.15,
+      "blocked": null,
+      "id": "harbor.rescue.observe",
+      "distance": 3.387944280605991,
+      "reachable": true
+    },
+    {
+      "name": "observe",
+      "dx": 0,
+      "dz": -0.15,
+      "blocked": null,
+      "id": "harbor.rescue.observe",
+      "distance": 3.0973196615273526,
+      "reachable": true
+    },
+    {
+      "name": "observe",
+      "dx": 0,
+      "dz": 0,
+      "blocked": null,
+      "id": "harbor.rescue.observe",
+      "distance": 3.175812246250029,
+      "reachable": true
+    },
+    {
+      "name": "observe",
+      "dx": 0,
+      "dz": 0.15,
+      "blocked": null,
+      "id": "harbor.rescue.observe",
+      "distance": 3.3827988391733923,
+      "reachable": true
+    },
+    {
+      "name": "observe",
+      "dx": 0.15,
+      "dz": -0.15,
+      "blocked": null,
+      "id": "harbor.rescue.observe",
+      "distance": 2.963680211894069,
+      "reachable": true
+    },
+    {
+      "name": "observe",
+      "dx": 0.15,
+      "dz": 0,
+      "blocked": null,
+      "id": "harbor.rescue.observe",
+      "distance": 3.170666804817425,
+      "reachable": true
+    },
+    {
+      "name": "observe",
+      "dx": 0.15,
+      "dz": 0.15,
+      "blocked": null,
+      "id": "harbor.rescue.observe",
+      "distance": 3.3827988391733923,
+      "reachable": true
+    },
+    {
+      "name": "power",
+      "dx": -0.15,
+      "dz": -0.15,
+      "blocked": null,
+      "id": "harbor.rescue.power",
+      "distance": 3.3057242020471076,
+      "reachable": true
+    },
+    {
+      "name": "power",
+      "dx": -0.15,
+      "dz": 0,
+      "blocked": null,
+      "id": "harbor.rescue.power",
+      "distance": 3.309451695883307,
+      "reachable": true
+    },
+    {
+      "name": "power",
+      "dx": -0.15,
+      "dz": 0.15,
+      "blocked": null,
+      "id": "harbor.rescue.power",
+      "distance": 3.387944280605991,
+      "reachable": true
+    },
+    {
+      "name": "power",
+      "dx": 0,
+      "dz": -0.15,
+      "blocked": null,
+      "id": "harbor.rescue.power",
+      "distance": 3.0973196615273526,
+      "reachable": true
+    },
+    {
+      "name": "power",
+      "dx": 0,
+      "dz": 0,
+      "blocked": null,
+      "id": "harbor.rescue.power",
+      "distance": 3.175812246250029,
+      "reachable": true
+    },
+    {
+      "name": "power",
+      "dx": 0,
+      "dz": 0.15,
+      "blocked": null,
+      "id": "harbor.rescue.power",
+      "distance": 3.3827988391733923,
+      "reachable": true
+    },
+    {
+      "name": "power",
+      "dx": 0.15,
+      "dz": -0.15,
+      "blocked": null,
+      "id": "harbor.rescue.power",
+      "distance": 2.963680211894069,
+      "reachable": true
+    },
+    {
+      "name": "power",
+      "dx": 0.15,
+      "dz": 0,
+      "blocked": null,
+      "id": "harbor.rescue.power",
+      "distance": 3.170666804817425,
+      "reachable": true
+    },
+    {
+      "name": "power",
+      "dx": 0.15,
+      "dz": 0.15,
+      "blocked": null,
+      "id": "harbor.rescue.power",
+      "distance": 3.3827988391733923,
+      "reachable": true
+    },
+    {
+      "name": "lure",
+      "dx": -0.15,
+      "dz": -0.15,
+      "blocked": null,
+      "id": "harbor.rescue.lure",
+      "distance": 3.305724202047118,
+      "reachable": true
+    },
+    {
+      "name": "lure",
+      "dx": -0.15,
+      "dz": 0,
+      "blocked": null,
+      "id": "harbor.rescue.lure",
+      "distance": 3.309451695883322,
+      "reachable": true
+    },
+    {
+      "name": "lure",
+      "dx": -0.15,
+      "dz": 0.15,
+      "blocked": null,
+      "id": "harbor.rescue.lure",
+      "distance": 3.3879442806059985,
+      "reachable": true
+    },
+    {
+      "name": "lure",
+      "dx": 0,
+      "dz": -0.15,
+      "blocked": null,
+      "id": "harbor.rescue.lure",
+      "distance": 3.0973196615273526,
+      "reachable": true
+    },
+    {
+      "name": "lure",
+      "dx": 0,
+      "dz": 0,
+      "blocked": null,
+      "id": "harbor.rescue.lure",
+      "distance": 3.175812246250029,
+      "reachable": true
+    },
+    {
+      "name": "lure",
+      "dx": 0,
+      "dz": 0.15,
+      "blocked": null,
+      "id": "harbor.rescue.lure",
+      "distance": 3.3827988391733923,
+      "reachable": true
+    },
+    {
+      "name": "lure",
+      "dx": 0.15,
+      "dz": -0.15,
+      "blocked": null,
+      "id": "harbor.rescue.lure",
+      "distance": 2.9636802118940615,
+      "reachable": true
+    },
+    {
+      "name": "lure",
+      "dx": 0.15,
+      "dz": 0,
+      "blocked": null,
+      "id": "harbor.rescue.lure",
+      "distance": 3.170666804817425,
+      "reachable": true
+    },
+    {
+      "name": "lure",
+      "dx": 0.15,
+      "dz": 0.15,
+      "blocked": null,
+      "id": "harbor.rescue.lure",
+      "distance": 3.3827988391733923,
+      "reachable": true
+    }
+  ],
+  "passed": true
+}

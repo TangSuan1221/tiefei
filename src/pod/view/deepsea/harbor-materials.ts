@@ -3,6 +3,7 @@ import {
   NoColorSpace, RepeatWrapping, RGBAFormat, SRGBColorSpace,
 } from 'three';
 import type { ReferenceMaterials } from './reference-materials';
+import {acquireHarborScans,setHarborPigment} from './harbor-scanned-surfaces';
 
 const SIZE=512;
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
@@ -45,8 +46,11 @@ export function createHarborMaterials(source:ReferenceMaterials):ReferenceMateri
       const macro=noise(u,v,5,seed),meso=noise(u,v,23,seed+1),grain=hash(x,y,seed+2);
       // Sparse fine defects, not broad camouflage islands. Macro variation only
       // modulates a weak patina; it must not determine the rust silhouette.
-      const corrosion=clamp((noise(u,v,67,seed+9)*.9+meso*.1-.66)*5);
-      const chip=clamp((noise(u,v,97,seed+3)-.74)*6);
+      const corrosionField=noise(u,v,7,seed+29);
+      const corrosion=clamp((noise(u,v,101,seed+9)*.78+corrosionField*.22-.74)*4);
+      // Flakes collect in local damaged regions instead of covering every panel
+      // with an even sprinkle of dots. Fine structure breaks their boundaries.
+      const chip=clamp((noise(u,v,127,seed+3)*.82+corrosionField*.18-.82)*5);
       // Short, independently placed strokes, not full-tile brushed-metal bands.
       // Integer cells and wrapped seeds retain physical tiling at every boundary.
       const cx=Math.floor(u*9),cy=Math.floor(v*31),cell=hash(cx,cy,seed+15);
@@ -56,35 +60,39 @@ export function createHarborMaterials(source:ReferenceMaterials):ReferenceMateri
       const wear=clamp(chip+corrosion*.5);
       // Periodic vertical grime: no seam from a fractional noise domain.
       const vertical=noise(u,0,37,seed+7)*noise(u,v,4,seed+8);
-      const dirt=clamp(vertical*.055+macro*.045);
+      const runoff=clamp((vertical-.56)*2.8)*(.4+meso*.6);
+      const dirt=clamp(vertical*.055+macro*.045+runoff*.09);
       // Steel is isotropic oxidised stock, not brushed chrome. Low-amplitude
       // albedo/relief avoids turning stretched beam UVs into bright scan lines.
-      let base=finish==='steel'?.58+meso*.07+grain*.006-dirt*.4:.76+meso*.06+grain*.008-dirt;
+      let base=finish==='steel'?.66+meso*.023+grain*.003-dirt*.12:.79+meso*.02+grain*.003-dirt*.32;
       base+=scratch*.035;
-      let relief=(meso-.5)*(finish==='steel'?.012:.018)-chip*.025-scratch*.012;
+      let relief=(meso-.5)*(finish==='steel'?.018:.025)-chip*.11-scratch*.018;
       if(finish==='deck'){
-        // Alternating short raised tread bars; industrial grip, not wall graffiti.
-        const row=Math.floor(v*8),du=wrap(u*8+(row%2)*.5,1)-.5,dv=wrap(v*8,1)-.5;
-        const ridge=Math.exp(-Math.pow((du+(row%2?dv:-dv)*.6)/.075,4)-Math.pow(dv/.29,6));
-        relief+=ridge*.10;base=.49+meso*.055+grain*.008-dirt*.4+ridge*.055+scratch*.025;
+        // Grating/tread is modeled by the world. A second regular texture
+        // pattern reads as a checkerboard at grazing angles and fights it.
+        relief=(meso-.5)*.014-chip*.035-scratch*.01;
+        base=.60+meso*.01+grain*.002-dirt*.10+scratch*.008;
       }
-      const rustAmount=corrosion*(finish==='paint'?.48:finish==='deck'?.34:.48);
+      // Keep corrosion mainly in reflectance; avoid a camouflage pattern at room scale.
+      const rustAmount=clamp(corrosion*.12+chip*.15+runoff*.09);
       const pigment=[base,base*.99,base*.95];
-      const rust=[.44+meso*.08,.33+meso*.06,.25+meso*.05];
-      for(let c=0;c<3;c++)albedo[i+c]=Math.round(clamp(mix(pigment[c]*(1-chip*.12),rust[c],rustAmount))*255);
+      const rust=[.38+meso*.08,.25+meso*.06,.16+meso*.05];
+      for(let c=0;c<3;c++)albedo[i+c]=Math.round(clamp(mix(pigment[c]*(1-chip*.04),rust[c],rustAmount))*255);
       albedo[i+3]=255;
       // Reflectance varies independently of pigment: damp patches stay neutral,
       // with isotropic boundaries rather than shiny full-length brush stripes.
-      const damp=clamp((noise(u,v,11,seed+23)-.28)*2.1);
-      const oxide=clamp(corrosion*1.7);
-      const steelRough=mix(.76,.38,damp);
-      const paintRough=mix(.79,.55,damp);
+      // Broad wetness must not switch entire islands between nearly black
+      // specular metal and bright diffuse oxide under the same practical lamp.
+      const damp=clamp((noise(u,v,5,seed+23)-.18)*1.35);
+      const oxide=clamp(corrosion*.5);
+      const steelRough=mix(.53,.37,damp);
+      const paintRough=mix(.61,.43,damp);
       const roughness=finish==='paint'
-        ? Math.max(.55,Math.min(.88,mix(paintRough,.88,oxide)+meso*.025-scratch*.07))
-        : Math.max(.38,Math.min(.90,mix(steelRough,.90,oxide)+meso*.025-scratch*.06));
+        ? Math.max(.29,Math.min(.88,mix(paintRough,.88,oxide)+meso*.025-scratch*.07))
+        : Math.max(.27,Math.min(.90,mix(steelRough,.90,oxide)+meso*.025-scratch*.06));
       const metallic=finish==='paint'
-        ? Math.max(chip,scratch*.65)*(1-oxide)*.82
-        : mix(.65+damp*.20,.08,oxide);
+        ? Math.max(chip,scratch*.4)*(1-oxide)*.22
+        : mix(.46,.36,oxide);
       for(let c=0;c<3;c++){rough[i+c]=Math.round(roughness*255);metal[i+c]=Math.round(metallic*255);}
       rough[i+3]=metal[i+3]=255;
       height[y*SIZE+x]=relief+wear*.015;
@@ -99,12 +107,25 @@ export function createHarborMaterials(source:ReferenceMaterials):ReferenceMateri
   const paint=bake('paint',931),steel=bake('steel',613),deck=bake('deck',277);
   for(const key of keys){const m=cloned[key];m.name=`harbor.${key}`;}
   for(const key of ['hull','yellow','label'] as const){
-    const m=cloned[key];Object.assign(m,paint);m.roughness=1;m.metalness=1;m.normalScale.set(.45,.45);
+    const m=cloned[key];Object.assign(m,paint);m.roughness=1;m.metalness=1;m.normalScale.set(.42,.42);
     if(m instanceof MeshPhysicalMaterial){m.clearcoat=0;m.clearcoatMap=null;m.clearcoatNormalMap=null;m.clearcoatRoughnessMap=null;}
   }
-  cloned.hull.color.set('#b9bdb8');
+  // Desaturated old marine paint; cyan illumination belongs to scene lights.
+  cloned.hull.color.set('#8b9991');
+  cloned.yellow.color.set('#b99b55');
   Object.assign(cloned.steel,steel);cloned.steel.roughness=1;cloned.steel.metalness=1;cloned.steel.normalScale.set(.16,.16);cloned.steel.envMapIntensity=.4;
-  Object.assign(cloned.floor,deck);cloned.floor.color.set('#a5aaa5');cloned.floor.roughness=1;cloned.floor.metalness=1;cloned.floor.normalScale.set(.65,.65);
+  Object.assign(cloned.floor,deck);cloned.floor.color.set('#a5aaa5');cloned.floor.roughness=1;cloned.floor.metalness=1;cloned.floor.normalScale.set(.32,.32);
+  const scans=acquireHarborScans();
+  if(scans){
+    Object.assign(cloned.hull,scans.paint);cloned.hull.metalnessMap=null;cloned.hull.metalness=.32;cloned.hull.roughness=.78;cloned.hull.normalScale.set(.55,.55);
+    Object.assign(cloned.floor,scans.deck);cloned.floor.metalnessMap=null;cloned.floor.metalness=.48;cloned.floor.roughness=.72;cloned.floor.normalScale.set(.7,.7);
+    setHarborPigment(cloned.hull,'#8b9991');setHarborPigment(cloned.floor,'#a5aaa5');
+    if(cloned.hull instanceof MeshPhysicalMaterial){
+      cloned.hull.clearcoat=.30;cloned.hull.clearcoatMap=scans.paintWetness;
+      cloned.hull.clearcoatRoughness=.55;cloned.hull.clearcoatRoughnessMap=scans.paint.roughnessMap;
+      cloned.hull.clearcoatNormalMap=scans.paint.normalMap;cloned.hull.clearcoatNormalScale.set(.22,.22);
+    }
+  }
   let disposed=false;
-  return {...cloned,dispose(){if(disposed)return;disposed=true;textures.forEach(t=>t.dispose());keys.forEach(key=>cloned[key].dispose());}};
+  return {...cloned,dispose(){if(disposed)return;disposed=true;scans?.release();textures.forEach(t=>t.dispose());keys.forEach(key=>cloned[key].dispose());}};
 }

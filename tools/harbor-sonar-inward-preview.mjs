@@ -1,0 +1,3 @@
+import {chromium} from '@playwright/test';
+import {mkdir} from 'node:fs/promises';
+const b=await chromium.launch({channel:'msedge',headless:true});try{const p=await b.newPage({viewport:{width:1600,height:900}});await p.goto('http://127.0.0.1:5174/');await p.locator('[data-id="new"]').click();await p.waitForFunction(()=>!!window.__podView);await p.evaluate(()=>{window.requestAnimationFrame=()=>0;const r=window.__pod;r.receive();r.arrive();r.walkTo('camera');r.power=1;r.activeSonarEnabled=true;for(let i=0;i<5;i++)window.__podView.frame(.1,r);});await mkdir('qa/harbor/sonar-inward-2026-10-06',{recursive:true});await p.screenshot({path:'qa/harbor/sonar-inward-2026-10-06/front.png'});}finally{await b.close();}

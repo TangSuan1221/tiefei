@@ -1,9 +1,11 @@
+import { drawSonarOwnship, sonarHeading } from '../sonar-ownship';
 import * as T from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {SSAOPass} from 'three/addons/postprocessing/SSAOPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {createExpedition,newExpeditionState,openDoor,interactExpedition} from '../../content/expedition';
 import type {PodRun} from '../../sim/run';
 import type {AuthoredSite} from '../../sim/authored-site';
@@ -123,8 +125,10 @@ export class PodExpedition implements AuthoredSite {
   this.scene.environment=environment.texture;this.scene.environmentIntensity=.008;
   this.lamp.color.set(art.key);this.fill.color.set(art.fill);this.lamp.castShadow=true;
   if(index===0){
-   this.scene.fog=new T.FogExp2('#071118',.018);this.scene.environmentIntensity=.065;this.lamp.color.set('#e2dfca');this.lamp.distance=48;this.lamp.decay=1.5;this.fill.color.set('#829099');this.ambient.intensity=.045;
-   for(const key of this.harborKeys){key.castShadow=true;key.shadow.mapSize.set(512,512);key.shadow.bias=-.0003;key.shadow.normalBias=.025;this.scene.add(key,key.target);}
+   this.scene.fog=new T.FogExp2('#143239',.022);this.scene.environmentIntensity=.20;this.lamp.color.set('#bfd8cb');this.lamp.distance=48;this.lamp.decay=1.5;this.fill.color.set('#619c99');this.ambient.intensity=.075;
+   for(const key of this.harborKeys){key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.bias=-.0003;key.shadow.normalBias=.025;this.scene.add(key,key.target);}
+   // Architectural bounce belongs to the inaccessible north bank, not the pilot's lamp.
+   for(const [x,y,z,color,intensity,range] of [[45,5,13,0x68a6a5,55,22],[62,11,2,0x5d9999,70,28],[84,7,10,0x78a7a0,45,20],[55,1,9,0xe9a459,12,6],[40,-8.8,27,0x76b7b1,38,12],[63,-9.8,22,0x69a6ab,32,12],[78,-8.8,26,0x7ab9b5,34,12]] as const){const bounce=new T.PointLight(color,intensity,range,1.8);bounce.position.set(x,y,z);this.scene.add(bounce);}
   }
   this.lamp.shadow.mapSize.set(1024,1024);this.lamp.shadow.bias=-.0008;
   this.camera.rotation.order='YXZ';this.position.set(this.level.spawn[0],0,this.level.spawn[1]);
@@ -136,9 +140,12 @@ export class PodExpedition implements AuthoredSite {
   if(entry){this.position.set(...entry.view);run.heading=-T.MathUtils.radToDeg(entry.yaw);run.pitch=-T.MathUtils.radToDeg(entry.pitch);}
   this.world.update(this.state,0);this.world.root.updateMatrixWorld(true);
   for(const [id,obj] of this.world.interactables)this.bounds.set(id,new T.Box3().setFromObject(obj));
-  this.composer=new EffectComposer(renderer);this.composer.addPass(new RenderPass(this.scene,this.camera));
+  this.composer=new EffectComposer(renderer);
+  if(index===0){this.composer.renderTarget1.samples=4;this.composer.renderTarget2.samples=4;}this.composer.addPass(new RenderPass(this.scene,this.camera));
   this.ao=new SSAOPass(this.scene,this.camera,1024,720);this.ao.kernelRadius=.2;this.ao.minDistance=.002;this.ao.maxDistance=.12;this.composer.addPass(this.ao);
-  this.water=createReferenceWater(this.camera,this.lamp,this.ao.normalRenderTarget.depthTexture!);this.composer.addPass(this.water.pass);this.composer.addPass(new OutputPass());
+  this.water=createReferenceWater(this.camera,this.lamp,this.ao.normalRenderTarget.depthTexture!,index===0?this.harborKeys:[]);this.composer.addPass(this.water.pass);
+  if(index===0)this.composer.addPass(new UnrealBloomPass(new T.Vector2(1024,720),.11,.35,1.4));
+  this.composer.addPass(new OutputPass());
   run.pushLog(`${this.level.name}。摄像窗对准门、工具或记录点，靠近后按 F 操作；领航台显示本设施平面。`,'system');
  }
  get complete(){return this.state.completed;}
@@ -277,6 +284,7 @@ export class PodExpedition implements AuthoredSite {
   this.camera.rotation.set(-T.MathUtils.degToRad(this.run.pitch)-this.run.camTilt,-T.MathUtils.degToRad(this.run.heading)-this.run.camPan,0,'YXZ');
   this.camera.fov=64/Math.max(.5,this.run.camZoom);this.camera.updateProjectionMatrix();this.camera.updateMatrixWorld(true);
  }
+ openPassage(id:string){if(!this.world.doors.has(id)||this.state.opened.includes(id))return;this.state.opened.push(id);this.openedAt.set(id,this.epoch);}
  private navigationSolids(){
    const solids=[...this.world.colliders];
    for(const [id,b] of this.bounds){const item=this.level.items.find(i=>i.id===id);if(item?.kind==='pickup'&&this.state.collected.includes(id))continue;solids.push(b);}
@@ -409,6 +417,7 @@ export class PodExpedition implements AuthoredSite {
   return false;
  }
  drawInteraction(ctx:CanvasRenderingContext2D,w:number,h:number){
+  const wrapped=(text:string,x:number,y:number,width:number,lineHeight:number)=>{let line='',row=0;for(const ch of text){if(line&&ctx.measureText(line+ch).width>width){ctx.fillText(line,x,y+row++*lineHeight);line='';}line+=ch;}if(line)ctx.fillText(line,x,y+row*lineHeight);return row+1;};
   if(this.run.threat&&!['repelled','struck'].includes(this.run.threat.phase)){
    ctx.save();ctx.fillStyle='#d3bd8d';ctx.font=`${Math.max(12,h*.019)}px "Microsoft YaHei"`;
    const shot=this.run.lastCombat;
@@ -420,8 +429,8 @@ export class PodExpedition implements AuthoredSite {
   const contextual=atPod?this.currentGuide():this.guide;
   if(this.index===0&&contextual&&(this.guideLeft>0||atPod)&&!message&&!active&&this.run.arm.phase==='stowed'&&(!this.run.threat||['repelled','struck'].includes(this.run.threat.phase))){
    ctx.save();ctx.textAlign='left';ctx.font=`${Math.max(13,h*.022)}px "Microsoft YaHei"`;ctx.shadowColor='#000';ctx.shadowBlur=5;
-   ctx.fillStyle='#d2c1a0';ctx.fillText(atPod&&contextual.id==='photo'?'救生舱 · 摄影取证对象，不是登船入口':contextual.reason,w*.08,h*.80,w*.84);
-   ctx.fillStyle='#bdcfcc';ctx.fillText(atPod&&contextual.id==='photo'?'让救生舱完整进入镜头，停稳后按「曝光」；处理完成去分析台核验。':contextual.action,w*.08,h*.845,w*.84);ctx.restore();
+   ctx.fillStyle='#d2c1a0';const rows=wrapped(atPod&&contextual.id==='photo'?'救生舱 · 摄影取证对象，不是登船入口':contextual.reason,w*.08,h*.69,w*.84,h*.033);
+   ctx.fillStyle='#bdcfcc';wrapped(atPod&&contextual.id==='photo'?'让救生舱完整进入镜头，停稳后按「曝光」；处理完成去分析台核验。':contextual.action,w*.08,h*(.70+rows*.033),w*.84,h*.033);ctx.restore();
   }
   if(!active&&!message&&this.run.arm.phase==='stowed')return;
   const item=this.level.items.find(i=>i.id===(this.armObject??active?.id));
@@ -431,21 +440,21 @@ export class PodExpedition implements AuthoredSite {
    ['extending','gripping','hauling'].includes(phase)?ARM_PHASE_CN[phase]+' · 请等待动作完成':
    message||(active&&this.state.collected.includes(active.id)?'已回收':item&&(item.kind==='cache'||item.kind==='pickup')?'已锁定 · F 伸出机械臂':'已锁定 · F 操作');
   ctx.save();
-  const x=w*.055,y=h*.76,pw=w*.69,ph=h*.115;
+  const x=w*.055,y=h*.65,pw=w*.89,ph=h*.235;
   ctx.fillStyle='rgba(3,12,18,.56)';ctx.fillRect(x,y,pw,ph);
   ctx.strokeStyle='rgba(210,174,113,.7)';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+ph);ctx.stroke();
   ctx.strokeRect(w*.5-8,h*.5-8,16,16);
   ctx.fillStyle='#d9c39e';ctx.font=`${Math.max(12,h*.020)}px "Microsoft YaHei"`;ctx.textAlign='left';
-  ctx.fillText(`${title}  /  ${status}`,x+10,y+h*.035,pw-20);
+  const rows=wrapped(`${title}  /  ${status}`,x+10,y+h*.035,pw-20,h*.032);
   const emptied=!!item&&this.state.collected.includes(item.id);
   const cargo=emptied?'箱内物资：已回收 · 空箱保留':this.pendingCargo?`已发现：${item?.description??item?.name??'物资'}（待入库）`:'箱内物资：等待翻找核验';
   ctx.fillStyle='#aebbbb';ctx.font=`${Math.max(11,h*.017)}px "Microsoft YaHei"`;
-  ctx.fillText(item&&(item.kind==='cache'||item.kind==='pickup')?cargo:(item?.description??'外部设施操作链路'),x+10,y+h*.07,pw-20);
-  ctx.fillStyle='#8c9c9c';ctx.fillText(phase==='stowed'?'F 操作':'机械臂链路 / F 下一步 · C 收臂',x+10,y+h*.099,pw-20);
+  wrapped(item&&(item.kind==='cache'||item.kind==='pickup')?cargo:(item?.description??'外部设施操作链路'),x+10,y+h*(.043+rows*.032),pw-20,h*.029);
+  ctx.fillStyle='#8c9c9c';ctx.fillText(phase==='stowed'?'F 操作':'机械臂链路 / F 下一步 · C 收臂',x+10,y+ph-h*.014,pw-20);
   ctx.restore();
  }
- draw(ctx:CanvasRenderingContext2D,w:number,h:number,time:number){
+ draw(ctx:CanvasRenderingContext2D,w:number,h:number,time:number,recording=true){
   this.epoch=time;this.pose();this.world.update(this.state,time);
   this.salvageArm.update(this.run.arm,time,this.armAnchor?this.camera.worldToLocal(this.armAnchor.clone()):undefined,this.armNormal.clone().transformDirection(this.camera.matrixWorldInverse));
   const renderer=this.resources.renderer;
@@ -453,13 +462,18 @@ export class PodExpedition implements AuthoredSite {
   this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
   const dir=this.camera.getWorldDirection(new T.Vector3());this.lamp.position.copy(this.position);this.lamp.position.y-=.18;
   this.lamp.target.position.copy(this.position).addScaledVector(dir,12);
-  this.lamp.intensity=this.run.lit?(this.index===0?90:48):0;this.fill.position.copy(this.position);this.fill.intensity=this.run.lit?(this.index===0?2.1:1.5):0;
+  this.lamp.intensity=this.run.lit?(this.index===0?58:48):0;this.fill.position.copy(this.position);this.fill.intensity=this.run.lit?(this.index===0?1.1:1.5):0;
   const lights=this.world.practicalLights.filter(l=>this.index===0?new T.Vector3(...l.position).distanceTo(this.position)<22:this.room?l.room===this.room.id:new T.Vector3(...l.position).distanceTo(this.position)<14)
    .sort((a,b)=>b.intensity/(4+new T.Vector3(...b.position).distanceToSquared(this.position))-a.intensity/(4+new T.Vector3(...a.position).distanceToSquared(this.position)));
   // Emergency fixtures stay visible but must not flood the room like working lights.
   // Their power is independent of the player's searchlight switch.
   this.fixtures.forEach((light,i)=>{const source=lights[i];light.intensity=(source?.intensity??0)*(this.index===0?.35:.16);if(source){light.position.set(...source.position);light.color.set(source.color);light.distance=source.range;}});
   if(this.index===0)this.harborKeys.forEach((key,i)=>{
+   if(this.position.x>31&&this.position.z<42){
+    key.position.set(i===0?54:80,i===0?5:6,i===0?16:17);key.target.position.set(i===0?57:77,i===0?-.1:-1,i===0?11:12);
+    key.angle=i===0?.43:.65;key.penumbra=.7;
+    key.color.set(i===0?'#a4d4ce':'#a6c6c7');key.intensity=i===0?460:250;key.distance=30;return;
+   }
    const source=lights.filter(l=>l.position[1]>=(this.room?.floorY??-3)+4)[i];
    key.intensity=source?source.intensity*3.8:0;
    if(source){key.position.set(...source.position);key.color.set(source.color);key.distance=source.range*1.4;
@@ -467,7 +481,28 @@ export class PodExpedition implements AuthoredSite {
     key.target.position.set(source.position[0]+((room?.x??source.position[0])-source.position[0])*.25,source.position[1]-6,source.position[2]+((room?.z??source.position[2])-source.position[2])*.25);
    }
   });
-  this.atmosphere.update(time,this.camera,this.lamp);this.water.update(this.run.lit?.5:0);this.composer.render();ctx.drawImage(renderer.domElement,0,0,w,h);
+  // The formal rescue adapter explicitly selects live optics or photographic
+  // exposure. Keep legacy callers and all later levels at their existing gain.
+  // Reduce actual scene illumination, including imported practical lights,
+  // rather than obscuring the finished image with a black canvas overlay.
+  const liveOptics=this.index===0&&!recording;
+  const exposure=renderer.toneMappingExposure,environment=this.scene.environmentIntensity;
+  const lightState:Array<[T.Light,number]>=[];
+  if(liveOptics){
+   this.scene.traverse(object=>{if(object instanceof T.Light){lightState.push([object,object.intensity]);object.intensity*=.065;}});
+   this.scene.environmentIntensity=environment*.035;
+   renderer.toneMappingExposure=exposure*.13;
+  }
+  try{
+   this.atmosphere.update(time,this.camera,this.lamp);
+   this.water.update(this.run.lit?(liveOptics?.0325:.5):0);
+   this.composer.render();ctx.drawImage(renderer.domElement,0,0,w,h);
+  }finally{
+   // One shared renderer serves live view, captured frames and other scenes.
+   // Restore every temporary value even if a rendering/canvas operation fails.
+   renderer.toneMappingExposure=exposure;this.scene.environmentIntensity=environment;
+   for(const [light,intensity]of lightState)light.intensity=intensity;
+  }
  }
  drawDrivingSonar(ctx:CanvasRenderingContext2D,w:number,h:number,time:number,dedicated=false){
   // This is station glass, never part of captureKeyframe / generated footage.
@@ -479,7 +514,7 @@ export class PodExpedition implements AuthoredSite {
   ctx.fillStyle='rgba(3,10,14,.91)';ctx.fillRect(x,y,size,size*.93);
   ctx.strokeStyle='#50666e';ctx.lineWidth=1;ctx.strokeRect(x,y,size,size*.93);
   const font=Math.max(11,size*.035);ctx.font=`${font}px "Microsoft YaHei",monospace`;
-  ctx.fillStyle='#cadcda';ctx.fillText('近场避障 / 艇首向上',x+size*.04,y+size*.055);
+  ctx.fillStyle='#cadcda';ctx.fillText('艇首 ↑ / 航向 '+sonarHeading(this.run.heading),x+size*.04,y+size*.055);
   ctx.fillStyle='#71878b';ctx.fillText('24m · 实时扫描 · 2.4秒/圈',x+size*.04,y+size*.105);
   let above=24,below=24;
   for(const b of solids){
@@ -526,8 +561,7 @@ export class PodExpedition implements AuthoredSite {
    const d=Math.min(.94,Math.max(.08,threat.range))*radius,px=cx+Math.sin(threat.bearing)*d,py=cy-Math.cos(threat.bearing)*d;
    ctx.globalAlpha=Math.max(.6,sonarEchoAlpha(time,threat.bearing));ctx.strokeStyle=SONAR_THREAT;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,py-6);ctx.lineTo(px+6,py);ctx.lineTo(px,py+6);ctx.lineTo(px-6,py);ctx.closePath();ctx.stroke();ctx.globalAlpha=1;
   }
-  ctx.fillStyle='#e9f1ea';ctx.fillRect(cx-1.4*scale,cy-2.5*scale,2.8*scale,5*scale);
-  ctx.beginPath();ctx.moveTo(cx,cy-9);ctx.lineTo(cx-4,cy-3);ctx.lineTo(cx+4,cy-3);ctx.fill();
+  drawSonarOwnship(ctx,cx,cy,Math.max(12,2.5*scale));
   const distances=[0,Math.PI, -Math.PI/2,Math.PI/2].map((a,i)=>Math.max(0,sonarRay(this.position,Math.sin(heading+a),-Math.cos(heading+a),solids)-(i<2?2.5:1.4)));
   ctx.fillStyle=SONAR_STATIC;ctx.fillText(`前 ${distances[0].toFixed(1)}  后 ${distances[1].toFixed(1)}m`,x+size*.04,y+size*.81);
   ctx.fillText(`左 ${distances[2].toFixed(1)}  右 ${distances[3].toFixed(1)}m`,x+size*.04,y+size*.86);
@@ -566,3 +600,6 @@ export class PodExpedition implements AuthoredSite {
  }
  dispose(){this.salvageArm.dispose();this.world.dispose();this.atmosphere.dispose();this.composer.passes.forEach(p=>p.dispose());this.composer.dispose();this.lamp.shadow.dispose();this.harborKeys.forEach(key=>key.shadow.dispose());}
 }
+
+
+

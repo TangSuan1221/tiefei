@@ -1,0 +1,323 @@
+{
+  "sourceHashes": {
+    "src/pod/view/deepsea/harbor-rescue-site.ts": "41f6e51b8bff5e9a3e49af11ac0aa655c263fc7c578002a7ccf4de5cbbdb1420",
+    "src/pod/view/deepsea/harbor-rescue-world.ts": "4449eb7e34fac6220649fe3865f069b34af393d62b98459885ca94e1875f56f7",
+    "src/pod/sim/harbor-rescue.ts": "aa94f943b0d9539a16717cb4e197d4af55777d528128a64b2f940290ea6296a4"
+  },
+  "diagnosticPlacement": true,
+  "actualRealtimeExposureAndDevelopment": true,
+  "radio": {
+    "a": {
+      "kind": "固定水声通信 / 人声",
+      "text": "固定通信设备送来的间歇求救载波，大致来自前方。播放录存后，通过麦克风应答。",
+      "recording": "艾里亚斯：有人收到吗？我是接驳港的艾里亚斯。我被困在断桥对岸，回路快断了。收到请回答。"
+    },
+    "played": true,
+    "replied": true
+  },
+  "threat": {
+    "id": "tape.1",
+    "kind": "threat",
+    "visible": true,
+    "frames": 10,
+    "ready": true,
+    "analyzed": true,
+    "videoResult": "failed",
+    "report": [
+      "本地感光录像备份 · 非AI，逐帧传感记录",
+      "录像显示断桥对面有人，隔间外有生物盘踞。",
+      "艾里亚斯：它对声音特别敏感，立即关掉主动声纳。先去02恢复供电，再回01开闸。"
+    ],
+    "state": {
+      "version": 1,
+      "epoch": 0,
+      "signal": true,
+      "heard": true,
+      "replied": true,
+      "identified": true,
+      "warned": true,
+      "powered": false,
+      "gateOpen": false,
+      "gateClosed": false,
+      "monsterInside": false,
+      "lureConfirmed": false,
+      "isolated": false,
+      "verified": false,
+      "departing": false,
+      "departed": false,
+      "departureConfirmed": false,
+      "complete": false,
+      "failed": false,
+      "lureSeconds": 0,
+      "holdSeconds": 0,
+      "noiseSeconds": 0,
+      "noiseStrikes": 0,
+      "damageTotal": 0,
+      "departureSeconds": 0,
+      "captures": [
+        {
+          "version": 1,
+          "id": "rescue-1",
+          "kind": "threat",
+          "epoch": 0,
+          "visible": true,
+          "monsterInside": false,
+          "gateClosed": false,
+          "departed": false
+        }
+      ],
+      "analyzed": [
+        "rescue-1"
+      ]
+    }
+  },
+  "lure": {
+    "id": "tape.2",
+    "kind": "lure",
+    "visible": true,
+    "frames": 10,
+    "ready": true,
+    "analyzed": true,
+    "videoResult": "failed",
+    "report": [
+      "本地感光录像备份 · 非AI，逐帧传感记录",
+      "曝光确认怪物完全进入03货仓。"
+    ],
+    "state": {
+      "version": 1,
+      "epoch": 3,
+      "signal": true,
+      "heard": true,
+      "replied": true,
+      "identified": true,
+      "warned": true,
+      "powered": true,
+      "gateOpen": true,
+      "gateClosed": false,
+      "monsterInside": true,
+      "lureConfirmed": true,
+      "isolated": false,
+      "verified": false,
+      "departing": false,
+      "departed": false,
+      "departureConfirmed": false,
+      "complete": false,
+      "failed": false,
+      "lureSeconds": 15.372500000000006,
+      "holdSeconds": 161.6831999999986,
+      "noiseSeconds": 0,
+      "noiseStrikes": 0,
+      "damageTotal": 0,
+      "departureSeconds": 0,
+      "captures": [
+        {
+          "version": 1,
+          "id": "rescue-1",
+          "kind": "threat",
+          "epoch": 0,
+          "visible": true,
+          "monsterInside": false,
+          "gateClosed": false,
+          "departed": false
+        },
+        {
+          "version": 1,
+          "id": "rescue-2",
+          "kind": "lure",
+          "epoch": 3,
+          "visible": true,
+          "monsterInside": true,
+          "gateClosed": false,
+          "departed": false
+        }
+      ],
+      "analyzed": [
+        "rescue-1",
+        "rescue-2"
+      ]
+    }
+  },
+  "gate": {
+    "id": "tape.3",
+    "kind": "gate",
+    "visible": true,
+    "frames": 10,
+    "ready": true,
+    "analyzed": true,
+    "videoResult": "failed",
+    "report": [
+      "本地感光录像备份 · 非AI，逐帧传感记录",
+      "录像确认闸机闭合，怪物隔离在仓内，外侧通路清空。可以接通内侧逃生门。"
+    ],
+    "state": {
+      "version": 1,
+      "epoch": 4,
+      "signal": true,
+      "heard": true,
+      "replied": true,
+      "identified": true,
+      "warned": true,
+      "powered": true,
+      "gateOpen": false,
+      "gateClosed": true,
+      "monsterInside": true,
+      "lureConfirmed": true,
+      "isolated": true,
+      "verified": true,
+      "departing": false,
+      "departed": false,
+      "departureConfirmed": false,
+      "complete": false,
+      "failed": false,
+      "lureSeconds": 15.372500000000006,
+      "holdSeconds": 161.6442999999986,
+      "noiseSeconds": 0,
+      "noiseStrikes": 0,
+      "damageTotal": 0,
+      "departureSeconds": 0,
+      "captures": [
+        {
+          "version": 1,
+          "id": "rescue-1",
+          "kind": "threat",
+          "epoch": 0,
+          "visible": true,
+          "monsterInside": false,
+          "gateClosed": false,
+          "departed": false
+        },
+        {
+          "version": 1,
+          "id": "rescue-2",
+          "kind": "lure",
+          "epoch": 3,
+          "visible": true,
+          "monsterInside": true,
+          "gateClosed": false,
+          "departed": false
+        },
+        {
+          "version": 1,
+          "id": "rescue-3",
+          "kind": "gate",
+          "epoch": 4,
+          "visible": true,
+          "monsterInside": true,
+          "gateClosed": true,
+          "departed": false
+        }
+      ],
+      "analyzed": [
+        "rescue-1",
+        "rescue-2",
+        "rescue-3"
+      ]
+    }
+  },
+  "departure": {
+    "id": "tape.4",
+    "kind": "departure",
+    "visible": true,
+    "frames": 10,
+    "ready": true,
+    "analyzed": true,
+    "videoResult": "failed",
+    "report": [
+      "本地感光录像备份 · 非AI，逐帧传感记录",
+      "结果片确认艾里亚斯已经走到内侧门后；断桥依然分隔两条路线。"
+    ],
+    "state": {
+      "version": 1,
+      "epoch": 4,
+      "signal": true,
+      "heard": true,
+      "replied": true,
+      "identified": true,
+      "warned": true,
+      "powered": true,
+      "gateOpen": false,
+      "gateClosed": true,
+      "monsterInside": true,
+      "lureConfirmed": true,
+      "isolated": true,
+      "verified": true,
+      "departing": true,
+      "departed": true,
+      "departureConfirmed": true,
+      "complete": false,
+      "failed": false,
+      "lureSeconds": 15.372500000000006,
+      "holdSeconds": 161.6442999999986,
+      "noiseSeconds": 0,
+      "noiseStrikes": 0,
+      "damageTotal": 0,
+      "departureSeconds": 10,
+      "captures": [
+        {
+          "version": 1,
+          "id": "rescue-1",
+          "kind": "threat",
+          "epoch": 0,
+          "visible": true,
+          "monsterInside": false,
+          "gateClosed": false,
+          "departed": false
+        },
+        {
+          "version": 1,
+          "id": "rescue-2",
+          "kind": "lure",
+          "epoch": 3,
+          "visible": true,
+          "monsterInside": true,
+          "gateClosed": false,
+          "departed": false
+        },
+        {
+          "version": 1,
+          "id": "rescue-3",
+          "kind": "gate",
+          "epoch": 4,
+          "visible": true,
+          "monsterInside": true,
+          "gateClosed": true,
+          "departed": false
+        },
+        {
+          "version": 1,
+          "id": "rescue-4",
+          "kind": "departure",
+          "epoch": 4,
+          "visible": true,
+          "monsterInside": true,
+          "gateClosed": true,
+          "departed": true
+        }
+      ],
+      "analyzed": [
+        "rescue-1",
+        "rescue-2",
+        "rescue-3",
+        "rescue-4"
+      ]
+    }
+  },
+  "retry": {
+    "failed": true,
+    "reopened": true
+  },
+  "completion": {
+    "complete": true,
+    "canDepart": true,
+    "outcome": "alive"
+  },
+  "death": {
+    "outcome": {
+      "kind": "dead",
+      "cause": "implosion",
+      "line": "舱体让步了。过程比一个念头还短。"
+    },
+    "hull": 0
+  },
+  "errors": []
+}

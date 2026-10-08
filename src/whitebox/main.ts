@@ -14,7 +14,7 @@ root.innerHTML = `<section class="title-screen">
   <p class="title-tag"><span>观察、诱导、隔离，然后救援。</span>
   <span>曝光 5 秒，机载显影 12 秒；默认无视频测试：分析台返回拍摄描述。</span>
   <span>断桥另一端，一名维修员正在呼救。你只能靠返回的影像确认水里有什么。</span></p></div>
-  <p class="title-tag">按住空格前进 · N 倒车 · J / L 转向 · Shift 刹车 · F 操作设施<br>摄影台按 1 拍摄 · 分析台按 3 核验。<br>独立检查点仅保留在本标签页，正式存档不受影响。</p>
+  <p class="title-tag">WASD 艇内行走 · 靠近总控按 E 操作左中右设备 · 右键拖动环视 · PgUp/PgDn 升降<br>驾驶台：按住空格前进 · N 倒车 · J / L 转向 · Shift 刹车 · F 操作设施<br>摄影台按 1 拍摄 · 分析台按 3 核验。<br>独立检查点仅保留在本标签页，正式存档不受影响。</p>
   <nav class="menu"><button class="menu-item" id="whitebox-start" data-idx="01">
   <span>开始第一关</span><span class="sub">从入口开始</span></button>
   ${readCheckpoint()?'<button class="menu-item" id="whitebox-continue"><span>继续检查点</span><span class="sub">恢复本标签页的关卡进度</span></button>':''}</nav>
@@ -91,7 +91,7 @@ document.getElementById('whitebox-start')!.addEventListener('click', () => {
   run.campaign.journal.length = 0;
   run.storyCaption = '';
   run.storyCaptionLeft = 0;
-  run.walkTo('nav');
+  run.leaveStation();
   run.lamp = true;
   // The greybox finishes at its physical exit; the campaign departure control
   // must not create a second, unrelated level in this isolated runtime.
@@ -106,7 +106,7 @@ document.getElementById('whitebox-start')!.addEventListener('click', () => {
 
   Object.defineProperty(window, '__whitebox', {
     configurable: true,
-    value: { run, get site() { return run.authoredSite as WhiteboxSite | null; } },
+    value: { run, ...(import.meta.env.DEV?{view}:{}), get site() { return run.authoredSite as WhiteboxSite | null; } },
   });
   new PodSession(run, view).start();
   void view.unlockAudio();

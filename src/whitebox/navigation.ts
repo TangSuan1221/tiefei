@@ -1,3 +1,4 @@
+import { drawSonarOwnship, sonarHeading } from '../pod/view/sonar-ownship';
 import * as T from 'three';
 import type { NavigationConsole } from '../pod/sim/authored-site';
 import type { Control } from '../pod/view/chrome';
@@ -13,11 +14,19 @@ export class PortNavigation implements NavigationConsole {
  get inSignal(){return (this.site.dockReached||this.site.position.distanceTo(new T.Vector3(0,2,-13))<48)&&!this.site.rescued;}
  get reception(){return this.inSignal?Math.max(0,1-Math.abs(this.frequency-38.4)/.65):0;}
  get bearingLabel(){if(!this.inSignal)return '方位未知';const d=new T.Vector3(0,2,-13).sub(this.site.position);const a=(Math.atan2(d.x,-d.z)*180/Math.PI-this.site.run.heading+360)%360;return ['前方','右前方','右舷','右后方','后方','左后方','左舷','左前方'][Math.round(a/45)%8];}
- readonly receivedCoordinates='万斯 · 接驳港  X 0 / Z 4';
+ readonly receivedCoordinates='万斯 · 接驳港  X 0 / Y 2 / Z 4';
  private history:number[][]=[]; private sampleClock=0; private sampleId=0;
  private echoes:{angle:number;distance:number}[]=[]; private age=99;
  constructor(private site:WhiteboxSite){}
- briefing(){this.site.speak('万斯：接驳港坐标，X 零，Z 四。我发到左侧导航台的通信记录里了，忘了就翻记录。输入坐标，再把艇开过去。被动监听一直开着，主动声纳有独立电源。发射时，水里也能听见你。');}
+ setFrequency(value:number){this.tuning=false;this.frequency=value;}
+ setWaypoint(v:number[]){if(v.length!==3||v[0]<-20||v[0]>20||v[1]<0||v[1]>5||v[2]<-18||v[2]>24)return false;this.target=[v[0],v[2]];this.targetY=v[1];return true;}
+ targetY=2;
+ analyzeSignal(){if(!this.inSignal||this.reception<.1)return null;this.captured=true;return {kind:'水声通信 / 人声',text:'接驳港固定通信设备送来的重复呼叫。存在人声与载波中断，请播放录存核对内容。'};}
+ reply(){return this.heard&&this.site.replyRadio();}
+ drawWaterfall(ctx:CanvasRenderingContext2D,w:number,h:number){for(let row=0;row<this.history.length;row++)for(let col=0;col<72;col++){ctx.fillStyle='rgba(122,225,153,'+this.history[row][col]+')';ctx.fillRect(col*w/72,row*h/48,w/72+.5,h/48+.5);}}
+ drawActive(ctx:CanvasRenderingContext2D,w:number,h:number){const cx=w/2,cy=h/2,r=h*.40;ctx.strokeStyle='#477969';for(let k=1;k<=3;k++){ctx.beginPath();ctx.arc(cx,cy,r*k/3,0,Math.PI*2);ctx.stroke();}ctx.fillStyle='#a8d7ac';ctx.font='14px monospace';ctx.fillText('24 m',12,22);if(this.site.run.activeSonarEnabled&&this.age<8)for(const e of this.echoes){const a=e.angle-this.site.run.heading*Math.PI/180;ctx.fillRect(cx+Math.sin(a)*r*e.distance/24,cy-Math.cos(a)*r*e.distance/24,3,3);}if(this.target){const dx=this.target[0]-this.site.position.x,dz=this.target[1]-this.site.position.z,a=Math.atan2(dx,-dz)-this.site.run.heading*Math.PI/180,d=Math.min(1,Math.hypot(dx,dz)/24);ctx.strokeStyle='#efc576';ctx.strokeRect(cx+Math.sin(a)*r*d-4,cy-Math.cos(a)*r*d-4,8,8);ctx.fillStyle='#efc576';ctx.fillText('WP / Y '+this.targetY,12,h-12);}drawSonarOwnship(ctx,cx,cy,14);ctx.fillStyle='#e9fff2';ctx.font='16px monospace';ctx.fillText('艇首 ↑ / '+sonarHeading(this.site.run.heading),w-200,22);}
+
+ briefing(){this.site.speak('万斯：接驳港坐标，X 零，Y 二，Z 四。我发到左侧导航台的通信记录里了，忘了就翻记录。输入坐标，再把艇开过去。被动监听一直开着，主动声纳有独立电源。发射时，水里也能听见你。');}
  controls():Control[]{
   if(this.tuning)return [{id:'port.capture',key:'c',label:this.captured?'已捕捉':'点击锁定',hint:'指针经过波峰时'},{id:'port.play',key:'p',label:'播放录存',state:this.captured?'normal':'disabled'},{id:'port.rescan',key:'r',label:'重新扫描'},{id:'port.tune',key:'1',label:'返回声纳'},{id:'port.vance',key:'v',label:'通信记录'}];
   if(this.editing)return ['1','2','3','Backspace','4','5','6','Tab','7','8','9','-','0','.','Enter','Escape'].map(key=>({id:'port.key.'+key,key,label:({Backspace:'退格',Tab:'切换 X / Z',Enter:'写入航点',Escape:'取消'} as Record<string,string>)[key]??key}));
@@ -76,9 +85,9 @@ if(id==='port.coords'){this.logOpen=false;this.editing=true;this.axis=0;this.fie
    ctx.fillText(this.captured?'信号已锁定 · P 播放':this.missLeft?'未锁住 · 继续扫描':this.inSignal?'指针经过高峰时，点击声谱锁定':'载波微弱 · 驶近接驳港',x,h*.85);ctx.restore();return;
   }
   if(this.logOpen){
-   ctx.fillText('通信记录 / 已保存',w*.05,h*.12);ctx.fillStyle='#e5c78f';ctx.font=`${Math.max(14,h*.085)}px "Microsoft YaHei"`;ctx.fillText('接驳港   X 0 / Z 4',w*.05,h*.31);
+   ctx.fillText('通信记录 / 已保存',w*.05,h*.12);ctx.fillStyle='#e5c78f';ctx.font=`${Math.max(14,h*.085)}px "Microsoft YaHei"`;ctx.fillText('接驳港   X 0 / Y 2 / Z 4',w*.05,h*.31);
    ctx.fillStyle='#b7d1c6';ctx.font=`${Math.max(12,h*.055)}px "Microsoft YaHei"`;
-   const text='来源：下潜前 · 万斯（录存）\n“接驳港坐标，X 零，Z 四。输入坐标，再把艇开过去。被动监听一直开着，主动声纳有独立电源。发射时，水里也能听见你。”';
+   const text='来源：下潜前 · 万斯（录存）\n“接驳港坐标，X 零，Y 二，Z 四。输入坐标，再把艇开过去。被动监听一直开着，主动声纳有独立电源。发射时，水里也能听见你。”';
    let line='',row=0;for(const ch of text){if(ch==='\n'||ctx.measureText(line+ch).width>w*.88){ctx.fillText(line,w*.05,h*.45+row*h*.075);row++;line='';if(ch==='\n')continue;}line+=ch;}ctx.fillText(line,w*.05,h*.45+row*h*.075);ctx.restore();return;
   }
   ctx.textAlign='center';ctx.fillText('被动 / 声谱监听',w*.25,h*.08);ctx.fillText('主动 / 量程 24m',w*.75,h*.08);
@@ -94,6 +103,7 @@ if(id==='port.coords'){this.logOpen=false;this.editing=true;this.axis=0;this.fie
   ctx.strokeStyle='#2c685c';for(let k=1;k<=3;k++){ctx.beginPath();ctx.arc(cx,cy,r*k/3,0,Math.PI*2);ctx.stroke();}
   if(this.site.run.activeSonarEnabled&&this.age<8){ctx.fillStyle=`rgba(157,222,179,${1-this.age/8})`;for(const e of this.echoes){const a=e.angle-this.site.run.heading*Math.PI/180;ctx.fillRect(cx+Math.sin(a)*r*e.distance/24,cy-Math.cos(a)*r*e.distance/24,3,3);}}
   if(this.target){const dx=this.target[0]-this.site.position.x,dz=this.target[1]-this.site.position.z,range=Math.hypot(dx,dz),a=Math.atan2(dx,-dz)-this.site.run.heading*Math.PI/180;const px=cx+Math.sin(a)*r*Math.min(1,range/24),py=cy-Math.cos(a)*r*Math.min(1,range/24);ctx.strokeStyle='#efc576';ctx.strokeRect(px-4,py-4,8,8);ctx.fillStyle='#efc576';ctx.fillText('航点',px,py-8);}
+  drawSonarOwnship(ctx,cx,cy,12);
   ctx.fillStyle=this.site.run.activeSonarEnabled?'#e5c78f':'#b7d1c6';ctx.fillText(this.site.run.activeSonarEnabled?'电源 ON · 换能器有噪声':'电源 OFF · 未发射',cx,h*.68);ctx.fillText(this.site.run.activeSonarEnabled?'3 发射 / 2 关闭':'2 开启主动声纳',cx,h*.76);
   ctx.textAlign='left';ctx.fillStyle='#cbd7c9';ctx.fillText(`惯导 X ${this.site.position.x.toFixed(1)}  Z ${this.site.position.z.toFixed(1)}   航点 ${this.target?this.target.join(' / '):'未输入'}`,w*.04,h*.87);
   ctx.fillStyle='#e5c78f';ctx.fillText(this.receivedCoordinates+'   [V] 记录',w*.04,h*.97);ctx.restore();

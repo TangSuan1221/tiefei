@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "method": "Edge headless, real mouse slider and analyze hit, normal action APIs, screenshot inspection; not blind play",
+  "result": {
+    "miss": false,
+    "analyzed": true,
+    "saved": true,
+    "invalid": false,
+    "position": [
+      0,
+      2,
+      18
+    ],
+    "after": [
+      0,
+      2,
+      18
+    ],
+    "replyBefore": false,
+    "played": true,
+    "powered": true
+  },
+  "restore": {
+    "restored": true,
+    "count": 1
+  },
+  "errors": []
+}

@@ -109,7 +109,7 @@ export function drawCameraFeed(
   const room = roomFeed(run, time, light, zoom);
   const pano = room ? null : sitePano(run);
   if (run.phase==='site' && run.authoredSite) {
-    run.authoredSite.draw(ctx,w,h,time);
+    run.authoredSite.draw(ctx,w,h,time,!!input.keyframe);
   } else if (room) {
     if (!drawDeepseaRoom(ctx, w, h, room)) drawRoomCamera(ctx, w, h, room);
   } else if (pano) {

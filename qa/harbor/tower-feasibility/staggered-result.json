@@ -1,0 +1,35 @@
+{
+  "source": "actual pressure GLB geometry and conservative tower radius including 0.7m fitting belt",
+  "moduleBounds": [
+    {
+      "min": [
+        42.25,
+        0,
+        12.309999996423722
+      ],
+      "max": [
+        47.75,
+        6,
+        13.100000017881394
+      ]
+    },
+    {
+      "min": [
+        82.8,
+        5.6,
+        8.327999997138978
+      ],
+      "max": [
+        87.2,
+        10.4,
+        8.960000014305114
+      ]
+    }
+  ],
+  "eliasRouteSamples": 262,
+  "eliasRadius": 0.4,
+  "minimumTowerRouteClearance": 2.715609770940699,
+  "routeConflicts": [],
+  "blockedRays": [],
+  "rayCount": 15
+}

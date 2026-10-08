@@ -1,0 +1,52 @@
+{
+  "trace": [
+    {
+      "label": "waypoint-set-via-keypad",
+      "position": [
+        11,
+        0,
+        10
+      ],
+      "heading": 180,
+      "at": "nav",
+      "opened": [],
+      "objective": "输入万斯坐标 X11 Y0 Z16，手动抵达A气闸前",
+      "caption": "万斯：接驳港入口坐标，X 11，Y 0，Z 16。输入左侧导航台，手动驶到气闸前，再沿维修湾通道进主港。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": false
+    },
+    {
+      "label": "first-door-before-F",
+      "position": [
+        11,
+        0,
+        18.338539905997553
+      ],
+      "heading": 180,
+      "at": "nav",
+      "opened": [],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "万斯：入口航点吻合。艇首保持朝门，缓慢前进到距门3.4米内，按Shift制动，再按F开门。门开后沿维修湾进主港。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "first-door-after-F",
+      "position": [
+        11,
+        0,
+        18.338539905997553
+      ],
+      "heading": 180,
+      "at": "nav",
+      "opened": [],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "万斯：入口航点吻合。艇首保持朝门，缓慢前进到距门3.4米内，按Shift制动，再按F开门。门开后沿维修湾进主港。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    }
+  ]
+}

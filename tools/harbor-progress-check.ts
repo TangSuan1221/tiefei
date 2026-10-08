@@ -8,7 +8,16 @@ const level=createExpedition(0);
 assert.equal(level.id,'harbor.1');assert.equal(level.rooms.length,9);assert.equal(level.edges.length,11);
 const ids=[level.id,...level.rooms.map(x=>x.id),...level.edges.map(x=>x.id),...level.items.map(x=>x.id),...level.stages.map(x=>x.id)];
 assert(ids.every(id=>id.startsWith('harbor.')));assert.equal(new Set(ids).size,ids.length);
-for(const room of level.rooms) { assert.equal(room.floorY,room.elevation!-3);assert(room.ceiling!>=6); }
+for(const room of level.rooms) {
+  if(room.id==='harbor.room.B'){
+    assert.equal(room.floorY,-26,'B has a visual deep caisson well');
+    assert.equal(room.ceiling,47,'B roof stays at Y21 above its deep floor');
+    assert.deepEqual([room.x,room.z,room.width,room.depth],[60,4,56,72]);
+    // Vessel-layer exclusion is tested against real meshes/solids separately
+    // in harbor-rescue-boundary-check.mjs, not inferred from this visual floor.
+  }else assert.equal(room.floorY,room.elevation!-3);
+  assert(room.ceiling!>=6);
+}
 for(const edge of level.edges) {
   const path=edge.path!;assert(path.length>=2);
   for(const [roomId,p] of [[edge.from,path[0]],[edge.to,path.at(-1)!]] as const) {

@@ -1,0 +1,9 @@
+{
+  "scene": "Rescue_Pressure_Service_20261005",
+  "objects": 6,
+  "vertices": 34032,
+  "asset": "/assets/deepsea/rescue-pressure-service.glb",
+  "source": "assets/blender/rescue-pressure-service.blend",
+  "transport": "Blender MCP TCP 9876",
+  "gameplay": "decorative sealed service module, no new interactions"
+}

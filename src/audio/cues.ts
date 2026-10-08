@@ -78,6 +78,7 @@ export const CUES: Record<string, CueFn> = {
     thud({ ...s, gain: s.gain * 0.5, t: s.t + 0.005 }, 58, 0.6, 0.1);
     return d;
   },
+  'sonar.threat': (s) => sweep(s, 'sine', 1450, 1450, 0.075, 0.28, 0.004),
   'sonar.echo': (s) => sweep(s, 'sine', 1200, 600, 0.11, 0.18, 0.01),
   'sonar.artifact': (s) => {
     // 伪影：频率反向、相位不对。听觉上的 tell。

@@ -1,0 +1,56 @@
+{
+  "id": "tape.1",
+  "kind": "threat",
+  "visible": true,
+  "frames": 10,
+  "ready": true,
+  "analyzed": true,
+  "videoResult": "failed",
+  "report": [
+    "本地感光录像备份 · 非AI，逐帧传感记录",
+    "录像显示断桥对面有人，隔间外有生物盘踞。",
+    "艾里亚斯：它对声音特别敏感，立即关掉主动声纳。先去02恢复供电，再回01开闸。"
+  ],
+  "state": {
+    "version": 1,
+    "epoch": 0,
+    "signal": true,
+    "heard": true,
+    "replied": true,
+    "identified": true,
+    "warned": true,
+    "powered": false,
+    "gateOpen": false,
+    "gateClosed": false,
+    "monsterInside": false,
+    "lureConfirmed": false,
+    "isolated": false,
+    "verified": false,
+    "departing": false,
+    "departed": false,
+    "departureConfirmed": false,
+    "complete": false,
+    "failed": false,
+    "lureSeconds": 0,
+    "holdSeconds": 0,
+    "noiseSeconds": 0,
+    "noiseStrikes": 0,
+    "damageTotal": 0,
+    "departureSeconds": 0,
+    "captures": [
+      {
+        "version": 1,
+        "id": "rescue-1",
+        "kind": "threat",
+        "epoch": 0,
+        "visible": true,
+        "monsterInside": false,
+        "gateClosed": false,
+        "departed": false
+      }
+    ],
+    "analyzed": [
+      "rescue-1"
+    ]
+  }
+}

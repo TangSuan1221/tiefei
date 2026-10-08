@@ -1,0 +1,368 @@
+{
+  "passed": true,
+  "method": "Diagnostic setup and accelerated shot tick; injected sensor failure, not a player playthrough.",
+  "alignment": [
+    {
+      "angle": 0,
+      "heading": 0,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 0,
+      "heading": 45,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 0,
+      "heading": 90,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 0,
+      "heading": 135,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 0,
+      "heading": 180,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 0,
+      "heading": 225,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 0,
+      "heading": 270,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 0,
+      "heading": 315,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 45,
+      "heading": 0,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 45,
+      "heading": 45,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 45,
+      "heading": 90,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 45,
+      "heading": 135,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 45,
+      "heading": 180,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 45,
+      "heading": 225,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 45,
+      "heading": 270,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 45,
+      "heading": 315,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 90,
+      "heading": 90,
+      "ok": false,
+      "message": "目标被遮挡或不在画内，稍移艇位重新取景。",
+      "visible": false
+    },
+    {
+      "angle": 90,
+      "heading": 270,
+      "ok": false,
+      "message": "目标被遮挡或不在画内，稍移艇位重新取景。",
+      "visible": false
+    },
+    {
+      "angle": 180,
+      "heading": 0,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 180,
+      "heading": 45,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 180,
+      "heading": 180,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 180,
+      "heading": 225,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 225,
+      "heading": 0,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 225,
+      "heading": 45,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 225,
+      "heading": 90,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 225,
+      "heading": 135,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 225,
+      "heading": 180,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 225,
+      "heading": 225,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 225,
+      "heading": 270,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 225,
+      "heading": 315,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 270,
+      "heading": 0,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 270,
+      "heading": 45,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 270,
+      "heading": 90,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 270,
+      "heading": 135,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 270,
+      "heading": 180,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 270,
+      "heading": 225,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 270,
+      "heading": 270,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 270,
+      "heading": 315,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 315,
+      "heading": 0,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 315,
+      "heading": 45,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 315,
+      "heading": 90,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 315,
+      "heading": 135,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 315,
+      "heading": 180,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 315,
+      "heading": 225,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 315,
+      "heading": 270,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    },
+    {
+      "angle": 315,
+      "heading": 315,
+      "ok": true,
+      "message": "航点辅助取景已对准，开始真实曝光。",
+      "visible": true
+    }
+  ],
+  "opticsLocked": true,
+  "before": {
+    "position": [
+      58.8,
+      0,
+      28.8
+    ],
+    "heading": 91,
+    "pan": 0
+  },
+  "aimed": {
+    "pan": -1.5882496193148399,
+    "evidence": {
+      "diagnostic": "曝光镜头 0° / 俯仰 0°；艇位 58.8 / 0.0 / 28.8。取景可拍摄 · 曝光后分析新片",
+      "version": 1,
+      "id": "rescue-1",
+      "kind": "threat",
+      "epoch": 0,
+      "visible": true,
+      "monsterInside": false,
+      "gateClosed": false,
+      "departed": false
+    }
+  },
+  "failed": {
+    "phase": "failed",
+    "reason": "本地摄影机没有取得足够画面，本卷未生成。请重新曝光。",
+    "tapes": 0,
+    "captures": 0,
+    "pan": 0,
+    "heading": 91,
+    "position": [
+      58.8,
+      0,
+      28.8
+    ]
+  },
+  "captures": 0,
+  "tapes": 0,
+  "outOfAreaPhase": "idle"
+}

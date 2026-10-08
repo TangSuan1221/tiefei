@@ -1,6 +1,16 @@
 import type { Control } from '../view/chrome';
 export interface NavigationConsole {
+ readonly autoReceive?:boolean;
+ readonly radioRecords?:readonly {text:string;frequency:number}[];
+ readonly pendingRadioCount?:number;
  readonly editing:boolean;
+ readonly receivedCoordinates?:string;
+ setFrequency?(value:number):void;
+ setWaypoint?(value:number[]):boolean;
+ analyzeSignal?():{text:string;kind:string}|null;
+ reply?():boolean;
+ drawWaterfall?(ctx:CanvasRenderingContext2D,w:number,h:number):void;
+ drawActive?(ctx:CanvasRenderingContext2D,w:number,h:number):void;
  readonly screenAction?:string;
  controls():Control[];
  action(id:string):boolean;
@@ -14,11 +24,15 @@ export interface AuthoredSite {
   readonly description:string;
   readonly hint:string;
   readonly objective?:string;
+  readonly dialogueChoices?:readonly string[];
+  chooseDialogue?(index:number):boolean;
   readonly diegeticGuidance?:boolean;
+  readonly managesNarrative?:boolean;
   readonly navigationConsole?:NavigationConsole;
   readonly descriptionOnly?:boolean;
   describeEvidence?(capture:unknown):string;
   sonarPulse?(power:0|1|2):void;
+  noiseBurst?(amount:number):void;
   /** Authoritative evidence state after analysis; report text is not success. */
   readonly evidenceReady?:boolean;
   readonly managesThreats?:boolean;
@@ -26,7 +40,11 @@ export interface AuthoredSite {
   weaponResponse?(weapon:string):void;
   readonly noiseFloor?:number;
   captureEvidence?():unknown;
+  prepareCapture?():{ok:boolean;message?:string};
+  finishCapture?():void;
+  commitEvidence?(capture:unknown):void;
   analyzeEvidence?(snapshot:unknown):string[];
+  evidenceStatus?(capture:unknown):{accepted:boolean;next:string};
   tick?(dt:number):void;
   restore?(snapshot:unknown):boolean;
   canCounter?(action:{kind:string}):boolean;
@@ -38,7 +56,7 @@ export interface AuthoredSite {
   readonly elevation?:number;
   interact():void;
   armEvent?(kind:'grip'|'stowed',id?:string):boolean;
-  draw(ctx:CanvasRenderingContext2D,w:number,h:number,time:number):void;
+  draw(ctx:CanvasRenderingContext2D,w:number,h:number,time:number,recording?:boolean):void;
   drawMap(ctx:CanvasRenderingContext2D,w:number,h:number):void;
   snapshot():unknown;
   dispose():void;

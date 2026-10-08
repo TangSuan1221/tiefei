@@ -1,0 +1,62 @@
+[
+  {
+    "id": "rusty_metal_sheet",
+    "channel": "diff",
+    "path": "public/assets/deepsea/pbr/rusty_metal_sheet_diff_2k.jpg",
+    "bytes": 2802519,
+    "sha256": "1bba003f3da47728b7108fb54a8f51fec17b3d62d89eefb2bf711688e2e929b6",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rusty_metal_sheet/rusty_metal_sheet_diff_2k.jpg",
+    "license": "CC0",
+    "assetPage": "https://polyhaven.com/a/rusty_metal_sheet"
+  },
+  {
+    "id": "rusty_metal_sheet",
+    "channel": "nor_gl",
+    "path": "public/assets/deepsea/pbr/rusty_metal_sheet_nor_gl_2k.jpg",
+    "bytes": 2058355,
+    "sha256": "dbcdb93c3cd9d332ed29e144540ef81798f637a8c5ccd057e52cad28b60f3750",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rusty_metal_sheet/rusty_metal_sheet_nor_gl_2k.jpg",
+    "license": "CC0",
+    "assetPage": "https://polyhaven.com/a/rusty_metal_sheet"
+  },
+  {
+    "id": "rusty_metal_sheet",
+    "channel": "rough",
+    "path": "public/assets/deepsea/pbr/rusty_metal_sheet_rough_2k.jpg",
+    "bytes": 2157951,
+    "sha256": "f1fc8d5cfb6c6b55712c07b326934d94eb7aeb4f146b67c1823348af69cfddd4",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rusty_metal_sheet/rusty_metal_sheet_rough_2k.jpg",
+    "license": "CC0",
+    "assetPage": "https://polyhaven.com/a/rusty_metal_sheet"
+  },
+  {
+    "id": "metal_plate",
+    "channel": "diff",
+    "path": "public/assets/deepsea/pbr/metal_plate_diff_2k.jpg",
+    "bytes": 2670774,
+    "sha256": "864c9a653acd1f5034c9bbe7f955b18cc9687a81bbdfa805e7a2319939676910",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/metal_plate/metal_plate_diff_2k.jpg",
+    "license": "CC0",
+    "assetPage": "https://polyhaven.com/a/metal_plate"
+  },
+  {
+    "id": "metal_plate",
+    "channel": "nor_gl",
+    "path": "public/assets/deepsea/pbr/metal_plate_nor_gl_2k.jpg",
+    "bytes": 2516654,
+    "sha256": "146f8c00874a584bcc4a184643e72f160da2a7568d469198e02b26c9ff93cf43",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/metal_plate/metal_plate_nor_gl_2k.jpg",
+    "license": "CC0",
+    "assetPage": "https://polyhaven.com/a/metal_plate"
+  },
+  {
+    "id": "metal_plate",
+    "channel": "rough",
+    "path": "public/assets/deepsea/pbr/metal_plate_rough_2k.jpg",
+    "bytes": 3045988,
+    "sha256": "3cdc139df4ec5b304dd986278c1fb026c67c42e6623f0ee5caa7f373d51c7bef",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/metal_plate/metal_plate_rough_2k.jpg",
+    "license": "CC0",
+    "assetPage": "https://polyhaven.com/a/metal_plate"
+  }
+]

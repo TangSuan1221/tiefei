@@ -1,3 +1,4 @@
+import { HarborRescueSite } from './deepsea/harbor-rescue-site';
 /**
  * 逃生舱表现层。
  * ============================================================================
@@ -76,10 +77,22 @@ export class PodView {
   private lastH = 0;
   private lastSweep = 0;
   private zoomVisual = 0;
+  private readonly consolePrompt=document.createElement('button');
+  private readonly consoleStatus=document.createElement('div');
   private sceneOffset = { x: 0, y: 0 };
 
   constructor(run: PodRun, out: HTMLCanvasElement) {
     this.out = out;
+    this.consolePrompt.id='cabin-interact';
+    this.consolePrompt.type='button';
+    this.consolePrompt.textContent='E · 操作左侧 / 中间 / 右侧设备';
+    this.consolePrompt.style.cssText='position:fixed;left:50%;bottom:16%;transform:translateX(-50%);z-index:20;pointer-events:auto;padding:12px 20px;border:1px solid #d4bb82;border-radius:4px;background:#101d1ef2;color:#f0ddab;font:600 16px Microsoft YaHei,sans-serif;cursor:pointer;white-space:nowrap;max-width:94vw';
+    this.consolePrompt.hidden=true;
+    this.consoleStatus.id='cabin-interaction-status';
+    this.consoleStatus.textContent='交互中 · 左键操作 · 右键环视 · F 艇外设施 · Esc 离开';
+    this.consoleStatus.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:19;pointer-events:none;padding:8px 12px;background:#0a1415d9;color:#d4dfce;font:14px Microsoft YaHei,sans-serif;max-width:94vw;text-align:center';
+    this.consoleStatus.hidden=true;
+    document.getElementById('ui-root')!.append(this.consolePrompt,this.consoleStatus);
     this.pipeline = new PostPipeline(out);
     this.audio.attachBreath(this.breath);
 
@@ -88,7 +101,7 @@ export class PodView {
     if (!s || !h) throw new Error('[pod] 无法创建 2D 上下文');
     this.sctx = s;
     this.hctx = h;
-    run.createAuthoredSite=index=>new PodExpedition(run,index);
+    run.createAuthoredSite=index=>index===0?new HarborRescueSite(run):new PodExpedition(run,index);
     run.captureSensorFrame = () => {
       const frame=document.createElement('canvas');frame.width=512;frame.height=360;
       const ctx=frame.getContext('2d',{alpha:false});
@@ -282,6 +295,9 @@ export class PodView {
   }
 
   private drawHud(run: PodRun): void {
+    const alive=run.outcome.kind==='alive';
+    this.consolePrompt.hidden=!alive||!!run.at||!this.cabin.consoleInReach();
+    this.consoleStatus.hidden=!alive||!run.at||!['camera','nav','lab'].includes(run.at);
     const ctx = this.hctx;
     const w = this.hud.width;
     const h = this.hud.height;
@@ -289,11 +305,23 @@ export class PodView {
     ctx.clearRect(0, 0, w, h);
 
     if(run.authoredSite?.diegeticGuidance&&run.outcome.kind==='alive'){
-      if(run.storyCaptionLeft>0&&run.storyCaption){
+      const caption=run.storyCaptionLeft>0&&run.storyCaption?run.storyCaption:'';
+      if(caption){
         ctx.font=cjk(Math.max(16,h*.023),500);ctx.textAlign='left';ctx.fillStyle='#e5e7da';
-        const lines:string[]=[];let line='';for(const ch of run.storyCaption){if(ctx.measureText(line+ch).width>w*.72){lines.push(line);line='';}line+=ch;}if(line)lines.push(line);
+        const lines:string[]=[];let line='';for(const ch of caption){if(ctx.measureText(line+ch).width>w*.72){lines.push(line);line='';}line+=ch;}if(line)lines.push(line);
         const fs=Math.max(16,h*.023);ctx.shadowColor='#000';ctx.shadowBlur=5;
-        lines.forEach((s,i)=>ctx.fillText(s,w*.14,h*.91-(lines.length-1-i)*fs*1.45));ctx.shadowBlur=0;
+        lines.forEach((s,i)=>ctx.fillText(s,w*.14,h*.975-(lines.length-1-i)*fs*1.45));ctx.shadowBlur=0;
+      }
+      if(run.authoredSite.managesNarrative&&run.authoredSite.objective?.trim()){
+        const fs=Math.max(14,Math.min(19,h*.021)),pad=14,cw=Math.min(420,w*.30),cx=w-cw-20,cy=26;
+        ctx.font=cjk(fs,500);ctx.textAlign='left';ctx.textBaseline='top';
+        const lines:string[]=[];let line='';
+        for(const ch of run.authoredSite.objective){if(ch==='\n'){lines.push(line);line='';continue;}if(line&&ctx.measureText(line+ch).width>cw-pad*2){lines.push(line);line='';}line+=ch;}if(line)lines.push(line);
+        const lineHeight=fs*1.5,ch=pad*2+fs*1.7+lines.length*lineHeight;
+        ctx.fillStyle='rgba(6,17,18,.82)';ctx.fillRect(cx,cy,cw,ch);
+        ctx.fillStyle='#bfa36e';ctx.fillRect(cx,cy,3,ch);ctx.font=cjk(fs*.85,600);ctx.fillText('当前任务',cx+pad,cy+pad);
+        ctx.font=cjk(fs,500);ctx.fillStyle='#e5e7da';lines.forEach((text,i)=>ctx.fillText(text,cx+pad,cy+pad+fs*1.7+i*lineHeight));
+        ctx.textBaseline='alphabetic';
       }
       return;
     }
@@ -330,13 +358,13 @@ export class PodView {
       ctx.textAlign = 'left';
       ctx.fillStyle = '#d6dfc8';
       ctx.font = cjk(h * 0.018, 400);
-      ctx.fillText('WASD 移动 · 点击或右键拖动环视 · E 操作', w * 0.39, h * 0.91);
+      ctx.fillText('WASD 移动 · 点击或右键拖动环视 · 靠近总控按 E · 左右设备直接点击', w * 0.39, h * 0.91);
       ctx.strokeStyle=this.hovered?.startsWith('station:')?'#efbd70':'#a6b7b0';
       ctx.lineWidth=1.5;
       ctx.beginPath();ctx.arc(w/2,h/2,3,0,Math.PI*2);ctx.stroke();
       if(this.hovered?.startsWith('station:')) {
         ctx.textAlign='center';ctx.fillStyle='#efbd70';
-        ctx.fillText('E · 操作设备',w/2,h*.56);
+        ctx.fillText('E · 操作左 / 中 / 右设备',w/2,h*.56);
       }
 
       if (run.radioWaiting) {

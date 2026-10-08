@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 一次逃生的全部运行时状态。
  * ============================================================================
  * 这个文件回答「这游戏到底怎么玩」。
@@ -585,7 +585,7 @@ export class PodRun {
     this.pilotInputUntil=this.clock+.12;
   }
   private tickPilot(dt:number):void {
-    if(this.driveBlock || (this.at!=='camera' && this.at!=='nav')) {this.pilot.stop();return;}
+    if(this.driveBlock || (this.at!=='camera' && this.at!=='nav' && this.at!=='lab')) {this.pilot.stop();return;}
     const input=this.clock<this.pilotInputUntil?this.pilotInput:{thrust:0,yaw:0,pitch:0,brake:false};
     if(!this.authoredSite&&this.clock<this.pilotImpactUntil){this.pilot.stop();return;}
     const motion=this.pilot.step(dt,input.thrust,input.yaw,input.pitch,input.brake,this.clock<this.heaveUntil?this.heaveInput:0);
@@ -660,7 +660,10 @@ export class PodRun {
   zoom = 0;
 
   // --- 舱体 ---------------------------------------------------------------
-  power = 0.88;
+  gmInfinitePower = false;
+  private powerValue = 0.88;
+  get power(){return this.gmInfinitePower?1:this.powerValue;}
+  set power(value:number){this.powerValue=this.gmInfinitePower?1:value;}
   hull = 0.71;
   /** 水位 0..1，到 1 淹死 */
   flood = 0.06;
@@ -669,7 +672,9 @@ export class PodRun {
   /** 洗涤器剩余寿命 0..1 */
   scrubber = 0.52;
   /** 拉了总闸 */
-  blackout = false;
+  private blackoutValue = false;
+  get blackout(){return this.gmInfinitePower?false:this.blackoutValue;}
+  set blackout(value:boolean){this.blackoutValue=this.gmInfinitePower?false:value;}
   /**
    * 舱内空气温度（°C）。
    *
@@ -687,6 +692,15 @@ export class PodRun {
   noise = 0.05;
   /** 主动声纳换能器总电源。被动阵列不依赖它。 */
   activeSonarEnabled = false;
+  sonarPulseEnabled = false;
+  private sonarPulseLeft = 0;
+  get sonarEmitting(){return this.powered && this.activeSonarEnabled && (this.sonarPulseEnabled || this.sonarPulseLeft > 0);}
+  stopSonarPulses(){this.sonarPulseEnabled=false;this.sonarPulseLeft=0;}
+  toggleSonarPulses(){
+    if(this.sonarPulseEnabled){this.stopSonarPulses();this.pushLog('脉冲已停止，声纳保持通电。','system');return;}
+    if(!this.powered || !this.activeSonarEnabled){this.pushLog('先开启声纳电源，再开启脉冲。','system');return;}
+    this.sonarPulseEnabled=true;this.ping(1);
+  }
 
   // --- 航行 ---------------------------------------------------------------
   legIndex = 0;
@@ -1558,7 +1572,12 @@ export class PodRun {
 
     // 噪音总是往底噪掉。底噪取决于你有没有在动
     if(this.phase==='site')this.authoredSite?.tick?.(dt);
-    const sonarHum = this.activeSonarEnabled && this.powered ? 0.035 : 0;
+    this.checkSurvival();
+    if(this.outcome.kind!=='alive')return;
+    if(!this.powered || !this.activeSonarEnabled)this.stopSonarPulses();
+    this.sonarPulseLeft=Math.max(0,this.sonarPulseLeft-dt);
+    if(this.sonarPulseEnabled && this.sonarPulseLeft===0)this.ping(1);
+    const sonarHum = 0;
     const floor = Math.max(this.blackout ? 0.012 + sonarHum : 0.045 + this.throttle * 0.02 + sonarHum,this.authoredSite?.noiseFloor??0);
     this.noise = Math.max(floor, this.noise - dt * 0.09);
 
@@ -1576,7 +1595,7 @@ export class PodRun {
     this.tickHookIdle(dt);
     this.tickPilot(dt);
     if(this.mode!=='alert') this.storyCaptionLeft=Math.max(0,this.storyCaptionLeft-dt);
-    const storyBeat=this.campaign.tick(dt,this.mode==='alert'||this.storyCaptionLeft>0);
+    const storyBeat=this.authoredSite?.managesNarrative?null:this.campaign.tick(dt,this.mode==='alert'||this.storyCaptionLeft>0);
     if(storyBeat) {
       if(storyBeat.id!=='0.hook') {this.storyCaption=storyBeat.text;this.storyCaptionLeft=22;}
       this.pushLog(`【航行记录 ${storyBeat.chapter+1}】${storyBeat.text}`,'eerie');
@@ -1600,6 +1619,7 @@ export class PodRun {
 
   addNoise(amount: number): void {
     if (amount <= 0) return;
+    this.authoredSite?.noiseBurst?.(amount);
     this.noise = clamp01(this.noise + amount);
     if (this.phase === 'site' && this.clock >= this.huntRecoveryUntil) this.suspicion += amount * 4;
     // 已经在警报里的时候，噪音直接缩短引信
@@ -1640,6 +1660,9 @@ export class PodRun {
   /** 站到某个工位前面。返回花掉的时间（呼吸） */
   walkTo(id: StationId): number {
     id = canonicalStation(id);
+    if(this.at && ['camera','nav','lab'].includes(this.at) && ['camera','nav','lab'].includes(id)){
+      this.at=id;this.camTargetX=PodRun.STATION_X[id];return 0;
+    }
     const from = this.camTargetX;
     const to = PodRun.STATION_X[id];
     const dist = Math.abs(to - from);
@@ -1715,6 +1738,7 @@ export class PodRun {
     this.sweepId++;
     this.power = clamp01(this.power - [0.004, 0.014, 0.034][power]);
     this.contacts = this.buildContacts(power);
+    if(power>0)this.sonarPulseLeft=3;
     this.authoredSite?.sonarPulse?.(power);
     this.addNoise(noise);
     this.onCue?.(['sonar.passive', 'sonar.chirp', 'sonar.boom'][power], 0.8);
@@ -1737,9 +1761,10 @@ export class PodRun {
     this.onCue?.('ui.toggle', 0.65);
     if (this.activeSonarEnabled) {
       this.power = clamp01(this.power - 0.006);
-      this.addNoise(0.08);
-      this.pushLog('主动声纳已通电。换能器的低鸣会抬高舱外噪声；发射脉冲会进一步暴露位置。', 'bad');
+
+      this.pushLog('声纳已通电。开启脉冲才会发声并更新回波；停止脉冲保持静默。', 'bad');
     } else {
+      this.stopSonarPulses();
       this.pushLog('主动声纳已断电。被动阵列仍在监听。', 'system');
     }
   }
@@ -2329,6 +2354,8 @@ export class PodRun {
    * 舱停下来，声呐从远场切到近场，废墟在够得着的地方，而站点上的东西
    * 开始计时。航渡阶段只有一件事要做（把船开对），到站之后才有选择。
    */
+  beginHarborApproach():void {if(this.legIndex===0&&this.phase==='transit')this.arrive();}
+
   private arrive(): void {
     this.navDriveEngaged=false;
     this.phase = 'site';
@@ -2562,14 +2589,17 @@ export class PodRun {
   }
 
   panCamera(d: number): void {
+    if(this.shot.phase==='exposing')return;
     this.camPan = clamp(this.camPan + d, -Math.PI * 0.95, Math.PI * 0.95);
   }
 
   tiltCamera(d: number): void {
+    if(this.shot.phase==='exposing')return;
     this.camTilt = clamp(this.camTilt + d, -0.5, 0.5);
   }
 
   zoomCamera(d: number): void {
+    if(this.shot.phase==='exposing')return;
     this.camZoom = clamp(this.camZoom + d, 1, 3.2);
   }
 
@@ -2623,10 +2653,14 @@ export class PodRun {
       this.onCue?.('ui.error', 0.5);
       return;
     }
+    const preparation=this.authoredSite?.prepareCapture?.();
+    if(preparation?.message)this.pushLog(preparation.message,'system');
+    if(preparation&&!preparation.ok)return;
     const purpose = this.nextShotPurpose();
     let keyframe: string | undefined;
     try { keyframe = this.captureKeyframe?.(); }
     catch {
+      this.authoredSite?.finishCapture?.();
       this.pushLog('摄像机首帧读取失败，请重新曝光。', 'bad');
       return;
     }
@@ -2892,7 +2926,7 @@ export class PodRun {
     if (s.phase === 'exposing') {
       // 曝光期间必须守在机位前。走开 = 云台失控 = 这一卷废了。
       // 这条规则是「拍片」和「按一个按钮然后等」的全部区别。
-      if (this.at !== 'camera') {
+      if (this.at !== 'camera' && !(this.authoredSite?.prepareCapture&&this.at&&['nav','lab'].includes(this.at))) {
         this.failShot('你离开了机位。云台自己转过去了，这一卷从头到尾是一面舱壁。');
         return;
       }
@@ -2910,6 +2944,9 @@ export class PodRun {
       if (s.exposeLeft > 0) return;
 
       // 曝光完了，送去冲洗。线框分析是本地的，不等网络。
+      if(s.siteEvidence!==undefined&&(s.sensorFrames?.length??0)<3){this.failShot('本地摄影机没有取得足够画面，本卷未生成。请重新曝光。');return;}
+      if(s.siteEvidence!==undefined)this.authoredSite?.commitEvidence?.(structuredClone(s.siteEvidence));
+      this.authoredSite?.finishCapture?.();
       s.phase = 'developing';
       s.developed = 0;
       this.onCue?.('cloth.rustle', 0.5);
@@ -3077,12 +3114,14 @@ export class PodRun {
       this.onCue?.('ui.error', 0.5);
       return;
     }
-    if(tape.videoResult==='prompt'&&!tape.testDescription&&tape.ready!==false&&this.at==='lab'&&this.powered){
+    const localSiteRecording=tape.siteEvidence!==undefined&&(tape.sensorFrames?.length??0)>=3;
+    const misroutedLocalReport=localSiteRecording&&tape.report[0]?.startsWith('GM 模拟分析');
+    if(tape.videoResult==='prompt'&&!localSiteRecording&&!tape.testDescription&&tape.ready!==false&&this.at==='lab'&&this.powered){
       tape.report=['GM 模拟分析 · 非AI视频识别 · 仅读取曝光时的系统快照',...(tape.simulationReport??['旧录像未保存模拟分析快照，请在无视频模式下重新曝光。']),'该报告不授予正式剧情证据，也不能验证生成视频质量。'];
       tape.analyzed=true;this.onCue?.('knowledge.gain',.6);
       for(const line of tape.report)this.pushLog(line,'system');return;
     }
-    if (tape.analyzed) {
+    if (tape.analyzed && !misroutedLocalReport) {
       this.pushLog('这一卷已经拆过。报告还在屏上。', 'system');
       return;
     }
@@ -3223,6 +3262,7 @@ export class PodRun {
   }
 
   private failShot(reason: string): void {
+    this.authoredSite?.finishCapture?.();
     const s = this.shot;
     s.phase = 'failed';
     s.reason = reason;
@@ -4937,3 +4977,4 @@ const DEATH_WORDS: Record<DeathCause, string> = {
   drowning: '水先漫过面罩，然后是眼睛。',
   self: '你自己做的决定。',
 };
+

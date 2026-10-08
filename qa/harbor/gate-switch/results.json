@@ -1,0 +1,70 @@
+{
+  "passed": true,
+  "method": "Diagnostic stage/position setup; real sensor exposure and keyboard F through actual panel raycasts; footage-view mode; pulse interlock; physical gate and follow-up photo verification.",
+  "results": [
+    {
+      "panel": "lure",
+      "shot": {
+        "e": {
+          "diagnostic": "曝光镜头 0° / 俯仰 0°；艇位 78.0 / 0.0 / 26.0。取景可拍摄 · 曝光后分析新片",
+          "version": 1,
+          "id": "rescue-1",
+          "kind": "lure",
+          "epoch": 1,
+          "visible": true,
+          "monsterInside": true,
+          "gateClosed": false,
+          "departed": false
+        },
+        "frames": 10,
+        "confirmed": true
+      },
+      "blocked": {
+        "closed": false,
+        "caption": "先停止脉冲，再落闸。"
+      },
+      "closed": {
+        "gateY": 0,
+        "caption": "闸机落下，怪物留在货仓。拍摄关闭的闸门与仓内目标，回分析台核验。"
+      },
+      "end": {
+        "verified": true,
+        "frames": 10,
+        "kind": "gate",
+        "next": "01接驳面板 F 接通逃生门"
+      }
+    },
+    {
+      "panel": "observe",
+      "shot": {
+        "e": {
+          "diagnostic": "曝光镜头 0° / 俯仰 0°；艇位 78.0 / 0.0 / 26.0。取景可拍摄 · 曝光后分析新片",
+          "version": 1,
+          "id": "rescue-1",
+          "kind": "lure",
+          "epoch": 1,
+          "visible": true,
+          "monsterInside": true,
+          "gateClosed": false,
+          "departed": false
+        },
+        "frames": 10,
+        "confirmed": true
+      },
+      "blocked": {
+        "closed": false,
+        "caption": "先停止脉冲，再落闸。"
+      },
+      "closed": {
+        "gateY": 0,
+        "caption": "闸机落下，怪物留在货仓。拍摄关闭的闸门与仓内目标，回分析台核验。"
+      },
+      "end": {
+        "verified": true,
+        "frames": 10,
+        "kind": "gate",
+        "next": "01接驳面板 F 接通逃生门"
+      }
+    }
+  ]
+}

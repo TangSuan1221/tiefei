@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "counts": {
+    "floor": 77280,
+    "fence": 299040,
+    "motion": 16
+  },
+  "cableCounts": {
+    "floor": 24,
+    "fence": 24
+  },
+  "includesClosedDoors": true,
+  "failures": []
+}

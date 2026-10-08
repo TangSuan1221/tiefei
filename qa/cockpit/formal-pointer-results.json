@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "date": "2026-10-03",
+  "entry": "http://127.0.0.1:5174/",
+  "tool": "tools/harbor-cockpit-pointer-check.mjs",
+  "method": "Automated browser. Arrival and external submarine positions were diagnostic setup. All cockpit controls were activated using real mouse or keyboard events. Not a human blind playtest.",
+  "checks": [
+    "W approach and E entry",
+    "XYZ keypad enters 11/0/16 and saves target",
+    "38.4 kHz slider, analyze, play, microphone reply",
+    "active sonar on/off",
+    "right-button free look and right analysis panel click",
+    "central lamp click and joystick drag axes"
+  ],
+  "screenshots": [
+    "formal-sonar-clicks.png",
+    "formal-helm-clicks.png"
+  ],
+  "pageErrors": []
+}

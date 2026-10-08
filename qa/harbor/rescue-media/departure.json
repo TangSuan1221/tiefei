@@ -1,0 +1,88 @@
+{
+  "id": "tape.4",
+  "kind": "departure",
+  "visible": true,
+  "frames": 10,
+  "ready": true,
+  "analyzed": true,
+  "videoResult": "failed",
+  "report": [
+    "本地感光录像备份 · 非AI，逐帧传感记录",
+    "结果片确认艾里亚斯已经走到内侧门后；断桥依然分隔两条路线。"
+  ],
+  "state": {
+    "version": 1,
+    "epoch": 4,
+    "signal": true,
+    "heard": true,
+    "replied": true,
+    "identified": true,
+    "warned": true,
+    "powered": true,
+    "gateOpen": false,
+    "gateClosed": true,
+    "monsterInside": true,
+    "lureConfirmed": true,
+    "isolated": true,
+    "verified": true,
+    "departing": true,
+    "departed": true,
+    "departureConfirmed": true,
+    "complete": false,
+    "failed": false,
+    "lureSeconds": 15.372500000000006,
+    "holdSeconds": 161.6442999999986,
+    "noiseSeconds": 0,
+    "noiseStrikes": 0,
+    "damageTotal": 0,
+    "departureSeconds": 10,
+    "captures": [
+      {
+        "version": 1,
+        "id": "rescue-1",
+        "kind": "threat",
+        "epoch": 0,
+        "visible": true,
+        "monsterInside": false,
+        "gateClosed": false,
+        "departed": false
+      },
+      {
+        "version": 1,
+        "id": "rescue-2",
+        "kind": "lure",
+        "epoch": 3,
+        "visible": true,
+        "monsterInside": true,
+        "gateClosed": false,
+        "departed": false
+      },
+      {
+        "version": 1,
+        "id": "rescue-3",
+        "kind": "gate",
+        "epoch": 4,
+        "visible": true,
+        "monsterInside": true,
+        "gateClosed": true,
+        "departed": false
+      },
+      {
+        "version": 1,
+        "id": "rescue-4",
+        "kind": "departure",
+        "epoch": 4,
+        "visible": true,
+        "monsterInside": true,
+        "gateClosed": true,
+        "departed": true
+      }
+    ],
+    "analyzed": [
+      "rescue-1",
+      "rescue-2",
+      "rescue-3",
+      "rescue-4"
+    ]
+  }
+}

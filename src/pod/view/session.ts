@@ -50,6 +50,7 @@ export async function startPodSession(resume: boolean): Promise<void> {
 
   const run = new PodRun(seed);
   const view = new PodView(run, outCanvas);
+  if(!saved)run.beginHarborApproach();
   if(saved){
     try{if(!restoreHarborSave(run,saved))throw new Error('关卡恢复接口未就绪或关卡版本不匹配。');}
     catch(error){
@@ -69,6 +70,7 @@ export async function startPodSession(resume: boolean): Promise<void> {
   // 调一个站点的画面不值得付那个代价。发布构建里这行会被摇掉。
   if (import.meta.env.DEV) {
     (window as unknown as Record<string, unknown>).__pod = run;
+    (window as unknown as Record<string, unknown>).__podView = view;
     (window as unknown as Record<string, unknown>).__cabinPose = () => view.cabin.pose();
   }
 
@@ -119,6 +121,7 @@ export class PodSession {
   private readonly keys = new Set<string>();
   private epilogueAt = 0;
   private stepDistance = 0;
+  private walkedInCabin=false;
   private dragLook = false;
   private heldPilot:string|null=null;
   private stickDrag:{x:number;y:number}|null=null;
@@ -153,8 +156,24 @@ export class PodSession {
     document.body.append(panel);close.focus();
   }
 
+  private enterConsole():void {
+    if(this.syncInputBlock()||this.run.at||this.run.outcome.kind!=='alive'||!this.view.cabin.consoleInReach())return;
+    void this.view.unlockAudio();this.run.walkTo('camera');this.keys.clear();
+    if(document.pointerLockElement)document.exitPointerLock();
+  }
+  private deskAction(id:string|null):string|null {
+    if(!id?.startsWith('desk:'))return id;
+    const [,station,...parts]=id.split(':');
+    if(!this.run.at||!['camera','nav','lab'].includes(this.run.at)||!['camera','nav','lab'].includes(station))return null;
+    this.run.walkTo(station as StationId);
+    return parts.join(':');
+  }
   private useTerminal(id:string|null):void {
+    id=this.deskAction(id);
     if(!id) return;
+    if(!this.run.at&&['station:camera','station:nav','station:lab'].includes(id))return;
+    if(id==='back' && (this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab'))id='station:camera';
+    if(id==='back'){this.view.cabin.releaseToAisle();this.walkedInCabin=false;}
     if(id==='site.interact'){this.run.authoredSite?.interact();return;}
     this.view.cabin.selectFace(id);
     const ok=performControl(this.run,id);
@@ -173,14 +192,15 @@ export class PodSession {
     window.addEventListener('pagehide',this.saveCheckpoint);
     window.addEventListener('beforeunload',this.saveCheckpoint);
     this.wireSpatialAudio();
+    document.getElementById('cabin-interact')?.addEventListener('click',()=>this.enterConsole());
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('pointerdown', this.onPointer);
     window.addEventListener('pointermove', this.onMove);
-    window.addEventListener('pointerup', () => { this.dragLook = false;this.heldPilot=null;this.releaseStick(); });
-    window.addEventListener('pointercancel', () => {this.dragLook=false;this.heldPilot=null;this.releaseStick();});
+    window.addEventListener('pointerup', () => { this.dragLook = false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick(); });
+    window.addEventListener('pointercancel', () => {this.dragLook=false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick();});
     window.addEventListener('contextmenu', e => {
-      if((!this.run.at||this.run.at==='camera') && (e.target===this.canvas || e.target===document.getElementById('ui-root'))) e.preventDefault();
+      if((e.target===this.canvas || e.target===document.getElementById('ui-root'))) e.preventDefault();
     });
     window.addEventListener('wheel', this.onWheel, { passive: false });
     document.addEventListener('pointerlockchange',()=>this.keys.clear());
@@ -214,7 +234,8 @@ export class PodSession {
 
   private frame = (now: number): void => {
     requestAnimationFrame(this.frame);
-    const dt = Math.min(0.05, (now - this.last) / 1000);
+    // The first RAF timestamp can predate construction within the same frame.
+    const dt = Math.max(0, Math.min(0.05, (now - this.last) / 1000));
     this.last = now;
 
     this.applyHeld(dt);
@@ -279,9 +300,9 @@ export class PodSession {
       this.view.hovered=this.centerHit();
       return;
     }
-    if(this.run.at==='camera' || this.run.at==='nav') {
+    if(this.run.at==='camera' || this.run.at==='nav' || this.run.at==='lab') {
       const down=(key:string,id:string)=>this.keys.has(key)||this.heldPilot===id;
-      this.run.holdHeave(Number(down('w','nav.pitchUp'))-Number(down('s','nav.pitchDown')));
+      this.run.holdHeave(Number(down('pageup','nav.pitchUp'))-Number(down('pagedown','nav.pitchDown')));
       this.run.holdPilot(this.view.cabin.helmInput.thrust+Number(down(' ','drive.forward')||this.run.navDriveEngaged)-Number(down('n','drive.back')),
         this.view.cabin.helmInput.yaw+Number(down('l','drive.right'))-Number(down('j','drive.left')),
         Number(down('k','drive.down'))-Number(down('i','drive.up')),this.keys.has('shift')||this.heldPilot==='helm.brake');
@@ -297,17 +318,21 @@ export class PodSession {
 
   private onKeyDown = (e: KeyboardEvent): void => {
     const editing=(document.activeElement as HTMLElement|null)?.closest('input,textarea,select,[contenteditable="true"]');
-    if(!editing && !e.repeat && !e.ctrlKey && !e.metaKey && e.code==='KeyJ' && this.run.at!=='camera' && this.run.at!=='nav') {
+    if(!editing && !e.repeat && !e.ctrlKey && !e.metaKey && e.code==='KeyJ' && this.run.at!=='camera' && this.run.at!=='nav' && this.run.at!=='lab') {
       e.preventDefault();this.toggleJournal();return;
     }
     if(e.key==='Escape' && document.getElementById('campaign-journal')) {
       document.getElementById('campaign-journal')!.remove();this.keys.clear();return;
     }
-    const movementKey = !this.run.at && /^Key[WASD]$/.test(e.code);
-    if (this.syncInputBlock() || e.ctrlKey || e.metaKey || e.altKey || (e.isComposing && !movementKey)) return;
+    const movementKey = /^Key[WASD]$/.test(e.code);
+    const interactKey=e.code==='KeyE';
+    const facilityKey=e.code==='KeyF';
+    if (this.syncInputBlock() || e.ctrlKey || e.metaKey || e.altKey || (e.isComposing && !movementKey && !interactKey && !facilityKey)) return;
     if(this.run.at==='nav'&&this.run.authoredSite?.navigationConsole?.key(e.key)){e.preventDefault();this.keys.clear();this.run.pilot.stop();return;}
     if(movementKey) {
       e.preventDefault();
+      if(this.run.outcome.kind!=='alive')return;
+      if(this.run.at)return; // Only Escape leaves an active station.
       this.keys.add(e.code.slice(3).toLowerCase());
       return;
     }
@@ -316,12 +341,13 @@ export class PodSession {
       return;
     }
     void this.view.unlockAudio();
-    const key = e.key.toLowerCase();
+    const key = interactKey?'e':facilityKey?'f':e.key.toLowerCase();
     if (isGmConsoleOpen()) return;
     this.keys.add(key);
-    if(this.run.at==='camera' && key==='f'){e.preventDefault();this.run.authoredSite?.interact();return;}
+    // E activates one shared cockpit. Clicking a side screen must not disable F.
+    if(this.run.at && ['camera','nav','lab'].includes(this.run.at) && key==='f'){e.preventDefault();this.run.authoredSite?.interact();return;}
     if(this.run.at==='nav'&&key==='4'){e.preventDefault();this.toggleNavDrive();return;}
-    if((this.run.at==='camera'||this.run.at==='nav') && [' ','n','j','l','i','k','w','s','shift'].includes(key)) {
+    if((this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab') && [' ','n','j','l','i','k','pageup','pagedown','shift'].includes(key)) {
       e.preventDefault();return;
     }
 
@@ -333,7 +359,7 @@ export class PodSession {
       this.heldPilot=null;
       if (closePromptPanel() || closeGmConsole()) return;
       this.keys.clear();
-      if (this.run.at) this.run.leaveStation();
+      if (this.run.at) {this.view.cabin.releaseToAisle();this.run.leaveStation();this.walkedInCabin=false;}
       if(document.pointerLockElement===this.canvas) document.exitPointerLock();
       return;
     }
@@ -341,12 +367,14 @@ export class PodSession {
     if (!this.run.at) {
       if (key === 'e' || key === 'enter') {
         e.preventDefault();
-        this.useTerminal(this.centerHit());
+        if(this.view.cabin.consoleInReach()){
+          this.enterConsole();
+        }else this.useTerminal(this.centerHit());
         return;
       }
       if (key >= '1' && key <= '6') {
         const id = stationForKey(key);
-        if (id) this.run.walkTo(id);
+        if (id&&!['camera','nav','lab'].includes(id)) this.run.walkTo(id);
         return;
       }
       return;
@@ -385,15 +413,17 @@ export class PodSession {
     if(/^Key[WASD]$/.test(e.code)) this.keys.delete(e.code.slice(3).toLowerCase());
   };
 
+  private sonarDrag=false;
   private onPointer = (e: PointerEvent): void => {
     if (this.syncInputBlock()) return;
     this.keys.clear();
     void this.view.unlockAudio();
     if (this.run.outcome.kind !== 'alive') return;
     if(e.target!==this.canvas && e.target!==document.getElementById('ui-root')) return;
-    if(this.run.at==='camera'&&e.button===2){this.dragLook=true;e.preventDefault();return;}
+    if(e.button===2){this.dragLook=true;e.preventDefault();return;}
     if(this.run.at&&e.button!==0)return;
     if(!this.run.at) {
+      if(this.view.cabin.consoleInReach())return;
       if(e.button===2) { this.dragLook=true;e.preventDefault();return; }
       if(e.button!==0) return;
       if(document.pointerLockElement!==this.canvas) {
@@ -407,7 +437,10 @@ export class PodSession {
       } else this.useTerminal(this.centerHit());
       return;
     }
-    const id = this.view.pick(e.clientX, e.clientY);
+    const picked=this.view.pick(e.clientX,e.clientY);
+    if(this.view.cabin.deviceClick()){this.releaseStick();this.sonarDrag=false;return;}
+    const id = this.deskAction(picked);
+    if(id?.startsWith('sonar.tune.'))this.sonarDrag=true;
     if(id==='helm.stick'){this.stickDrag={x:e.clientX,y:e.clientY};return;}
     if(id==='helm.brake'){this.heldPilot='helm.brake';return;}
     if(id==='nav.thrust'){this.toggleNavDrive();return;}
@@ -419,7 +452,8 @@ export class PodSession {
   };
 
   private onMove = (e: PointerEvent): void => {
-    if(this.run.at==='camera'&&this.dragLook){this.view.cabin.turn(e.movementX,e.movementY);return;}
+    if(this.sonarDrag){const id=this.deskAction(this.view.pick(e.clientX,e.clientY));if(id?.startsWith('sonar.tune.'))performControl(this.run,id);return;}
+    if(this.dragLook){this.view.cabin.turn(e.movementX,e.movementY);return;}
     if(this.stickDrag){
       const input=this.view.cabin.helmInput;
       const axis=(v:number)=>{const a=Math.abs(v);return a<8?0:Math.sign(v)*Math.min(1,(a-8)/110);};
@@ -480,3 +514,4 @@ export class PodSession {
     document.getElementById('again')?.addEventListener('click', () => location.reload());
   }
 }
+

@@ -26,7 +26,7 @@ export const HARBOR_EXIT_REQUIREMENTS = [HARBOR.photo, HARBOR.module, HARBOR.dis
 /** All item x/z are room-relative, as in legacy expeditions. No photo fact is item-granted. */
 export function createHarborLevel(): ExpeditionLevel {
   const specs: [string,string,number,number,number,number,number,number,number][] = [
-    ['A','检查气闸',11,10,22,20,0,7,0], ['B','倒悬主港',60,20,56,40,0,24,1],
+    ['A','检查气闸',11,10,22,20,0,7,0], ['B','倒悬主港',60,4,56,72,0,24,1],
     ['C','岸电维修湾',11,40,22,20,0,8,0], ['D','登船计量坞',44,61,24,18,-8,9,1],
     ['E','行李检修廊',77,61,22,18,-8,6,2], ['F','下沉货仓',60,93,56,22,-20,14,2],
     ['G','撤离分流井',113,63,26,22,-8,16,3], ['H','港务记录侧湾',113,20,26,40,0,10,2],
@@ -34,7 +34,7 @@ export function createHarborLevel(): ExpeditionLevel {
   ];
   const rid = (s: string) => `harbor.room.${s}`;
   const rooms: ExpeditionRoom[] = specs.map(([s,name,x,z,width,depth,elevation,ceiling,sector]) =>
-    ({id:rid(s),name,x,z,width,depth,elevation,floorY:elevation-3,ceiling,sector,
+    ({id:rid(s),name,x,z,width,depth,elevation,floorY:s==='B'?-26:elevation-3,ceiling:s==='B'?47:ceiling,sector,
       role:s==='B'?'hall':s==='F'||s==='H'?'branch':'chamber'}));
   const edges: ExpeditionEdge[] = [];
   const edge = (a:string,b:string,path:[number,number,number][],requires:string[]=[]) => edges.push({
@@ -82,3 +82,5 @@ export function createHarborLevel(): ExpeditionLevel {
       {id:'harbor.stage.departure',name:'检查耐压与储备并确认下潜',objectives:['harbor.item.exit-mechanism'],terminal:'harbor.item.exit-mechanism',grants:HARBOR.exitReady},
     ]};
 }
+
+

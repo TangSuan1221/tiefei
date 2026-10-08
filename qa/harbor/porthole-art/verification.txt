@@ -1,0 +1,8 @@
+Reference cockpit iteration verification
+Main route /: final-front/left/right/helm.png, no page errors.
+Production build: PASS.
+TypeScript: PASS.
+Cockpit input regression: PASS including XYZ keypad, radio/navigation tabs, analysis action, helm stick, exposure, lamp and brake.
+RAG check: PASS 40 metrics.
+Independent visual audit found rear service deck occluding first-row controls; deck moved aft and shortened, final views checked.
+Quality limitation: composition is substantially revised, but procedural material fidelity, asset density and lighting remain below supplied reference; no AAA equivalence claim.

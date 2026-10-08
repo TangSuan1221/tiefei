@@ -1,0 +1,2 @@
+import{registerHooks,stripTypeScriptTypes}from'node:module';import{readFileSync}from'node:fs';
+registerHooks({resolve(s,c,n){try{return n(s,c);}catch(e){if(s.startsWith('.'))for(const ext of ['.ts','/index.ts'])try{return n(s+ext,c);}catch{}throw e;}},load(u,c,n){if(u.endsWith('.ts'))return{format:'module',source:stripTypeScriptTypes(readFileSync(new URL(u),'utf8'),{mode:'transform'}),shortCircuit:true};return n(u,c);}});await import('../../tools/harbor-dialogue-order-check.ts');

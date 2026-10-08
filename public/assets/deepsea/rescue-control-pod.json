@@ -1,0 +1,36 @@
+{
+  "scene": "Rescue_Control_Pod_20261005",
+  "mesh_count": 8,
+  "vertices": 8408,
+  "game_bounds": {
+    "x": [
+      -2.200000047683716,
+      2.200000047683716
+    ],
+    "y": [
+      0.0,
+      2.200000047683716
+    ],
+    "z": [
+      -2.200000047683716,
+      2.200000047683716
+    ]
+  },
+  "materials": [
+    "rescue_control_brass",
+    "rescue_control_glass",
+    "rescue_control_ivory",
+    "rescue_control_paint",
+    "rescue_control_rubber",
+    "rescue_control_screen_cold",
+    "rescue_control_steel",
+    "rescue_control_warm"
+  ],
+  "front_game_axis": "+Z",
+  "placement": [
+    60,
+    -5.94,
+    14.2
+  ],
+  "user_scene_restored": "L01_Rescue_Harbor_Art.002"
+}

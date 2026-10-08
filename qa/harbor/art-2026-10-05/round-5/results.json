@@ -1,0 +1,109 @@
+{
+  "method": "Diagnostic fixed camera positions, actual main-game renderer; finish() timing includes GPU stall and is not player FPS. Recording frames show the existing recorded-only creature.",
+  "errors": [],
+  "stats": [
+    {
+      "name": "entry",
+      "milliseconds": 843.1999998092651,
+      "warmedMilliseconds": [
+        22.200000286102295,
+        18.5,
+        17.199999809265137
+      ],
+      "info": {
+        "frame": 214,
+        "calls": 5810,
+        "triangles": 3652622,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "maintenance",
+      "milliseconds": 1696.5999999046326,
+      "warmedMilliseconds": [
+        22.600000381469727,
+        23.299999713897705,
+        23.40000009536743
+      ],
+      "info": {
+        "frame": 314,
+        "calls": 8037,
+        "triangles": 5062550,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "arrival",
+      "milliseconds": 30.90000009536743,
+      "warmedMilliseconds": [
+        14,
+        11.300000190734863,
+        12
+      ],
+      "info": {
+        "frame": 414,
+        "calls": 3126,
+        "triangles": 4568886,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "observe",
+      "milliseconds": 30.699999809265137,
+      "warmedMilliseconds": [
+        12.599999904632568,
+        12.899999618530273,
+        8
+      ],
+      "info": {
+        "frame": 514,
+        "calls": 1847,
+        "triangles": 4507900,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "lure",
+      "milliseconds": 26.09999990463257,
+      "warmedMilliseconds": [
+        5.900000095367432,
+        6.199999809265137,
+        6
+      ],
+      "info": {
+        "frame": 614,
+        "calls": 1181,
+        "triangles": 3581846,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "power",
+      "milliseconds": 32.30000019073486,
+      "warmedMilliseconds": [
+        11.199999809265137,
+        10.400000095367432,
+        10
+      ],
+      "info": {
+        "frame": 714,
+        "calls": 2966,
+        "triangles": 4698318,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    }
+  ],
+  "liveMonsterHidden": true
+}

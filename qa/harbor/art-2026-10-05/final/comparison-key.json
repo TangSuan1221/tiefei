@@ -1,0 +1,14 @@
+{
+  "observe": {
+    "A": "current",
+    "B": "baseline"
+  },
+  "power": {
+    "A": "baseline",
+    "B": "current"
+  },
+  "lure": {
+    "A": "current",
+    "B": "baseline"
+  }
+}

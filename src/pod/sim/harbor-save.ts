@@ -62,6 +62,8 @@ export function readHarborSave(storage:SaveStorage):HarborSave|null {
   const payload=object(pointer)&&typeof pointer.slot==='string'&&/^ironlung\.harbor\.v1\.\d+$/.test(pointer.slot)
     ?JSON.parse(storage.getItem(pointer.slot)??'null'):pointer;
   if(!isHarborSave(payload))throw new Error('港口存档损坏或版本不兼容；原存档未修改。');
+  if(payload.site.adapter!=='harbor-rescue'||payload.site.adapterVersion!==1)throw new Error('此存档来自旧版接驳港，不能用于新版艾里亚斯救援关卡。旧存档已保留，请选择开始事故调查。');
+  if(!object(payload.site.rescue)||!object(payload.site.navigation)||!object(payload.site.sonarDesk))throw new Error('新版救援存档缺少关卡或声纳记录；原存档已保留。');
   if(pointer.slot&&pointer.slot!==`${HARBOR_SAVE_KEY}.${payload.seed}`)throw new Error('存档槽与种子不匹配。');
   return payload;
 }
@@ -74,6 +76,7 @@ export function captureHarborSave(run:PodRun):HarborSave|null {
   // Never checkpoint in a live attack: transient attacker/timers are not persisted.
   if(run.mode!=='calm'||run.threat||run.charging||run.fx.spill>0||run.fx.lure>0)return null;
   const site=run.authoredSite?.snapshot();
+  if(object(site)&&site.adapter==='harbor-rescue'&&object(site.rescue)&&(site.rescue.noiseSeconds>0||site.rescue.failed))return null;
   if(!object(site)||site.index!==0||typeof site.levelId!=='string'||!site.levelId.startsWith('harbor')||!object(site.harbor))return null;
   const r:Obj={};for(const k of [...numbers,...booleans])r[k]=run[k];
   for(const k of maps)r[k]=Array.from(run[k] as Map<string,unknown>);

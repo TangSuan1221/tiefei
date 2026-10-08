@@ -1,0 +1,26 @@
+{
+  "method": "Diagnostic start position and dialogue clock, actual hull movement to collision stop and keyboard F.",
+  "stage": "power",
+  "position": [
+    41,
+    0,
+    23.600000000000094
+  ],
+  "hit": {
+    "id": "harbor.rescue.power",
+    "distance": 2.716500004381036
+  },
+  "texts": [
+    "开启脉冲获取回波",
+    "◆ 已写入航点",
+    "X 42  Y 0  Z 28",
+    "水平距离 4.5 m",
+    "位置到达 · Shift 制动",
+    "图中青色菱形为航点",
+    "惯导指引 · 非障碍回波",
+    "艇首 ↑ 000°"
+  ],
+  "hint": "F · 操作设施面板（2.7米） · 左中右操作台均可使用",
+  "powered": true,
+  "errors": []
+}

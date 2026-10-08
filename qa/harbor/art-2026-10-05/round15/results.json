@@ -1,0 +1,143 @@
+{
+  "method": "Diagnostic fixed camera positions, actual main-game renderer; finish() timing includes GPU stall and is not player FPS. Recording frames show the existing recorded-only creature.",
+  "errors": [],
+  "stats": [
+    {
+      "name": "entry",
+      "milliseconds": 1597.3000001907349,
+      "warmedMilliseconds": [
+        42.90000009536743,
+        42.69999980926514,
+        41
+      ],
+      "info": {
+        "frame": 354,
+        "calls": 5834,
+        "triangles": 4816746,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "maintenance",
+      "milliseconds": 4032.1000003814697,
+      "warmedMilliseconds": [
+        60.799999713897705,
+        59.09999990463257,
+        59.90000009536743
+      ],
+      "info": {
+        "frame": 454,
+        "calls": 7408,
+        "triangles": 7841330,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "arrival",
+      "milliseconds": 42.19999980926514,
+      "warmedMilliseconds": [
+        20.5,
+        21.200000286102295,
+        22.199999809265137
+      ],
+      "info": {
+        "frame": 554,
+        "calls": 2329,
+        "triangles": 8740458,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "observe",
+      "milliseconds": 46.09999990463257,
+      "warmedMilliseconds": [
+        21.90000009536743,
+        19,
+        18.299999713897705
+      ],
+      "info": {
+        "frame": 654,
+        "calls": 1975,
+        "triangles": 8411256,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "lure",
+      "milliseconds": 45,
+      "warmedMilliseconds": [
+        17.90000009536743,
+        17.199999809265137,
+        16.40000009536743
+      ],
+      "info": {
+        "frame": 754,
+        "calls": 1590,
+        "triangles": 8125950,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "power",
+      "milliseconds": 55,
+      "warmedMilliseconds": [
+        32.40000009536743,
+        37.5,
+        24
+      ],
+      "info": {
+        "frame": 854,
+        "calls": 2342,
+        "triangles": 8811828,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "deep-shaft",
+      "milliseconds": 33,
+      "warmedMilliseconds": [
+        17.90000009536743,
+        17.5,
+        16.5
+      ],
+      "info": {
+        "frame": 974,
+        "calls": 1409,
+        "triangles": 8371842,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    },
+    {
+      "name": "layout-overview",
+      "milliseconds": 38.90000009536743,
+      "warmedMilliseconds": [
+        21.399999618530273,
+        24.40000009536743,
+        20.300000190734863
+      ],
+      "info": {
+        "frame": 1074,
+        "calls": 2120,
+        "triangles": 8685180,
+        "points": 3600,
+        "lines": 0
+      },
+      "blenderLoaded": true
+    }
+  ],
+  "liveMonsterHidden": true
+}

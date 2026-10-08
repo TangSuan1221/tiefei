@@ -1,0 +1,27 @@
+{
+  "scene": "Rescue_Power_Cabinet_20261005",
+  "bounds": {
+    "min": [
+      -1.0399999618530273,
+      -1.5999999046325684,
+      -0.3199999928474426
+    ],
+    "max": [
+      1.0399999618530273,
+      1.5999999046325684,
+      0.3199999928474426
+    ]
+  },
+  "meshes": 6,
+  "vertices": 5594,
+  "materials": [
+    "rescue_power_ochre",
+    "rescue_power_teal",
+    "rescue_power_steel",
+    "rescue_power_rubber",
+    "rescue_power_brass",
+    "rescue_power_ivory"
+  ],
+  "front": "+Z",
+  "original_scene": "L01_Rescue_Harbor_Art.002"
+}

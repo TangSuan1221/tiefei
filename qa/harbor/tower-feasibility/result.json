@@ -1,0 +1,316 @@
+{
+  "realNavigationSolidCount": 6658,
+  "doorState": "all physically opened for static route feasibility only",
+  "report": [
+    {
+      "towers": [
+        [
+          35,
+          24,
+          2.7
+        ],
+        [
+          85,
+          30,
+          2.7
+        ]
+      ],
+      "routes": {
+        "arrival": {
+          "count": 1001,
+          "newBlocked": 0,
+          "baselineBlocked": 1,
+          "examples": []
+        },
+        "operations": {
+          "count": 919,
+          "newBlocked": 0,
+          "baselineBlocked": 0,
+          "examples": []
+        },
+        "east": {
+          "count": 334,
+          "newBlocked": 0,
+          "baselineBlocked": 74,
+          "examples": []
+        },
+        "south": {
+          "count": 529,
+          "newBlocked": 0,
+          "baselineBlocked": 1,
+          "examples": []
+        }
+      },
+      "turns": [
+        {
+          "p": [
+            42,
+            28
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            60,
+            27
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            78,
+            26
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            34,
+            35
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            44,
+            35
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            78,
+            23
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 342
+        },
+        {
+          "p": [
+            88,
+            23
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 720
+        }
+      ],
+      "occludedRays": []
+    },
+    {
+      "towers": [
+        [
+          44,
+          14,
+          2.7
+        ],
+        [
+          80,
+          16,
+          2.7
+        ]
+      ],
+      "routes": {
+        "arrival": {
+          "count": 1001,
+          "newBlocked": 0,
+          "baselineBlocked": 1,
+          "examples": []
+        },
+        "operations": {
+          "count": 919,
+          "newBlocked": 0,
+          "baselineBlocked": 0,
+          "examples": []
+        },
+        "east": {
+          "count": 334,
+          "newBlocked": 0,
+          "baselineBlocked": 74,
+          "examples": []
+        },
+        "south": {
+          "count": 529,
+          "newBlocked": 0,
+          "baselineBlocked": 1,
+          "examples": []
+        }
+      },
+      "turns": [
+        {
+          "p": [
+            42,
+            28
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            60,
+            27
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            78,
+            26
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            34,
+            35
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            44,
+            35
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            78,
+            23
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 342
+        },
+        {
+          "p": [
+            88,
+            23
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 720
+        }
+      ],
+      "occludedRays": [
+        {
+          "from": [
+            78,
+            0,
+            26
+          ],
+          "to": [
+            77,
+            -0.1,
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "towers": [
+        [
+          44,
+          16,
+          2.7
+        ],
+        [
+          84,
+          16,
+          2.7
+        ]
+      ],
+      "routes": {
+        "arrival": {
+          "count": 1001,
+          "newBlocked": 0,
+          "baselineBlocked": 1,
+          "examples": []
+        },
+        "operations": {
+          "count": 919,
+          "newBlocked": 0,
+          "baselineBlocked": 0,
+          "examples": []
+        },
+        "east": {
+          "count": 334,
+          "newBlocked": 0,
+          "baselineBlocked": 74,
+          "examples": []
+        },
+        "south": {
+          "count": 529,
+          "newBlocked": 0,
+          "baselineBlocked": 1,
+          "examples": []
+        }
+      },
+      "turns": [
+        {
+          "p": [
+            42,
+            28
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            60,
+            27
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            78,
+            26
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            34,
+            35
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            44,
+            35
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 0
+        },
+        {
+          "p": [
+            78,
+            23
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 342
+        },
+        {
+          "p": [
+            88,
+            23
+          ],
+          "newBlocked": 0,
+          "baselineBlocked": 720
+        }
+      ],
+      "occludedRays": []
+    }
+  ]
+}

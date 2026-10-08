@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "counts": {
+    "elias": 1188,
+    "monster": 2349,
+    "lamps": 34
+  },
+  "failures": []
+}

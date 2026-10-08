@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "date": "2026-10-03",
+  "tool": "tools/harbor-rescue-save-browser-check.mjs",
+  "entry": "http://127.0.0.1:5174/",
+  "checks": [
+    "negative and NaN dt do not change site elapsed",
+    "new game receiver handshake",
+    "safe-location save",
+    "page reload and real Continue button",
+    "navigation target and radio progress restore",
+    "sonar analysis records and result page restore",
+    "legacy adapter rejected without writes"
+  ],
+  "method": "Automated formal-entry browser. Diagnostic submarine positions and a valid sonar record fixture; not a human blind playtest. No gameplay validation rules bypassed.",
+  "pageErrors": []
+}

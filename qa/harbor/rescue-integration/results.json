@@ -1,0 +1,109 @@
+{
+  "diagnosticPlacement": true,
+  "analysisMediaBoundary": "playable flag supplied after actual sensor-frame exposure; no video playback UI test",
+  "checks": {
+    "cancelled": {
+      "phase": "failed",
+      "registered": 0,
+      "identified": false
+    },
+    "tolerance": [],
+    "wrongHeading": {
+      "visible": false,
+      "report": [
+        "曝光镜头 88° / 俯仰 0°；艇位 60.8 / 0.0 / 27.0。镜头偏向：用J/L向左转约88°，朝北。",
+        "调整完成后重新曝光，旧片不会随当前艇位改变。"
+      ],
+      "identified": false
+    },
+    "threat": {
+      "e": {
+        "diagnostic": "曝光镜头 0° / 俯仰 0°；艇位 60.8 / 0.0 / 27.0。取景可拍摄 · 曝光后分析新片",
+        "version": 1,
+        "id": "rescue-219",
+        "kind": "threat",
+        "epoch": 0,
+        "visible": true,
+        "monsterInside": false,
+        "gateClosed": false,
+        "departed": false
+      },
+      "frames": 10,
+      "phase": "developing",
+      "identified": true
+    },
+    "stationHull": [
+      {
+        "name": "observe",
+        "clear": true
+      },
+      {
+        "name": "power",
+        "clear": true
+      },
+      {
+        "name": "lure",
+        "clear": true
+      }
+    ],
+    "noiseDeath": true,
+    "noiseHull": 0,
+    "power": true,
+    "open": true,
+    "inside": true,
+    "noPhoto": {
+      "isolated": false,
+      "closed": true
+    },
+    "lure": {
+      "e": {
+        "diagnostic": "曝光镜头 0° / 俯仰 0°；艇位 78.0 / 0.0 / 26.0。取景可拍摄 · 曝光后分析新片",
+        "version": 1,
+        "id": "rescue-220",
+        "kind": "lure",
+        "epoch": 3,
+        "visible": true,
+        "monsterInside": true,
+        "gateClosed": false,
+        "departed": false
+      },
+      "frames": 10,
+      "phase": "developing",
+      "confirmed": true
+    },
+    "isolated": true,
+    "gate": {
+      "e": {
+        "diagnostic": "曝光镜头 0° / 俯仰 0°；艇位 78.0 / 0.0 / 26.0。取景可拍摄 · 曝光后分析新片",
+        "version": 1,
+        "id": "rescue-221",
+        "kind": "gate",
+        "epoch": 4,
+        "visible": true,
+        "monsterInside": true,
+        "gateClosed": true,
+        "departed": false
+      },
+      "frames": 10,
+      "phase": "developing",
+      "verified": true
+    },
+    "departure": {
+      "e": {
+        "diagnostic": "曝光镜头 0° / 俯仰 0°；艇位 60.0 / 0.0 / 27.0。取景可拍摄 · 曝光后分析新片",
+        "version": 1,
+        "id": "rescue-222",
+        "kind": "departure",
+        "epoch": 4,
+        "visible": true,
+        "monsterInside": true,
+        "gateClosed": true,
+        "departed": true
+      },
+      "frames": 10,
+      "phase": "developing",
+      "complete": true
+    }
+  },
+  "errors": []
+}

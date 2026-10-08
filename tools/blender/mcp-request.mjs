@@ -1,0 +1,11 @@
+import net from 'node:net';
+import {readFile} from 'node:fs/promises';
+const [operation='get_scene_info', file] = process.argv.slice(2);
+const params = file ? {code:await readFile(file,'utf8')} : {};
+const socket=net.createConnection({host:'127.0.0.1',port:9876});
+socket.setTimeout(180000);
+let data='';
+socket.on('connect',()=>socket.write(JSON.stringify({type:operation,params})));
+socket.on('data',chunk=>{data+=chunk;let result;try{result=JSON.parse(data);}catch{return;}console.log(JSON.stringify(result,null,2));socket.end();});
+socket.on('timeout',()=>{console.error('Blender MCP timed out');socket.destroy();process.exitCode=1;});
+socket.on('error',error=>{console.error(error.message);process.exitCode=1;});

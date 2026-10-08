@@ -3,11 +3,15 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { PodRun } from '../sim/run';
 import { canonicalStation, type StationId } from '../types';
 import { HitMap } from './chrome';
-import { drawStationView, drawStationScreen, drawObservationWindow, type StationView } from './stations';
+import { drawStationView, drawStationScreen, drawObservationWindow, drawDrivingSonarInstrument, type StationView } from './stations';
 import { createReferenceMaterials } from './deepsea/reference-materials';
 import { addCabinDressing } from './cabin-dressing';
+import { buildCrtHousing } from './cabin-crt-art';
+import { drawCompactSonarDesk, sonarDeskState } from './sonar-desk';
+import { buildNavigationKeyboard } from './cabin-navigation-keyboard';
 import { buildIndustrialHelm } from './cabin-helm';
 import { damageAlarm } from './damage-alarm';
+import { buildPortholeArt, drawPortholeGlass } from './cabin-porthole-art';
 
 /** Metres: a sealed 2.3 × 4.0 × 2.1 pressure cell, not a screen gallery. */
 export class CabinThree {
@@ -15,7 +19,7 @@ export class CabinThree {
   private camera = new THREE.PerspectiveCamera(67, 1, 0.025, 15);
   private renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   private materials = createReferenceMaterials();
-  private screens: { id: StationId; mesh: THREE.Mesh; canvas: HTMLCanvasElement; texture: THREE.CanvasTexture; hits: HitMap; group: THREE.Group }[] = [];
+  private screens: { id: StationId; mesh: THREE.Mesh; canvas: HTMLCanvasElement; texture: THREE.CanvasTexture; hits: HitMap; group: THREE.Group; repeater?:boolean }[] = [];
   private ray = new THREE.Raycaster();
   private pickingCamera = new THREE.PerspectiveCamera();
   private focused: StationId | null = null;
@@ -28,20 +32,48 @@ export class CabinThree {
   private pitch = -.06;
   private walking = 0;
   private helmLook=0;
+  private manualLook=false;
+  private deviceZoom: 'nav'|'lab'|null=null;
+  deviceClick():boolean {
+    if(!this.isConsole(this.focused))return false;
+    let obj:THREE.Object3D|null=this.ray.intersectObjects(this.scene.children,true)[0]?.object??null;
+    let side: 'nav'|'lab'|null=null;
+    while(obj){if(obj.userData.deviceSide){side=obj.userData.deviceSide;break;}obj=obj.parent;}
+    if(this.deviceZoom){if(side===this.deviceZoom)return false;this.deviceZoom=null;this.manualLook=false;return true;}
+    if(side){this.deviceZoom=side;this.manualLook=false;return true;}return false;
+  }
+  private isConsole(id:StationId|null){return !!id&&['camera','nav','lab'].includes(id);}
+  consoleInReach(){return this.eye.z<.65&&Math.cos(this.yaw)>.25;}
   private storyLamps:THREE.MeshStandardMaterial[]=[];
   private helmStick = new THREE.Group();
   readonly helmInput={thrust:0,yaw:0};
   private impactAge=10;
   private impactStrength=0;
   impact(amount:number){this.impactAge=0;this.impactStrength=Math.min(1,Math.max(amount,this.impactStrength*.4));}
+  private updateNavigationKeyboard:((run:PodRun)=>void)|undefined;
   private helmKeys:THREE.Mesh[]=[];
   private helmLabels:THREE.Texture[]=[];
+  private portholeTextures:THREE.Texture[]=[];
 
   turn(dx:number,dy:number) {
-    if(this.focused==='camera'){this.helmLook=THREE.MathUtils.clamp(this.helmLook+dy*.0022,-.12,.70);return;}
-    if(this.focused) return;
+    if(this.focused&&!this.manualLook){
+      const direction=this.camera.getWorldDirection(new THREE.Vector3());
+      this.yaw=Math.atan2(-direction.x,-direction.z);
+      this.pitch=Math.asin(THREE.MathUtils.clamp(direction.y,-1,1));
+      this.manualLook=true;
+    }
     this.yaw-=dx*.0022;
-    this.pitch=THREE.MathUtils.clamp(this.pitch-dy*.0022,-1.15,1.15);
+    this.pitch=THREE.MathUtils.clamp(this.pitch-dy*.0022,-1.50,1.35);
+  }
+
+  releaseToAisle():void {
+    if(!this.focused)return;
+    const direction=this.camera.getWorldDirection(new THREE.Vector3());
+    this.eye.set(THREE.MathUtils.clamp(this.camera.position.x,-.40,.40),1.36,THREE.MathUtils.clamp(this.camera.position.z,-.88,1.28));
+    this.yaw=Math.atan2(-direction.x,-direction.z);
+    this.pitch=THREE.MathUtils.clamp(Math.asin(direction.y),-1.50,1.35);
+    this.approached=this.focused;
+    this.focused=null;this.focusedFace=null;this.preferredFace=null;
   }
 
   move(forward:number,right:number,dt:number):number {
@@ -57,8 +89,18 @@ export class CabinThree {
     return distance;
   }
 
+  private approached:StationId|null=null;
+  approach():StationId|null {
+    const direction=new THREE.Vector3(-Math.sin(this.yaw),0,-Math.cos(this.yaw));
+    for(const screen of this.screens){
+      const delta=screen.group.position.clone().sub(this.eye);delta.y=0;
+      if(screen.id===this.approached){if(delta.length()>1.04)this.approached=null;else continue;}
+      if(delta.length()<.91 && delta.normalize().dot(direction)>.72){this.approached=screen.id;return screen.id;}
+    }
+    return null;
+  }
   pose() {return {x:this.eye.x,z:this.eye.z,yaw:this.yaw,pitch:this.pitch,seatEye:this.camera.position.toArray(),helmLook:this.helmLook};}
-  private lamp = new THREE.PointLight(0x99d5ce, 3, 5, 2);
+  private lamp = new THREE.PointLight(0xd6d2b7, 3, 5, 2);
   private damageLights=[new THREE.PointLight(0xff1308,0,3.8,2),new THREE.PointLight(0xff1308,0,3.8,2)];
   private damageLens=new THREE.MeshStandardMaterial({color:0x400803,emissive:0xff1608,emissiveIntensity:0,roughness:.3});
   private normalLights:{light:THREE.Light;intensity:number}[]=[];
@@ -85,12 +127,12 @@ export class CabinThree {
     this.materials.steel.roughness = .73;
     this.materials.steel.metalness = .55;
     this.materials.steel.color.set('#697773');
-    this.scene.add(new THREE.HemisphereLight(0x8bb7be, 0x29201a, 0.65));
-    const consoleSpill=new THREE.PointLight(0xffbd72,1.3,3.3,2);
+    this.scene.add(new THREE.HemisphereLight(0xc2c7b2, 0x29201a, 0.85));
+    const consoleSpill=new THREE.PointLight(0xe2cda8,.72,3.3,2);
     consoleSpill.position.set(0,.65,-.8);this.scene.add(consoleSpill);
-    this.lamp.position.set(-0.25, 1.87, 0.3);
+    this.lamp.position.set(-0.12, 1.94, -.88);
     this.lamp.castShadow = true;
-    this.lamp.shadow.mapSize.set(1024, 1024);
+    this.lamp.shadow.mapSize.set(2048, 2048);
     this.lamp.shadow.bias = -0.001;
     this.scene.add(this.lamp);
     const emergency = new THREE.PointLight(0xff6431, 1.7, 4, 2);
@@ -140,6 +182,7 @@ export class CabinThree {
 
   private buildHelm() {
     buildIndustrialHelm(this.scene, this.helmStick, this.helmKeys, this.helmLabels);
+    this.updateNavigationKeyboard=buildNavigationKeyboard(this.scene,this.helmLabels);
   }
 
   private build() {
@@ -156,7 +199,7 @@ export class CabinThree {
         this.pipe(s, [[side*1.08,1.55,-1.65+i*.8],[side*.94,1.89,-1.65+i*.8],[0,2,-1.65+i*.8],[-side*.94,1.89,-1.65+i*.8]], .038, m.steel);
       }
       this.box(s, [.25,.25,3.9], [side*.99,1.97,.2], m.rubber, .07);
-      for(let j=0;j<3;j++) this.pipe(s, [[side*(.25+j*.14),2.01,-1.6],[side*(.3+j*.14),1.93,-.4],[side*(.32+j*.14),1.94,2]], .024, j===0?m.red:m.rubber);
+      for(let j=0;j<3;j++) this.pipe(s, [[side*(.25+j*.14),2.01,-1.6],[side*(.3+j*.14),1.93,-.4],[side*(.32+j*.14),1.94,2]], .024, j===0?m.steel:m.rubber);
       this.pipe(s, [[side*1.02,.25,-1.6],[side*1.01,.28,1.7],[side*.98,1.3,1.9]], .045, m.steel);
     }
     this.box(s,[2.3,2.1,.12],[0,1.05,-1.8],m.hull);
@@ -178,14 +221,16 @@ export class CabinThree {
     this.box(s,[.06,.45,.06],[.17,.20,1.67],m.steel);
     // Six equipment faces. The manipulator repeater retains the merged camera controls.
     this.terminal('life',[-.94,1.12,.72],Math.PI/2,.74,.65);
-    this.terminal('radio',[-.94,1.29,-.20],Math.PI/2,.74,.56);
+    this.terminal('radio',[-.94,1.29,1.48],Math.PI/2,.55,.48);
     // Separate port instruments from the optical aperture: neither glass nor
     // its text safe area sits behind the repeater housing.
-    this.terminal('camera',[.23,1.23,-1.53],0,1.24,.94);
+    this.terminal('camera',[0,1.48,-1.57],0,.88,.78);
     // 两套声纳共用这块左舷仪表：被动阵列常开，主动换能器需单独通电。
     // 它紧挨摄像台左侧，玩家无需转身去舱尾找声纳。
-    this.terminal('nav',[-.76,1.25,-1.53],0,.52,.82);
-    this.terminal('lab',[.94,1.14,-.20],-Math.PI/2,.74,.60);
+    this.terminal('nav',[-.60,1.25,-1.43],.55,.32,.25);
+    this.terminal('nav',[-.60,1.60,-1.43],.55,.32,.26,true);
+    this.terminal('lab',[.72,1.45,-1.35],-.12,.54,.43);
+
     this.terminal('salvage',[.94,1.12,.72],-Math.PI/2,.63,.47);
     // Tank rack, taped supply crate, film magazines and electrical service boxes.
     for(let i=0;i<3;i++) {
@@ -207,39 +252,22 @@ export class CabinThree {
     }
   }
 
-  private terminal(id: StationId, p: number[], yaw: number, w: number, h: number) {
+  private terminal(id: StationId, p: number[], yaw: number, w: number, h: number, repeater=false) {
     const group=new THREE.Group();group.position.set(p[0]!,p[1]!,p[2]!);group.rotation.y=yaw;
+    if(id==='nav'||id==='lab')group.userData.deviceSide=id;
     this.scene.add(group);
     const m=this.materials;
-    this.box(group,[w+.09,h+.11,.24],[0,0,-.10],m.hull,.045);
-    this.box(group,[w+.025,h+.025,.03],[0,0,.035],m.rubber,.014);
-    this.box(group,[w+.12,.07,.40],[0,-h/2-.11,-.01],m.steel,.02);
-    for(const side of [-1,1]) {
-      this.pipe(group,[[side*(w/2+.055),-.18,.03],[side*(w/2+.06),-.13,.10],[side*(w/2+.06),.15,.10],[side*(w/2+.055),.19,.03]],.015,m.steel);
-      for(const y of [-h/2,h/2]) this.box(group,[.025,.025,.016],[side*w/2,y,.05],m.steel);
-      this.pipe(group,[[side*.2,-h/2,-.16],[side*.2,-h/2-.2,-.2],[side*.28,-h/2-.34,-.17]],.017,m.rubber);
-    }
+    if(id!=='camera')this.portholeTextures.push(...buildCrtHousing(group,w,h));
     const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=720;
     const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
     texture.minFilter=THREE.LinearFilter;texture.generateMipmaps=false;
-    const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:texture,toneMapped:false}));
+    const mesh:THREE.Mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:texture,toneMapped:false}));
     mesh.position.z=.055;group.add(mesh);
     if(id==='camera') {
-      // Recessed, chamfered pressure-window surround, not two monitor bezels.
-      const outline=(width:number,height:number)=>[
-        [-width/2+.07,-height/2],[width/2-.07,-height/2],[width/2,-height/2+.07],[width/2,height/2-.07],
-        [width/2-.07,height/2],[-width/2+.07,height/2],[-width/2,height/2-.07],[-width/2,-height/2+.07],
-      ].map(p=>new THREE.Vector2(p[0],p[1]));
-      const shape=new THREE.Shape(outline(w+.19,h+.19));
-      shape.holes.push(new THREE.Path(outline(w-.035,h-.035).reverse()));
-      const rim=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.105,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.015,bevelThickness:.015}),m.steel);
-      rim.position.z=.065;rim.castShadow= rim.receiveShadow=true;group.add(rim);
-      for(const x of [-w/2,-w/4,0,w/4,w/2]) for(const y of [-h/2-.05,h/2+.05]) {
-        const bolt=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,.018,6),m.yellow);
-        bolt.rotation.x=Math.PI/2;bolt.position.set(x,y,.19);group.add(bolt);
-      }
+      this.portholeTextures.push(...buildPortholeArt(group,mesh,w,h));
     }
-    this.screens.push({id,mesh,canvas,texture,hits:new HitMap(),group});
+
+    this.screens.push({id,mesh,canvas,texture,hits:new HitMap(),group,repeater});
   }
 
   ensure(w: number,h: number) {
@@ -249,34 +277,46 @@ export class CabinThree {
 
   draw(ctx: CanvasRenderingContext2D,w:number,h:number,run:PodRun,_hits:HitMap,view:StationView & {dt:number}) {
     this.ensure(w,h);
+    if(this.focused!==run.at && !(this.isConsole(this.focused)&&this.isConsole(run.at)))this.manualLook=false;
     this.focused=run.at;
+    if(!this.isConsole(run.at))this.deviceZoom=null;
     if(!run.at || (this.preferredFace && canonicalStation(this.preferredFace)!==run.at)) this.preferredFace=null;
-    const target=this.screens.find(s=>s.id===(this.preferredFace??run.at));
+    const target=this.screens.find(s=>s.id===(this.isConsole(run.at)?'camera':this.preferredFace??run.at));
     this.focusedFace=target?.id??null;
     const pos=this.eye.clone();
     pos.y+=Math.sin(this.walking)*.009;
     const look=pos.clone().add(new THREE.Vector3(-Math.sin(this.yaw)*Math.cos(this.pitch),Math.sin(this.pitch),-Math.cos(this.yaw)*Math.cos(this.pitch)));
     if(target) {
       target.mesh.getWorldPosition(look);
-      const distance=target.id==='camera'?1.10:this.camera.aspect<1.3?1.05:.77;
-      pos.copy(target.group.localToWorld(new THREE.Vector3(0,target.id==='camera'?.09:.025,distance)));
+      const distance=target.id==='camera'?1.38:this.camera.aspect<1.3?1.05:.77;
+      pos.copy(target.group.localToWorld(new THREE.Vector3(0,target.id==='camera'?0:.025,distance)));
       // Keep the established helm seat; resizing the optical aperture must not
       // pull the operator backwards or sideways away from physical controls.
       if(target.id==='camera'){pos.x=0;look.x=0;}
-      if(target.id==='camera') look.y-=.08+Math.tan(this.helmLook)*distance;
+      if(['camera','nav','lab'].includes(target.id)) {
+        // One operator position: the side instruments only change gaze/optical focus.
+        pos.set(0,1.36,-.62);
+        if(target.id==='camera')look.set(0,1.35,-1.57);
+      }
     }
-    const k=1-Math.exp(-view.dt*5);
+    if(target&&this.manualLook)look.copy(pos).add(new THREE.Vector3(-Math.sin(this.yaw)*Math.cos(this.pitch),Math.sin(this.pitch),-Math.cos(this.yaw)*Math.cos(this.pitch)));
+    if(this.deviceZoom==='nav'){pos.set(-.71,1.29,-.40);look.set(-.71,1.30,-1.43);}
+    if(this.deviceZoom==='lab'){pos.set(.64,1.45,-.57);look.set(.72,1.45,-1.35);}
+    const k=1-Math.exp(-view.dt*7);
+    const focusFov=this.deviceZoom==='lab'?46:this.deviceZoom?60:this.isConsole(run.at)?65:67;
+    this.camera.fov+=(focusFov-this.camera.fov)*k;
+    this.camera.updateProjectionMatrix();
     this.camera.position.lerp(pos,k);this.look.lerp(look,k);
     this.camera.lookAt(this.look);
     this.helmStick.rotation.y=this.helmInput.yaw*.26;
-    this.helmStick.rotation.x=-this.helmInput.thrust*.28;
+    this.helmStick.position.y=this.helmInput.thrust*.13;
     for(const key of this.helmKeys) {
       const material=key.material as THREE.MeshStandardMaterial;
       material.emissiveIntensity=view.hovered===key.userData.control ? .65 : .12;
     }
     this.camera.rotateZ(-run.pilot.yawRate*.002);
     this.camera.position.y+=Math.sin(view.time*1.4)*Math.min(1,Math.abs(run.pilot.speed))*.004;
-    this.lamp.intensity=run.blackout?.18:1.8+Math.sin(view.time*2)*.06;
+    this.lamp.intensity=run.blackout?.18:2.7+Math.sin(view.time*2)*.06;
     const alarm=damageAlarm(run.hull,view.time);
     this.damageLights.forEach(light=>{light.intensity=alarm.intensity;});
     this.damageLens.emissiveIntensity=alarm.level?alarm.intensity*.6:0;
@@ -288,21 +328,39 @@ export class CabinThree {
       lamp.emissiveIntensity=collected?.55:i===run.campaign.chapter?.15+.10*Math.sin(view.time*2):0;
     });
     this.flood.position.y=.015+run.flood*.65+Math.sin(view.time*1.7)*run.flood*.006;
+    this.updateNavigationKeyboard?.(run);
     this.frame++;
     for(const [index,screen] of this.screens.entries()) {
       // Focused terminal stays live; peripheral terminals update at reduced rate.
-      if(screen!==target && this.frame!==1 && this.frame%6!==index) continue;
+      if(screen!==target && this.frame!==1 && this.frame%6!==index%6) continue;
       screen.hits.clear();
       const c=screen.canvas.getContext('2d')!;
       c.clearRect(0,0,1024,720);
-      if(screen.id==='camera') drawObservationWindow(c,run,screen.hits,view,screen===target);
-      else if(screen===target) drawStationView(c,run,screen.id,0,0,1024,720,screen.hits,view);
+      if(screen.repeater){
+        c.fillStyle='#04100b';c.fillRect(0,0,1024,720);
+        if(screen.id==='nav'){
+          c.save();c.scale(1,.62);
+          if(run.activeSonarEnabled&&run.powered){const nav=run.authoredSite?.navigationConsole;if(nav?.drawActive)nav.drawActive(c,1024,720);else drawDrivingSonarInstrument(c,run,1024,720,view.time);}
+          else{c.strokeStyle='#456d3e';c.lineWidth=3;for(const radius of [75,150,225,290]){c.beginPath();c.arc(512,360,radius,0,Math.PI*2);c.stroke();}c.fillStyle='#79b673';c.font='26px monospace';c.fillText('声纳断电 · 请开启下方电源',365,680);}
+          c.restore();const input=sonarDeskState(run);c.fillStyle='#10180e';c.fillRect(0,450,1024,270);c.textAlign='left';c.textBaseline='middle';
+          input.fields.forEach((value,i)=>{c.strokeStyle=input.axis===i?'#d9d59c':'#526447';c.lineWidth=3;c.strokeRect(18+i*332,460,320,74);c.fillStyle=input.axis===i?'#fff0b0':'#b9d296';c.font='bold 45px monospace';c.fillText('XYZ'[i]+' '+(value||'_'),28+i*332,497,298);screen.hits.add({id:'sonar.axis.'+i,x:18+i*332,y:460,w:320,h:74});});c.font='27px Microsoft YaHei';c.fillStyle='#c4c095';c.fillText(!run.powered?'艇内供电中断':!run.activeSonarEnabled?'电源 OFF · 开启后可扫描':run.sonarPulseEnabled?'正在周期扫描 · 持续发声':'静默 · 点击开启脉冲扫描',20,687,985);
+          for(const [id,label,x] of [['nav.active',run.activeSonarEnabled?'关闭声纳电源':'开启声纳电源',18],['nav.ping1',run.sonarPulseEnabled?'停止脉冲扫描':'开启脉冲扫描',520]] as const){c.fillStyle='#223820';c.fillRect(x,555,484,85);c.strokeStyle='#829c63';c.strokeRect(x,555,484,85);c.fillStyle='#e0e2af';c.font='bold 35px Microsoft YaHei';c.fillText(label,x+24,597,440);screen.hits.add({id,x,y:555,w:484,h:85});}
+        }else{
+          c.fillStyle='#d4a253';c.font='30px monospace';c.fillText('OPTICAL / RECORDER',55,70);
+          c.fillStyle='#647749';c.font='26px monospace';c.fillText('DEPTH '+Math.round(run.depth)+' m',55,615);c.fillText('HULL '+Math.round(run.hull*100)+' %',55,657);
+          if(run.selectedTape)drawStationScreen(c,run,'lab',1024,720,view);
+          else{c.strokeStyle='#315134';c.lineWidth=1;for(let y=135;y<540;y+=8){c.beginPath();c.moveTo(55,y);c.lineTo(970,y);c.stroke();}}
+        }
+      }
+      else if(screen.id==='nav')drawCompactSonarDesk(c,run,screen.hits,view.time);
+      else if(screen.id==='camera') drawObservationWindow(c,run,screen.hits,view,screen===target);
+      else if(screen===target || screen.id==='lab') drawStationView(c,run,screen.id,0,0,1024,720,screen.hits,view);
       else {
         c.fillStyle='#050d0d';c.fillRect(0,0,1024,720);
         c.save();
         drawStationScreen(c,run,screen.id,1024,720,view);
         c.restore();
-        if(screen.id==='radio' || screen.id==='lab') {
+        if(['radio','lab'].includes(screen.id)) {
           c.fillStyle='#071312';c.fillRect(42,104,940,550);
           c.fillStyle='#9daf8a';c.font='bold 66px monospace';c.textAlign='center';
           c.fillText(screen.id==='radio'?(run.radioWaiting?'INCOMING':'121.5 MHz'):`${run.unanalyzedCount} REELS`,512,305);
@@ -320,6 +378,20 @@ export class CabinThree {
         c.fillStyle='#202a2b';c.fillRect(22,22,405,29);
         c.fillStyle='#dca666';c.font='bold 20px monospace';
         c.fillText('ARM · 机械臂副控 / 共用摄像回路',30,44);
+      }
+      if(screen.id==='camera'){
+        // Cosmetic glass scatter only: recorded sensor frames remain untouched.
+        drawPortholeGlass(c);
+        c.save();c.globalCompositeOperation='screen';
+        const haze=c.createRadialGradient(430,170,30,510,330,610);haze.addColorStop(0,'rgba(67,105,99,.20)');haze.addColorStop(.6,'rgba(35,67,65,.16)');haze.addColorStop(1,'rgba(5,19,25,0)');c.fillStyle=haze;c.fillRect(0,0,1024,720);
+        for(let i=0;i<36;i++){const px=(i*137.37+Math.sin(view.time*.05+i)*7)%1024,py=(i*83.91+view.time*(.5+i%3))%720;c.fillStyle='rgba(133,179,177,'+(.035+(i%5)*.012)+')';c.beginPath();c.arc(px,py,.5+i%3*.45,0,Math.PI*2);c.fill();}
+        c.restore();
+      }
+      if(screen.id==='nav'||screen.id==='lab'){
+
+        c.save();c.globalCompositeOperation='multiply';c.fillStyle=screen.repeater&&screen.id==='nav'?'#a4ffa0':'#ffbc63';c.fillRect(0,0,1024,720);c.restore();
+        c.fillStyle='rgba(0,0,0,.12)';for(let y=0;y<720;y+=4)c.fillRect(0,y,1024,1);
+        const vignette=c.createRadialGradient(512,340,260,512,360,620);vignette.addColorStop(0,'rgba(0,0,0,0)');vignette.addColorStop(1,'rgba(0,0,0,.42)');c.fillStyle=vignette;c.fillRect(0,0,1024,720);
       }
       screen.texture.needsUpdate=true;
     }
@@ -347,13 +419,14 @@ export class CabinThree {
     this.ray.setFromCamera(new THREE.Vector2(x/w*2-1,1-y/h*2),this.pickingCamera);
     // First solid surface wins, so screens cannot be clicked through a cabinet.
     const hit=this.ray.intersectObjects(this.scene.children,true)[0];
-    if(hit && this.focused==='camera') {
+    if(hit && this.isConsole(this.focused)) {
       let object:THREE.Object3D|null=hit.object;
-      while(object){if(object.userData.control)return object.userData.control;object=object.parent;}
+      while(object){if(object.userData.control)return 'desk:'+(object.userData.station||'camera')+':'+object.userData.control;object=object.parent;}
     }
     if(!hit?.uv) return null;
     const screen=this.screens.find(s=>s.mesh===hit.object);
     if(!screen || (!this.focused && hit.distance>1.65)) return null;
+    if(this.isConsole(this.focused)&&this.isConsole(screen.id)){const action=screen.hits.pick(hit.uv.x*1024,(1-hit.uv.y)*720);return action?'desk:'+screen.id+':'+action:null;}
     if(this.focused && this.focusedFace===screen.id) return screen.hits.pick(hit.uv.x*1024,(1-hit.uv.y)*720);
     return `station:${screen.id}`;
   }
@@ -365,6 +438,12 @@ export class CabinThree {
   dispose() {
     this.scene.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();if(!Array.isArray(o.material))o.material.dispose();}});
     this.helmLabels.forEach(t=>t.dispose());
+    this.portholeTextures.forEach(t=>t.dispose());
     this.screens.forEach(s=>s.texture.dispose());this.materials.dispose();this.renderer.dispose();
   }
 }
+
+
+
+
+

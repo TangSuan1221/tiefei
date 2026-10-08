@@ -1,0 +1,39 @@
+{
+  "path": [
+    [
+      77,
+      1,
+      6.960000000000205
+    ]
+  ],
+  "entered": {
+    "inside": true,
+    "pos": [
+      76.92655015325312,
+      -0.5003176388962443,
+      15.257266675554595
+    ]
+  },
+  "exposure": {
+    "phase": "developing",
+    "frames": 10,
+    "confirmed": true,
+    "pos": [
+      76.99994386293982,
+      -0.5000002427685643,
+      6.96634152662577
+    ]
+  },
+  "followed": {
+    "inside": false,
+    "confirmed": false,
+    "pos": [
+      77,
+      -0.5,
+      26
+    ]
+  },
+  "closed": true,
+  "freeShutter": true,
+  "saveRestored": true
+}

@@ -1,3 +1,4 @@
+import { drawSonarDesk, sonarAction } from './sonar-desk';
 ﻿/**
  * 五个工位的近景。
  * ============================================================================
@@ -131,6 +132,7 @@ function drawStationViewInner(
   view: StationView,
 ): void {
   id = canonicalStation(id);
+  if(id==='nav'){drawSonarDesk(ctx,run,x,y,w,h,hits,view.time);return;}
   const refH = h;
   drawPanel(ctx, x, y, w, h, refH);
 
@@ -151,7 +153,7 @@ function drawStationViewInner(
   ctx.font = mono(bh * 0.42, 600);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('ESC 离开', bx + bw / 2, by + bh / 2);
+  ctx.fillText(id==='lab'?'返回总控':'ESC 离开', bx + bw / 2, by + bh / 2);
 
   if (id === 'camera') {
     drawCameraWorkbench(ctx, run, x + pad, y + pad + refH * 0.062, w - pad * 2, refH, hits, view);
@@ -162,14 +164,15 @@ function drawStationViewInner(
   }
 
   const screenY = y + pad + refH * 0.062;
-  const instrument=id==='nav'?run.authoredSite?.navigationConsole:undefined;
+  const instrument=undefined as import('../sim/authored-site').NavigationConsole|undefined;
   const screenH = h * (instrument?(instrument.editing?.30:.57):.70);
   const ctrlY = instrument?screenY+screenH+pad:y + h - pad - refH * 0.11;
   const ctrlH = refH * 0.10;
   const screenX = x + pad;
   const screenW = w - pad * 2;
 
-  const gain = run.powered || id === 'life' ? clamp01(run.blackout && id !== 'life' ? 0.04 : 0.15 + run.power * 0.9) : 0;
+  // Keep the bench's offline notice legible; this does not power playback or analysis.
+  const gain = id === 'lab' && !run.powered ? .85 : run.powered || id === 'life' ? clamp01(run.blackout && id !== 'life' ? 0.04 : 0.15 + run.power * 0.9) : 0;
   const noise = run.corruption * 0.45 + (run.mode === 'alert' ? 0.12 : 0.04);
 
   drawCRT(ctx, screenX, screenY, screenW, screenH, view.time, { gain, noise, warp: run.corruption * 0.4 }, (c) => {
@@ -502,6 +505,15 @@ function drawRadio(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: num
  * 不上卷，习性不会自己长到日志里。
  */
 function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: number): void {
+  if(!run.powered){
+    screenTitle(ctx,w*.06,h*.08,w*.88,'LAB  供电中断',h);
+    ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle='#efd6a3';ctx.font=cjk(h*.045,600);
+    ctx.fillText(`片盒保留 ${run.tapes.length} 卷 · 尚不能播放或核验`,w*.06,h*.30,w*.88);
+    ctx.font=cjk(h*.032,500);ctx.fillStyle='#d8d5ca';
+    const lines=run.blackout?['艇内总闸已断开。点击下方「恢复总闸」。','这不会开启主动声纳或探照灯。']:['艇内电池电量不足。点击「前往配电盘」。',`备用电池组：${run.count('sup.cell')} 组；在配电盘使用后返回分析台。`];
+    lines.forEach((line,i)=>ctx.fillText(line,w*.06,h*(.46+i*.12),w*.88));
+    return;
+  }
   const evidenceReport=evidenceReadouts.get(run);
   if(evidenceReport && !run.labVideoExpanded){
     screenTitle(ctx,w*.06,h*.08,w*.88,'LAB  EVIDENCE',h);
@@ -530,9 +542,9 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
   ctx.textBaseline = 'alphabetic';
 
   const listX = w * 0.06;
-  const listW = w * 0.34;
-  const bodyX = w * 0.44;
-  const bodyW = w * 0.50;
+  const listW = w * 0.28;
+  const bodyX = w * 0.38;
+  const bodyW = w * 0.56;
 
   ctx.fillStyle = rgba(PALETTE.boneWhisper, 0.7);
   ctx.font = mono(h * 0.028, 500);
@@ -541,16 +553,19 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
   ctx.fillText(`UNREAD  ${run.unanalyzedCount}`, listX + listW * 0.55, h * 0.16);
 
   if (!run.tapes.length) {
-    ctx.fillStyle = rgba(PALETTE.boneWhisper, 0.78);
-    ctx.font = cjk(h * 0.036, 400);
-    ctx.fillText('片盒是空的。', bodyX, h * 0.36);
-    ctx.fillText(`先在${stationRef('camera')}拍一卷，等冲洗完。`, bodyX, h * 0.44);
-    ctx.fillText('冲出来的片子会自动进盒。这里负责拆习性。', bodyX, h * 0.52);
+    ctx.fillStyle = '#efd6a3';
+    ctx.font = cjk(h * 0.064, 600);
+    ctx.fillText('片盒是空的', w * .09, h * .38);
+    ctx.fillStyle = '#dbd4be';ctx.font = cjk(h * .043, 500);
+    let emptyY=h*.51;
+    for(const line of [`先在${stationRef('camera')}拍一卷，等冲洗完。`,'冲出来的片子会自动进盒。这里负责拆习性。']){
+      for(const wrapped of layoutCJK(ctx,line,w*.80)){ctx.fillText(wrapped,w*.09,emptyY);emptyY+=h*.066;}
+    }
     return;
   }
 
-  const start = Math.max(0, run.tapeCursor - 4);
-  const vis = run.tapes.slice(start, start + 8);
+  const start = Math.max(0, run.tapeCursor - (run.authoredSite?.evidenceStatus?3:4));
+  const vis = run.tapes.slice(start, start + (run.authoredSite?.evidenceStatus?4:8));
   vis.forEach((tape, i) => {
     const idx = start + i;
     const y = h * 0.23 + i * h * 0.075;
@@ -558,8 +573,8 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
     ctx.fillStyle = here ? rgba(PALETTE.rustDeep, 0.55) : 'rgba(0,0,0,0)';
     if (here) ctx.fillRect(listX - w * 0.01, y - h * 0.04, listW + w * 0.02, h * 0.07);
     ctx.fillStyle = rgba(here ? PALETTE.ember : PALETTE.boneDim, here ? 0.95 : 0.7);
-    ctx.font = cjk(h * 0.028, here ? 600 : 400);
-    ctx.fillText(`${tape.analyzed ? '●' : '○'} ${tape.siteName}`, listX, y);
+    ctx.font = cjk(h * 0.036, here ? 600 : 500);
+    ctx.fillText(`${tape.analyzed ? '●' : '○'} ${tape.siteName}`, listX, y,listW);
     ctx.fillStyle = rgba(PALETTE.boneWhisper, 0.65);
     ctx.font = mono(h * 0.022, 500);
     ctx.fillText(TAPE_PURPOSE_CN[tape.purpose], listX, y + h * 0.028);
@@ -567,24 +582,24 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
 
   const tape = run.selectedTape;
   if (!tape) return;
-  ctx.save();ctx.translate(bodyX,h*.30);
-  ctx.fillStyle='#03080b';ctx.fillRect(0,0,bodyW,h*.34);
-  const recordingStatus=drawVerifiedRecording(ctx,run,bodyW,h*.34);
+  const verdict=tape.legId===run.leg.id?run.authoredSite?.evidenceStatus?.(tape.siteEvidence):undefined;
+  ctx.save();ctx.translate(bodyX,h*.365);
+  ctx.fillStyle='#03080b';ctx.fillRect(0,0,bodyW,h*.275);
+  const recordingStatus=drawVerifiedRecording(ctx,run,bodyW,h*.275);
   ctx.restore();
-  ctx.strokeStyle='#6d9990';ctx.strokeRect(bodyX,h*.30,bodyW,h*.34);
-  ctx.fillStyle='#accbc1';ctx.font=cjk(h*.023,500);ctx.fillText(recordingStatus,bodyX,h*.68);
+  ctx.strokeStyle='#6d9990';ctx.strokeRect(bodyX,h*.365,bodyW,h*.275);
+  ctx.fillStyle='#bbd4c9';ctx.font=cjk(h*.025,500);ctx.fillText(recordingStatus,bodyX,h*.685,bodyW);
   ctx.fillStyle = rgba(PALETTE.ember, 0.9);
-  ctx.font = cjk(h * 0.036, 600);
+  ctx.font = cjk(h * 0.045, 600);
   ctx.fillText(tape.siteName, bodyX, h * 0.22);
-  ctx.fillStyle = rgba(PALETTE.boneDim, 0.8);
-  ctx.font = cjk(h * 0.026, 400);
-  ctx.fillText(
-    tape.analyzed ? '读片完成。习性在下面。' : '未上卷。把这一卷送进读片机。',
-    bodyX,
-    h * 0.275,
-  );
+  ctx.fillStyle = verdict?(tape.analyzed?(verdict.accepted?'#79efd0':'#ffbb82'):'#efc576'):rgba(PALETTE.boneDim, 0.8);
+  ctx.font = cjk(h * 0.043, 600);
+  const verdictText=
+    verdict?(tape.ready===false?'显影中 · 尚未核验':!tape.analyzed?'录像已拍成 · 按3核验':verdict.accepted?'✓ 证据已核验':'× 证据未通过 · 需要重拍'):tape.analyzed ? '读片完成。习性在下面。' : '未上卷。把这一卷送进读片机。'
+  ;
+  layoutCJK(ctx,verdictText,bodyW).slice(0,2).forEach((line,index)=>ctx.fillText(line,bodyX,h*(.282+index*.053)));
 
-  const lines = tape.testDescription ? (tape.analyzed?tape.report:['3 核验本次拍摄描述']) : (tape.sensorFrames?.length ?? 0) < 3 && (tape.videoResult==='failed' || tape.videoResult==='prompt')
+  const lines = verdict && tape.analyzed ? [verdict.accepted?'核验结果：本卷证据有效。':'核验结果：本卷未取得有效目标证据。'] : tape.testDescription ? (tape.analyzed?tape.report:['3 核验本次拍摄描述']) : (tape.sensorFrames?.length ?? 0) < 3 && (tape.videoResult==='failed' || tape.videoResult==='prompt')
     ? ['未取得生成视频。不能据此判断怪物是否出现。', '现场证据与视频生成状态分开核验。']
     : tape.analyzed
     ? tape.report
@@ -594,8 +609,8 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
         tape.creatureMissing ? '那个红点没进画。' : '',
         '上卷之后才会有名字、习性和驱离办法。',
       ].filter(Boolean);
-  ctx.font = cjk(h * 0.026, 400);
-  ctx.fillStyle = rgba(PALETTE.bone, 0.82);
+  ctx.font = cjk(h * 0.037, 500);
+  ctx.fillStyle = '#ded8c4';
   let y = h * 0.73;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
@@ -604,9 +619,12 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
       continue;
     }
     const head = i === 0 || (!line.endsWith('。') && line.length < 18);
-    ctx.fillStyle = head ? rgba(PALETTE.ember, 0.9) : rgba(PALETTE.bone, 0.8);
-    ctx.fillText(line, bodyX, y);
-    y += h * 0.038;
+    ctx.fillStyle = head ? '#edce95' : '#ded8c4';
+    for(const wrapped of layoutCJK(ctx,line,bodyW)){
+      ctx.fillText(wrapped,bodyX,y);
+      y+=h*.052;
+      if(y>h*.94)break;
+    }
     if (y > h * 0.94) break;
   }
 }
@@ -650,7 +668,7 @@ function drawNav(
   ctx.fillStyle = rgba(PALETTE.phosphorMid, 0.92);
   ctx.fillText(`被动声纳 · 常开 · 仅方位${run.sweepPower===0?' · 当前':''}`,cx,h*.058);
   ctx.fillStyle=rgba(run.activeSonarEnabled?PALETTE.bloodHot:PALETTE.boneDim,.88);
-  ctx.fillText(`主动声纳 · ${run.activeSonarEnabled?'已通电 · 噪声外泄':'已断电'}${run.sweepPower>0?' · 当前':''}`,cx,h*.092);
+  ctx.fillText(`主动声纳 · ${run.activeSonarEnabled?(run.sonarEmitting?'脉冲发射中':'静默通电'):'已断电'}${run.sweepPower>0?' · 当前':''}`,cx,h*.092);
   ctx.fillStyle = rgba(PALETTE.boneWhisper, 0.65);
   ctx.font = mono(h * 0.028, 500);
   ctx.fillText('PPI  回波', cx, h * 0.96);
@@ -727,7 +745,7 @@ function drawNav(
       y + h * 0.038,
     );
     ctx.fillStyle = rgba(PALETTE.boneWhisper, 0.65);
-    ctx.fillText('A/D 航向  W/S 潜深  4 推进', rx, y + h * 0.072);
+    ctx.fillText('J/L 航向  PgUp/PgDn 潜深  4 推进', rx, y + h * 0.072);
   } else if (t) {
     /* 威胁文案已经写过 */
   } else if (site) {
@@ -849,14 +867,12 @@ function drawHeadingTape(
 /** 实时画面与物资侧栏并排，镜头按钮和机械臂按钮分成两排。 */
 export function drawObservationWindow(ctx:CanvasRenderingContext2D,run:PodRun,hits:HitMap,view:StationView,active:boolean):void {
   ctx.fillStyle='#050c0e';ctx.fillRect(0,0,1024,720);
-  ctx.save();ctx.beginPath();ctx.roundRect(18,18,988,684,60);ctx.clip();
-  drawCamera(ctx,run,1024,720,view);
+  ctx.save();
+  drawCamera(ctx,run,1024,720,view,true);
   const shade=ctx.createRadialGradient(512,300,170,512,330,610);
   shade.addColorStop(0,'rgba(0,8,11,0)');shade.addColorStop(1,'rgba(0,5,8,.85)');
   ctx.fillStyle=shade;ctx.fillRect(0,0,1024,720);ctx.restore();
-  ctx.strokeStyle='#7b9584';ctx.lineWidth=2;ctx.strokeRect(468,54,88,4);
-  ctx.fillStyle='#b6bba0';ctx.font='18px monospace';ctx.textAlign='left';
-  ctx.fillText(`CAM-01   ${run.depth.toFixed(0)} m   ${(run.pilot.speed*(run.phase==='transit'?10:1)).toFixed(2)} m/s   ${run.powered?'ONLINE':'无供电'}`,66,46);
+
 }
 
 function drawCameraWorkbench(
@@ -912,21 +928,29 @@ function drawCamera(
   w: number,
   h: number,
   view: StationView,
+  circular = false,
 ): void {
   const aim = run.cameraOnTarget();
   const t = run.threat;
   const reveal = t ? clamp01(t.lookedAt / 1.6) : 0;
   drawCameraFeed(ctx, w, h, { run, time: view.time, aim, reveal });
   if(run.phase==='site' && run.authoredSite){
-    if(!run.shot.viewing)run.authoredSite.drawInteraction?.(ctx,w,h);
+    if(!run.shot.viewing){
+      // Rectangular instrument captions must remain inside the circular glass.
+      // Keep the centre reticle aligned with the optical centre; only UI is inset.
+      ctx.save();
+      if(circular)ctx.translate(w*.24,h*.11);
+      run.authoredSite.drawInteraction?.(ctx,circular?w*.52:w,circular?h*.78:h);
+      ctx.restore();
+    }
     const shot=run.shot;
     const status=shot.phase==='exposing'?`曝光中 · ${shot.exposeLeft.toFixed(1)}s`
       :shot.phase==='developing'?'冲洗中 · 可继续驾驶'
       :shot.phase==='failed'?'视频未生成 · 分析台查阅'
       :shot.phase==='ready'?'片盒有记录 · 分析台核验'
-      :run.mode==='alert'?'舱外异响 · 留意声源与推进噪声':'LIVE · 实时监视';
+      :run.mode==='alert'?'舱外异响 · 留意声源与推进噪声':'';
     ctx.fillStyle='#c8d9d0';ctx.font=cjk(Math.max(12,h*.019),500);ctx.textAlign='left';
-    ctx.fillText(status,w*.10,h*.92,w*.80);
+    ctx.fillText(status,w*(circular?.34:.10),h*(circular?.86:.92),w*(circular?.32:.80));
     return;
   }
   // 臂画在实景之上、读数之下：它是镜头前的东西，不是屏幕上的东西
@@ -1770,7 +1794,14 @@ function cameraDriveControls(run: PodRun): Control[] {
 }
 
 export function stationControls(run: PodRun, id: StationId): Control[] {
-  if(id==='nav'&&run.authoredSite?.navigationConsole)return run.authoredSite.navigationConsole.controls();
+  if(['nav'].includes(id))return [
+    {id:'nav.active',key:'2',label:'主动声纳电源'},
+    {id:'nav.ping1',key:'3',label:run.sonarPulseEnabled?'停止脉冲':'开启脉冲'},
+    {id:'sonar.analyze',key:'c',label:'分析频带'},
+    {id:'sonar.play',key:'p',label:'播放录存'},
+    {id:'sonar.reply',key:'m',label:'麦克风回复'},
+    {id:'sonar.home',key:'r',label:'返回主界面'},
+  ];
   const use = (sid: SupplyId, key: string): Control | null => {
     const n = run.count(sid);
     if (n <= 0) return null;
@@ -1843,6 +1874,7 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
                 : rolling ? '机子在走'
                 : run.phase !== 'site' ? '舱在动 · 会糊'
                 : !run.powered ? '没有电'
+                : run.authoredSite?.managesNarrative ? '任意位置 · 5秒曝光 · 6%电'
                 : isNoVideoMode() ? '提示词 · 不走接口'
                 : run.mode === 'alert' ? '5秒 · 它在靠近'
                 : purpose === 'survey' ? '5秒 · 生成下一段'
@@ -1888,17 +1920,23 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
     }
     case 'lab': {
       const tape = run.selectedTape;
+      if(!run.powered)return filterControls([
+        run.blackout?{id:'lab.restoreBus',key:'1',label:'恢复总闸',hint:'仅恢复艇内供电'}:null,
+        {id:'station:life',key:'2',label:'前往配电盘',hint:`备用电池 ×${run.count('sup.cell')}`},
+      ]);
+      const repairReport=tape?.siteEvidence!==undefined&&(tape.sensorFrames?.length??0)>=3&&tape.report[0]?.startsWith('GM 模拟分析');
+      const verdict=tape?.legId===run.leg.id?run.authoredSite?.evidenceStatus?.(tape?.siteEvidence):undefined;
       return filterControls([
         { id: 'lab.prev', key: '1', label: '上一卷', hint: '', state: run.tapes.length > 1 || evidenceReadouts.has(run) ? 'normal' : 'disabled' },
         { id: 'lab.next', key: '2', label: '下一卷', hint: '', state: run.tapes.length > 1 || evidenceReadouts.has(run) ? 'normal' : 'disabled' },
-        { id: 'lab.evidence', key: '7', label: '核验实物', hint: '已持有记录 · 交叉核验', state: run.powered && run.authoredSite?.analyzeEvidence ? 'normal' : 'disabled' },
+        run.authoredSite?.managesNarrative ? null : { id: 'lab.evidence', key: '7', label: '核验实物', hint: '已持有记录 · 交叉核验', state: run.powered && run.authoredSite?.analyzeEvidence ? 'normal' : 'disabled' },
         { id: 'lab.localPlayback', key: '5', label: localPlaybackStates.get(run)?.paused?'继续播放':'暂停播放', hint:'本地感光序列 · 非AI', state: tape?.ready && (tape.sensorFrames?.length??0)>=3 && tape.videoResult!=='video'?'normal':'disabled' },
         { id: 'lab.expand', key: '4', label: run.labVideoExpanded?'缩回录像':'放大录像', hint:'分析台全屏查看', state:tape?.ready?'active':'disabled' },
         {
           id: 'lab.analyze',
           key: '3',
-          label: tape?.analyzed ? '已拆过' : '上卷分析',
-          hint: tape ? (tape.ready === false ? '等待显影完成' : tape.analyzed ? '报告在屏上' : '6口气 · 扣电') : '片盒空',
+          label: repairReport ? '重新核验' : tape?.analyzed ? (verdict?(verdict.accepted?'证据通过':'未通过·重拍'):'已拆过') : '核验录像',
+          hint: tape ? (tape.ready === false ? '等待显影完成' : repairReport ? '读取本地摄影证据' : tape.analyzed ? '报告在屏上' : '6口气 · 扣电') : '片盒空',
           state:
             !tape || tape.ready === false ? 'disabled'
             : tape.analyzed ? 'active'
@@ -1923,13 +1961,13 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
       const atCharge = site && run.volume?.nodes.find((n) => n.id === run.volumeAt)?.role === 'charge';
       return filterControls([
         { id: 'nav.ping0', key: '1', label: '被动聆听', hint: '只报方位 · 无距离' },
-        { id: 'nav.active', key: '2', label: run.activeSonarEnabled?'关闭主动声纳':'开启主动声纳', hint: run.activeSonarEnabled?'换能器正在低鸣':'启动会产生噪声', state: run.activeSonarEnabled?'danger':undefined },
-        { id: 'nav.ping1', key: '3', label: '常规脉冲', hint: run.activeSonarEnabled?'测距 · 有噪声':'先开启主动声纳', state: run.activeSonarEnabled?undefined:'disabled' },
+        { id: 'nav.active', key: '2', label: run.activeSonarEnabled?'关闭主动声纳':'开启主动声纳', hint: run.sonarEmitting?'正在发射脉冲':'仅通电不发声', state: run.activeSonarEnabled?'danger':undefined },
+        { id: 'nav.ping1', key: '3', label: run.sonarPulseEnabled?'停止脉冲':'开启脉冲', hint: run.activeSonarEnabled?'测距 · 有噪声':'先开启主动声纳', state: run.activeSonarEnabled?undefined:'disabled' },
         { id: 'nav.ping2', key: 'Q', label: '全功率', hint: run.activeSonarEnabled?'整条沟都听见':'先开启主动声纳', state: run.activeSonarEnabled?'danger':'disabled' },
         { id: 'nav.left', key: 'A', label: '航向 −5°', hint: '' },
         { id: 'nav.right', key: 'D', label: '航向 +5°', hint: '' },
-        { id: 'nav.pitchUp', key: 'W', label: '上浮', hint: '潜深 −' },
-        { id: 'nav.pitchDown', key: 'S', label: '下潜', hint: '潜深 +' },
+        { id: 'nav.pitchUp', key: 'PageUp', label: '上浮', hint: '潜深 −' },
+        { id: 'nav.pitchDown', key: 'PageDown', label: '下潜', hint: '潜深 +' },
         {
           id: 'nav.thrDown',
           key: 'Z',
@@ -1997,6 +2035,7 @@ function filterControls(list: (Control | null)[]): Control[] {
 
 /** 处理一次点击/按键。返回是否消耗了这次输入。 */
 export function performControl(run: PodRun, actionId: string): boolean {
+  if(actionId.startsWith('sonar.'))return run.at==='nav' && sonarAction(run,actionId);
   if(actionId==='nav.thrust'&&run.at==='nav'&&run.authoredSite?.navigationConsole){run.navDriveEngaged=!run.navDriveEngaged;if(!run.navDriveEngaged)run.pilot.stop();return true;}
   if(actionId.startsWith('port.')&&run.at==='nav')return run.authoredSite?.navigationConsole?.action(actionId)??false;
   if(actionId==='weapon.decoy'||actionId==='weapon.pulse')return run.fireWeapon(actionId==='weapon.decoy'?'decoy':'pulse');
@@ -2040,6 +2079,11 @@ export function performControl(run: PodRun, actionId: string): boolean {
     return true;
   }
   switch (actionId) {
+    case 'lab.restoreBus':
+      if(run.at!=='lab'||!run.blackout)return false;
+      run.stopSonarPulses();
+      run.toggleBlackout();
+      return true;
     case 'life.blackout':
       run.toggleBlackout();
       return true;
@@ -2082,7 +2126,7 @@ export function performControl(run: PodRun, actionId: string): boolean {
       run.toggleActiveSonar();
       return true;
     case 'nav.ping1':
-      run.ping(1);
+      run.toggleSonarPulses();
       return true;
     case 'nav.ping2':
       run.ping(2);
@@ -2323,3 +2367,4 @@ function roundish(
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
 }
+

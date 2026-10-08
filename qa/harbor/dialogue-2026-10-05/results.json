@@ -1,0 +1,117 @@
+{
+  "method": "Diagnostic positions and accelerated subtitle clock; real receiver callbacks, actual camera frames, actual F raycast controls, actual E-console zoom/mouse reply and all reply dispatches. Not a human end-to-end playthrough.",
+  "intro": {
+    "stage": "stop",
+    "objective": "关闭主动声纳脉冲",
+    "saveRestored": true,
+    "feedbackPreserved": true
+  },
+  "photo": {
+    "stage": "photo",
+    "objective": "前往01：X60 Y0 Z27，朝北000°拍摄艾里亚斯附近，等待显影并分析录像",
+    "cues": [
+      "radio.squelch",
+      "sonar.chirp",
+      "radio.squelch",
+      "radio.squelch",
+      "radio.squelch",
+      "radio.squelch",
+      "radio.squelch",
+      "radio.squelch",
+      "creature.skitter",
+      "radio.squelch",
+      "radio.squelch"
+    ],
+    "shakes": [
+      0.2
+    ]
+  },
+  "ambience": {
+    "unchangedHull": true,
+    "cues": [
+      "creature.skitter",
+      "creature.breath-sync",
+      "creature.skitter",
+      "hull.ping-return",
+      "creature.breath-sync"
+    ],
+    "shakes": [
+      0.16
+    ]
+  },
+  "first": {
+    "frames": 10,
+    "objective": "已看清现场 · 点击麦克风向艾里亚斯回复"
+  },
+  "buttons": {
+    "compact": [
+      {
+        "id": "sonar.rescueReply.0",
+        "x": 626,
+        "y": 226,
+        "w": 360,
+        "h": 62
+      },
+      {
+        "id": "sonar.rescueReply.1",
+        "x": 626,
+        "y": 298,
+        "w": 360,
+        "h": 62
+      },
+      {
+        "id": "sonar.rescueReply.2",
+        "x": 626,
+        "y": 370,
+        "w": 360,
+        "h": 62
+      }
+    ],
+    "full": [
+      {
+        "id": "sonar.rescueReply.0",
+        "x": 585,
+        "y": 447,
+        "w": 400,
+        "h": 43
+      },
+      {
+        "id": "sonar.rescueReply.1",
+        "x": 585,
+        "y": 496,
+        "w": 400,
+        "h": 43
+      },
+      {
+        "id": "sonar.rescueReply.2",
+        "x": 585,
+        "y": 545,
+        "w": 400,
+        "h": 43
+      }
+    ],
+    "choices": [
+      "搞定了。",
+      "门关上了，它在里面。",
+      "你可以出来了。"
+    ]
+  },
+  "choices": [
+    {
+      "index": 0,
+      "departing": true,
+      "verified": true
+    },
+    {
+      "index": 1,
+      "departing": true,
+      "verified": true
+    },
+    {
+      "index": 2,
+      "departing": true,
+      "verified": true
+    }
+  ],
+  "errors": []
+}

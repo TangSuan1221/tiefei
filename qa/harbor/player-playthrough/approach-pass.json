@@ -1,0 +1,711 @@
+{
+  "trace": [
+    {
+      "label": "waypoint-set-via-keypad",
+      "position": [
+        11,
+        0,
+        10
+      ],
+      "heading": 180,
+      "at": "nav",
+      "opened": [],
+      "objective": "输入万斯坐标 X11 Y0 Z16，手动抵达A气闸前",
+      "caption": "万斯：接驳港入口坐标，X 11，Y 0，Z 16。输入左侧导航台，手动驶到气闸前，再沿维修湾通道进主港。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": false
+    },
+    {
+      "label": "first-door-before-F",
+      "position": [
+        11,
+        0,
+        18.338608608430192
+      ],
+      "heading": 180,
+      "at": "nav",
+      "opened": [],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "万斯：入口航点吻合。艇首保持朝门，缓慢前进到距门3.4米内，按Shift制动，再按F开门。门开后沿维修湾进主港。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "first-door-after-F",
+      "position": [
+        11,
+        0,
+        18.338608608430192
+      ],
+      "heading": 180,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "turn-180",
+      "position": [
+        11,
+        0,
+        18.338608608430192
+      ],
+      "heading": 180,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-11,20",
+      "position": [
+        11,
+        0,
+        20.088700952726626
+      ],
+      "heading": 180,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "turn-180",
+      "position": [
+        11,
+        0,
+        20.088700952726626
+      ],
+      "heading": 180,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-11,22",
+      "position": [
+        11,
+        0,
+        21.953753800577445
+      ],
+      "heading": 180,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "turn-162.08067197848436",
+      "position": [
+        11,
+        0,
+        21.953753800577445
+      ],
+      "heading": 161.7261905828999,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-11.5,23.5",
+      "position": [
+        11.512017445216326,
+        0,
+        23.49826200740498
+      ],
+      "heading": 161.6565374312894,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0.0035109036249450923,
+      "entryReached": true
+    },
+    {
+      "label": "turn-135.791419767226",
+      "position": [
+        11.512133689902319,
+        0,
+        23.498612606515753
+      ],
+      "heading": 135.26288598217587,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-12,24",
+      "position": [
+        11.99940029827077,
+        0,
+        23.98982240454806
+      ],
+      "heading": 135.2279386290387,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "turn-135.27291373212927",
+      "position": [
+        11.99940029827077,
+        0,
+        23.98982240454806
+      ],
+      "heading": 135.22792936111728,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-13,25",
+      "position": [
+        13.055273669666345,
+        0,
+        25.054130135421158
+      ],
+      "heading": 135.22792893257395,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0.004022575525750478,
+      "entryReached": true
+    },
+    {
+      "label": "turn-107.14804782227208",
+      "position": [
+        13.055644049724135,
+        0,
+        25.054503474089707
+      ],
+      "heading": 106.72332406015914,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-14.5,25.5",
+      "position": [
+        14.59089744332099,
+        0,
+        25.512939357935185
+      ],
+      "heading": 106.62220253183352,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0.005225770203445886,
+      "entryReached": true
+    },
+    {
+      "label": "turn-109.06829111182918",
+      "position": [
+        14.591917097354491,
+        0,
+        25.513243760280776
+      ],
+      "heading": 109.5787436177389,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-16,26",
+      "position": [
+        16.00297544198416,
+        0,
+        26.016224728832032
+      ],
+      "heading": 109.62059547632987,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0.005214274358064248,
+      "entryReached": true
+    },
+    {
+      "label": "turn-134.62122891556498",
+      "position": [
+        16.003975572727832,
+        0,
+        26.01658126451894
+      ],
+      "heading": 134.16873225769712,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-17,27",
+      "position": [
+        16.977645321087838,
+        0,
+        26.961537223663008
+      ],
+      "heading": 134.1413689637278,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0.0037158294917264303,
+      "entryReached": true
+    },
+    {
+      "label": "turn-135.87037137347886",
+      "position": [
+        16.97801835552446,
+        0,
+        26.96189924181912
+      ],
+      "heading": 136.2391062251687,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-17.5,27.5",
+      "position": [
+        17.4452756763916,
+        0,
+        27.450273218812253
+      ],
+      "heading": 136.2683537907035,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "turn-160.3051843657188",
+      "position": [
+        17.4452756763916,
+        0,
+        27.450273218812253
+      ],
+      "heading": 160.60747318757694,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-18,29",
+      "position": [
+        17.977910176501464,
+        0,
+        28.965706112096413
+      ],
+      "heading": 160.63600179762557,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0.003573736511517027,
+      "entryReached": true
+    },
+    {
+      "label": "turn-178.77921800785657",
+      "position": [
+        17.97805390236416,
+        0,
+        28.96611506380855
+      ],
+      "heading": 179.33954505720055,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-18,30",
+      "position": [
+        17.990311739299845,
+        0,
+        30.059732852890225
+      ],
+      "heading": 179.35897180118786,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "turn-179.88763851815906",
+      "position": [
+        17.990311739299845,
+        0,
+        30.059732852890225
+      ],
+      "heading": 179.3589731686693,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-18,35",
+      "position": [
+        18.046008077658158,
+        0,
+        35.037733872614695
+      ],
+      "heading": 179.3589732189182,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0.0033699656277278436,
+      "entryReached": true
+    },
+    {
+      "label": "turn-89.63599155384122",
+      "position": [
+        18.046011745897452,
+        0,
+        35.038061730773805
+      ],
+      "heading": 90.14188859966464,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-24,35",
+      "position": [
+        24.060417325109718,
+        0,
+        35.05688607345359
+      ],
+      "heading": 90.17970218431674,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0.008566634837425662,
+      "entryReached": true
+    },
+    {
+      "label": "turn-90",
+      "position": [
+        24.06213768531642,
+        0,
+        35.05689146920007
+      ],
+      "heading": 90.17970218435914,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "second-door-after-F",
+      "position": [
+        24.06213768531642,
+        0,
+        35.05689146920007
+      ],
+      "heading": 90.17970218436085,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C",
+        "harbor.edge.C-B"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "turn-89.58936233271402",
+      "position": [
+        24.06213768531642,
+        0,
+        35.05689146920007
+      ],
+      "heading": 90.17970218436085,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C",
+        "harbor.edge.C-B"
+      ],
+      "objective": "穿过维修湾，沿通道驶向主港",
+      "caption": "压力门正在开启，等待门叶完全让开再通过。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-32,35",
+      "position": [
+        32.074071958047526,
+        0,
+        35.082020140508604
+      ],
+      "heading": 90.17970218436085,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C",
+        "harbor.edge.C-B"
+      ],
+      "objective": "被动瀑布图38.4kHz：分析、播放、麦克风回复",
+      "caption": "被动接收机捕捉到断续的人声载波。",
+      "driveBlock": null,
+      "speed": 0.005154119766242796,
+      "entryReached": true
+    },
+    {
+      "label": "turn-89.83171648368369",
+      "position": [
+        32.07502414754983,
+        0,
+        35.08202312696059
+      ],
+      "heading": 90.17970218436085,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C",
+        "harbor.edge.C-B"
+      ],
+      "objective": "被动瀑布图38.4kHz：分析、播放、麦克风回复",
+      "caption": "被动接收机捕捉到断续的人声载波。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-60,35",
+      "position": [
+        59.97439130201345,
+        0,
+        35.16952684367559
+      ],
+      "heading": 90.17970218436085,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C",
+        "harbor.edge.C-B"
+      ],
+      "objective": "被动瀑布图38.4kHz：分析、播放、麦克风回复",
+      "caption": "被动接收机捕捉到断续的人声载波。",
+      "driveBlock": null,
+      "speed": 0.004237873301016376,
+      "entryReached": true
+    },
+    {
+      "label": "turn-0.17812961007365402",
+      "position": [
+        59.97497583700048,
+        0,
+        35.169528677014085
+      ],
+      "heading": 1.5346900586139895,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C",
+        "harbor.edge.C-B"
+      ],
+      "objective": "被动瀑布图38.4kHz：分析、播放、麦克风回复",
+      "caption": "被动接收机捕捉到断续的人声载波。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "drive-60,27",
+      "position": [
+        60.184617588733836,
+        0,
+        27.470199977015508
+      ],
+      "heading": 1.55989851416615,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C",
+        "harbor.edge.C-B"
+      ],
+      "objective": "被动瀑布图38.4kHz：分析、播放、麦克风回复",
+      "caption": "被动接收机捕捉到断续的人声载波。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "turn-0",
+      "position": [
+        60.184617588733836,
+        0,
+        27.470199977015508
+      ],
+      "heading": 0.19956219940536357,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C",
+        "harbor.edge.C-B"
+      ],
+      "objective": "被动瀑布图38.4kHz：分析、播放、麦克风回复",
+      "caption": "被动接收机捕捉到断续的人声载波。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    },
+    {
+      "label": "arrived-observation",
+      "position": [
+        60.184617588733836,
+        0,
+        27.470199977015508
+      ],
+      "heading": 0.19956219940536357,
+      "at": "nav",
+      "opened": [
+        "harbor.edge.A-C",
+        "harbor.edge.C-B"
+      ],
+      "objective": "被动瀑布图38.4kHz：分析、播放、麦克风回复",
+      "caption": "被动接收机捕捉到断续的人声载波。",
+      "driveBlock": null,
+      "speed": 0,
+      "entryReached": true
+    }
+  ]
+}

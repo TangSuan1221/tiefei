@@ -20,17 +20,31 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
   }
   const noise = new THREE.CanvasTexture(grain); noise.wrapS = noise.wrapT = THREE.RepeatWrapping;
   noise.repeat.set(3, 2); textures.push(noise);
-  const painted = (color: number) => new THREE.MeshStandardMaterial({color, metalness: .48, roughness: .83, roughnessMap: noise, bumpMap: noise, bumpScale: .00065});
+  // Correlated worn enamel: broad oxidation, fine scratches and exposed edges,
+  // rather than uniform high-contrast noise across every surface.
+  const enamel=document.createElement('canvas');enamel.width=enamel.height=1024;
+  const e=enamel.getContext('2d')!;e.fillStyle='#b8bbae';e.fillRect(0,0,1024,1024);
+  for(let i=0;i<180;i++){
+    const x=random()*1024,y=random()*1024,r=10+random()*65;
+    const g=e.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(25,31,25,.15)');g.addColorStop(1,'rgba(25,31,25,0)');e.fillStyle=g;e.fillRect(x-r,y-r,r*2,r*2);
+  }
+  for(let i=0;i<900;i++){
+    const edge=i<650;const x=random()*1024,y=edge?(random()<.5?random()*34:1024-random()*34):random()*1024;
+    e.fillStyle=i%3?'#65564a':'#8c8370';e.fillRect(x,y,1+random()*9,.5+random()*2.5);
+    if(i%7===0){e.fillStyle='rgba(47,31,19,.35)';e.fillRect(x,y+2,1+random()*2,4+random()*16);}
+  }
+  const enamelMap=new THREE.CanvasTexture(enamel);enamelMap.colorSpace=THREE.SRGBColorSpace;enamelMap.anisotropy=8;textures.push(enamelMap);
+  const painted = (color: number) => new THREE.MeshStandardMaterial({color,map:enamelMap,metalness:.48,roughness:.78,bumpMap:noise,bumpScale:.00035});
   const steel = painted(0x303b37), face = painted(0x45504a);
   const metal = new THREE.MeshStandardMaterial({color: 0x687578, metalness: .42, roughness: .72, roughnessMap: noise});
   const dark = new THREE.MeshStandardMaterial({color: 0x101512, roughness: .96, bumpMap: noise, bumpScale: .00035});
   const recess = new THREE.MeshStandardMaterial({color: 0x080c0b, roughness: .88});
   const ochre = painted(0x827044);
-  const panel = new THREE.Group(); panel.position.set(0, .65, -1.04); panel.rotation.x = -Math.PI / 2; scene.add(panel);
+  const panel = new THREE.Group(); panel.position.set(0, .88, -1.42); panel.rotation.x = -Math.PI * .31; panel.scale.set(.65, .58, .65); scene.add(panel);
   // Shielded task light makes engraving and paint readable below the window.
-  const taskLight = new THREE.PointLight(0xb8c8c1, .48, 1.65, 2);
+  const taskLight = new THREE.PointLight(0xc7dbd4, .38, 1.65, 2);
   taskLight.position.set(0, .20, .48); panel.add(taskLight);
-  const auxiliaryLight = new THREE.PointLight(0xcbd0bc, .23, .95, 2);
+  const auxiliaryLight = new THREE.PointLight(0xf0bb78, .20, .95, 2);
   auxiliaryLight.position.set(.57, .07, .39); panel.add(auxiliaryLight);
   const mesh = (parent: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) => {
     const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; parent.add(o); return o;
@@ -42,6 +56,17 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
   };
   const ring = (p: THREE.Object3D, r: number, tube: number, x: number, y: number, z: number, mat: THREE.Material) =>
     mesh(p, new THREE.TorusGeometry(r, tube, 8, 32), mat, x, y, z);
+  // Rear service deck joins the optical bulkhead to the existing live helm.
+  // It sits behind/below every control surface; no new gameplay hit targets.
+  const rear=new THREE.Group();rear.position.set(0,.90,-1.69);rear.rotation.x=-.12;scene.add(rear);
+  box(rear,1.25,.035,.22,0,0,0,steel,.008);
+  for(let i=0;i<5;i++){
+    const x=-.48+i*.24;box(rear,.215,.012,.16,x,.023,0,face,.003);
+    for(let j=0;j<6;j++)box(rear,.095,.002,.004,x,.031,-.065+j*.017,recess,.0005);
+    for(const dx of [-.089,.089])for(const dz of [-.075,.075]){
+      const bolt=mesh(rear,new THREE.CylinderGeometry(.003,.003,.002,10),metal,x+dx,.032,dz);
+    }
+  }
   const screw = (p: THREE.Object3D, x: number, y: number, z: number) => {
     cylinder(p, .0075, .0075, .003, x, y, z, metal, 16);
     const slot = box(p, .009, .0016, .0008, x, y, z + .0018, recess, .0002); slot.rotation.z = random() * Math.PI;
@@ -55,7 +80,7 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
     g.font = primary ? 'bold 86px "Microsoft YaHei", sans-serif' : '500 43px monospace';
     g.textAlign = 'center'; g.textBaseline = 'middle';
     g.fillStyle = '#070b08'; g.fillText(text, c.width / 2 + 1, c.height / 2 + 2, c.width - 24);
-    g.fillStyle = primary ? '#e3dec8' : '#b9b7a0'; g.fillText(text, c.width / 2, c.height / 2, c.width - 24);
+    g.fillStyle = primary ? '#af9b76' : '#b9b7a0'; g.fillText(text, c.width / 2, c.height / 2, c.width - 24);
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; textures.push(t);
     mesh(p, new THREE.PlaneGeometry(width, height), new THREE.MeshStandardMaterial({map: t, roughness: .9, metalness: .05, emissiveMap: t, emissive: 0xffffff, emissiveIntensity: primary ? .38 : .22}), x, y, z + .0012);
   };
@@ -67,7 +92,7 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
   box(panel, 1.72, .66, .12, 0, 0, 0, steel, .022);
   box(panel, 1.68, .62, .009, 0, 0, .063, recess, .012);
   box(panel, 1.655, .60, .008, 0, 0, .068, face, .008);
-  for (const x of [-.75, .75]) box(scene, .12, .55, .50, x, .31, -1.04, steel, .02);
+  for (const x of [-.75, .75]) box(scene, .10, .70, .28, x * .78, .35, -1.44, steel, .02);
   // Folded front lip and worn hand rest, with a narrow exposed metal edge.
   box(panel, 1.66, .027, .035, 0, -.316, .056, metal, .008);
   box(panel, 1.60, .031, .022, 0, -.315, .074, dark, .009);
@@ -83,10 +108,12 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
   plate(panel, 'OPTICS / 光学', -.065, .257, .082, .24, .019);
   plate(panel, 'AUXILIARY / 辅控', .475, .257, .082, .28, .019);
   plate(panel, 'KY-03 · HELM / 舵机', -.565, .24, .082, .32, .019);
-  plate(panel, '推进 / 反推 · 左右转舵', -.565, -.205, .082, .34);
+  plate(panel, '推进滑杆 / 反推 · 左右转舵', -.565, -.205, .082, .34);
   plate(panel, '24 V DC   /   SEALED   /   No. 0831', .21, -.258, .075, .49, .017);
   for (let i = 0; i < 7; i++) box(panel, .073, .004, .002, -.68, -.095 + i * .011, .082, recess, .001);
 
+  box(panel,.12,.37,.009,-.57,0,.085,recess);
+  for(const x of [-.625,-.515])box(panel,.008,.35,.009,x,0,.092,metal);
   // Stationary mounting flange and boot. Only the shaft/grip pivot with input.
   cylinder(panel, .091, .091, .009, -.57, 0, .087, metal);
   cylinder(panel, .079, .079, .012, -.57, 0, .096, dark);
@@ -110,12 +137,12 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
 
   const buttons = [
     ['camera.shoot', '曝光', 'EXPOSE'], ['camera.lamp', '照明', 'LAMP'],
-    ['camera.view', '前往分析台', 'ANALYSIS'], ['site.interact', '操作 / 取回', 'RETRIEVE'],
-    ['drive.center', '云台回中', 'CENTER'], ['helm.brake', '制动', 'BRAKE'],
+    ['camera.view', '前往分析台', 'ANALYSIS'], ['arm.extend', '机械臂操作', 'RETRIEVE'],
+    ['arm.retract', '收回机械臂', 'RETRACT'], ['helm.brake', '制动', 'BRAKE'],
     ['drive.depart', '离港', 'DEPART'], ['back', '离开座位', 'RELEASE'],
   ] as const;
   buttons.forEach(([id, title], i) => {
-    const x = -.20 + (i % 4) * .27, y = i < 4 ? .18 : -.10;
+    const x = -.20 + (i % 4) * .27, y = i < 4 ? .07 : -.16;
     const control = new THREE.Group(); control.position.set(x, y, .081); control.userData.control = id; panel.add(control);
     cylinder(control, .044, .044, .002, 0, 0, .001, recess);
     cylinder(control, .039, .039, .004, 0, 0, .003, metal);
@@ -158,3 +185,4 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
     plate(control,title,0,-.047,.003,.16,.035,true);
   }
 }
+

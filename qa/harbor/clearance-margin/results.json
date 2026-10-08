@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "hullMetres": [
+    2.8,
+    5,
+    3
+  ],
+  "lateralMarginMetres": 0.6,
+  "samples": 3366,
+  "doorState": "Static environment only; operable door leaves excluded",
+  "scope": "Actual formal world including rescue solids. Geometry audit, not a keyboard playthrough.",
+  "results": [
+    {
+      "id": "harbor.edge.A-C",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "id": "harbor.edge.C-B",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "id": "B south working lane",
+      "passed": true,
+      "failures": []
+    }
+  ]
+}

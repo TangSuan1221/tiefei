@@ -3,6 +3,46 @@ import type { ReferenceMaterials } from './deepsea/reference-materials';
 
 type Point = [number, number, number];
 
+/** Small, deterministic PBR set. Corrosion lives in patches and water runs,
+ * while rubbed ridges retain metal; avoids a uniform noisy brown surface. */
+function serviceMetal(painted: boolean): THREE.MeshStandardMaterial {
+  const size = 512;
+  const canvases = Array.from({ length: 3 }, () => {
+    const c = document.createElement('canvas'); c.width = c.height = size; return c;
+  });
+  const contexts = canvases.map(c => c.getContext('2d')!);
+  const images = contexts.map(c => c.createImageData(size, size));
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const patch = Math.sin(x * .031 + Math.sin(y * .017) * 2.3)
+      + Math.sin(y * .043 + x * .007) * .57 + Math.sin((x + y) * .091) * .21;
+    const grain = ((Math.imul(x + 71, 374761393) ^ Math.imul(y + 13, 668265263)) >>> 0) % 31 - 15;
+    const islands = Math.sin(x*.017 + Math.cos(y*.012)*2.4) * Math.cos(y*.019)
+      + Math.sin(x*.081 + y*.049)*.18;
+    const rust = painted ? islands > .38 || patch > 1.15 : patch > -.18;
+    const base = rust ? [65, 43, 31] : painted ? [75, 81, 70] : [79, 65, 49];
+    const streak = Math.pow(Math.max(0, Math.sin(x * .133 + Math.sin(x * .029))), 12) * 12;
+    const offset = (y * size + x) * 4;
+    for (let channel = 0; channel < 3; channel++) {
+      images[0]!.data[offset + channel] = base[channel]! + grain * .35 - streak;
+      images[1]!.data[offset + channel] = rust ? 224 + grain * .4 : 164 + grain;
+      images[2]!.data[offset + channel] = 128 + grain * .35 + (rust ? patch * 8 : 0);
+    }
+    for (const img of images) img.data[offset + 3] = 255;
+  }
+  contexts.forEach((ctx, i) => ctx.putImageData(images[i]!, 0, 0));
+  const textures = canvases.map(c => {
+    const texture = new THREE.CanvasTexture(c);
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.anisotropy = 4;
+    return texture;
+  });
+  textures[0]!.colorSpace = THREE.SRGBColorSpace;
+  const material = new THREE.MeshStandardMaterial({ map: textures[0], roughnessMap: textures[1],
+    bumpMap: textures[2], bumpScale: .0008, metalness: painted ? .38 : .66, roughness: 1 });
+  material.addEventListener('dispose', () => textures.forEach(t => t.dispose()));
+  return material;
+}
+
 /** Static, metre-scale dressing for CabinThree. Call once after the cabin is built.
  * All geometry stays outside x[-.42,.42], z[-.85,1.3], including overhead details.
  * No lights, interaction targets, shared-material mutations, or animation hooks.
@@ -12,9 +52,10 @@ export function addCabinDressing(scene: THREE.Scene, materials: ReferenceMateria
   const root = new THREE.Group();
   root.name = 'cabin-dressing';
   const m = materials;
-  const oxidized = new THREE.MeshStandardMaterial({ color: 0x554638, roughness: .96, metalness: .35 });
-  const repair = new THREE.MeshStandardMaterial({ color: 0x414b46, roughness: .91, metalness: .48 });
+  const oxidized = serviceMetal(false);
+  const repair = serviceMetal(true);
   const weld = new THREE.MeshStandardMaterial({ color: 0x777c70, roughness: .7, metalness: .75 });
+  const cableJacket = new THREE.MeshStandardMaterial({color:0x383b32,roughness:.56,metalness:.17});
 
   function mesh(parent: THREE.Object3D, geometry: THREE.BufferGeometry, material: THREE.Material, at: Point) {
     const object = new THREE.Mesh(geometry, material);
@@ -28,7 +69,7 @@ export function addCabinDressing(scene: THREE.Scene, materials: ReferenceMateria
   }
   function tube(parent: THREE.Object3D, points: Point[], radius: number, material: THREE.Material) {
     const path = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)), false, 'centripetal');
-    return mesh(parent, new THREE.TubeGeometry(path, 28, radius, 7, false), material, [0, 0, 0]);
+    return mesh(parent, new THREE.TubeGeometry(path, 48, radius, 16, false), material, [0, 0, 0]);
   }
   function group(name: string, at: Point, yaw = 0) {
     const object = new THREE.Group();
@@ -93,6 +134,14 @@ export function addCabinDressing(scene: THREE.Scene, materials: ReferenceMateria
     const face = mesh(parent, geometry, printed, at);
     face.castShadow = false;
     return face;
+  }
+
+  // Visible inner service skins replace the unweathered wall at the pilot's edges.
+  for (const side of [-1, 1]) {
+    const skin = group('pilot-service-skin-'+side, [side*1.087,1.08,-1.22], -side*Math.PI/2);
+    box(skin,[.93,1.72,.009],[0,0,0],repair);
+    for(const x of [-.43,.43]) for(const y of [-.77,-.25,.28,.77]) bolt(skin,x,y,.011);
+    for(let j=0;j<3;j++) tube(skin,[[-.38+j*.11,-.78,.045],[-.37+j*.11,-.1,.052],[-.30+j*.11,.28,.048],[-.30+j*.11,.8,.045]],.014+j*.003,side<0?oxidized:cableJacket);
   }
 
   const manifold = group('auxiliary-pressure-manifold', [-1.077, 1.72, -.26], Math.PI / 2);
@@ -176,7 +225,7 @@ export function addCabinDressing(scene: THREE.Scene, materials: ReferenceMateria
 
   // Structural enclosure around the forward pair, clear of their active faces.
   const forward = group('forward-console-service-frame', [0, 0, -1.62]);
-  box(forward, [1.94, .065, .15], [0, 1.69, 0], repair);
+  box(forward, [1.94, .045, .15], [0, 2.015, 0], repair);
   box(forward, [1.94, .065, .16], [0, .735, 0], oxidized);
   for (const x of [-1.015, 1.015]) {
     box(forward, [.07, .98, .15], [x, 1.20, 0], repair);
@@ -184,7 +233,7 @@ export function addCabinDressing(scene: THREE.Scene, materials: ReferenceMateria
   }
   // A warm, dull brass return manifold gives the lower silhouette readable detail
   // under the existing light, without adding emissive surfaces or another lamp.
-  const brass = new THREE.MeshStandardMaterial({ color: 0x87704d, roughness: .74, metalness: .58 });
+  const brass = oxidized;
   const returnLine = group('forward-return-manifold', [.56, .35, -1.57]);
   box(returnLine, [.40, .11, .065], [0, 0, 0], brass);
   for (const x of [-.13, 0, .13]) {
@@ -201,5 +250,95 @@ export function addCabinDressing(scene: THREE.Scene, materials: ReferenceMateria
   lever.rotation.z = -.32;
   for (const y of [-.10, .10]) bolt(fixture, .062, y, .043);
   tube(fixture, [[0, .125, 0], [0, .23, -.003], [.06, .36, -.004]], .012, m.steel);
+
+  // Service bundles follow the forward perimeter rather than crossing screens.
+  // Individually sagged cables catch small highlights and keep the aperture clear.
+  for (const side of [-1, 1]) {
+    for (const y of [.98, 1.72]) {
+      box(root, [.09, .015, .018], [side * .98, y, -1.655], weld);
+    }
+    const line = group(side < 0 ? 'port-coolant-riser' : 'starboard-coolant-riser',
+      [side * 1.072, 1.03, -.96], side < 0 ? Math.PI / 2 : -Math.PI / 2);
+    tube(line, [[-.22, -.58, .018], [-.22, -.11, .018], [-.19, .02, .018],
+      [.03, .05, .018], [.15, .15, .018], [.15, .63, .018]], .017, oxidized);
+    for (const y of [.24, .52]) {
+      mesh(line, new THREE.CylinderGeometry(.025, .025, .032, 6), oxidized, [.15, y, .018]);
+      box(line, [.075, .018, .009], [.15, y, -.009], repair);
+    }
+    // Compact wheel/bonnet assembly sits on the sidewall, outside walking space.
+    const wheel = mesh(line, new THREE.TorusGeometry(.053, .006, 6, 24), oxidized, [-.20, -.20, .066]);
+    wheel.name = 'coolant-manual-valve';
+    for (let i = 0; i < 3; i++) {
+      const spoke = box(line, [.10, .005, .007], [-.20, -.20, .066], oxidized);
+      spoke.rotation.z = i * Math.PI / 3;
+    }
+    const stem = mesh(line, new THREE.CylinderGeometry(.012, .012, .05, 10), weld, [-.20, -.20, .035]);
+    stem.rotation.x = Math.PI / 2;
+  }
+  // Four-CRT composition: hardware stays outside glass or between screen rows.
+  // Bolted, peeling service skins cover only peripheral wall strips. These are
+  // separate material instances, leaving level/environment paint untouched.
+  for(const side of [-1,1]){
+    const skin=group('forward-peeling-service-skin-'+side,[side*.98,1.29,-1.63]);
+    box(skin,[.30,1.60,.012],[0,0,0],repair);
+    for(const y of [-.70,-.40,-.10,.20,.50,.70]){
+      bolt(skin,side*.13,y,.010);
+    }
+    for(const y of [-.34,.40])box(skin,[.29,.005,.003],[0,y,.009],oxidized);
+  }
+  const plumbing = group('forward-port-pressure-tree', [0, 0, -1.48]);
+  for (let pipe = 0; pipe < 3; pipe++) {
+    const x = -1.01 + pipe * .04;
+    tube(plumbing, [[x, .58, -.015], [x, 1.06, .004], [x-.013, 1.42, .012],
+      [x-.01, 1.89, -.004], [x+.07, 2.005, -.035]], .013 + pipe*.003, oxidized);
+    for (const y of [.78, 1.18, 1.61, 1.9])
+      mesh(plumbing, new THREE.CylinderGeometry(.024+pipe*.003, .024+pipe*.003, .036, 6), oxidized, [x,y,.007]);
+  }
+  for (const [x,y,r] of [[-.97,1.95,.056],[-.99,1.52,.046],[-.99,.91,.047],[-.79,1.52,.044]] as [number,number,number][]) {
+    tube(plumbing, [[-1.025,y-.11,0],[x,y-.09,.017],[x,y,.024]], .009, oxidized);
+    const body=mesh(plumbing,new THREE.CylinderGeometry(r,r,.035,24),oxidized,[x,y,.042]);
+    body.rotation.x=Math.PI/2;
+    mesh(plumbing,new THREE.TorusGeometry(r*.91,.0045,6,32),weld,[x,y,.063]);
+    print(plumbing,r*1.7,r*1.7,[x,y,.064],0,true);
+  }
+  tube(plumbing,[[-1.04,1.50,.005],[-.92,1.50,.015],[-.76,1.50,.009],[-.59,1.50,-.015]],.013,oxidized);
+  tube(plumbing,[[-1.03,1.60,.006],[-.94,1.60,.006],[-.93,1.46,.014],[-.75,1.46,.014]],.008,oxidized);
+  tube(plumbing,[[-1.04,.77,.008],[-1.085,.75,.032],[-1.088,1.20,.03],[-1.025,1.24,.02]],.011,oxidized);
+  for(const x of [-.98,-.73,-.60]){
+    const union=mesh(plumbing,new THREE.CylinderGeometry(.021,.021,.035,6),oxidized,[x,1.50,.012]);
+    union.rotation.z=Math.PI/2;
+  }
+  for(const y of [.69,1.12]){
+    const valve=group('forward-pressure-valve-'+y,[-1.01,y,-1.475]);
+    mesh(valve,new THREE.TorusGeometry(.044,.006,8,28),oxidized,[0,0,0]);
+    for(let i=0;i<3;i++){
+      const spoke=box(valve,[.082,.007,.009],[0,0,0],oxidized);spoke.rotation.z=i*Math.PI/3;
+    }
+    bolt(valve,0,0,.006);
+  }
+  // Looms sag between CRT rows, never across their glass or buttons.
+  for(let i=0;i<9;i++){
+    const x=.93+i*.012;
+    tube(root,[[.50+i*.008,2.025,-1.52],[.83+i*.006,1.99,-1.49],
+      [x,1.84,-1.48],[x+.009,1.47,-1.48],[x,1.06,-1.48],[.92+i*.012,.86,-1.51]],
+    i%3===0?.008:.006,i===2||i===5?oxidized:cableJacket);
+    tube(root,[[.48+i*.009,1.585,-1.51],[.58+i*.008,1.52-i*.004,-1.485],
+      [.76+i*.005,1.51-i*.004,-1.48],[.93+i*.007,1.55,-1.485]],.005,i===3?oxidized:cableJacket);
+  }
+  for(const y of [1.08,1.53,1.9])box(root,[.116,.014,.012],[.978,y,-1.465],weld);
+  const notebook=group('film-service-notebook',[-.90,.82,-1.22]);
+  box(notebook,[.18,.017,.24],[0,0,0],oxidized);
+  const paper=new THREE.MeshStandardMaterial({color:0xb6a77f,roughness:.97});
+  box(notebook,[.168,.012,.228],[.004,.014,0],paper);
+  for(let row=0;row<9;row++)box(notebook,[.105-(row%3)*.012,.001,.0015],[.011,.0205,-.072+row*.016],repair);
+  box(notebook,[.024,.006,.25],[-.060,.027,0],m.rubber);
+  const tubeGlass=new THREE.MeshPhysicalMaterial({color:0x676b59,transparent:true,opacity:.38,roughness:.20,metalness:.1,depthWrite:false});
+  for(let i=0;i<2;i++){
+    const valve=group('spare-vacuum-tube-'+i,[.92+i*.074,.84,-1.20-i*.07]);
+    mesh(valve,new THREE.CylinderGeometry(.024,.025,.031,16),oxidized,[0,.015,0]);
+    mesh(valve,new THREE.CapsuleGeometry(.023,.073,5,16),tubeGlass,[0,.071,0]);
+    box(valve,[.012,.074,.009],[0,.064,0],weld);
+    for(const x of [-.009,.009])box(valve,[.002,.086,.002],[x,.061,0],oxidized);
+  }
   scene.add(root);
 }
