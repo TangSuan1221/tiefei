@@ -3,7 +3,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 
 /** Decorative CRT chassis. Local +Z faces the player; live glass stays at Z .055.
  * Every forward-facing part lies outside the existing rectangular display. */
-export function buildCrtHousing(group:THREE.Group,w:number,h:number):THREE.Texture[]{
+export function buildCrtHousing(group:THREE.Group,w:number,h:number,decorativeChin=true):THREE.Texture[]{
   const c=document.createElement('canvas');c.width=c.height=512;
   const ctx=c.getContext('2d')!;ctx.fillStyle='#a29b89';ctx.fillRect(0,0,512,512);
   let seed=90371;const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
@@ -37,12 +37,15 @@ export function buildCrtHousing(group:THREE.Group,w:number,h:number):THREE.Textu
   // Recessed front service buttons and knurled contrast dial, no hit targets.
   const cy=-h/2-chin*.56;
   const disk=(radius:number,depth:number,x:number,y:number,z:number,mat:THREE.Material)=>{const m=add(new THREE.CylinderGeometry(radius,radius,depth,24),mat,x,y,z);m.rotation.x=Math.PI/2;return m;};
-  for(let i=0;i<3;i++){const x=-w*.27+i*trim*.60;disk(trim*.20,.003,x,cy,.060,gasket);disk(trim*.14,.004,x,cy,.062,steel);}
-  const knobX=w*.33;disk(trim*.37,.005,knobX,cy,.060,gasket);disk(trim*.29,.013,knobX,cy,.066,steel);
-  box(.0015,trim*.25,.001,knobX,cy+trim*.13,.073,gasket,.0003);
-  for(let i=0;i<12;i++){const a=i*Math.PI/6;box(.001,.003,.008,knobX+Math.cos(a)*trim*.28,cy+Math.sin(a)*trim*.28,.066,gasket,.0002);}
-  // Fine vent cuts on the lower lip and visible screws stay outside aperture.
-  for(let i=0;i<9;i++)box(.0015,chin*.20,.001,-w*.04+i*.005,cy,.059,gasket,.0002);
+  if(decorativeChin){
+    for(let i=0;i<3;i++){const x=-w*.27+i*trim*.60;disk(trim*.20,.003,x,cy,.060,gasket);disk(trim*.14,.004,x,cy,.062,steel);}
+    const knobX=w*.33;disk(trim*.37,.005,knobX,cy,.060,gasket);disk(trim*.29,.013,knobX,cy,.066,steel);
+    box(.0015,trim*.25,.001,knobX,cy+trim*.13,.073,gasket,.0003);
+    for(let i=0;i<12;i++){const a=i*Math.PI/6;box(.001,.003,.008,knobX+Math.cos(a)*trim*.28,cy+Math.sin(a)*trim*.28,.066,gasket,.0002);}
+    // Fine vent cuts on the lower lip.
+    for(let i=0;i<9;i++)box(.0015,chin*.20,.001,-w*.04+i*.005,cy,.059,gasket,.0002);
+  }
+  // Visible screws stay outside aperture.
   for(const x of [-w/2-trim*.5,w/2+trim*.5])for(const y of [-h/2-chin*.7,h/2+trim*.5]){
     disk(.003,.0015,x,y,.059,steel);const slot=box(.0035,.0006,.0004,x,y,.060,gasket,.0001);slot.rotation.z=.6;
   }

@@ -1,0 +1,82 @@
+{
+  "asset": "living-creature-blind",
+  "units": "metres",
+  "axes": "Three.js local, +Y up (Blender authored as (x,-z,y), glTF +Y up)",
+  "triangles": {
+    "body": 25999,
+    "fins": 708,
+    "teeth": 6144
+  },
+  "totalTriangles": 32851,
+  "bounds": {
+    "min": [
+      -0.8,
+      -0.4,
+      -1.681
+    ],
+    "max": [
+      0.8,
+      0.434,
+      1.55
+    ],
+    "size": [
+      1.6,
+      0.834,
+      3.231
+    ]
+  },
+  "bones": [
+    "root",
+    "head",
+    "jaw",
+    "spine01",
+    "spine02",
+    "spine03",
+    "spine04",
+    "spine05",
+    "spine06",
+    "spine07",
+    "spine08"
+  ],
+  "clips": {
+    "swim": 1.2,
+    "idle": 3.0,
+    "sleep": 5.0,
+    "attack": 1.4
+  },
+  "textures": {
+    "skin": {
+      "color": "2048 webp q90 (alpha = thinness)",
+      "normal": "2048 webp lossless",
+      "orm": "1024 png"
+    },
+    "fin": {
+      "color": [
+        1024,
+        256
+      ]
+    },
+    "teeth": "COLOR_0 (alpha = thinness)"
+  },
+  "bytes": 4236024,
+  "build": "tools/blender/build-living-creature-blind.py",
+  "previews": "qa/living/creatures-r4/blender/blind-*.png",
+  "sources": "public/assets/deepsea/living/SOURCES.md",
+  "built": "2026-10-09 18:30",
+  "silhouette": [
+    "huge blunt eyeless skull on a fast-tapering body",
+    "underslung open jaw with long irregular teeth past the lips",
+    "dorsal spine crest + fleshy pectoral flaps + tall caudal fin"
+  ],
+  "headAxis": "-Z (procedural body group convention)",
+  "lod1": {
+    "file": "living-creature-blind.lod1.glb",
+    "bytes": 414424,
+    "triangles": {
+      "body_lod1": 7799,
+      "fins_lod1": 354,
+      "teeth_lod1": 3072
+    },
+    "totalTriangles": 11225
+  }
+}

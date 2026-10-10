@@ -1,4 +1,5 @@
 import { HarborRescueSite } from './deepsea/harbor-rescue-site';
+import { LivingDeckSite } from './deepsea/living-deck-site';
 /**
  * 逃生舱表现层。
  * ============================================================================
@@ -89,8 +90,8 @@ export class PodView {
     this.consolePrompt.style.cssText='position:fixed;left:50%;bottom:16%;transform:translateX(-50%);z-index:20;pointer-events:auto;padding:12px 20px;border:1px solid #d4bb82;border-radius:4px;background:#101d1ef2;color:#f0ddab;font:600 16px Microsoft YaHei,sans-serif;cursor:pointer;white-space:nowrap;max-width:94vw';
     this.consolePrompt.hidden=true;
     this.consoleStatus.id='cabin-interaction-status';
-    this.consoleStatus.textContent='交互中 · 左键操作 · 右键环视 · F 艇外设施 · Esc 离开';
-    this.consoleStatus.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:19;pointer-events:none;padding:8px 12px;background:#0a1415d9;color:#d4dfce;font:14px Microsoft YaHei,sans-serif;max-width:94vw;text-align:center';
+    this.consoleStatus.textContent='交互中 · 左键操作 · 右键环视 · F 艇外设施 · Esc 离开\n驾驶：J / L 转船头 · 空格推进 · N 倒车 · Shift 刹车 · PageUp / PageDown 升降 · 方向键只转镜头，H 镜头回中';
+    this.consoleStatus.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:19;pointer-events:none;padding:8px 12px;background:#0a1415d9;color:#d4dfce;font:14px Microsoft YaHei,sans-serif;max-width:94vw;text-align:center;white-space:pre-line';
     this.consoleStatus.hidden=true;
     document.getElementById('ui-root')!.append(this.consolePrompt,this.consoleStatus);
     this.pipeline = new PostPipeline(out);
@@ -101,16 +102,17 @@ export class PodView {
     if (!s || !h) throw new Error('[pod] 无法创建 2D 上下文');
     this.sctx = s;
     this.hctx = h;
-    run.createAuthoredSite=index=>index===0?new HarborRescueSite(run):new PodExpedition(run,index);
+    run.createAuthoredSite=index=>index===0?new HarborRescueSite(run):index===1?new LivingDeckSite(run):new PodExpedition(run,index);
     run.captureSensorFrame = () => {
-      const frame=document.createElement('canvas');frame.width=512;frame.height=360;
+      const size=run.authoredSite?.presentation?.sensorFrame,fw=size?.width??512,fh=size?.height??360;
+      const frame=document.createElement('canvas');frame.width=fw;frame.height=fh;
       const ctx=frame.getContext('2d',{alpha:false});
       if(!ctx)throw new Error('Sensor canvas unavailable');
-      drawCameraFeed(ctx,512,360,{run,time:this.clock,aim:run.cameraOnTarget(),reveal:0,keyframe:true});
-      const pixels=ctx.getImageData(0,0,512,360);
+      drawCameraFeed(ctx,fw,fh,{run,time:this.clock,aim:run.cameraOnTarget(),reveal:0,keyframe:true});
+      const pixels=ctx.getImageData(0,0,fw,fh);
       for(let i=0;i<pixels.data.length;i+=4)for(let c=0;c<3;c++)pixels.data[i+c]=255*Math.pow(pixels.data[i+c]/255,.7);
       ctx.putImageData(pixels,0,0);
-      return frame.toDataURL('image/jpeg',.72);
+      return frame.toDataURL('image/jpeg',size?.78:.72);
     };
     run.captureKeyframe = () => {
       const frame = document.createElement('canvas');
@@ -296,7 +298,9 @@ export class PodView {
 
   private drawHud(run: PodRun): void {
     const alive=run.outcome.kind==='alive';
-    this.consolePrompt.hidden=!alive||!!run.at||!this.cabin.consoleInReach();
+    this.consolePrompt.hidden=!alive||!!run.at;
+    const promptText=this.cabin.consoleInReach()?'E · 操作左侧 / 中间 / 右侧设备':'2 · 回驾驶台（右键拖动环视 · WASD 走动）';
+    if(this.consolePrompt.textContent!==promptText)this.consolePrompt.textContent=promptText;
     this.consoleStatus.hidden=!alive||!run.at||!['camera','nav','lab'].includes(run.at);
     const ctx = this.hctx;
     const w = this.hud.width;
@@ -306,7 +310,15 @@ export class PodView {
 
     if(run.authoredSite?.diegeticGuidance&&run.outcome.kind==='alive'){
       const caption=run.storyCaptionLeft>0&&run.storyCaption?run.storyCaption:'';
-      if(caption){
+      if(caption&&run.authoredSite.presentation?.captionBand){
+        // Seated: the band sits on the porthole's lower rim, above the console panel and keyboard; a device close-up has nothing below it.
+        const fs=Math.max(18,h*.026),bandW=Math.min(w*.56,fs*34),seated=!!run.at&&!this.cabin.zoomedDevice;
+        ctx.font=cjk(fs,500);ctx.textAlign='center';ctx.textBaseline='alphabetic';
+        const lines:string[]=[];let line='';for(const ch of caption){if(ctx.measureText(line+ch).width>bandW-fs*1.6){lines.push(line);line='';}line+=ch;}if(line)lines.push(line);
+        const shown=lines.slice(-3),lh=fs*1.42,bh=shown.length*lh+fs*.75,bottom=seated?h*.772:h*.985;
+        ctx.fillStyle='rgba(4,10,12,.78)';ctx.fillRect((w-bandW)/2,bottom-bh,bandW,bh);
+        ctx.fillStyle='#e5e7da';shown.forEach((s,i)=>ctx.fillText(s,w/2,bottom-bh+fs*.38+fs+i*lh));
+      }else if(caption){
         ctx.font=cjk(Math.max(16,h*.023),500);ctx.textAlign='left';ctx.fillStyle='#e5e7da';
         const lines:string[]=[];let line='';for(const ch of caption){if(ctx.measureText(line+ch).width>w*.72){lines.push(line);line='';}line+=ch;}if(line)lines.push(line);
         const fs=Math.max(16,h*.023);ctx.shadowColor='#000';ctx.shadowBlur=5;

@@ -1,5 +1,11 @@
 node_modules/
 dist/
+/.playtest-*/
+/qa/blind-play/
+/qa/living/
+/qa/playtest/
+/qa/reference/
+/assets/blender/vendor/*.zip
 .vite/
 *.log
 vite.log

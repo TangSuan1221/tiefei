@@ -13,7 +13,7 @@ export class HarborRescue {
  get state():Readonly<HarborRescueState>{return this.snapshot();}
  snapshot():HarborRescueState{return structuredClone(this.value);}
  private resetCycle(){const s=this.value;s.epoch++;s.lureSeconds=0;s.holdSeconds=0;s.monsterInside=false;s.lureConfirmed=false;}
- listen():RescueResult{const s=this.value;if(!s.signal||s.heard||s.failed)return result();s.heard=true;return result('艾里亚斯：有人收到吗？我是接驳港维修员艾里亚斯。我被困在断桥另一边。请回答。');}
+ listen():RescueResult{const s=this.value;if(!s.signal||s.heard||s.failed)return result();s.heard=true;return result('艾里亚斯：（录音。每隔九十秒，残余蓄电池让一台泵空转三秒，录音就卡在这三秒里）……泵站七，艾里亚斯，修泵的。一个人，断桥对面。……听见请回。小声。');}
  reply():RescueResult{const s=this.value;if(!s.heard||s.replied||s.failed)return result();s.replied=true;return result('罗温：听见了。我是事故调查员罗温，正在驾驶潜艇。你受伤了吗？','艾里亚斯：暂时没有。桥断了，你过不来。我把观察位坐标发给你，朝维修隔间拍一张，读片后告诉我外面有什么。');}
  step(dt:number,input:{nearB:boolean;zone:RescueZone;activeSonar:boolean;monsterInside?:boolean;monsterDistance?:number}):RescueResult{
   const s=this.value,out=result();if(!Number.isFinite(dt)||dt<=0||s.failed||s.complete)return out;
@@ -45,7 +45,8 @@ export class HarborRescue {
   if(zone==='observe'&&s.powered&&!s.isolated){
    if(!s.gateOpen){this.resetCycle();s.gateOpen=true;s.gateClosed=false;return result('01闸机已开启。去03开启脉冲，拍下怪物完全入仓，再停止脉冲返回这里。');}
    if(activeSonar)return result('先停止脉冲，再落闸。');
-   if(!s.monsterInside||!s.lureConfirmed){this.resetCycle();s.gateOpen=false;s.gateClosed=true;return result('艾里亚斯：它还在外面！你没有拍照确认就关门了。重新开闸，再引一次。');}
+   if(!s.monsterInside)return result('闸机开着。驶入03货舱最里面，开启脉冲把它引进去。');
+   if(!s.lureConfirmed){this.resetCycle();s.gateOpen=false;s.gateClosed=true;return result('艾里亚斯：它还在外面！你没有拍照确认就关门了。重新开闸，再引一次。');}
    s.epoch++;s.gateOpen=false;s.gateClosed=true;s.isolated=true;return result('闸机落下，怪物留在货仓。拍摄关闭的闸门与仓内目标，回分析台核验。');
   }
   if(zone==='observe')return result(s.powered?'货仓闸机已落下锁定。':'01闸机面板没有电，需先恢复02配电箱供电。');

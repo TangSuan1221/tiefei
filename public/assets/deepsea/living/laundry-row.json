@@ -1,0 +1,225 @@
+{
+  "asset": "laundry-row",
+  "scene": "Living_laundry-row",
+  "units": "metres",
+  "axes": "Three.js local: +Y up, +X east, +Z south (Blender authored as (x,-z,y), exported with export_yup)",
+  "front": "+Z",
+  "placement": {
+    "position": [
+      36,
+      0,
+      -22
+    ],
+    "rotationYDeg": 0.0,
+    "note": "apply as root.position / root.rotation.y in the living-deck world"
+  },
+  "bounds": {
+    "min": [
+      -7.938,
+      -3.029,
+      -1.728
+    ],
+    "max": [
+      0.85,
+      1.94,
+      3.882
+    ]
+  },
+  "triangles": 38876,
+  "bytes": 3775844,
+  "objects": [
+    {
+      "name": "laundry-row",
+      "tris": 20764,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "main",
+      "parent": null
+    },
+    {
+      "name": "machine-doors",
+      "tris": 4928,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "main",
+      "parent": null
+    },
+    {
+      "name": "bedsheets",
+      "tris": 6672,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "cloth",
+      "parent": null
+    },
+    {
+      "name": "shelving",
+      "tris": 5376,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "main",
+      "parent": null
+    },
+    {
+      "name": "battery-case",
+      "tris": 1040,
+      "origin": [
+        -7.0,
+        -0.6,
+        1.5
+      ],
+      "group": "battery",
+      "parent": null
+    },
+    {
+      "name": "stencils",
+      "tris": 84,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "decals",
+      "parent": null
+    },
+    {
+      "name": "battery-case-label",
+      "tris": 12,
+      "origin": [
+        -7.0,
+        -0.6,
+        1.5
+      ],
+      "group": "decals",
+      "parent": "battery-case"
+    }
+  ],
+  "anchors": {
+    "battery-case": {
+      "local": [
+        -7.0,
+        -0.6,
+        1.5
+      ],
+      "world": [
+        29.0,
+        -0.6,
+        -20.5
+      ]
+    },
+    "pod-park": {
+      "local": [
+        -7.0,
+        -0.6,
+        4.9
+      ],
+      "world": [
+        29.0,
+        -0.6,
+        -17.1
+      ]
+    },
+    "washer-2-door": {
+      "local": [
+        -2.9,
+        -2.18,
+        -0.55
+      ],
+      "world": [
+        33.1,
+        -2.18,
+        -22.55
+      ]
+    },
+    "lumen-ceiling-corner": {
+      "local": [
+        -11.5,
+        4.6,
+        -1.5
+      ],
+      "world": [
+        24.5,
+        4.6,
+        -23.5
+      ]
+    }
+  },
+  "materials": [
+    "lv_laundry_row_battery",
+    "lv_laundry_row_cloth",
+    "lv_laundry_row_decals",
+    "lv_laundry_row_main"
+  ],
+  "textures": {
+    "main": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        2048,
+        2048
+      ],
+      "normal": [
+        2048,
+        2048
+      ]
+    },
+    "cloth": {
+      "color": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ]
+    },
+    "battery": {
+      "color": [
+        512,
+        512
+      ],
+      "orm": [
+        512,
+        512
+      ],
+      "normal": [
+        512,
+        512
+      ]
+    },
+    "decals": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        1024,
+        1024
+      ]
+    }
+  },
+  "build": "tools/blender/build-living-laundry-row.py",
+  "preview": "qa/living/blender/laundry-row.png",
+  "sources": "public/assets/deepsea/living/SOURCES.md",
+  "notes": "Machines back onto the north wall of R1. 'battery-case' sits on the shelf; lift it straight out along +Z.",
+  "built": "2026-10-09 14:28",
+  "buildSeconds": 29.4
+}

@@ -13,9 +13,12 @@ import { stationForKey, type StationId } from '../types';
 import { PodRun } from '../sim/run';
 import { PodView } from './present';
 import { performControl, stationControls } from './stations';
+import { MIC_HOLD_MS, passiveUi, sonarAction, sonarDeskState } from './sonar-desk';
+import { PushToTalk, RadioTransmit } from './radio-transmit';
 import { bindGm, closeGmConsole, closePromptPanel, isGmConsoleOpen } from './gm';
 import { installFootageSink } from './footage';
 import { captureHarborSave, readHarborSave, restoreHarborSave, writeHarborSave } from '../sim/harbor-save';
+import { captureLivingSave, livingSlotTaken, readLivingSave, restoreLivingSave, writeLivingSave } from '../sim/living-save';
 
 const DEATH_TITLE: Record<string, string> = {
   asphyxiation: '氧气用完了',
@@ -31,13 +34,23 @@ const DEATH_TITLE: Record<string, string> = {
 
 export async function startPodSession(resume: boolean): Promise<void> {
   let saved:ReturnType<typeof readHarborSave>=null;
-  try {if(resume){saved=readHarborSave(localStorage);if(!saved)throw new Error('没有可恢复的港口存档。');}}
+  let living:ReturnType<typeof readLivingSave>=null;
+  try {
+    if(resume){
+      // Continue resumes whichever level checkpoint is newer; a broken one must not hide the other.
+      let harborError:unknown=null,livingError:unknown=null;
+      try{saved=readHarborSave(localStorage);}catch(error){harborError=error;}
+      try{living=readLivingSave(localStorage);}catch(error){livingError=error;}
+      if(saved&&living){if(living.savedAt>=saved.savedAt)saved=null;else living=null;}
+      if(!saved&&!living)throw (livingError??harborError??new Error('没有可恢复的存档。'));
+    }
+  }
   catch(error){window.alert(`无法继续：${error instanceof Error?error.message:String(error)}`);return;}
   const override = sessionStorage.getItem('ironlung.seedOverride');
   sessionStorage.removeItem('ironlung.seedOverride');
-  let seed = saved?.seed ?? (override ? Number(override) >>> 0 : (Date.now() ^ 0x9e3779b9) >>> 0);
+  let seed = saved?.seed ?? living?.seed ?? (override ? Number(override) >>> 0 : (Date.now() ^ 0x9e3779b9) >>> 0);
   // An explicit new game must never reuse another run's slot, including seed overrides.
-  if(!resume)try{while(localStorage.getItem(`ironlung.harbor.v1.${seed}`)!==null)seed=(seed+1)>>>0;}catch{/* Save reports unavailable storage in-game. */}
+  if(!resume)try{while(localStorage.getItem(`ironlung.harbor.v1.${seed}`)!==null||livingSlotTaken(localStorage,seed))seed=(seed+1)>>>0;}catch{/* Save reports unavailable storage in-game. */}
 
   const uiRoot = document.getElementById('ui-root') as HTMLDivElement;
   uiRoot.innerHTML = '';
@@ -50,7 +63,17 @@ export async function startPodSession(resume: boolean): Promise<void> {
 
   const run = new PodRun(seed);
   const view = new PodView(run, outCanvas);
-  if(!saved){run.beginHarborApproach();run.power=1;run.hull=1;run.activeSonarEnabled=true;run.sonarPulseEnabled=true;}
+  const startLevel=new URLSearchParams(location.search).get('level');
+  if(!saved&&!living){if(startLevel==='2')run.beginLivingDeck();else run.beginHarborApproach();run.power=1;run.hull=1;run.activeSonarEnabled=true;run.sonarPulseEnabled=startLevel!=='2';}
+  if(living){
+    try{if(!restoreLivingSave(run,living))throw new Error('第二关恢复接口未就绪或存档与当前关卡版本不匹配。');}
+    catch(error){
+      const panel=document.createElement('div');panel.style.cssText='position:fixed;inset:25%;padding:24px;background:#111;color:#eee;z-index:999';
+      panel.textContent=`恢复失败，原存档已保留：${error instanceof Error?error.message:String(error)}`;
+      const back=document.createElement('button');back.textContent='返回标题';back.onclick=()=>location.reload();panel.append(back);uiRoot.append(panel);return;
+    }
+    run.pushLog('-1层生活区进度已恢复。','system');
+  }
   if(saved){
     try{if(!restoreHarborSave(run,saved))throw new Error('关卡恢复接口未就绪或关卡版本不匹配。');}
     catch(error){
@@ -105,6 +128,12 @@ export class PodSession {
   private saveError='';
   private saveCheckpoint=():void=>{
     try{
+      if(this.run.legIndex===1){
+        const save=captureLivingSave(this.run);if(!save)return;
+        writeLivingSave(localStorage,save);
+        if(this.saveError)this.run.pushLog('第二关自动保存已恢复。','system');
+        this.saveError='';return;
+      }
       const save=captureHarborSave(this.run);if(!save)return;
       writeHarborSave(localStorage,save);
       if(this.saveError)this.run.pushLog('港口自动保存已恢复。','system');
@@ -192,18 +221,22 @@ export class PodSession {
     window.addEventListener('pagehide',this.saveCheckpoint);
     window.addEventListener('beforeunload',this.saveCheckpoint);
     this.wireSpatialAudio();
-    document.getElementById('cabin-interact')?.addEventListener('click',()=>this.enterConsole());
+    document.getElementById('cabin-interact')?.addEventListener('click',()=>{if(this.view.cabin.consoleInReach())this.enterConsole();else if(!this.run.at&&!this.syncInputBlock()&&this.run.outcome.kind==='alive'){void this.view.unlockAudio();this.run.walkTo('camera');this.keys.clear();}});
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('pointerdown', this.onPointer);
     window.addEventListener('pointermove', this.onMove);
-    window.addEventListener('pointerup', () => { this.dragLook = false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick(); });
-    window.addEventListener('pointercancel', () => {this.dragLook=false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick();});
+    window.addEventListener('pointerup', () => { this.dragLook = false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick();this.releaseMic(true); });
+    window.addEventListener('pointercancel', () => {this.dragLook=false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick();this.releaseMic(false);});
     window.addEventListener('contextmenu', e => {
       if((e.target===this.canvas || e.target===document.getElementById('ui-root'))) e.preventDefault();
     });
     window.addEventListener('wheel', this.onWheel, { passive: false });
-    document.addEventListener('pointerlockchange',()=>this.keys.clear());
+    const lockHint=document.createElement('div');
+    lockHint.textContent='鼠标已锁定，移动即环视 · 按 Esc 找回光标';
+    lockHint.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:90;padding:6px 14px;background:#0b1517d9;color:#d6d6bd;border:1px solid #647b73;font:14px monospace;pointer-events:none;display:none';
+    document.body.append(lockHint);
+    document.addEventListener('pointerlockchange',()=>{this.keys.clear();this.dragLook=false;lockHint.style.display=document.pointerLockElement===this.canvas?'block':'none';});
     window.addEventListener('blur', this.onBlur);
     window.addEventListener('focus', this.onFocus);
     document.addEventListener('visibilitychange', this.onVisibility);
@@ -241,6 +274,7 @@ export class PodSession {
     this.applyHeld(dt);
     this.run.frame(dt);
     this.view.frame(dt, this.run);
+    if(this.tx.open&&(this.run.at!=='nav'||this.run.outcome.kind!=='alive'||!this.run.authoredSite?.radioSay))this.tx.close();
     if(now>=this.saveAt){this.saveAt=now+15000;this.saveCheckpoint();}
     if((this.run.at || this.run.outcome.kind!=='alive' || this.blurred || isGmConsoleOpen()) && document.pointerLockElement===this.canvas) {
       document.exitPointerLock();this.keys.clear();
@@ -274,6 +308,7 @@ export class PodSession {
     this.run.navDriveEngaged=false;
     this.releaseStick();
     this.blurred = true;
+    this.releaseMic(false);
     this.dragLook = false;
     this.heldPilot=null;
     this.keys.clear();
@@ -343,6 +378,7 @@ export class PodSession {
     void this.view.unlockAudio();
     const key = interactKey?'e':facilityKey?'f':e.key.toLowerCase();
     if (isGmConsoleOpen()) return;
+    if((this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab')&&key==='m'&&this.run.authoredSite?.radioSay){e.preventDefault();if(this.run.at!=='nav')this.run.walkTo('nav');this.openTransmit(false);return;}
     this.keys.add(key);
     // E activates one shared cockpit. Clicking a side screen must not disable F.
     if(this.run.at && ['camera','nav','lab'].includes(this.run.at) && key==='f'){e.preventDefault();this.run.authoredSite?.interact();return;}
@@ -374,7 +410,10 @@ export class PodSession {
       }
       if (key >= '1' && key <= '6') {
         const id = stationForKey(key);
-        if (id&&!['camera','nav','lab'].includes(id)) this.run.walkTo(id);
+        if (id&&['camera','nav','lab'].includes(id)) {
+          e.preventDefault();void this.view.unlockAudio();this.run.walkTo(id);this.keys.clear();
+          if(document.pointerLockElement)document.exitPointerLock();
+        } else if (id) this.run.walkTo(id);
         return;
       }
       return;
@@ -428,9 +467,11 @@ export class PodSession {
       if(e.button!==0) return;
       if(document.pointerLockElement!==this.canvas) {
         try {
-          void this.canvas.requestPointerLock()?.catch(()=>{
+          const lock=this.canvas.requestPointerLock as (o?:{unadjustedMovement?:boolean})=>Promise<void>|undefined;
+          const fallback=()=>this.canvas.requestPointerLock()?.catch(()=>{
             this.run.pushLog('鼠标锁定不可用：WASD 仍可移动，按住右键拖动环视。','system');
           });
+          void (lock.call(this.canvas,{unadjustedMovement:true})?.catch(fallback)??fallback());
         } catch {
           this.run.pushLog('按住右键拖动环视；WASD 移动。','system');
         }
@@ -441,6 +482,7 @@ export class PodSession {
     if(this.view.cabin.deviceClick()){this.releaseStick();this.sonarDrag=false;return;}
     const id = this.deskAction(picked);
     if(id?.startsWith('sonar.tune.'))this.sonarDrag=true;
+    if(id==='sonar.mic'){this.micHeld=performControl(this.run,'sonar.mic.down');if(this.micHeld){this.view.audio.cue('radio.squelch',{gain:.25});if(this.run.authoredSite?.radioSay&&this.run.authoredSite.micTarget)this.ptt.start();}return;}
     if(id==='helm.stick'){this.stickDrag={x:e.clientX,y:e.clientY};return;}
     if(id==='helm.brake'){this.heldPilot='helm.brake';return;}
     if(id==='nav.thrust'){this.toggleNavDrive();return;}
@@ -451,17 +493,26 @@ export class PodSession {
     this.useTerminal(id);
   };
 
+  /** Windows Chromium occasionally reports a huge movement delta under pointer lock; one event must not spin the view. */
+  private look(e:PointerEvent):void {
+    const clamp=(v:number)=>Math.max(-60,Math.min(60,v));
+    this.view.cabin.turn(clamp(e.movementX),clamp(e.movementY));
+  }
+
   private onMove = (e: PointerEvent): void => {
+    // A release outside the window never reaches pointerup; trust the live button mask instead.
+    if(this.dragLook&&!(e.buttons&2))this.dragLook=false;
+    if((this.sonarDrag||this.stickDrag||this.heldPilot)&&!(e.buttons&1)){this.sonarDrag=false;this.heldPilot=null;this.releaseStick();}
     if(this.sonarDrag){const id=this.deskAction(this.view.pick(e.clientX,e.clientY));if(id?.startsWith('sonar.tune.'))performControl(this.run,id);return;}
-    if(this.dragLook){this.view.cabin.turn(e.movementX,e.movementY);return;}
+    if(this.dragLook){this.look(e);return;}
     if(this.stickDrag){
       const input=this.view.cabin.helmInput;
       const axis=(v:number)=>{const a=Math.abs(v);return a<8?0:Math.sign(v)*Math.min(1,(a-8)/110);};
       input.yaw=axis(e.clientX-this.stickDrag.x);
       input.thrust=axis(this.stickDrag.y-e.clientY);return;
     }
-    if(!this.run.at && (document.pointerLockElement===this.canvas || this.dragLook)) {
-      this.view.cabin.turn(e.movementX,e.movementY);
+    if(!this.run.at && document.pointerLockElement===this.canvas) {
+      this.look(e);
       return;
     }
     const id = this.view.pick(e.clientX, e.clientY);
@@ -471,6 +522,49 @@ export class PodSession {
     }
   };
 
+  private micHeld=false;
+  private releaseMic(send:boolean):void {
+    if(!this.micHeld)return;
+    this.micHeld=false;
+    if(!send||this.run.at!=='nav'){this.ptt.abort();sonarAction(this.run,'sonar.mic.cancel');return;}
+    if(this.run.authoredSite?.radioSay){
+      const since=passiveUi(this.run).micSince,held=since===null?0:performance.now()-since;
+      sonarAction(this.run,'sonar.mic.cancel');
+      if(held<MIC_HOLD_MS){this.ptt.abort();sonarDeskState(this.run).message='按住麦克风说话，松开后输入';this.view.audio.cue('ui.error',{gain:.4});return;}
+      const voice=this.ptt.listening;
+      if(this.openTransmit(voice)){if(voice)this.ptt.stop();}else this.ptt.abort();
+      return;
+    }
+    const ok=performControl(this.run,'sonar.mic.up');
+    this.view.audio.cue(ok?'ui.select':'ui.error',{gain:.4});
+  }
+  private readonly tx=new RadioTransmit();
+  private readonly ptt=(()=>{const p=new PushToTalk();p.onText=t=>this.tx.setTranscript(t);p.onEnd=()=>this.tx.setTranscribing(false);return p;})();
+  private radioNotice(text:string,caption:boolean):void {
+    this.run.pushLog(text,'system');sonarDeskState(this.run).message=text;
+    if(caption){this.run.storyCaption=text;this.run.storyCaptionLeft=4;}
+    this.view.audio.cue('ui.error',{gain:.4});
+  }
+  /** Free-speech radio for sites that implement radioSay; returns whether the transmit panel opened. */
+  private openTransmit(transcribing:boolean):boolean {
+    const site=this.run.authoredSite;if(!site?.radioSay)return false;
+    if(this.tx.open)return true;
+    const target=site.micTarget??null;
+    if(!target){this.radioNotice('频道里只有底噪，没有人回答。',true);return false;}
+    if(site.micReady===false){this.radioNotice('对方还在说话……',false);return false;}
+    if(document.pointerLockElement)document.exitPointerLock();
+    this.keys.clear();this.releaseStick();this.heldPilot=null;
+    const ui=passiveUi(this.run),choices=[...(site.dialogueChoices??[])];
+    const prefill=ui.choice!==null?choices[ui.choice]:undefined;
+    const done=(ok:boolean)=>{this.ptt.abort();if(ok)ui.choice=null;sonarDeskState(this.run).message=ok?'已发送 · 等待回答':'';this.view.audio.cue(ok?'ui.select':'ui.error',{gain:.4});};
+    this.tx.show({target,choices,prefill,transcribing,
+      onSend:text=>{const s=this.run.authoredSite;if(!s?.radioSay)return;const i=(s.dialogueChoices??[]).indexOf(text);done(i>=0&&s.chooseDialogue?s.chooseDialogue(i):s.radioSay(text));},
+      onChoose:i=>{const s=this.run.authoredSite;done(!!s?.chooseDialogue?.(i));},
+      onClose:()=>{this.ptt.abort();this.keys.clear();},
+    });
+    this.view.audio.cue('radio.squelch',{gain:.25});
+    return true;
+  }
   private releaseStick():void {
     this.stickDrag=null;this.view.cabin.helmInput.thrust=0;this.view.cabin.helmInput.yaw=0;
   }

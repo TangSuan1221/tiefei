@@ -1,0 +1,131 @@
+{
+  "seed": 20261009,
+  "pairs": [
+    {
+      "pair": 1,
+      "category": "corridor",
+      "ours": "02-corridor-C1.png",
+      "reference": "stillwakes_07.jpg",
+      "oursSide": "B(right)"
+    },
+    {
+      "pair": 2,
+      "category": "corridor",
+      "ours": "30-live-corridor.png",
+      "reference": "deadspace_07.jpg",
+      "oursSide": "B(right)"
+    },
+    {
+      "pair": 3,
+      "category": "atrium",
+      "ours": "11-atrium-wide.png",
+      "reference": "bioshock_03.jpg",
+      "oursSide": "B(right)"
+    },
+    {
+      "pair": 4,
+      "category": "atrium",
+      "ours": "12-atrium-floor.png",
+      "reference": "bioshock2_01.jpg",
+      "oursSide": "A(left)"
+    },
+    {
+      "pair": 5,
+      "category": "machinery",
+      "ours": "10-valves-V.png",
+      "reference": "soma_05.jpg",
+      "oursSide": "A(left)"
+    },
+    {
+      "pair": 6,
+      "category": "control-room",
+      "ours": "06-security-R3.png",
+      "reference": "soma_07.jpg",
+      "oursSide": "B(right)"
+    },
+    {
+      "pair": 7,
+      "category": "glass-door",
+      "ours": "08-glass-G.png",
+      "reference": "stillwakes_05.jpg",
+      "oursSide": "B(right)"
+    },
+    {
+      "pair": 8,
+      "category": "corpse",
+      "ours": "22-probe-cocoon.png",
+      "reference": "deadspace_05.jpg",
+      "oursSide": "B(right)"
+    },
+    {
+      "pair": 9,
+      "category": "slime-contamination",
+      "ours": "20-probe-slime-M-1.png",
+      "reference": "deadspace_10.jpg",
+      "oursSide": "B(right)"
+    },
+    {
+      "pair": 10,
+      "category": "slime-contamination",
+      "ours": "21-probe-slime-M-0.png",
+      "reference": "stillwakes_03.jpg",
+      "oursSide": "A(left)"
+    },
+    {
+      "pair": 11,
+      "category": "creature",
+      "ours": "25-creature-lumen.png",
+      "reference": "deadspace_06.jpg",
+      "oursSide": "A(left)"
+    },
+    {
+      "pair": 12,
+      "category": "creature",
+      "ours": "28-creature-blind.png",
+      "reference": "deadspace_03.jpg",
+      "oursSide": "B(right)"
+    },
+    {
+      "pair": 13,
+      "category": "creature/particles",
+      "ours": "29-creature-swarm-lamp.png",
+      "reference": "soma_08.jpg",
+      "oursSide": "B(right)"
+    },
+    {
+      "pair": 14,
+      "category": "signage",
+      "ours": "14-placard-R5.png",
+      "reference": "soma_02.jpg",
+      "oursSide": "A(left)"
+    },
+    {
+      "pair": 15,
+      "category": "notice-board",
+      "ours": "15-delroy-R5.png",
+      "reference": "stillwakes_04.jpg",
+      "oursSide": "A(left)"
+    },
+    {
+      "pair": 16,
+      "category": "character",
+      "ours": "18-probe-alex-glass.png",
+      "reference": "deadspace_09.jpg",
+      "oursSide": "B(right)"
+    },
+    {
+      "pair": 17,
+      "category": "prop-room",
+      "ours": "04-laundry-R1.png",
+      "reference": "bioshock2_03.jpg",
+      "oursSide": "B(right)"
+    },
+    {
+      "pair": 18,
+      "category": "murky-particles",
+      "ours": "19-probe-pipe-bands.png",
+      "reference": "soma_06.jpg",
+      "oursSide": "A(left)"
+    }
+  ]
+}

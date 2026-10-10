@@ -1,0 +1,488 @@
+{
+  "asset": "atrium-balcony",
+  "scene": "Living_atrium-balcony",
+  "units": "metres",
+  "axes": "Three.js local: +Y up, +X east, +Z south (Blender authored as (x,-z,y), exported with export_yup)",
+  "front": "+Z",
+  "placement": {
+    "position": [
+      155.0,
+      0.0,
+      42.3
+    ],
+    "rotationYDeg": 0.0,
+    "note": "apply as root.position / root.rotation.y in the living-deck world"
+  },
+  "bounds": {
+    "min": [
+      -10.03,
+      -2.341,
+      -0.0
+    ],
+    "max": [
+      10.756,
+      1.856,
+      3.791
+    ]
+  },
+  "triangles": 49252,
+  "bytes": 7197372,
+  "objects": [
+    {
+      "name": "balcony-deck",
+      "tris": 4724,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "deck",
+      "parent": null
+    },
+    {
+      "name": "carpet",
+      "tris": 8088,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "carpet",
+      "parent": null
+    },
+    {
+      "name": "railing",
+      "tris": 6548,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "rail",
+      "parent": null
+    },
+    {
+      "name": "furniture",
+      "tris": 17536,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "furniture",
+      "parent": null
+    },
+    {
+      "name": "pendant-lights",
+      "tris": 4740,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "furniture",
+      "parent": null
+    },
+    {
+      "name": "plants",
+      "tris": 5732,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "foliage",
+      "parent": null
+    },
+    {
+      "name": "tablecloth",
+      "tris": 1800,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "cloth",
+      "parent": null
+    },
+    {
+      "name": "stencils",
+      "tris": 84,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "decals",
+      "parent": null
+    }
+  ],
+  "anchors": {
+    "module-start": {
+      "local": [
+        -10.0,
+        0.0,
+        0.0
+      ],
+      "world": [
+        145.0,
+        0.0,
+        42.3
+      ]
+    },
+    "module-end": {
+      "local": [
+        10.0,
+        0.0,
+        0.0
+      ],
+      "world": [
+        165.0,
+        0.0,
+        42.3
+      ]
+    },
+    "rail-breach": {
+      "local": [
+        4.85,
+        0.78,
+        3.7
+      ],
+      "world": [
+        159.85,
+        0.78,
+        46.0
+      ]
+    },
+    "menu-board": {
+      "local": [
+        -5.0,
+        0.9,
+        1.15
+      ],
+      "world": [
+        150.0,
+        0.9,
+        43.45
+      ]
+    },
+    "table-12": {
+      "local": [
+        -7.0,
+        0.74,
+        1.95
+      ],
+      "world": [
+        148.0,
+        0.74,
+        44.25
+      ]
+    },
+    "table-14": {
+      "local": [
+        6.9,
+        0.74,
+        1.8
+      ],
+      "world": [
+        161.9,
+        0.74,
+        44.1
+      ]
+    },
+    "pendant-0": {
+      "local": [
+        -8.0,
+        -1.77,
+        2.45
+      ],
+      "world": [
+        147.0,
+        -1.77,
+        44.75
+      ]
+    },
+    "pendant-1": {
+      "local": [
+        -3.8884,
+        -2.0661,
+        2.45
+      ],
+      "world": [
+        151.112,
+        -2.066,
+        44.75
+      ]
+    },
+    "pendant-2": {
+      "local": [
+        0.0,
+        -1.47,
+        2.45
+      ],
+      "world": [
+        155.0,
+        -1.47,
+        44.75
+      ]
+    },
+    "pendant-3": {
+      "local": [
+        4.3508,
+        -1.8769,
+        2.45
+      ],
+      "world": [
+        159.351,
+        -1.877,
+        44.75
+      ]
+    },
+    "pendant-4": {
+      "local": [
+        8.0,
+        -1.62,
+        2.45
+      ],
+      "world": [
+        163.0,
+        -1.62,
+        44.75
+      ]
+    },
+    "pod-view": {
+      "local": [
+        0.0,
+        -1.5,
+        9.0
+      ],
+      "world": [
+        155.0,
+        -1.5,
+        51.3
+      ]
+    }
+  },
+  "materials": [
+    "lv_atrium_balcony_carpet",
+    "lv_atrium_balcony_cloth",
+    "lv_atrium_balcony_decals",
+    "lv_atrium_balcony_deck",
+    "lv_atrium_balcony_foliage",
+    "lv_atrium_balcony_furniture",
+    "lv_atrium_balcony_rail"
+  ],
+  "textures": {
+    "deck": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        2048,
+        2048
+      ],
+      "normal": [
+        2048,
+        2048
+      ]
+    },
+    "carpet": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        2048,
+        2048
+      ],
+      "normal": [
+        2048,
+        2048
+      ]
+    },
+    "rail": {
+      "color": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ]
+    },
+    "furniture": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        2048,
+        2048
+      ],
+      "normal": [
+        2048,
+        2048
+      ]
+    },
+    "foliage": {
+      "color": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ]
+    },
+    "cloth": {
+      "color": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ]
+    },
+    "decals": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        1024,
+        1024
+      ]
+    }
+  },
+  "build": "tools/blender/build-living-atrium-balcony.py",
+  "preview": "qa/living/blender/atrium-balcony.png",
+  "sources": "public/assets/deepsea/living/SOURCES.md",
+  "notes": "Tileable 20 m dining-gallery balcony module (deck top y=0, wall face z=0, rail edge z=3.2). Rail is bent and breached around x=+4.85.",
+  "built": "2026-10-09 13:14",
+  "buildSeconds": 47.8,
+  "module": {
+    "length": 20.0,
+    "depth": 3.2,
+    "deckTopY": 0.0,
+    "soffitY": -0.46,
+    "tileAxis": "+X",
+    "note": "Ends at x=+-10 are cut flat; rail and carpet continue across instances. Door cut-outs must be handled by the engine (not authored)."
+  },
+  "colliders": [
+    {
+      "name": "deck",
+      "min": [
+        -10.0,
+        -0.7,
+        0.0
+      ],
+      "max": [
+        10.0,
+        0.05,
+        3.27
+      ]
+    },
+    {
+      "name": "rail-west",
+      "min": [
+        -10.0,
+        0.0,
+        3.14
+      ],
+      "max": [
+        3.2499999999999996,
+        1.1500000000000001,
+        3.2600000000000002
+      ]
+    },
+    {
+      "name": "rail-east",
+      "min": [
+        6.449999999999999,
+        0.0,
+        3.14
+      ],
+      "max": [
+        10.0,
+        1.1500000000000001,
+        3.2600000000000002
+      ]
+    }
+  ],
+  "suggestedInstances": [
+    {
+      "wall": "N",
+      "storeyY": 0,
+      "position": [
+        145.0,
+        0,
+        42.3
+      ],
+      "rotationYDeg": 0
+    },
+    {
+      "wall": "N",
+      "storeyY": 0,
+      "position": [
+        165.0,
+        0,
+        42.3
+      ],
+      "rotationYDeg": 0
+    },
+    {
+      "wall": "N",
+      "storeyY": 6,
+      "position": [
+        145.0,
+        6,
+        42.3
+      ],
+      "rotationYDeg": 0
+    },
+    {
+      "wall": "N",
+      "storeyY": 6,
+      "position": [
+        165.0,
+        6,
+        42.3
+      ],
+      "rotationYDeg": 0
+    },
+    {
+      "wall": "S",
+      "storeyY": 6,
+      "position": [
+        145.0,
+        6,
+        81.7
+      ],
+      "rotationYDeg": 180
+    },
+    {
+      "wall": "S",
+      "storeyY": 6,
+      "position": [
+        165.0,
+        6,
+        81.7
+      ],
+      "rotationYDeg": 180
+    }
+  ]
+}

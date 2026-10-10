@@ -7,15 +7,16 @@ import type {ExpeditionWorld} from './expedition-world';
 import type {ReferenceMaterials} from './reference-materials';
 import {createHarborRescueDressing} from './harbor-rescue-dressing';
 import {createHarborFractureArt} from './harbor-fracture-art';
+import {createEliasPoser,type EliasRig} from './harbor-elias-pose';
 type V=[number,number,number];
 export const HARBOR_RESCUE_LAYOUT={observe:[60,0,27] as V,power:[42,0,28] as V,lure:[77,1,7] as V,elias:[57,-1.2,11] as V,monster:[64,-1.2,9] as V,cargo:[77,-1.2,9] as V,gate:[77,0,16] as V};
-export interface HarborRescueVisualState {powered:boolean;gateOpen:boolean;bridgeExtended:boolean;monsterPosition?:V;eliasPosition?:V;monsterVisible?:boolean;rescued?:boolean;walking?:boolean}
+export interface HarborRescueVisualState {powered:boolean;gateOpen:boolean;bridgeExtended:boolean;monsterPosition?:V;eliasPosition?:V;monsterVisible?:boolean;rescued?:boolean;walking?:boolean;/** Story performance key for the survivor's acting; '' keeps the default idle. */eliasBeat?:string}
 /** Presentation only. Caller owns progression, collision registration and interaction routing. */
 export function createHarborRescueWorld(world:ExpeditionWorld,m:ReferenceMaterials){
  const root=new T.Group();root.name='harbor-rescue-world';world.root.add(root);
  const dressing=createHarborRescueDressing(root,m);
  const fractureArt=createHarborFractureArt(root,m);
- const solids:T.Box3[]=[...dressing.colliders],owned:T.Material[]=[],geometries:T.BufferGeometry[]=[],textures:T.Texture[]=[];
+ const solids:T.Box3[]=[...dressing.colliders],decor:T.Box3[]=[...dressing.decorColliders],owned:T.Material[]=[],geometries:T.BufferGeometry[]=[],textures:T.Texture[]=[];
  const anchors:ExpeditionWorld['anchors']=[];
  const panels=new Map<string,T.Group>();
  const signs:ReturnType<typeof createHarborSign>[]=[];
@@ -23,6 +24,7 @@ export function createHarborRescueWorld(world:ExpeditionWorld,m:ReferenceMateria
  const steel=mat(m.steel,'#343f41'),paint=mat(m.hull,'#82908a'),yellow=mat(m.yellow,'#c6a35f'),deck=mat(m.floor,'#424e4b'),suit=mat(m.cloth,'#b1a58c'),skin=mat(m.rubber,'#414a43');
  const frameSteel=mat(m.steel,'#10201e');frameSteel.roughness=.95;frameSteel.metalness=.15;
  const lightMat=new T.MeshStandardMaterial({color:'#d8bf83',emissive:'#d8a45c',emissiveIntensity:.8,roughness:.4});owned.push(lightMat);
+ const helmetLamp=new T.MeshStandardMaterial({color:'#fff0c8',emissive:'#ffd98f',emissiveIntensity:2.2,roughness:.3});owned.push(helmetLamp);
  function mesh(g:T.BufferGeometry,material:T.Material,p:V,parent:T.Group=root){geometries.push(g);const o=new T.Mesh(g,material);o.position.set(...p);o.castShadow=o.receiveShadow=true;parent.add(o);return o;}
  function box(p:V,s:V,material:T.Material=steel,solid=false,parent:T.Group=root){const geometry=new T.BoxGeometry(...s),pos=geometry.getAttribute('position'),normal=geometry.getAttribute('normal'),uv=geometry.getAttribute('uv');for(let i=0;i<pos.count;i++)uv.setXY(i,Math.abs(normal.getX(i))>.5?pos.getZ(i):pos.getX(i),Math.abs(normal.getY(i))>.5?pos.getZ(i):pos.getY(i));const o=mesh(geometry,material,p,parent);if(solid)solids.push(new T.Box3().setFromCenterAndSize(new T.Vector3(...p),new T.Vector3(...s)));return o;}
  function rounded(p:V,s:V,material:T.Material=paint,parent:T.Group=root){return mesh(new RoundedBoxGeometry(...s,2,Math.min(.09,...s.map(x=>x*.2))),material,p,parent);}
@@ -76,6 +78,8 @@ export function createHarborRescueWorld(world:ExpeditionWorld,m:ReferenceMateria
  box([55,-1.18,11],[4.5,.06,1.0],deck,false,bridge);
  for(let x=52.9;x<57.2;x+=.3)box([x,-1.13,11],[.06,.035,.95],steel,false,bridge);
  for(const z of [10.55,11.45])box([55,-1.10,z],[4.5,.025,.035],yellow,false,bridge);
+ // Glass-side handrail the survivor can steady himself on; stops short of the inner door turn.
+ for(const x of [53.9,55.4,56.9])rod([x,-1.15,11.5],[x,-.25,11.5],.025,steel,bridge);rod([53.9,-.25,11.5],[56.9,-.25,11.5],.03,yellow,bridge);
  // Cargo isolation enclosure: west/north/east solid walls and a sliding south gate.
  box([69.7,2.1,8.5],[.5,7.2,15],paint,true);box([85,2.1,8.5],[.5,7.2,15],paint,true);box([77.35,2.1,1.3],[15.8,7.2,.5],steel,true);
  box([71.1,2.1,16],[2.8,7.2,.5],paint,true);box([83.5,2.1,16],[3.0,7.2,.5],paint,true);
@@ -112,31 +116,39 @@ export function createHarborRescueWorld(world:ExpeditionWorld,m:ReferenceMateria
  for(const x of [40.15,41.85])for(const z of [20.48,20.92]){box([x,-2.695,z],[.12,.99,.12],steel,true);box([x,-3.17,z],[.30,.06,.30],steel,true);}
  label('02 / 岸电恢复','AUXILIARY POWER',[41,1.18,21.15],2.4);
  function ellipsoid(p:V,s:V,material:T.Material,parent:T.Group){const o=mesh(new T.SphereGeometry(1,18,12),material,p,parent);o.scale.set(...s);return o;}
- const walkingLimbs:{group:T.Group;side:number;arm:boolean}[]=[];
- function hinge(g:T.Group,start:number,pivot:V,side:number,arm:boolean){const parts=g.children.slice(start),h=new T.Group();h.position.set(...pivot);g.add(h);for(const o of parts){o.position.sub(h.position);h.add(o);}walkingLimbs.push({group:h,side,arm});}
- function human(){const g=new T.Group();g.name='rescue-elias';root.add(g);
+ function human():EliasRig{const g=new T.Group();g.name='rescue-elias';root.add(g);
   // A tired industrial diver: soft pressure suit, bent knees, uneven stance.
-  ellipsoid([0,.99,-.02],[.27,.37,.19],suit,g);ellipsoid([0,.66,-.03],[.23,.16,.18],suit,g);
-  const helmet=ellipsoid([-.015,1.47,.03],[.245,.265,.23],paint,g);helmet.rotation.z=.1;
-  ellipsoid([-.015,1.48,.222],[.174,.132,.053],m.glass,g);
-  const collar=mesh(new T.TorusGeometry(.186,.04,8,24),steel,[0,1.27,.015],g);collar.rotation.x=Math.PI/2;
+  // Parts hang from real joints so story beats can pose him (see harbor-elias-pose).
+  const joint=(parent:T.Object3D,p:V,name:string)=>{const h=new T.Group();h.name=name;h.position.set(...p);parent.add(h);return h;};
+  const hipY=.67,upper=joint(g,[0,hipY,-.03],'elias-upper'),U=(p:V):V=>[p[0],p[1]-hipY,p[2]+.03];
+  ellipsoid(U([0,.99,-.02]),[.27,.37,.19],suit,upper);ellipsoid(U([0,.66,-.03]),[.23,.16,.18],suit,upper);
+  const head=joint(upper,U([0,1.27,.0]),'elias-head');
+  const helmet=ellipsoid([-.015,.20,.03],[.245,.265,.23],paint,head);helmet.rotation.z=.1;
+  ellipsoid([-.015,.21,.222],[.174,.132,.053],m.glass,head);
+  box([0,.33,.225],[.12,.07,.07],steel,false,head);box([0,.33,.262],[.085,.045,.012],helmetLamp,false,head);
+  const collar=mesh(new T.TorusGeometry(.186,.04,8,24),steel,U([0,1.27,.015]),upper);collar.rotation.x=Math.PI/2;
+  const arms:EliasRig['arms']=[],legs:EliasRig['legs']=[];
   for(const s of [-1,1]){
-   let partStart=g.children.length;
-   const knee:V=[s*.19,.35,s<0?.11:-.045],ankle:V=[s*.23,.085,s<0?.035:-.16];
-   rod([s*.135,.67,-.035],knee,.108,suit,g);ellipsoid(knee,[.113,.115,.11],m.rubber,g);rod(knee,ankle,.079,suit,g);rounded([ankle[0],.065,ankle[2]+.1],[.22,.15,.37],m.rubber,g);
-   hinge(g,partStart,[s*.135,.67,-.035],s,false);partStart=g.children.length;
-   const elbow:V=[s*.36,.89,s<0?.09:-.04],hand:V=[s*(s<0?.30:.43),s<0?1.03:.65,s<0?.29:.16];
-   ellipsoid([s*.245,1.16,0],[.12,.14,.14],suit,g);rod([s*.27,1.15,.01],elbow,.078,suit,g);ellipsoid(elbow,[.083,.09,.085],m.rubber,g);rod(elbow,hand,.071,suit,g);ellipsoid(hand,[.085,.105,.07],m.rubber,g);
-   hinge(g,partStart,[s*.245,1.16,0],s,true);
-   box([s*.17,1.11,.163],[.065,.30,.035],yellow,false,g);
+   const thigh=.32,shin=.265,hip=joint(g,[s*.135,hipY,-.035],'elias-hip');
+   rod([0,0,0],[0,-thigh,0],.108,suit,hip);const knee=joint(hip,[0,-thigh,0],'elias-knee');
+   ellipsoid([0,0,0],[.113,.115,.11],m.rubber,knee);rod([0,0,0],[0,-shin,0],.079,suit,knee);
+   const foot=joint(knee,[0,-shin,0],'elias-foot');rounded([0,-.02,.1],[.22,.15,.37],m.rubber,foot);
+   legs.push({hip,knee,foot,side:s,thigh,shin});
+   const upperArm=.31,fore=.29,shoulder=joint(upper,U([s*.245,1.16,0]),'elias-shoulder');
+   ellipsoid([0,0,0],[.12,.14,.14],suit,shoulder);rod([0,0,0],[0,-upperArm,0],.08,suit,shoulder);
+   const elbow=joint(shoulder,[0,-upperArm,0],'elias-elbow');ellipsoid([0,0,0],[.085,.09,.085],m.rubber,elbow);rod([0,0,0],[0,-fore,0],.072,suit,elbow);
+   const hand=joint(elbow,[0,-fore,0],'elias-hand');ellipsoid([0,-.06,0],[.09,.115,.06],m.rubber,hand);
+   arms.push({shoulder,elbow,hand,side:s,upper:upperArm,fore});
+   box(U([s*.17,1.11,.163]),[.065,.30,.035],yellow,false,upper);
   }
-  rounded([.015,1.0,.19],[.24,.21,.07],steel,g);box([.015,1.0,.231],[.13,.035,.01],lightMat,false,g);
-  for(const x of [-.115,.115]){const tank=mesh(new T.CapsuleGeometry(.105,.42,5,12),steel,[x,1.03,-.27],g);tank.rotation.z=x<0?-.05:.05;rod([x,1.33,-.25],[x,1.4,-.2],.024,yellow,g);}
-  rod([-.2,1.43,.09],[-.32,1.20,.19],.027,m.rubber,g);rod([-.32,1.20,.19],[-.23,.95,.22],.027,m.rubber,g);rod([-.23,.95,.22],[.02,.93,.21],.027,m.rubber,g);
-  for(const y of [.87,1.03])rod([-.22,y,.11],[.22,y,.11],.022,steel,g);
-  g.rotation.z=.035;return g;
+  rounded(U([.015,1.0,.19]),[.24,.21,.07],steel,upper);box(U([.015,1.0,.231]),[.13,.035,.01],lightMat,false,upper);
+  for(const x of [-.115,.115]){const tank=mesh(new T.CapsuleGeometry(.105,.42,5,12),steel,U([x,1.03,-.27]),upper);tank.rotation.z=x<0?-.05:.05;rod(U([x,1.33,-.25]),U([x,1.4,-.2]),.024,yellow,upper);}
+  rod(U([-.2,1.43,.09]),U([-.32,1.20,.19]),.027,m.rubber,upper);rod(U([-.32,1.20,.19]),U([-.23,.95,.22]),.027,m.rubber,upper);rod(U([-.23,.95,.22]),U([.02,.93,.21]),.027,m.rubber,upper);
+  for(const y of [.87,1.03])rod(U([-.22,y,.11]),U([.22,y,.11]),.022,steel,upper);
+  return {root:g,upper,head,arms,legs};
  }
- const elias=human();elias.position.set(...HARBOR_RESCUE_LAYOUT.elias);
+ const eliasRig=human(),elias=eliasRig.root;elias.position.set(...HARBOR_RESCUE_LAYOUT.elias);
+ const eliasPose=createEliasPoser(eliasRig,{pod:HARBOR_RESCUE_LAYOUT.observe,door:HARBOR_RESCUE_LAYOUT.monster,gate:HARBOR_RESCUE_LAYOUT.gate});
  const monster=new T.Group();monster.name='rescue-acoustic-creature';root.add(monster);monster.position.set(...HARBOR_RESCUE_LAYOUT.monster);
  // Uneven amphibious anatomy; limbs fold through actual joints rather than
  // radiating as identical rods from one spherical primitive.
@@ -176,7 +188,7 @@ export function createHarborRescueWorld(world:ExpeditionWorld,m:ReferenceMateria
  // the dark bulkhead. The animal remains hidden from live observation.
  const recordRim=new T.PointLight('#9fae9d',0,5.5,2);root.add(recordRim);
  let disposed=false,lastVisualTime:number|undefined;
- function update(state:HarborRescueVisualState,time:number){const dt=lastVisualTime===undefined?1.2:Math.max(0,time-lastVisualTime);lastVisualTime=time;const approach=(current:number,target:number,speed:number)=>current+Math.sign(target-current)*Math.min(Math.abs(target-current),speed*dt);gateMesh.position.y=approach(gateMesh.position.y,state.gateOpen?5.7:0,5.7/1.2);innerLeaf.position.x=approach(innerLeaf.position.x,state.bridgeExtended?-1.55:0,1.55/1.2);escapeLight.intensity=state.bridgeExtended?7:0;for(const limb of walkingLimbs)limb.group.rotation.x=state.walking?Math.sin(time*5+(limb.side<0?Math.PI:0))*(limb.arm?-.28:.38):0;bridge.visible=state.bridgeExtended;monster.visible=state.monsterVisible??true;monster.position.set(...(state.monsterPosition??HARBOR_RESCUE_LAYOUT.monster));recordRim.position.copy(monster.position).add(new T.Vector3(-1.8,2.0,-.3));recordRim.intensity=state.monsterVisible?5.5:0;elias.position.set(...(state.eliasPosition??HARBOR_RESCUE_LAYOUT.elias));elias.visible=!state.rescued;elias.rotation.z=.035+Math.sin(time*.9)*.012;elias.rotation.y=state.walking?((state.eliasPosition?.[2]??11)<10.9?Math.PI:-Math.PI/2):Math.sin(time*.35)*.055;torso.rotation.z=Math.sin(time*1.8)*.025;head.rotation.y=Math.sin(time*.65)*.09;for(const i of indicators)i.scale.x=state.powered?1:.4;lightMat.emissiveIntensity=state.powered?1.2:.3;}
+ function update(state:HarborRescueVisualState,time:number){const dt=lastVisualTime===undefined?1.2:Math.max(0,time-lastVisualTime);lastVisualTime=time;const approach=(current:number,target:number,speed:number)=>current+Math.sign(target-current)*Math.min(Math.abs(target-current),speed*dt);gateMesh.position.y=approach(gateMesh.position.y,state.gateOpen?5.7:0,5.7/1.2);innerLeaf.position.x=approach(innerLeaf.position.x,state.bridgeExtended?-1.55:0,1.55/1.2);escapeLight.intensity=state.bridgeExtended?7:0;bridge.visible=state.bridgeExtended;monster.visible=state.monsterVisible??true;monster.position.set(...(state.monsterPosition??HARBOR_RESCUE_LAYOUT.monster));recordRim.position.copy(monster.position).add(new T.Vector3(-1.8,2.0,-.3));recordRim.intensity=state.monsterVisible?5.5:0;elias.visible=!state.rescued;eliasPose.update(state.eliasPosition??HARBOR_RESCUE_LAYOUT.elias,!!state.walking,state.eliasBeat??'',time,dt);torso.rotation.z=Math.sin(time*1.8)*.025;head.rotation.y=Math.sin(time*.65)*.09;for(const i of indicators)i.scale.x=state.powered?1:.4;lightMat.emissiveIntensity=state.powered?1.2:.3;}
  // Batch immobile root meshes only; articulated characters, doors, signs and
  // interaction groups retain their identity and raycast behaviour.
  const staticBatches=new Map<T.Material,T.BufferGeometry[]>();
@@ -184,7 +196,7 @@ export function createHarborRescueWorld(world:ExpeditionWorld,m:ReferenceMateria
  for(const [material,parts]of staticBatches){const g=mergeGeometries(parts);for(const part of parts)part.dispose();if(!g)continue;geometries.push(g);const o=new T.Mesh(g,material);o.castShadow=o.receiveShadow=true;root.add(o);}
  update({powered:false,gateOpen:false,bridgeExtended:false},0);
  function dispose(){if(disposed)return;disposed=true;dressing.dispose();fractureArt.dispose();for(const sign of signs)sign.dispose();root.removeFromParent();for(const g of geometries)g.dispose();for(const mm of owned)mm.dispose();for(const tx of textures)tx.dispose();for(const l of addedLights){const index=world.practicalLights.indexOf(l);if(index>=0)world.practicalLights.splice(index,1);}}
- return{root,solids,anchors,panels,gate,monster,elias,bridge,innerDoor,update,dispose};
+ return{root,solids,decor,anchors,panels,gate,monster,elias,bridge,innerDoor,update,dispose};
 }
 
 

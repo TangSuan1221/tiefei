@@ -1,0 +1,289 @@
+[
+ {
+  "pair": 1,
+  "category": "走廊",
+  "ours": "qa/living/render-r5/r3/02-corridor-C1.png",
+  "ref": "deadspace_07.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 2,
+  "category": "走廊",
+  "ours": "qa/living/render-r5/r3/25-C3-long.png",
+  "ref": "stillwakes_07.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 3,
+  "category": "走廊",
+  "ours": "qa/living/render-r5/r3/18-live-corridor.png",
+  "ref": "soma_08.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 4,
+  "category": "走廊",
+  "ours": "qa/living/render-r5/r3/10-C5-south.png",
+  "ref": "bunker_01.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 5,
+  "category": "走廊",
+  "ours": "qa/living/render-r5/r3/16-C7-D.png",
+  "ref": "soma_09.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 6,
+  "category": "大厅",
+  "ours": "qa/living/render-r5/r3/11-atrium-wide.png",
+  "ref": "bioshock_03.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 7,
+  "category": "大厅",
+  "ours": "qa/living/render-r5/r3/19-live-atrium.png",
+  "ref": "bioshock_04.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 8,
+  "category": "大厅",
+  "ours": "qa/living/render-r5/r3/20-atrium-north-shops.png",
+  "ref": "bioshock2_03.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 9,
+  "category": "大厅",
+  "ours": "qa/living/render-r5/r3/12-atrium-floor.png",
+  "ref": "bioshock2_05.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 10,
+  "category": "房间",
+  "ours": "qa/living/render-r5/r3/14-office-R5.png",
+  "ref": "stillwakes_04.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 11,
+  "category": "房间",
+  "ours": "qa/living/render-r5/r3/07-security-R3.png",
+  "ref": "soma_07.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 12,
+  "category": "房间",
+  "ours": "qa/living/render-r5/r3/17-laundry-R1.png",
+  "ref": "stillwakes_12.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 13,
+  "category": "机械舱",
+  "ours": "qa/living/render-r5/r3/08-ballast-R4.png",
+  "ref": "soma_05.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 14,
+  "category": "机械舱",
+  "ours": "qa/living/render-r5/r3/09-C4-V.png",
+  "ref": "deadspace_02.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 15,
+  "category": "竖井/玻璃",
+  "ours": "qa/living/render-r5/r3/01-shaft-S.png",
+  "ref": "stillwakes_06.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 16,
+  "category": "竖井/玻璃",
+  "ours": "qa/living/render-r5/r3/03-solarium-C1.png",
+  "ref": "stillwakes_05.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 17,
+  "category": "标识",
+  "ours": "qa/living/hero-r4/r5/h22-code-legal-31.png",
+  "ref": "bioshock_02.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 18,
+  "category": "标识",
+  "ours": "qa/living/hero-r4/r5/h24-code-legal-oblique.png",
+  "ref": "soma_02.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 19,
+  "category": "生物",
+  "ours": "qa/living/creatures-r4/round6/k2-lumen-close.png",
+  "ref": "deadspace_08.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 20,
+  "category": "生物",
+  "ours": "qa/living/creatures-r4/round6/k4-shade-close.png",
+  "ref": "stillwakes_01.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 21,
+  "category": "生物",
+  "ours": "qa/living/creatures-r4/round6/r3-shade-half.png",
+  "ref": "deadspace_03.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 22,
+  "category": "生物",
+  "ours": "qa/living/creatures-r4/round6/r1-blind-half.png",
+  "ref": "deadspace_06.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 23,
+  "category": "生物",
+  "ours": "qa/living/creatures-r4/round6/g4-shade-gape.png",
+  "ref": "bioshock_05.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 24,
+  "category": "生物",
+  "ours": "qa/living/creatures-r4/round5/f2-shade-far.png",
+  "ref": "deadspace_01.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 25,
+  "category": "生物",
+  "ours": "qa/living/creatures-r4/round5/k7-swarm.png",
+  "ref": "soma_06.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 26,
+  "category": "尸体/茧",
+  "ours": "qa/living/hero-r4/r5/c2-cocoon-close.png",
+  "ref": "deadspace_05.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 27,
+  "category": "尸体/茧",
+  "ours": "qa/living/hero-r4/r5/c3-cocoon-side.png",
+  "ref": "stillwakes_10.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 28,
+  "category": "尸体/茧",
+  "ours": "qa/living/hero-r4/r5/c1-cocoon-probe.png",
+  "ref": "soma_03.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 29,
+  "category": "尸体/茧",
+  "ours": "qa/living/render-r5/r3/23-probe-cocoon.png",
+  "ref": "bunker_03.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 30,
+  "category": "黏液",
+  "ours": "qa/living/hero-r4/r5/s5-slime-wall-east.png",
+  "ref": "stillwakes_03.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 31,
+  "category": "黏液",
+  "ours": "qa/living/render-r5/r3/24-probe-slime-wall.png",
+  "ref": "deadspace_10.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 32,
+  "category": "黏液",
+  "ours": "qa/living/hero-r4/r5/s8-slime-corridor.png",
+  "ref": "bunker_02.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 33,
+  "category": "人物",
+  "ours": "qa/living/hero-r4/r5/a9-alex-meet-close.png",
+  "ref": "deadspace_09.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 34,
+  "category": "人物",
+  "ours": "qa/living/hero-r4/r5/p1-security-diver-close.png",
+  "ref": "bioshock2_02.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 35,
+  "category": "人物",
+  "ours": "qa/living/hero-r4/r5/p3-manager-close.png",
+  "ref": "soma_01.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 36,
+  "category": "游戏内HUD",
+  "ours": "qa/living/flow-r2/flow/03-c1-corridor.png",
+  "ref": "deadspace_04.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 37,
+  "category": "游戏内HUD",
+  "ours": "qa/living/flow-r2/flow/07-g-glass.png",
+  "ref": "underwaves_07.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 38,
+  "category": "游戏内HUD",
+  "ours": "qa/living/flow-r2/flow/04-probe-corpse-frame.jpg",
+  "ref": "subnautica2_04.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 39,
+  "category": "游戏内HUD",
+  "ours": "qa/living/flow-r2/flow/lab-tape.securityLog.1.png",
+  "ref": "underwaves_03.jpg",
+  "ours_side": "B"
+ },
+ {
+  "pair": 40,
+  "category": "游戏内HUD",
+  "ours": "qa/living/flow-r2/flow/06-r4-shade-lamp.png",
+  "ref": "subnautica2_05.jpg",
+  "ours_side": "A"
+ },
+ {
+  "pair": 41,
+  "category": "游戏内HUD",
+  "ours": "qa/living/flow-r2/flow/12-gate-open.png",
+  "ref": "stillwakes_11.jpg",
+  "ours_side": "A"
+ }
+]

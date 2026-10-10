@@ -1,0 +1,124 @@
+{
+  "asset": "living-creature-lumen",
+  "units": "metres",
+  "axes": "Three.js local, +Y up (Blender authored as (x,-z,y), glTF +Y up)",
+  "triangles": {
+    "body": 19999,
+    "curtain": 6336,
+    "tendrils": 4536,
+    "lure_stalk": 480,
+    "lure": 1018,
+    "frill": 1080
+  },
+  "totalTriangles": 33449,
+  "bounds": {
+    "min": [
+      -0.783,
+      -2.325,
+      -0.621
+    ],
+    "max": [
+      0.734,
+      1.417,
+      0.68
+    ],
+    "size": [
+      1.516,
+      3.742,
+      1.301
+    ]
+  },
+  "bones": [
+    "root",
+    "spine",
+    "chest",
+    "neck",
+    "head",
+    "lure1",
+    "lure2",
+    "lure3",
+    "clav.L",
+    "upper.L",
+    "fore.L",
+    "hand.L",
+    "clav.R",
+    "upper.R",
+    "fore.R",
+    "hand.R",
+    "skirt0.0",
+    "skirt0.1",
+    "skirt0.2",
+    "skirt0.3",
+    "skirt1.0",
+    "skirt1.1",
+    "skirt1.2",
+    "skirt1.3",
+    "skirt2.0",
+    "skirt2.1",
+    "skirt2.2",
+    "skirt2.3",
+    "skirt3.0",
+    "skirt3.1",
+    "skirt3.2",
+    "skirt3.3",
+    "skirt4.0",
+    "skirt4.1",
+    "skirt4.2",
+    "skirt4.3",
+    "skirt5.0",
+    "skirt5.1",
+    "skirt5.2",
+    "skirt5.3",
+    "skirt6.0",
+    "skirt6.1",
+    "skirt6.2",
+    "skirt6.3",
+    "skirt7.0",
+    "skirt7.1",
+    "skirt7.2",
+    "skirt7.3"
+  ],
+  "clips": {
+    "drift": 4.0,
+    "swim": 2.0,
+    "reach": 2.0
+  },
+  "textures": {
+    "skin": {
+      "color": "2048 webp q90 (alpha = thinness)",
+      "normal": "2048 webp lossless",
+      "orm": "1024 png",
+      "emit": "1024 webp"
+    },
+    "curtain": {
+      "color": 1024,
+      "emit": 512
+    }
+  },
+  "bytes": 4747716,
+  "build": "tools/blender/build-living-creature-lumen.py",
+  "previews": "qa/living/creatures-r4/blender/lumen-*.png",
+  "sources": "public/assets/deepsea/living/SOURCES.md",
+  "built": "2026-10-09 18:30",
+  "silhouette": [
+    "narrow ribbed trunk + shoulders above a wide bell curtain",
+    "ragged curtain hem with tendrils trailing ~2 m",
+    "glowing lure arching forward over a faceless head",
+    "long forelimbs with three feeler digits"
+  ],
+  "front": "+Z",
+  "lureTip": "bone lure3 tail",
+  "lod1": {
+    "file": "living-creature-lumen.lod1.glb",
+    "bytes": 448036,
+    "triangles": {
+      "body_lod1": 5998,
+      "curtain_lod1": 2533,
+      "tendrils_lod1": 1814,
+      "lure_stalk_lod1": 240,
+      "lure_lod1": 508,
+      "frill_lod1": 540
+    },
+    "totalTriangles": 11633
+  }
+}

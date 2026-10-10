@@ -1,0 +1,233 @@
+{
+  "asset": "gate-f",
+  "scene": "Living_gate-f",
+  "units": "metres",
+  "axes": "Three.js local: +Y up, +X east, +Z south (Blender authored as (x,-z,y), exported with export_yup)",
+  "front": "+Z",
+  "placement": {
+    "position": [
+      188,
+      0,
+      42
+    ],
+    "rotationYDeg": 0.0,
+    "note": "apply as root.position / root.rotation.y in the living-deck world"
+  },
+  "bounds": {
+    "min": [
+      -5.61,
+      -4.229,
+      -0.685
+    ],
+    "max": [
+      5.15,
+      2.575,
+      2.06
+    ]
+  },
+  "triangles": 27196,
+  "bytes": 3189172,
+  "objects": [
+    {
+      "name": "gate-frame",
+      "tris": 15716,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "main",
+      "parent": null
+    },
+    {
+      "name": "gate-leaf",
+      "tris": 7208,
+      "origin": [
+        0.0,
+        -3.0,
+        -0.0
+      ],
+      "group": "main",
+      "parent": null
+    },
+    {
+      "name": "gate-port-glass",
+      "tris": 476,
+      "origin": [
+        0.0,
+        -3.0,
+        -0.0
+      ],
+      "group": "glass",
+      "parent": "gate-leaf"
+    },
+    {
+      "name": "lock-wheel",
+      "tris": 1732,
+      "origin": [
+        1.55,
+        -1.55,
+        -0.31
+      ],
+      "group": "main",
+      "parent": "gate-leaf"
+    },
+    {
+      "name": "gate-leaf-stencils",
+      "tris": 24,
+      "origin": [
+        0.0,
+        -3.0,
+        -0.0
+      ],
+      "group": "decals",
+      "parent": "gate-leaf"
+    },
+    {
+      "name": "stencils",
+      "tris": 60,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "decals",
+      "parent": null
+    },
+    {
+      "name": "keypad",
+      "tris": 1716,
+      "origin": [
+        4.85,
+        -1.45,
+        -0.35
+      ],
+      "group": "main",
+      "parent": null
+    },
+    {
+      "name": "relief-lever",
+      "tris": 264,
+      "origin": [
+        -4.85,
+        -1.25,
+        -0.42
+      ],
+      "group": "main",
+      "parent": null
+    }
+  ],
+  "anchors": {
+    "viewport-outer": {
+      "local": [
+        0.0,
+        -1.2,
+        0.6
+      ],
+      "world": [
+        188.0,
+        -1.2,
+        42.6
+      ]
+    },
+    "lock-wheel": {
+      "local": [
+        1.55,
+        -1.55,
+        -0.31
+      ],
+      "world": [
+        189.55,
+        -1.55,
+        41.69
+      ]
+    },
+    "keypad": {
+      "local": [
+        4.85,
+        -1.45,
+        -0.35
+      ],
+      "world": [
+        192.85,
+        -1.45,
+        41.65
+      ]
+    },
+    "relief-lever": {
+      "local": [
+        -4.85,
+        -1.25,
+        -0.42
+      ],
+      "world": [
+        183.15,
+        -1.25,
+        41.58
+      ]
+    },
+    "alex-inner-mark": {
+      "local": [
+        0.0,
+        -2.1,
+        -2.5
+      ],
+      "world": [
+        188.0,
+        -2.1,
+        39.5
+      ]
+    }
+  },
+  "materials": [
+    "lv_gate_f_decals",
+    "lv_gate_f_glass",
+    "lv_gate_f_main"
+  ],
+  "textures": {
+    "main": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        2048,
+        2048
+      ],
+      "normal": [
+        2048,
+        2048
+      ]
+    },
+    "glass": {
+      "color": [
+        512,
+        512
+      ],
+      "orm": [
+        512,
+        512
+      ]
+    },
+    "decals": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        1024,
+        1024
+      ]
+    }
+  },
+  "build": "tools/blender/build-living-gate-f.py",
+  "preview": "qa/living/blender/gate-f.png",
+  "sources": "public/assets/deepsea/living/SOURCES.md",
+  "notes": "Vertical-lift gate. Raise gate-leaf by +3.6 m in Y to open. Pod side +Z, Alex side -Z.",
+  "built": "2026-10-09 12:19",
+  "buildSeconds": 32.0,
+  "leafTravel": 3.6,
+  "leafAxis": "+Y",
+  "wheelAxis": "local Z (Three rotation.z)",
+  "leverAxis": "local X (pull down = negative rotation.x)"
+}

@@ -1,0 +1,1346 @@
+{
+ "env": {
+  "n": 26,
+  "mean": {
+   "sat_mean": 0.5561410062588178,
+   "luma_p99": 0.576221852348401,
+   "luma_mean": 0.17344310808067137,
+   "dark_ratio": 0.32722332536181603,
+   "clip_ratio": 0.0006810381145915938
+  },
+  "items": [
+   {
+    "file": "qa/living/render-r5/r3/01-shaft-S.png",
+    "sat_mean": 0.6060271859169006,
+    "luma_p99": 0.434367835521698,
+    "luma_mean": 0.16175530850887299,
+    "dark_ratio": 0.33240778028350515,
+    "clip_ratio": 0.00012282538659793814
+   },
+   {
+    "file": "qa/living/render-r5/r3/02-corridor-C1.png",
+    "sat_mean": 0.565081000328064,
+    "luma_p99": 0.6652363538742065,
+    "luma_mean": 0.17317894101142883,
+    "dark_ratio": 0.2723642880154639,
+    "clip_ratio": 0.0012785921391752577
+   },
+   {
+    "file": "qa/living/render-r5/r3/03-solarium-C1.png",
+    "sat_mean": 0.5951868891716003,
+    "luma_p99": 0.7521419525146484,
+    "luma_mean": 0.2026052623987198,
+    "dark_ratio": 0.28159834085051544,
+    "clip_ratio": 0.0027826997422680413
+   },
+   {
+    "file": "qa/living/render-r5/r3/04-C1-east-end.png",
+    "sat_mean": 0.6403545141220093,
+    "luma_p99": 0.7056703567504883,
+    "luma_mean": 0.19871696829795837,
+    "dark_ratio": 0.30787290592783506,
+    "clip_ratio": 0.00013490657216494846
+   },
+   {
+    "file": "qa/living/render-r5/r3/05-C2-end.png",
+    "sat_mean": 0.4493878483772278,
+    "luma_p99": 0.388724684715271,
+    "luma_mean": 0.14657297730445862,
+    "dark_ratio": 0.3574681862113402,
+    "clip_ratio": 1.4094716494845362e-05
+   },
+   {
+    "file": "qa/living/render-r5/r3/06-C3-east-end.png",
+    "sat_mean": 0.5597947239875793,
+    "luma_p99": 0.5930981040000916,
+    "luma_mean": 0.19084402918815613,
+    "dark_ratio": 0.31959769652061853,
+    "clip_ratio": 0.000273840206185567
+   },
+   {
+    "file": "qa/living/render-r5/r3/07-security-R3.png",
+    "sat_mean": 0.7001883387565613,
+    "luma_p99": 0.9375859498977661,
+    "luma_mean": 0.24568504095077515,
+    "dark_ratio": 0.2536364368556701,
+    "clip_ratio": 0.006483569587628866
+   },
+   {
+    "file": "qa/living/render-r5/r3/08-ballast-R4.png",
+    "sat_mean": 0.7496985197067261,
+    "luma_p99": 0.6381106376647949,
+    "luma_mean": 0.2224458009004593,
+    "dark_ratio": 0.288049693943299,
+    "clip_ratio": 6.241945876288659e-05
+   },
+   {
+    "file": "qa/living/render-r5/r3/09-C4-V.png",
+    "sat_mean": 0.36921051144599915,
+    "luma_p99": 0.38449177145957947,
+    "luma_mean": 0.13817833364009857,
+    "dark_ratio": 0.3835051546391753,
+    "clip_ratio": 2.0135309278350516e-06
+   },
+   {
+    "file": "qa/living/render-r5/r3/10-C5-south.png",
+    "sat_mean": 0.7187447547912598,
+    "luma_p99": 0.8571733236312866,
+    "luma_mean": 0.27160319685935974,
+    "dark_ratio": 0.2059983086340206,
+    "clip_ratio": 0.002734375
+   },
+   {
+    "file": "qa/living/render-r5/r3/11-atrium-wide.png",
+    "sat_mean": 0.5493596196174622,
+    "luma_p99": 0.5134168863296509,
+    "luma_mean": 0.11428523063659668,
+    "dark_ratio": 0.37164747100515466,
+    "clip_ratio": 0.00025571842783505156
+   },
+   {
+    "file": "qa/living/render-r5/r3/12-atrium-floor.png",
+    "sat_mean": 0.44233521819114685,
+    "luma_p99": 0.7237443923950195,
+    "luma_mean": 0.19683192670345306,
+    "dark_ratio": 0.2730066043814433,
+    "clip_ratio": 0.00045505798969072166
+   },
+   {
+    "file": "qa/living/render-r5/r3/13-atrium-east.png",
+    "sat_mean": 0.5734574198722839,
+    "luma_p99": 0.5194085836410522,
+    "luma_mean": 0.12256142497062683,
+    "dark_ratio": 0.4393766108247423,
+    "clip_ratio": 1.2081185567010309e-05
+   },
+   {
+    "file": "qa/living/render-r5/r3/14-office-R5.png",
+    "sat_mean": 0.5823714733123779,
+    "luma_p99": 0.600777268409729,
+    "luma_mean": 0.209580197930336,
+    "dark_ratio": 0.33220038659793816,
+    "clip_ratio": 0.00015101481958762887
+   },
+   {
+    "file": "qa/living/render-r5/r3/15-R5-wide.png",
+    "sat_mean": 0.44885438680648804,
+    "luma_p99": 0.5345062613487244,
+    "luma_mean": 0.15752160549163818,
+    "dark_ratio": 0.3218327158505155,
+    "clip_ratio": 3.825708762886598e-05
+   },
+   {
+    "file": "qa/living/render-r5/r3/16-C7-D.png",
+    "sat_mean": 0.6265055537223816,
+    "luma_p99": 0.6971905827522278,
+    "luma_mean": 0.1590268760919571,
+    "dark_ratio": 0.38825708762886596,
+    "clip_ratio": 0.0013933634020618557
+   },
+   {
+    "file": "qa/living/render-r5/r3/17-laundry-R1.png",
+    "sat_mean": 0.46244016289711,
+    "luma_p99": 0.5824760794639587,
+    "luma_mean": 0.15463495254516602,
+    "dark_ratio": 0.38152988079896905,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/render-r5/r3/18-live-corridor.png",
+    "sat_mean": 0.5252766013145447,
+    "luma_p99": 0.4417082667350769,
+    "luma_mean": 0.12865327298641205,
+    "dark_ratio": 0.40341293492268043,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/render-r5/r3/19-live-atrium.png",
+    "sat_mean": 0.4722636938095093,
+    "luma_p99": 0.2800619900226593,
+    "luma_mean": 0.04535534605383873,
+    "dark_ratio": 0.7007631282216494,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/render-r5/r3/20-atrium-north-shops.png",
+    "sat_mean": 0.5198410153388977,
+    "luma_p99": 0.6876589059829712,
+    "luma_mean": 0.19910605251789093,
+    "dark_ratio": 0.24858046069587628,
+    "clip_ratio": 0.0008336018041237113
+   },
+   {
+    "file": "qa/living/render-r5/r3/21-atrium-to-C7.png",
+    "sat_mean": 0.4880458116531372,
+    "luma_p99": 0.34212079644203186,
+    "luma_mean": 0.08713486790657043,
+    "dark_ratio": 0.4859717300257732,
+    "clip_ratio": 4.027061855670103e-06
+   },
+   {
+    "file": "qa/living/render-r5/r3/22-atrium-to-R5.png",
+    "sat_mean": 0.49121329188346863,
+    "luma_p99": 0.5909151434898376,
+    "luma_mean": 0.13979771733283997,
+    "dark_ratio": 0.21728817654639176,
+    "clip_ratio": 0.00017115012886597937
+   },
+   {
+    "file": "qa/living/render-r5/r3/23-probe-cocoon.png",
+    "sat_mean": 0.5144700407981873,
+    "luma_p99": 0.5621921420097351,
+    "luma_mean": 0.2673232853412628,
+    "dark_ratio": 0.1864308150773196,
+    "clip_ratio": 2.0135309278350516e-06
+   },
+   {
+    "file": "qa/living/render-r5/r3/24-probe-slime-wall.png",
+    "sat_mean": 0.5814555883407593,
+    "luma_p99": 0.4745160937309265,
+    "luma_mean": 0.19306206703186035,
+    "dark_ratio": 0.29879590850515464,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/render-r5/r3/25-C3-long.png",
+    "sat_mean": 0.47257331013679504,
+    "luma_p99": 0.5409718155860901,
+    "luma_mean": 0.18545302748680115,
+    "dark_ratio": 0.3012302673969072,
+    "clip_ratio": 0.00016913659793814433
+   },
+   {
+    "file": "qa/living/render-r5/r3/26-V-mid.png",
+    "sat_mean": 0.7555286884307861,
+    "luma_p99": 0.5335019826889038,
+    "luma_mean": 0.1976071000099182,
+    "dark_ratio": 0.15498348904639175,
+    "clip_ratio": 0.0003322326030927835
+   }
+  ]
+ },
+ "creature": {
+  "n": 21,
+  "mean": {
+   "sat_mean": 0.499982625246048,
+   "luma_p99": 0.6559160649776459,
+   "luma_mean": 0.28936677603494554,
+   "dark_ratio": 0.07554365335051545,
+   "clip_ratio": 0.01835995029455081
+  },
+  "items": [
+   {
+    "file": "qa/living/creatures-r4/round6/g4-shade-gape.png",
+    "sat_mean": 0.4142161011695862,
+    "luma_p99": 0.4549294114112854,
+    "luma_mean": 0.2124083787202835,
+    "dark_ratio": 0.08424412048969072,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/creatures-r4/round6/k2-lumen-close.png",
+    "sat_mean": 0.3780677914619446,
+    "luma_p99": 0.6236000061035156,
+    "luma_mean": 0.24464565515518188,
+    "dark_ratio": 0.08293733891752578,
+    "clip_ratio": 0.00041680090206185565
+   },
+   {
+    "file": "qa/living/creatures-r4/round6/k4-shade-close.png",
+    "sat_mean": 0.4452495574951172,
+    "luma_p99": 0.5017989873886108,
+    "luma_mean": 0.18496663868427277,
+    "dark_ratio": 0.12831829896907215,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/creatures-r4/round6/k6-blind-close.png",
+    "sat_mean": 0.7519453167915344,
+    "luma_p99": 0.5763380527496338,
+    "luma_mean": 0.27934813499450684,
+    "dark_ratio": 0.03363200708762887,
+    "clip_ratio": 0.00016712306701030928
+   },
+   {
+    "file": "qa/living/creatures-r4/round6/r1-blind-half.png",
+    "sat_mean": 0.684867799282074,
+    "luma_p99": 0.8600823283195496,
+    "luma_mean": 0.3506183326244354,
+    "dark_ratio": 0.01542163337628866,
+    "clip_ratio": 0.001874597293814433
+   },
+   {
+    "file": "qa/living/creatures-r4/round6/r3-shade-half.png",
+    "sat_mean": 0.4577977955341339,
+    "luma_p99": 0.4648172855377197,
+    "luma_mean": 0.22820836305618286,
+    "dark_ratio": 0.06899766430412371,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/creatures-r4/round6/r5-lumen-half.png",
+    "sat_mean": 0.3079848289489746,
+    "luma_p99": 0.9668972492218018,
+    "luma_mean": 0.3418252468109131,
+    "dark_ratio": 0.04962548324742268,
+    "clip_ratio": 0.009389094716494845
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/f1-blind-far.png",
+    "sat_mean": 0.6635169982910156,
+    "luma_p99": 0.5717573761940002,
+    "luma_mean": 0.27329039573669434,
+    "dark_ratio": 0.00701916881443299,
+    "clip_ratio": 0.00013893363402061855
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/f2-shade-far.png",
+    "sat_mean": 0.08540758490562439,
+    "luma_p99": 0.9994337558746338,
+    "luma_mean": 0.9180792570114136,
+    "dark_ratio": 0.00047116623711340207,
+    "clip_ratio": 0.35895819909793814
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/g1-lumen-reach.png",
+    "sat_mean": 0.3186641037464142,
+    "luma_p99": 0.9567999839782715,
+    "luma_mean": 0.3229820728302002,
+    "dark_ratio": 0.058917928479381446,
+    "clip_ratio": 0.008072245489690722
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/g2-shade-curl.png",
+    "sat_mean": 0.4486753046512604,
+    "luma_p99": 0.5234127044677734,
+    "luma_mean": 0.18203140795230865,
+    "dark_ratio": 0.12455098260309279,
+    "clip_ratio": 0.00011477126288659794
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/g3-blind-sleep.png",
+    "sat_mean": 0.7477313280105591,
+    "luma_p99": 0.5924599766731262,
+    "luma_mean": 0.2794208228588104,
+    "dark_ratio": 0.019915834407216493,
+    "clip_ratio": 0.00015302835051546392
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/k1-lumen.png",
+    "sat_mean": 0.405200332403183,
+    "luma_p99": 0.4513317346572876,
+    "luma_mean": 0.21149958670139313,
+    "dark_ratio": 0.1634242106958763,
+    "clip_ratio": 1.2081185567010309e-05
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/k3-shade.png",
+    "sat_mean": 0.5255884528160095,
+    "luma_p99": 0.4950462877750397,
+    "luma_mean": 0.1599351018667221,
+    "dark_ratio": 0.19821601159793814,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/k5-blind.png",
+    "sat_mean": 0.7179045677185059,
+    "luma_p99": 0.5085701942443848,
+    "luma_mean": 0.22478552162647247,
+    "dark_ratio": 0.13086742912371135,
+    "clip_ratio": 2.4162371134020617e-05
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/k7-swarm.png",
+    "sat_mean": 0.5329812169075012,
+    "luma_p99": 0.7125821709632874,
+    "luma_mean": 0.23095238208770752,
+    "dark_ratio": 0.1198816043814433,
+    "clip_ratio": 0.00040673324742268043
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/k8-swarm-close.png",
+    "sat_mean": 0.5408886671066284,
+    "luma_p99": 0.7329075336456299,
+    "luma_mean": 0.2664920389652252,
+    "dark_ratio": 0.045131282216494845,
+    "clip_ratio": 0.0001208118556701031
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/k9-swarm-wall.png",
+    "sat_mean": 0.48395973443984985,
+    "luma_p99": 0.6010972857475281,
+    "luma_mean": 0.25443315505981445,
+    "dark_ratio": 0.10631443298969072,
+    "clip_ratio": 2.617590206185567e-05
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/r2-blind-edge.png",
+    "sat_mean": 0.7588632106781006,
+    "luma_p99": 0.5586808323860168,
+    "luma_mean": 0.2685404121875763,
+    "dark_ratio": 0.04141833118556701,
+    "clip_ratio": 0.00014698775773195876
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/r4-shade-edge.png",
+    "sat_mean": 0.45651575922966003,
+    "luma_p99": 0.8386589288711548,
+    "luma_mean": 0.276827871799469,
+    "dark_ratio": 0.04988925579896907,
+    "clip_ratio": 0.003737113402061856
+   },
+   {
+    "file": "qa/living/creatures-r4/round5/r6-lumen-edge.png",
+    "sat_mean": 0.37360867857933044,
+    "luma_p99": 0.7830352783203125,
+    "luma_mean": 0.36541152000427246,
+    "dark_ratio": 0.05722253543814433,
+    "clip_ratio": 0.001800096649484536
+   }
+  ]
+ },
+ "hero": {
+  "n": 20,
+  "mean": {
+   "sat_mean": 0.5205906182527542,
+   "luma_p99": 0.8422997295856476,
+   "luma_mean": 0.42808377742767334,
+   "dark_ratio": 0.03906733247422681,
+   "clip_ratio": 0.007709507893041237
+  },
+  "items": [
+   {
+    "file": "qa/living/hero-r4/r5/a1-alex-glass.png",
+    "sat_mean": 0.2598998546600342,
+    "luma_p99": 0.9677450656890869,
+    "luma_mean": 0.4211612045764923,
+    "dark_ratio": 0.016734455541237113,
+    "clip_ratio": 0.009590447809278351
+   },
+   {
+    "file": "qa/living/hero-r4/r5/a7-alex-probe-close.png",
+    "sat_mean": 0.3074742555618286,
+    "luma_p99": 0.9955121278762817,
+    "luma_mean": 0.6299910545349121,
+    "dark_ratio": 0.00047116623711340207,
+    "clip_ratio": 0.06442694909793814
+   },
+   {
+    "file": "qa/living/hero-r4/r5/a8-alex-meet-mid.png",
+    "sat_mean": 0.7665183544158936,
+    "luma_p99": 0.6424369215965271,
+    "luma_mean": 0.30531400442123413,
+    "dark_ratio": 0.00428882087628866,
+    "clip_ratio": 0.0001449742268041237
+   },
+   {
+    "file": "qa/living/hero-r4/r5/a9-alex-meet-close.png",
+    "sat_mean": 0.4587981104850769,
+    "luma_p99": 0.944390594959259,
+    "luma_mean": 0.3284562826156616,
+    "dark_ratio": 0.03386154961340206,
+    "clip_ratio": 0.0059298485824742266
+   },
+   {
+    "file": "qa/living/hero-r4/r5/c1-cocoon-probe.png",
+    "sat_mean": 0.4913075268268585,
+    "luma_p99": 0.5747953057289124,
+    "luma_mean": 0.3263914883136749,
+    "dark_ratio": 0.08193258698453608,
+    "clip_ratio": 8.054123711340206e-06
+   },
+   {
+    "file": "qa/living/hero-r4/r5/c2-cocoon-close.png",
+    "sat_mean": 0.4715738892555237,
+    "luma_p99": 0.835110604763031,
+    "luma_mean": 0.47910192608833313,
+    "dark_ratio": 0.007198373067010309,
+    "clip_ratio": 0.0006846005154639175
+   },
+   {
+    "file": "qa/living/hero-r4/r5/c3-cocoon-side.png",
+    "sat_mean": 0.5010350346565247,
+    "luma_p99": 0.7975670695304871,
+    "luma_mean": 0.4235125184059143,
+    "dark_ratio": 0.014134987113402062,
+    "clip_ratio": 0.00047519329896907216
+   },
+   {
+    "file": "qa/living/hero-r4/r5/c4-cocoon-close-clear.png",
+    "sat_mean": 0.39766445755958557,
+    "luma_p99": 0.8096054792404175,
+    "luma_mean": 0.39453572034835815,
+    "dark_ratio": 0.0506604381443299,
+    "clip_ratio": 0.0006020457474226804
+   },
+   {
+    "file": "qa/living/hero-r4/r5/h22-code-legal-31.png",
+    "sat_mean": 0.6672330498695374,
+    "luma_p99": 0.8863850831985474,
+    "luma_mean": 0.40072500705718994,
+    "dark_ratio": 0.08641873389175257,
+    "clip_ratio": 0.0009201836340206185
+   },
+   {
+    "file": "qa/living/hero-r4/r5/h23-code-legal-34.png",
+    "sat_mean": 0.6660901308059692,
+    "luma_p99": 0.8673449754714966,
+    "luma_mean": 0.3868773877620697,
+    "dark_ratio": 0.11604784149484536,
+    "clip_ratio": 0.0005174774484536083
+   },
+   {
+    "file": "qa/living/hero-r4/r5/h24-code-legal-oblique.png",
+    "sat_mean": 0.6835923790931702,
+    "luma_p99": 0.8798949122428894,
+    "luma_mean": 0.4049832224845886,
+    "dark_ratio": 0.08888933634020618,
+    "clip_ratio": 0.0030625805412371134
+   },
+   {
+    "file": "qa/living/hero-r4/r5/p1-security-diver-close.png",
+    "sat_mean": 0.4896531403064728,
+    "luma_p99": 0.9924243688583374,
+    "luma_mean": 0.5981289744377136,
+    "dark_ratio": 0.00047116623711340207,
+    "clip_ratio": 0.03280041881443299
+   },
+   {
+    "file": "qa/living/hero-r4/r5/p1b-security-diver-pod.png",
+    "sat_mean": 0.47787246108055115,
+    "luma_p99": 0.9915749430656433,
+    "luma_mean": 0.5290066599845886,
+    "dark_ratio": 0.008458843427835051,
+    "clip_ratio": 0.024647632087628865
+   },
+   {
+    "file": "qa/living/hero-r4/r5/p2-security-diver-mid.png",
+    "sat_mean": 0.6639284491539001,
+    "luma_p99": 0.747001588344574,
+    "luma_mean": 0.32416871190071106,
+    "dark_ratio": 0.012443621134020618,
+    "clip_ratio": 0.000817493556701031
+   },
+   {
+    "file": "qa/living/hero-r4/r5/p3-manager-close.png",
+    "sat_mean": 0.5569425225257874,
+    "luma_p99": 0.9071317911148071,
+    "luma_mean": 0.5055556893348694,
+    "dark_ratio": 0.01231676868556701,
+    "clip_ratio": 2.8189432989690723e-05
+   },
+   {
+    "file": "qa/living/hero-r4/r5/p4-manager-mid.png",
+    "sat_mean": 0.5473534464836121,
+    "luma_p99": 0.9536807537078857,
+    "luma_mean": 0.4518499970436096,
+    "dark_ratio": 0.04122301868556701,
+    "clip_ratio": 0.006386920103092783
+   },
+   {
+    "file": "qa/living/hero-r4/r5/s5-slime-wall-east.png",
+    "sat_mean": 0.5129168629646301,
+    "luma_p99": 0.8194599151611328,
+    "luma_mean": 0.4642620384693146,
+    "dark_ratio": 0.03758658182989691,
+    "clip_ratio": 9.866301546391753e-05
+   },
+   {
+    "file": "qa/living/hero-r4/r5/s6-slime-wall-west.png",
+    "sat_mean": 0.4794379770755768,
+    "luma_p99": 0.8721505999565125,
+    "luma_mean": 0.47171667218208313,
+    "dark_ratio": 0.003668653350515464,
+    "clip_ratio": 0.0028310244845360824
+   },
+   {
+    "file": "qa/living/hero-r4/r5/s7-slime-wall-east-0.png",
+    "sat_mean": 0.4438864290714264,
+    "luma_p99": 0.7341817021369934,
+    "luma_mean": 0.36372384428977966,
+    "dark_ratio": 0.08748590528350515,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/hero-r4/r5/s8-slime-corridor.png",
+    "sat_mean": 0.568634033203125,
+    "luma_p99": 0.6276007890701294,
+    "luma_mean": 0.35221314430236816,
+    "dark_ratio": 0.07705380154639176,
+    "clip_ratio": 0.00021746134020618558
+   }
+  ]
+ },
+ "flow": {
+  "n": 35,
+  "mean": {
+   "sat_mean": 0.39699321261474063,
+   "luma_p99": 0.4723042343344007,
+   "luma_mean": 0.16303944034235818,
+   "dark_ratio": 0.3816215252209131,
+   "clip_ratio": 6.834499263622975e-05
+  },
+  "items": [
+   {
+    "file": "qa/living/flow-r2/flow/01-shaft-top.png",
+    "sat_mean": 0.45784804224967957,
+    "luma_p99": 0.4704306423664093,
+    "luma_mean": 0.07902281731367111,
+    "dark_ratio": 0.6694124516752578,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/02-shaft-bottom-lamp.png",
+    "sat_mean": 0.48781266808509827,
+    "luma_p99": 0.4884139895439148,
+    "luma_mean": 0.10642595589160919,
+    "dark_ratio": 0.4608106475515464,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/03-c1-corridor-film.png",
+    "sat_mean": 0.20943798124790192,
+    "luma_p99": 0.5360643267631531,
+    "luma_mean": 0.28754866123199463,
+    "dark_ratio": 0.08280444587628866,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/03-c1-corridor.png",
+    "sat_mean": 0.4393034875392914,
+    "luma_p99": 0.4947935938835144,
+    "luma_mean": 0.12974753975868225,
+    "dark_ratio": 0.4321641430412371,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/04-probe-corpse-frame.jpg",
+    "sat_mean": 0.48385196924209595,
+    "luma_p99": 0.27700549364089966,
+    "luma_mean": 0.1341610848903656,
+    "dark_ratio": 0.13554888853092784,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/05-probe-box.png",
+    "sat_mean": 0.46628546714782715,
+    "luma_p99": 0.4923992156982422,
+    "luma_mean": 0.11880894005298615,
+    "dark_ratio": 0.43919740657216494,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/06-r4-shade-lamp.png",
+    "sat_mean": 0.4369315803050995,
+    "luma_p99": 0.4813804030418396,
+    "luma_mean": 0.12289297580718994,
+    "dark_ratio": 0.46494845360824744,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/07-g-glass-alex-film.png",
+    "sat_mean": 0.7260218262672424,
+    "luma_p99": 0.325751394033432,
+    "luma_mean": 0.05103517696261406,
+    "dark_ratio": 0.6877677996134021,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/07-g-glass.png",
+    "sat_mean": 0.46324580907821655,
+    "luma_p99": 0.4580081105232239,
+    "luma_mean": 0.07649729400873184,
+    "dark_ratio": 0.6647289787371135,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/08-valve-v1.png",
+    "sat_mean": 0.4846312403678894,
+    "luma_p99": 0.49338746070861816,
+    "luma_mean": 0.08430171757936478,
+    "dark_ratio": 0.6081829896907216,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/09-valve-labels-frame.jpg",
+    "sat_mean": 0.711713433265686,
+    "luma_p99": 0.382647305727005,
+    "luma_mean": 0.10662131756544113,
+    "dark_ratio": 0.17670747422680413,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/10-code-frame.jpg",
+    "sat_mean": 0.1718561202287674,
+    "luma_p99": 0.5218972563743591,
+    "luma_mean": 0.3376702666282654,
+    "dark_ratio": 0.0048586501288659795,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/11-guide-frame.jpg",
+    "sat_mean": 0.15875795483589172,
+    "luma_p99": 0.5392305850982666,
+    "luma_mean": 0.31446266174316406,
+    "dark_ratio": 0.007502416237113402,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/12-gate-open-film.png",
+    "sat_mean": 0.5923344492912292,
+    "luma_p99": 0.6274659037590027,
+    "luma_mean": 0.14884689450263977,
+    "dark_ratio": 0.23885711984536082,
+    "clip_ratio": 0.0006966817010309279
+   },
+   {
+    "file": "qa/living/flow-r2/flow/12-gate-open.png",
+    "sat_mean": 0.46378928422927856,
+    "luma_p99": 0.46987372636795044,
+    "luma_mean": 0.07725555449724197,
+    "dark_ratio": 0.6595682989690722,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/13-gate-alex-frame.jpg",
+    "sat_mean": 0.4617771804332733,
+    "luma_p99": 0.6837670803070068,
+    "luma_mean": 0.2529357969760895,
+    "dark_ratio": 0.00047519329896907216,
+    "clip_ratio": 0.000430895618556701
+   },
+   {
+    "file": "qa/living/flow-r2/flow/14-d-shaft-film.png",
+    "sat_mean": 0.3338254392147064,
+    "luma_p99": 0.25552940368652344,
+    "luma_mean": 0.12823453545570374,
+    "dark_ratio": 0.0005637886597938144,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/15-complete.png",
+    "sat_mean": 0.46337684988975525,
+    "luma_p99": 0.4338745176792145,
+    "luma_mean": 0.07356955856084824,
+    "dark_ratio": 0.67409793814433,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/lab-tape.2.png",
+    "sat_mean": 0.42960765957832336,
+    "luma_p99": 0.347053587436676,
+    "luma_mean": 0.05697306618094444,
+    "dark_ratio": 0.7783162854381444,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/lab-tape.3.png",
+    "sat_mean": 0.40477868914604187,
+    "luma_p99": 0.3256729543209076,
+    "luma_mean": 0.05083765089511871,
+    "dark_ratio": 0.796448131443299,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/lab-tape.4.png",
+    "sat_mean": 0.41769739985466003,
+    "luma_p99": 0.33178839087486267,
+    "luma_mean": 0.07728283107280731,
+    "dark_ratio": 0.6407619201030927,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/lab-tape.5.png",
+    "sat_mean": 0.41635969281196594,
+    "luma_p99": 0.30047136545181274,
+    "luma_mean": 0.0693066343665123,
+    "dark_ratio": 0.6609093105670103,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/lab-tape.6.png",
+    "sat_mean": 0.3954576253890991,
+    "luma_p99": 0.324418842792511,
+    "luma_mean": 0.052521221339702606,
+    "dark_ratio": 0.8022491140463918,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/lab-tape.alexIntro.1.png",
+    "sat_mean": 0.4223702847957611,
+    "luma_p99": 0.3363317847251892,
+    "luma_mean": 0.05822679027915001,
+    "dark_ratio": 0.7575165109536083,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/lab-tape.securityLog.1.png",
+    "sat_mean": 0.45744234323501587,
+    "luma_p99": 0.36224550008773804,
+    "luma_mean": 0.08180789649486542,
+    "dark_ratio": 0.6154941204896908,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/lab-tape.slimeCleared.1.png",
+    "sat_mean": 0.4337088465690613,
+    "luma_p99": 0.3200792372226715,
+    "luma_mean": 0.07048258185386658,
+    "dark_ratio": 0.6572809278350515,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/lab-tape.slimeUnchanged.1.png",
+    "sat_mean": 0.4043838083744049,
+    "luma_p99": 0.34360864758491516,
+    "luma_mean": 0.058640774339437485,
+    "dark_ratio": 0.7627235019329897,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/tape.alexIntro.1-0.jpg",
+    "sat_mean": 0.1294994354248047,
+    "luma_p99": 0.8896344900131226,
+    "luma_mean": 0.37464314699172974,
+    "dark_ratio": 0.00804405605670103,
+    "clip_ratio": 0.0012483891752577319
+   },
+   {
+    "file": "qa/living/flow-r2/flow/tape.alexIntro.1-mid.jpg",
+    "sat_mean": 0.30342602729797363,
+    "luma_p99": 0.6758731007575989,
+    "luma_mean": 0.34068387746810913,
+    "dark_ratio": 0.04152504832474227,
+    "clip_ratio": 1.0067654639175258e-05
+   },
+   {
+    "file": "qa/living/flow-r2/flow/tape.securityLog.1-0.jpg",
+    "sat_mean": 0.26907360553741455,
+    "luma_p99": 0.6268470883369446,
+    "luma_mean": 0.31102368235588074,
+    "dark_ratio": 0.05453849871134021,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/tape.securityLog.1-mid.jpg",
+    "sat_mean": 0.2652497887611389,
+    "luma_p99": 0.6587929725646973,
+    "luma_mean": 0.3223218023777008,
+    "dark_ratio": 0.05017115012886598,
+    "clip_ratio": 4.027061855670103e-06
+   },
+   {
+    "file": "qa/living/flow-r2/flow/tape.slimeCleared.1-0.jpg",
+    "sat_mean": 0.23139257729053497,
+    "luma_p99": 0.41348233819007874,
+    "luma_mean": 0.1847262680530548,
+    "dark_ratio": 0.20542445231958764,
+    "clip_ratio": 2.0135309278350516e-06
+   },
+   {
+    "file": "qa/living/flow-r2/flow/tape.slimeCleared.1-mid.jpg",
+    "sat_mean": 0.26345646381378174,
+    "luma_p99": 0.6136776804924011,
+    "luma_mean": 0.235604390501976,
+    "dark_ratio": 0.07330863402061856,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/tape.slimeUnchanged.1-0.jpg",
+    "sat_mean": 0.2994018495082855,
+    "luma_p99": 0.6931796073913574,
+    "luma_mean": 0.3801792860031128,
+    "dark_ratio": 0.04290431701030928,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/living/flow-r2/flow/tape.slimeUnchanged.1-mid.jpg",
+    "sat_mean": 0.338655561208725,
+    "luma_p99": 0.5355702042579651,
+    "luma_mean": 0.3510797619819641,
+    "dark_ratio": 0.0009403189432989691,
+    "clip_ratio": 0.0
+   }
+  ]
+ },
+ "ref_AAA": {
+  "n": 19,
+  "mean": {
+   "sat_mean": 0.44255937871180084,
+   "luma_p99": 0.7600044859083075,
+   "luma_mean": 0.18489054904172295,
+   "dark_ratio": 0.25618164592376563,
+   "clip_ratio": 0.0024722980534454693
+  },
+  "items": [
+   {
+    "file": "qa/reference/aaa/bioshock2_01.jpg",
+    "sat_mean": 0.43570971488952637,
+    "luma_p99": 0.5279858708381653,
+    "luma_mean": 0.12620341777801514,
+    "dark_ratio": 0.03171713917525773,
+    "clip_ratio": 0.00024363724226804124
+   },
+   {
+    "file": "qa/reference/aaa/bioshock2_02.jpg",
+    "sat_mean": 0.45637813210487366,
+    "luma_p99": 0.38854795694351196,
+    "luma_mean": 0.09193477034568787,
+    "dark_ratio": 0.45418210373711343,
+    "clip_ratio": 3.0202963917525774e-05
+   },
+   {
+    "file": "qa/reference/aaa/bioshock2_03.jpg",
+    "sat_mean": 0.3956606090068817,
+    "luma_p99": 0.8101153373718262,
+    "luma_mean": 0.21188028156757355,
+    "dark_ratio": 0.09566486791237114,
+    "clip_ratio": 0.0032196359536082473
+   },
+   {
+    "file": "qa/reference/aaa/bioshock2_04.jpg",
+    "sat_mean": 0.5077640414237976,
+    "luma_p99": 0.9887168407440186,
+    "luma_mean": 0.19710949063301086,
+    "dark_ratio": 0.2857522551546392,
+    "clip_ratio": 0.01870570231958763
+   },
+   {
+    "file": "qa/reference/aaa/bioshock2_05.jpg",
+    "sat_mean": 0.4092675447463989,
+    "luma_p99": 0.7998252511024475,
+    "luma_mean": 0.13608293235301971,
+    "dark_ratio": 0.4673928801546392,
+    "clip_ratio": 0.004532458118556701
+   },
+   {
+    "file": "qa/reference/aaa/bioshock_02.jpg",
+    "sat_mean": 0.3890865445137024,
+    "luma_p99": 0.5829012393951416,
+    "luma_mean": 0.1173926442861557,
+    "dark_ratio": 0.15497342139175257,
+    "clip_ratio": 7.04735824742268e-05
+   },
+   {
+    "file": "qa/reference/aaa/bioshock_03.jpg",
+    "sat_mean": 0.4244682788848877,
+    "luma_p99": 0.6404047608375549,
+    "luma_mean": 0.20532535016536713,
+    "dark_ratio": 0.04143846649484536,
+    "clip_ratio": 0.0004087467783505155
+   },
+   {
+    "file": "qa/reference/aaa/bioshock_04.jpg",
+    "sat_mean": 0.584160327911377,
+    "luma_p99": 0.6791847944259644,
+    "luma_mean": 0.13921788334846497,
+    "dark_ratio": 0.25171351481958765,
+    "clip_ratio": 0.0009463595360824742
+   },
+   {
+    "file": "qa/reference/aaa/bioshock_05.jpg",
+    "sat_mean": 0.34647125005722046,
+    "luma_p99": 0.7679650187492371,
+    "luma_mean": 0.10857734829187393,
+    "dark_ratio": 0.43102851159793815,
+    "clip_ratio": 0.0001208118556701031
+   },
+   {
+    "file": "qa/reference/aaa/deadspace_01.jpg",
+    "sat_mean": 0.2908481955528259,
+    "luma_p99": 0.7787702083587646,
+    "luma_mean": 0.21002636849880219,
+    "dark_ratio": 0.0801586662371134,
+    "clip_ratio": 7.651417525773196e-05
+   },
+   {
+    "file": "qa/reference/aaa/deadspace_02.jpg",
+    "sat_mean": 0.33098819851875305,
+    "luma_p99": 0.8987788558006287,
+    "luma_mean": 0.34740492701530457,
+    "dark_ratio": 0.03760470360824742,
+    "clip_ratio": 0.0005215045103092783
+   },
+   {
+    "file": "qa/reference/aaa/deadspace_03.jpg",
+    "sat_mean": 0.6014785766601562,
+    "luma_p99": 0.9070783853530884,
+    "luma_mean": 0.3583776652812958,
+    "dark_ratio": 0.06663780605670103,
+    "clip_ratio": 0.0013571198453608247
+   },
+   {
+    "file": "qa/reference/aaa/deadspace_04.jpg",
+    "sat_mean": 0.43003007769584656,
+    "luma_p99": 0.9048109650611877,
+    "luma_mean": 0.32079169154167175,
+    "dark_ratio": 0.10112355025773195,
+    "clip_ratio": 0.002420264175257732
+   },
+   {
+    "file": "qa/reference/aaa/deadspace_05.jpg",
+    "sat_mean": 0.19833630323410034,
+    "luma_p99": 0.7048109769821167,
+    "luma_mean": 0.22852346301078796,
+    "dark_ratio": 0.12255960051546391,
+    "clip_ratio": 0.0006342622422680413
+   },
+   {
+    "file": "qa/reference/aaa/deadspace_06.jpg",
+    "sat_mean": 0.603306770324707,
+    "luma_p99": 0.8976221084594727,
+    "luma_mean": 0.08199743926525116,
+    "dark_ratio": 0.7607260792525773,
+    "clip_ratio": 0.002772632087628866
+   },
+   {
+    "file": "qa/reference/aaa/deadspace_07.jpg",
+    "sat_mean": 0.35641130805015564,
+    "luma_p99": 0.9672008156776428,
+    "luma_mean": 0.1990610957145691,
+    "dark_ratio": 0.36017638530927837,
+    "clip_ratio": 0.009763611469072165
+   },
+   {
+    "file": "qa/reference/aaa/deadspace_08.jpg",
+    "sat_mean": 0.275490403175354,
+    "luma_p99": 0.7948762774467468,
+    "luma_mean": 0.1661931872367859,
+    "dark_ratio": 0.2288377899484536,
+    "clip_ratio": 0.0003785438144329897
+   },
+   {
+    "file": "qa/reference/aaa/deadspace_09.jpg",
+    "sat_mean": 0.6533743143081665,
+    "luma_p99": 0.5699813365936279,
+    "luma_mean": 0.09660087525844574,
+    "dark_ratio": 0.43375885953608245,
+    "clip_ratio": 0.00011074420103092783
+   },
+   {
+    "file": "qa/reference/aaa/deadspace_10.jpg",
+    "sat_mean": 0.7193976044654846,
+    "luma_p99": 0.8305082321166992,
+    "luma_mean": 0.17021960020065308,
+    "dark_ratio": 0.46200467139175255,
+    "clip_ratio": 0.000660438144329897
+   }
+  ]
+ },
+ "ref_highAA": {
+  "n": 38,
+  "mean": {
+   "sat_mean": 0.4747724588960409,
+   "luma_p99": 0.6585097473702932,
+   "luma_mean": 0.19443267515223278,
+   "dark_ratio": 0.255090153197911,
+   "clip_ratio": 0.001405179649348888
+  },
+  "items": [
+   {
+    "file": "qa/reference/aaa/bunker_01.jpg",
+    "sat_mean": 0.18853145837783813,
+    "luma_p99": 0.436219722032547,
+    "luma_mean": 0.10707984864711761,
+    "dark_ratio": 0.4006745328608247,
+    "clip_ratio": 0.00045505798969072166
+   },
+   {
+    "file": "qa/reference/aaa/bunker_02.jpg",
+    "sat_mean": 0.42786675691604614,
+    "luma_p99": 0.4702706038951874,
+    "luma_mean": 0.06420343369245529,
+    "dark_ratio": 0.6932929284793814,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/reference/aaa/bunker_03.jpg",
+    "sat_mean": 0.2615117132663727,
+    "luma_p99": 0.7516298294067383,
+    "luma_mean": 0.20209592580795288,
+    "dark_ratio": 0.04673405283505155,
+    "clip_ratio": 0.0018826514175257732
+   },
+   {
+    "file": "qa/reference/aaa/bunker_05.jpg",
+    "sat_mean": 0.19085223972797394,
+    "luma_p99": 0.8352447152137756,
+    "luma_mean": 0.20321856439113617,
+    "dark_ratio": 0.054399565077319585,
+    "clip_ratio": 0.0002879349226804124
+   },
+   {
+    "file": "qa/reference/aaa/soma_01.jpg",
+    "sat_mean": 0.5767599940299988,
+    "luma_p99": 0.6611116528511047,
+    "luma_mean": 0.20990140736103058,
+    "dark_ratio": 0.2235180412371134,
+    "clip_ratio": 0.0001409471649484536
+   },
+   {
+    "file": "qa/reference/aaa/soma_02.jpg",
+    "sat_mean": 0.16385281085968018,
+    "luma_p99": 0.2817288339138031,
+    "luma_mean": 0.0972134992480278,
+    "dark_ratio": 0.07360260953608247,
+    "clip_ratio": 0.000545666881443299
+   },
+   {
+    "file": "qa/reference/aaa/soma_03.jpg",
+    "sat_mean": 0.5566232800483704,
+    "luma_p99": 0.49420082569122314,
+    "luma_mean": 0.0970916673541069,
+    "dark_ratio": 0.4616784793814433,
+    "clip_ratio": 0.00029196198453608247
+   },
+   {
+    "file": "qa/reference/aaa/soma_04.jpg",
+    "sat_mean": 0.8305928111076355,
+    "luma_p99": 0.3964998424053192,
+    "luma_mean": 0.1420307159423828,
+    "dark_ratio": 0.10498550257731959,
+    "clip_ratio": 0.00023961018041237112
+   },
+   {
+    "file": "qa/reference/aaa/soma_05.jpg",
+    "sat_mean": 0.5171079635620117,
+    "luma_p99": 0.9932342171669006,
+    "luma_mean": 0.05926902964711189,
+    "dark_ratio": 0.7542465367268041,
+    "clip_ratio": 0.01175096649484536
+   },
+   {
+    "file": "qa/reference/aaa/soma_06.jpg",
+    "sat_mean": 0.4566163122653961,
+    "luma_p99": 0.3369824290275574,
+    "luma_mean": 0.0847567543387413,
+    "dark_ratio": 0.3434681056701031,
+    "clip_ratio": 8.456829896907216e-05
+   },
+   {
+    "file": "qa/reference/aaa/soma_07.jpg",
+    "sat_mean": 0.3441760838031769,
+    "luma_p99": 0.46448472142219543,
+    "luma_mean": 0.08542683720588684,
+    "dark_ratio": 0.4424049613402062,
+    "clip_ratio": 0.00012282538659793814
+   },
+   {
+    "file": "qa/reference/aaa/soma_08.jpg",
+    "sat_mean": 0.3039904832839966,
+    "luma_p99": 0.18293987214565277,
+    "luma_mean": 0.071896031498909,
+    "dark_ratio": 0.45214239690721647,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/reference/aaa/soma_09.jpg",
+    "sat_mean": 0.5493902564048767,
+    "luma_p99": 0.37707504630088806,
+    "luma_mean": 0.1029517650604248,
+    "dark_ratio": 0.34514940399484534,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_01.jpg",
+    "sat_mean": 0.7248823046684265,
+    "luma_p99": 0.7604469060897827,
+    "luma_mean": 0.1403212696313858,
+    "dark_ratio": 0.3049593266752577,
+    "clip_ratio": 0.0006282216494845361
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_02.jpg",
+    "sat_mean": 0.2665371596813202,
+    "luma_p99": 0.9977506399154663,
+    "luma_mean": 0.23679287731647491,
+    "dark_ratio": 0.15236388530927836,
+    "clip_ratio": 0.01899363724226804
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_03.jpg",
+    "sat_mean": 0.6887714862823486,
+    "luma_p99": 0.6715725660324097,
+    "luma_mean": 0.1258424073457718,
+    "dark_ratio": 0.4065882731958763,
+    "clip_ratio": 0.0004087467783505155
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_04.jpg",
+    "sat_mean": 0.3078102469444275,
+    "luma_p99": 0.7621514201164246,
+    "luma_mean": 0.2517860531806946,
+    "dark_ratio": 0.010150209407216495,
+    "clip_ratio": 0.0012242268041237113
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_05.jpg",
+    "sat_mean": 0.5959644913673401,
+    "luma_p99": 0.8151671290397644,
+    "luma_mean": 0.2527570128440857,
+    "dark_ratio": 0.059409230025773196,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_06.jpg",
+    "sat_mean": 0.7439139485359192,
+    "luma_p99": 0.8650141358375549,
+    "luma_mean": 0.21982742846012115,
+    "dark_ratio": 0.15313305412371134,
+    "clip_ratio": 0.001604784149484536
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_07.jpg",
+    "sat_mean": 0.1984649896621704,
+    "luma_p99": 0.7113427519798279,
+    "luma_mean": 0.08719881623983383,
+    "dark_ratio": 0.6820091011597939,
+    "clip_ratio": 6.846005154639175e-05
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_08.jpg",
+    "sat_mean": 0.41074758768081665,
+    "luma_p99": 0.7403478026390076,
+    "luma_mean": 0.20158278942108154,
+    "dark_ratio": 0.029204252577319588,
+    "clip_ratio": 0.004433795103092783
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_09.jpg",
+    "sat_mean": 0.41668713092803955,
+    "luma_p99": 0.8860635161399841,
+    "luma_mean": 0.42970675230026245,
+    "dark_ratio": 0.06702037693298969,
+    "clip_ratio": 0.00014900128865979383
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_10.jpg",
+    "sat_mean": 0.2926957309246063,
+    "luma_p99": 0.7928550839424133,
+    "luma_mean": 0.09687092900276184,
+    "dark_ratio": 0.6231938627577319,
+    "clip_ratio": 0.0014980670103092784
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_11.jpg",
+    "sat_mean": 0.0523078627884388,
+    "luma_p99": 0.7526736855506897,
+    "luma_mean": 0.31477758288383484,
+    "dark_ratio": 0.09909793814432989,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/reference/aaa/stillwakes_12.jpg",
+    "sat_mean": 0.3964596092700958,
+    "luma_p99": 0.8137531876564026,
+    "luma_mean": 0.2606755793094635,
+    "dark_ratio": 0.13269168814432988,
+    "clip_ratio": 0.0009725354381443299
+   },
+   {
+    "file": "qa/reference/aaa/subnautica2_01.jpg",
+    "sat_mean": 0.38342899084091187,
+    "luma_p99": 0.748091995716095,
+    "luma_mean": 0.331018328666687,
+    "dark_ratio": 0.007572889819587629,
+    "clip_ratio": 0.0017719072164948454
+   },
+   {
+    "file": "qa/reference/aaa/subnautica2_02.jpg",
+    "sat_mean": 0.41680002212524414,
+    "luma_p99": 0.8467441201210022,
+    "luma_mean": 0.30395036935806274,
+    "dark_ratio": 0.08957595038659794,
+    "clip_ratio": 0.0034733408505154637
+   },
+   {
+    "file": "qa/reference/aaa/subnautica2_04.jpg",
+    "sat_mean": 0.16610926389694214,
+    "luma_p99": 0.8230054974555969,
+    "luma_mean": 0.3433537781238556,
+    "dark_ratio": 0.014255798969072165,
+    "clip_ratio": 0.0001872583762886598
+   },
+   {
+    "file": "qa/reference/aaa/subnautica2_05.jpg",
+    "sat_mean": 0.5080438256263733,
+    "luma_p99": 0.5182861089706421,
+    "luma_mean": 0.27538174390792847,
+    "dark_ratio": 0.009771665592783505,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/reference/aaa/subnautica2_06.jpg",
+    "sat_mean": 0.9084247946739197,
+    "luma_p99": 0.6361106038093567,
+    "luma_mean": 0.31553545594215393,
+    "dark_ratio": 0.01686130798969072,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/reference/aaa/underwaves_01.jpg",
+    "sat_mean": 0.6101207137107849,
+    "luma_p99": 0.7881869077682495,
+    "luma_mean": 0.16223058104515076,
+    "dark_ratio": 0.25008255476804125,
+    "clip_ratio": 0.00017920425257731957
+   },
+   {
+    "file": "qa/reference/aaa/underwaves_02.jpg",
+    "sat_mean": 0.7391830086708069,
+    "luma_p99": 0.8428753018379211,
+    "luma_mean": 0.25599202513694763,
+    "dark_ratio": 0.2993456024484536,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/reference/aaa/underwaves_03.jpg",
+    "sat_mean": 0.708192765712738,
+    "luma_p99": 0.6027165651321411,
+    "luma_mean": 0.19763928651809692,
+    "dark_ratio": 0.3114509503865979,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/reference/aaa/underwaves_04.jpg",
+    "sat_mean": 0.5242454409599304,
+    "luma_p99": 0.3555608093738556,
+    "luma_mean": 0.19035795331001282,
+    "dark_ratio": 0.17937338917525772,
+    "clip_ratio": 0.0
+   },
+   {
+    "file": "qa/reference/aaa/underwaves_05.jpg",
+    "sat_mean": 0.7809901237487793,
+    "luma_p99": 0.6349513530731201,
+    "luma_mean": 0.2278621345758438,
+    "dark_ratio": 0.30826353092783504,
+    "clip_ratio": 2.4162371134020617e-05
+   },
+   {
+    "file": "qa/reference/aaa/underwaves_07.jpg",
+    "sat_mean": 0.5985386371612549,
+    "luma_p99": 0.6088588237762451,
+    "luma_mean": 0.11740043014287949,
+    "dark_ratio": 0.5260470360824743,
+    "clip_ratio": 0.00038055734536082475
+   },
+   {
+    "file": "qa/reference/aaa/underwaves_08.jpg",
+    "sat_mean": 0.6278002262115479,
+    "luma_p99": 0.5242031812667847,
+    "luma_mean": 0.13004468381404877,
+    "dark_ratio": 0.3629993556701031,
+    "clip_ratio": 1.0067654639175258e-05
+   },
+   {
+    "file": "qa/reference/aaa/underwaves_09.jpg",
+    "sat_mean": 0.606360912322998,
+    "luma_p99": 0.8430179953575134,
+    "luma_mean": 0.3923999071121216,
+    "dark_ratio": 0.20170747422680413,
+    "clip_ratio": 0.0015866623711340206
+   }
+  ]
+ }
+}

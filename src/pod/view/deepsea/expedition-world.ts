@@ -31,6 +31,8 @@ export interface ExpeditionWorld {
   root: Group;
   /** Static solids only. Runtime adds doors whose edge IDs are not in state.opened. */
   colliders: Box3[];
+  /** MET-042 decor channel: set-dressing bounds. Never used for hull movement, sonar or photo line-of-sight. */
+  decorColliders: Box3[];
   /** World-space union volumes; do not require a player sphere to fit one box alone. */
   walkable: Box3[];
   interactables: Map<string, Object3D>;
@@ -61,7 +63,7 @@ export function createExpeditionWorld(level: ExpeditionLevel, materials: Referen
     return world;
   }
   const root = new Group(); root.name = `expedition-world.${level.id}`;
-  const colliders: Box3[] = [], walkable: Box3[] = [];
+  const colliders: Box3[] = [], decorColliders: Box3[] = [], walkable: Box3[] = [];
   const interactables = new Map<string, Object3D>();
   const doors = new Map<string, { mesh: Group; bounds: Box3 }>();
   const geometry = new Set<BufferGeometry>();
@@ -390,7 +392,7 @@ export function createExpeditionWorld(level: ExpeditionLevel, materials: Referen
   function propAllowed(p: V3, s: V3, room: Rect) {
     const b = bounds(p, s).expandByScalar(.25);
     if (b.min.x < room.x0 || b.max.x > room.x1 || b.min.z < room.z0 || b.max.z > room.z1 || reserved.some(r => r.intersectsBox(b))) return false;
-    colliders.push(bounds(p, s)); return true;
+    decorColliders.push(bounds(p, s)); return true;
   }
   function crate(x: number, z: number) {
     // Use the real cache builder rather than a decorative, unpickable mesh.
@@ -430,7 +432,7 @@ export function createExpeditionWorld(level: ExpeditionLevel, materials: Referen
       if (theme === 1 && level.index !== 5) {
         // The old rack's broad collider encloses the approach to its cargo.
         // Cache mesh bounds provide collision; leave an accessible front face.
-        colliders.pop();
+        decorColliders.pop();
         crate(x, r.z);
       } else if (theme === 0) {
         box([x, -1.85, z], [2.55, .22, 2.1], m.steel, .05);
@@ -485,7 +487,7 @@ export function createExpeditionWorld(level: ExpeditionLevel, materials: Referen
       }else if(level.index===0||level.index===2){
         add(new CylinderGeometry(.025,size[0]*.48,size[1],5),level.index===2?wallSkin:m.floor,p,[0,rand()*6,0]);
       }else box(p,size,level.index===3?(n%3===0?m.cloth:m.label):m.steel,0,[0,rand()*6,0]);
-      colliders.push(b);debrisCount++;
+      decorColliders.push(b);debrisCount++;
     }
   }
   root.userData.debrisCount=debrisCount;
@@ -565,7 +567,7 @@ export function createExpeditionWorld(level: ExpeditionLevel, materials: Referen
   root.add(facilities.root,wayfinding.root,architecture.root,storytelling.root,shells.root,incidents.root,passages.root);colliders.push(...facilities.colliders,...architecture.colliders,...storytelling.colliders,...shells.colliders,...incidents.colliders,...passages.colliders);
   let disposed = false, previousTime: number | undefined;
   return {
-    root, colliders, walkable, interactables, doors,anchors,storyViews:[...incidents.views,...storytelling.views],passageViews:passages.views,practicalLights,entryView:facilities.root.userData.entryView,
+    root, colliders, decorColliders, walkable, interactables, doors,anchors,storyViews:[...incidents.views,...storytelling.views],passageViews:passages.views,practicalLights,entryView:facilities.root.userData.entryView,
     update(state, time) {
       if (disposed || !Number.isFinite(time)) return;
       facilities.update(time);wayfinding.update(state);storytelling.update(time);incidents.update(time);passages.update(time);
@@ -599,7 +601,7 @@ export function createExpeditionWorld(level: ExpeditionLevel, materials: Referen
       for (const g of geometry) g.dispose(); geometry.clear();
       for (const material of ownedMaterials) material.dispose();
       for (const texture of textures) texture.dispose();
-      emergencyDoors.forEach(x=>x.dispose());colliders.length = 0; walkable.length = 0; doors.clear(); interactables.clear();
+      emergencyDoors.forEach(x=>x.dispose());colliders.length = 0; decorColliders.length = 0; walkable.length = 0; doors.clear(); interactables.clear();
     },
   };
 }

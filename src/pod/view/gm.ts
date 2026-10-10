@@ -4,7 +4,7 @@
  * 给测试用，不是给玩家用。可显式调整艇体资源；持续供电只在当前游戏实例生效。
  *
  * 入口：
- *   屏幕右下角按钮「GM F10」
+ *   屏幕右下角按钮「GM F10」（仅 ?debug 或 ?gm 时显示）
  *   按 F10
  *   控制台  GM('无视频模式')  或  GM.无视频模式()
  *
@@ -198,8 +198,13 @@ function installHotkey(): void {
   );
 }
 
+/** The on-screen GM button is a test affordance: shown only with ?debug (or ?gm); F10 and window.GM always work. */
+function debugUi(): boolean {
+  try { const q = new URLSearchParams(location.search); return q.has('debug') || q.has('gm'); } catch { return false; }
+}
+
 function ensureLauncher(): void {
-  if (document.getElementById('gm-launch')) return;
+  if (!debugUi() || document.getElementById('gm-launch')) return;
   const btn = document.createElement('button');
   btn.id = 'gm-launch';
   btn.type = 'button';

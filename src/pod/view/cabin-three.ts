@@ -7,6 +7,8 @@ import { drawStationView, drawStationScreen, drawObservationWindow, drawDrivingS
 import { createReferenceMaterials } from './deepsea/reference-materials';
 import { addCabinDressing } from './cabin-dressing';
 import { buildCrtHousing } from './cabin-crt-art';
+import { buildPassiveControls } from './cabin-passive-controls';
+import { buildActiveControls } from './cabin-active-controls';
 import { drawCompactSonarDesk, sonarDeskState } from './sonar-desk';
 import { COORD_AXES } from '../sim/site-coords';
 import { buildNavigationKeyboard } from './cabin-navigation-keyboard';
@@ -35,6 +37,7 @@ export class CabinThree {
   private helmLook=0;
   private manualLook=false;
   private deviceZoom: 'nav'|'lab'|null=null;
+  get zoomedDevice(){return this.deviceZoom;}
   deviceClick():boolean {
     if(!this.isConsole(this.focused))return false;
     let obj:THREE.Object3D|null=this.ray.intersectObjects(this.scene.children,true)[0]?.object??null;
@@ -52,6 +55,8 @@ export class CabinThree {
   private impactStrength=0;
   impact(amount:number){this.impactAge=0;this.impactStrength=Math.min(1,Math.max(amount,this.impactStrength*.4));}
   private updateNavigationKeyboard:((run:PodRun)=>void)|undefined;
+  private updatePassiveControls:((run:PodRun)=>void)|undefined;
+  private updateActiveControls:((run:PodRun,hovered?:string)=>void)|undefined;
   private helmKeys:THREE.Mesh[]=[];
   private helmLabels:THREE.Texture[]=[];
   private portholeTextures:THREE.Texture[]=[];
@@ -228,7 +233,8 @@ export class CabinThree {
     this.terminal('camera',[0,1.48,-1.57],0,.88,.78);
     // 两套声纳共用这块左舷仪表：被动阵列常开，主动换能器需单独通电。
     // 它紧挨摄像台左侧，玩家无需转身去舱尾找声纳。
-    this.terminal('nav',[-.60,1.25,-1.43],.55,.32,.25);
+    // Flat passive CRT: glass and its 1024×672 canvas share the same ~1.52:1 ratio, top edge level with the old 0.25 m screen.
+    this.terminal('nav',[-.60,1.27,-1.43],.55,.32,.32*672/1024,false,672);
     this.terminal('nav',[-.60,1.60,-1.43],.55,.32,.26,true);
     this.terminal('lab',[.72,1.45,-1.35],-.12,.54,.43);
 
@@ -253,13 +259,16 @@ export class CabinThree {
     }
   }
 
-  private terminal(id: StationId, p: number[], yaw: number, w: number, h: number, repeater=false) {
+  private terminal(id: StationId, p: number[], yaw: number, w: number, h: number, repeater=false, canvasHeight=720) {
     const group=new THREE.Group();group.position.set(p[0]!,p[1]!,p[2]!);group.rotation.y=yaw;
     if(id==='nav'||id==='lab')group.userData.deviceSide=id;
     this.scene.add(group);
     const m=this.materials;
-    if(id!=='camera')this.portholeTextures.push(...buildCrtHousing(group,w,h));
-    const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=720;
+    const passive=id==='nav'&&!repeater,active=id==='nav'&&repeater;
+    if(id!=='camera')this.portholeTextures.push(...buildCrtHousing(group,w,h,!passive&&!active));
+    if(passive){const controls=buildPassiveControls(group,w,h);this.portholeTextures.push(...controls.textures);this.updatePassiveControls=controls.update;}
+    if(active){const controls=buildActiveControls(group,w,h);this.portholeTextures.push(...controls.textures);this.updateActiveControls=controls.update;}
+    const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=canvasHeight;
     const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
     texture.minFilter=THREE.LinearFilter;texture.generateMipmaps=false;
     const mesh:THREE.Mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:texture,toneMapped:false}));
@@ -339,29 +348,54 @@ export class CabinThree {
     });
     this.flood.position.y=.015+run.flood*.65+Math.sin(view.time*1.7)*run.flood*.006;
     this.updateNavigationKeyboard?.(run);
+    this.updatePassiveControls?.(run);
+    this.updateActiveControls?.(run,hoveredControl);
     this.frame++;
     for(const [index,screen] of this.screens.entries()) {
       // Focused terminal stays live; peripheral terminals update at reduced rate.
       if(screen!==target && this.frame!==1 && this.frame%6!==index%6) continue;
       screen.hits.clear();
       const c=screen.canvas.getContext('2d')!;
-      c.clearRect(0,0,1024,720);
+      const ch=screen.canvas.height;
+      c.clearRect(0,0,1024,ch);
       if(screen.repeater){
         c.fillStyle='#04100b';c.fillRect(0,0,1024,720);
         if(screen.id==='nav'){
-          c.save();c.scale(1,.62);
-          const nav=run.authoredSite?.navigationConsole,splitPanel=!!nav?.drawWaypointPanel;
-          if(run.activeSonarEnabled&&run.powered){if(nav?.drawActive)nav.drawActive(c,1024,720,!splitPanel);else drawDrivingSonarInstrument(c,run,1024,720,view.time);}
-          else{c.strokeStyle='#456d3e';c.lineWidth=3;for(const radius of [75,150,225,290]){c.beginPath();c.arc(512,360,radius,0,Math.PI*2);c.stroke();}c.fillStyle='#79b673';c.font='26px monospace';c.fillText('声纳断电 · 请开启下方电源',365,680);}
+          // 1024×720 canvas on a 0.32×0.26 m glass: canvas Y pixels display 1/ASPECT taller than X pixels.
+          // The site sonar is drawn at 775×720 with its radar disc (r≈232) around (387,372); its own small
+          // corner text is cropped away and the cabin redraws the readings in large type on the right.
+          const ASPECT=(1024/720)*(.26/.32),SONAR_H=470,SONAR_W=Math.round(SONAR_H*ASPECT),CROP=[149,134,476] as const;
+          const sx=SONAR_W/CROP[2],sy=SONAR_H/CROP[2];
+          const site=run.authoredSite,nav=site?.navigationConsole,live=run.activeSonarEnabled&&run.powered;
+          c.save();c.beginPath();c.rect(0,0,SONAR_W,SONAR_H);c.clip();c.scale(sx,sy);c.translate(-CROP[0],-CROP[1]);
+          if(live){if(nav?.drawActive)nav.drawActive(c,775,720,false);else drawDrivingSonarInstrument(c,run,775,720,view.time);}
+          else{c.strokeStyle='#456d3e';c.lineWidth=3;for(const radius of [77,155,232]){c.beginPath();c.arc(387,372,radius,0,Math.PI*2);c.stroke();}}
           c.restore();
-          // The sonar picture is squashed to 62% height; the text panel is drawn unscaled beside it.
-          if(splitPanel&&run.activeSonarEnabled&&run.powered){
-            c.save();c.fillStyle='rgba(4,16,14,.82)';c.fillRect(784,4,236,440);c.restore();
-            nav!.drawWaypointPanel!(c,794,10,218,430);
-            for(const m of nav!.markerHits??[])screen.hits.add({id:'sonar.waypoint.'+m.index,x:m.x-m.r,y:(m.y-m.r)*.62,w:m.r*2,h:m.r*2*.62});
-          }const input=sonarDeskState(run);c.fillStyle='#10180e';c.fillRect(0,450,1024,270);c.textAlign='left';c.textBaseline='middle';
-          input.fields.forEach((value,i)=>{c.strokeStyle=input.axis===i?'#d9d59c':'#526447';c.lineWidth=3;c.strokeRect(18+i*332,460,320,74);c.fillStyle=input.axis===i?'#fff0b0':'#b9d296';c.font='bold 45px monospace';c.fillText(COORD_AXES[i]+' '+(value||'_'),28+i*332,497,298);screen.hits.add({id:'sonar.axis.'+i,x:18+i*332,y:460,w:320,h:74});});c.font='27px Microsoft YaHei';c.fillStyle='#c4c095';c.fillText(!run.powered?'艇内供电中断':!run.activeSonarEnabled?'电源 OFF · 开启后可扫描':run.sonarPulseEnabled?'正在周期扫描 · 持续发声':'静默 · 点击开启脉冲扫描',20,687,985);
-          for(const [id,label,x] of [['nav.active',run.activeSonarEnabled?'关闭声纳电源':'开启声纳电源',18],['nav.ping1',run.sonarPulseEnabled?'停止脉冲扫描':'开启脉冲扫描',520]] as const){c.fillStyle='#223820';c.fillRect(x,555,484,85);c.strokeStyle='#829c63';c.strokeRect(x,555,484,85);c.fillStyle='#e0e2af';c.font='bold 35px Microsoft YaHei';c.fillText(label,x+24,597,440);screen.hits.add({id,x,y:555,w:484,h:85});}
+          if(nav?.drawActive&&live)for(const m of nav.markerHits??[])screen.hits.add({id:'sonar.waypoint.'+m.index,x:(m.x-m.r-CROP[0])*sx,y:(m.y-m.r-CROP[1])*sy,w:m.r*2*sx,h:m.r*2*sy});
+          // Readout column in glass-true units (y drawn ×1/ASPECT so glyphs keep their shape).
+          const px=SONAR_W+14,pw=1024-px-10;
+          c.fillStyle='#06140f';c.fillRect(px-8,4,pw+14,SONAR_H-8);c.strokeStyle='#2f5a3a';c.lineWidth=2;c.strokeRect(px-8,4,pw+14,SONAR_H-8);
+          c.save();c.translate(px,0);c.scale(1,1/ASPECT);c.textAlign='left';c.textBaseline='alphabetic';
+          const text=(value:string,x:number,y:number,size:number,color:string,bold=true)=>{c.font=`${bold?'bold ':''}${size}px "Microsoft YaHei",monospace`;c.fillStyle=color;c.fillText(value,x,y,pw-x);};
+          text(`航向 ${String(Math.round(((run.heading%360)+360)%360)).padStart(3,'0')}°`,0,58,48,'#e6f3d0');
+          if(!live){
+            text(run.powered?'主动声纳断电':'艇内供电中断',0,140,42,'#c4c095');
+            text('无地形与距离',0,200,36,'#7f9f78',false);
+          }else{
+            const r=site?.sonarReadout,f=(v?:number)=>v===undefined?' —':v.toFixed(1);
+            text(run.sonarEmitting?'回波间距 · 米':'上次回波 · 米',0,108,28,'#7f9f78',false);
+            for(const [row,[a,av,b,bv]] of ([['前',r?.front,'后',r?.back],['左',r?.left,'右',r?.right],['顶',r?.above,'底',r?.below]] as const).entries()){
+              const y=160+row*54;text(a+f(av),0,y,42,'#b9e0a0');text(b+f(bv),pw/2,y,42,'#b9e0a0');
+            }
+          }
+          c.fillStyle='#2f5a3a';c.fillRect(0,300,pw,3);
+          const brief=nav?.waypointBrief?.();
+          if(brief){text(brief.title,0,352,40,'#63fff1');brief.lines.forEach((line,i)=>text(line,0,404+i*48,36,'#d8f5ea'));}
+          c.restore();
+          const input=sonarDeskState(run);c.fillStyle='#10180e';c.fillRect(0,SONAR_H,1024,720-SONAR_H);c.textAlign='left';c.textBaseline='middle';
+          input.fields.forEach((value,i)=>{const x=14+i*336,y=SONAR_H+10;c.strokeStyle=input.axis===i?'#d9d59c':'#526447';c.lineWidth=3;c.strokeRect(x,y,324,96);c.fillStyle=input.axis===i?'#fff0b0':'#b9d296';c.font='bold 58px monospace';c.fillText(COORD_AXES[i]+' '+(value||'_'),x+14,y+50,300);screen.hits.add({id:'sonar.axis.'+i,x,y,w:324,h:96});});
+          c.font='bold 46px Microsoft YaHei';c.fillStyle=live&&run.sonarPulseEnabled?'#f0c060':'#c4c095';c.fillText(!run.powered?'艇内供电中断':!run.activeSonarEnabled?'电源关 · 按下方「声纳电源」':run.sonarPulseEnabled?'周期扫描中 · 持续发声':'静默 · 按下方「脉冲扫描」',16,SONAR_H+160,990);
+          c.font='32px Microsoft YaHei';c.fillStyle='#7f9f78';c.fillText('点 X / Y / DEPTH → 键盘输入 → 「写入」',16,SONAR_H+216,990);
         }else{
           c.fillStyle='#d4a253';c.font='30px monospace';c.fillText('OPTICAL / RECORDER',55,70);
           c.fillStyle='#647749';c.font='26px monospace';c.fillText('DEPTH '+Math.round(run.depth)+' m',55,615);c.fillText('HULL '+Math.round(run.hull*100)+' %',55,657);
@@ -369,7 +403,7 @@ export class CabinThree {
           else{c.strokeStyle='#315134';c.lineWidth=1;for(let y=135;y<540;y+=8){c.beginPath();c.moveTo(55,y);c.lineTo(970,y);c.stroke();}}
         }
       }
-      else if(screen.id==='nav')drawCompactSonarDesk(c,run,screen.hits,view.time);
+      else if(screen.id==='nav')drawCompactSonarDesk(c,run,screen.hits,view.time,ch);
       else if(screen.id==='camera') drawObservationWindow(c,run,screen.hits,view,screen===target);
       else if(screen===target || screen.id==='lab') drawStationView(c,run,screen.id,0,0,1024,720,screen.hits,view);
       else {
@@ -406,9 +440,11 @@ export class CabinThree {
       }
       if(screen.id==='nav'||screen.id==='lab'){
 
-        c.save();c.globalCompositeOperation='multiply';c.fillStyle=screen.repeater&&screen.id==='nav'?'#a4ffa0':'#ffbc63';c.fillRect(0,0,1024,720);c.restore();
-        c.fillStyle='rgba(0,0,0,.12)';for(let y=0;y<720;y+=4)c.fillRect(0,y,1024,1);
-        const vignette=c.createRadialGradient(512,340,260,512,360,620);vignette.addColorStop(0,'rgba(0,0,0,0)');vignette.addColorStop(1,'rgba(0,0,0,.42)');c.fillStyle=vignette;c.fillRect(0,0,1024,720);
+        // A full-colour lab frame keeps the recording legible (pipe colour bands); the default stays amber.
+        const trueColour=screen.id==='lab'&&run.labVideoExpanded&&!!run.authoredSite?.presentation?.labLargeFrame;
+        c.save();c.globalCompositeOperation='multiply';c.fillStyle=screen.repeater&&screen.id==='nav'?'#a4ffa0':trueColour?'#fff2de':'#ffbc63';c.fillRect(0,0,1024,ch);c.restore();
+        c.fillStyle='rgba(0,0,0,.12)';for(let y=0;y<ch;y+=4)c.fillRect(0,y,1024,1);
+        const vignette=c.createRadialGradient(512,ch*.47,260,512,ch/2,620);vignette.addColorStop(0,'rgba(0,0,0,0)');vignette.addColorStop(1,'rgba(0,0,0,.42)');c.fillStyle=vignette;c.fillRect(0,0,1024,ch);
       }
       screen.texture.needsUpdate=true;
     }
@@ -438,13 +474,23 @@ export class CabinThree {
     const hit=this.ray.intersectObjects(this.scene.children,true)[0];
     if(hit && this.isConsole(this.focused)) {
       let object:THREE.Object3D|null=hit.object;
-      while(object){if(object.userData.control)return 'desk:'+(object.userData.station||'camera')+':'+object.userData.control;object=object.parent;}
+      while(object){
+        if(object.userData.control==='sonar.slider'){
+          // Range is in the CRT group's local X; the hit position along it is the frequency.
+          let root:THREE.Object3D|null=object;while(root&&!root.userData.deviceSide)root=root.parent;
+          const [x0,length]=object.userData.sliderRange as [number,number];
+          const x=(root??object).worldToLocal(hit.point.clone()).x;
+          return 'desk:nav:sonar.tune.'+Math.round(THREE.MathUtils.clamp((x-x0)/length,0,1)*100);
+        }
+        if(object.userData.control)return 'desk:'+(object.userData.station||'camera')+':'+object.userData.control;object=object.parent;
+      }
     }
     if(!hit?.uv) return null;
     const screen=this.screens.find(s=>s.mesh===hit.object);
     if(!screen || (!this.focused && hit.distance>1.65)) return null;
-    if(this.isConsole(this.focused)&&this.isConsole(screen.id)){const action=screen.hits.pick(hit.uv.x*1024,(1-hit.uv.y)*720);return action?'desk:'+screen.id+':'+action:null;}
-    if(this.focused && this.focusedFace===screen.id) return screen.hits.pick(hit.uv.x*1024,(1-hit.uv.y)*720);
+    const ch=screen.canvas.height;
+    if(this.isConsole(this.focused)&&this.isConsole(screen.id)){const action=screen.hits.pick(hit.uv.x*1024,(1-hit.uv.y)*ch);return action?'desk:'+screen.id+':'+action:null;}
+    if(this.focused && this.focusedFace===screen.id) return screen.hits.pick(hit.uv.x*1024,(1-hit.uv.y)*ch);
     return `station:${screen.id}`;
   }
 

@@ -1,4 +1,4 @@
-import type { NavigationConsole } from '../../sim/authored-site';
+import type { NavigationConsole, PassiveContact, SoundRecord } from '../../sim/authored-site';
 import type { PodRun } from '../../sim/run';
 import type { Control } from '../chrome';
 import { drawSonarOwnship, sonarHeading } from '../sonar-ownship';
@@ -26,19 +26,78 @@ export interface HarborRescueNavigationHost {
   targetReached?(target:readonly number[]):boolean;
   /** Facilities whose coordinates get a name and description on the nav screen. */
   readonly waypointCatalog?: readonly {position:HarborCoordinates;name:string;detail:string}[];
+  /** Unregistered acoustic source; only its sound reaches the passive array. */
+  readonly monster?: {readonly position:{x:number;y:number;z:number};readonly hunting:boolean};
 }
+
+/** Horizontal metres within which the distress carrier condenses into a lockable band. */
+export const VOICE_CAPTURE_RANGE=24;
+const BINS=120,ROWS=48,F0=35,F1=45;
+const MONSTER_RANGE=30;
+const LOCK_SECONDS=.45;
 
 /** Formal harbor receiver: passive carrier gating is independent of active power. */
 export class HarborRescueNavigation implements NavigationConsole {
   readonly autoReceive=true;
   isDelivering=false;
-  radioRecords:{text:string;frequency:number}[]=[];
+  radioRecords:SoundRecord[]=[];
   private radioQueue:{text:string;frequency:number;initial:boolean}[]=[];
   private radioSerial=0;
   private tuneLock=0;
   private playbackLeft=0;
+  private clock=0;
+  passiveContacts:PassiveContact[]=[];
+  passiveFocus:{contact:PassiveContact|null;held:number;locked:boolean}={contact:null,held:0,locked:false};
+  private loggedAt=new Map<string,number>();
   get pendingRadioCount(){return this.radioQueue.length;}
-  recordDialogue(text:string){if(this.radioRecords.at(-1)?.text!==text)this.radioRecords.push({text,frequency:this.frequency});}
+  get passiveRows(){return this.rows;}
+  recordDialogue(text:string){if(this.radioRecords.at(-1)?.text!==text)this.radioRecords.push({text,frequency:this.frequency,at:this.clock,kind:'voice'});}
+  private horizontalDistance(p:{x:number;z:number}){return Math.hypot(p.x-this.host.position.x,p.z-this.host.position.z);}
+  /** Within capture range the distress carrier is a coherent band; beyond it only scattered energy arrives. */
+  get voiceClear(){const p=this.host.signalPosition;return !p||this.horizontalDistance({x:p[0],z:p[2]})<=VOICE_CAPTURE_RANGE;}
+  private bearingTo(x:number,z:number){
+    const p=this.host.position,bearing=(Math.atan2(x-p.x,-(z-p.z))*180/Math.PI-this.host.run.heading+720)%360;
+    return ['前方','右前方','右舷','右后方','后方','左后方','左舷','左前方'][Math.round(bearing/45)%8]!;
+  }
+  /** Fixed far-field azimuth: fauna passes outside the harbour walls, never inside the level. */
+  private bearingFromAzimuth(azimuth:number){return ['前方','右前方','右舷','右后方','后方','左后方','左舷','左前方'][Math.round(((azimuth-this.host.run.heading)%360+360)%360/45)%8]!;}
+  private buildContacts():PassiveContact[]{
+    const out:PassiveContact[]=[],t=this.clock;
+    const head=this.radioQueue[0];
+    if(head&&this.host.signalAvailable){
+      const clear=this.voiceClear;
+      out.push(clear
+        ?{id:'voice',kind:'voice',label:'人声',form:'窄带断续竖线 · 语音调制',frequency:head.frequency,width:.32,intensity:.85,bearing:this.bearingLabel}
+        :{id:'voice',kind:'scatter',label:'散乱载波',form:'离散噪点 · 无法收拢',frequency:head.frequency,width:2.2,intensity:.5,bearing:this.bearingLabel});
+    }
+    const m=this.host.monster;
+    if(m){const d=this.horizontalDistance(m.position);if(d<MONSTER_RANGE){
+      const near=1-d/MONSTER_RANGE;
+      out.push({id:'unknown',kind:'unknown',label:'???',form:'低频宽带 · 不规则横向刮擦',frequency:36.3+.25*Math.sin(t*.13),width:.6,intensity:Math.min(.9,.22+near*.7+(m.hunting?.15:0)),bearing:this.bearingTo(m.position.x,m.position.z)});
+    }}
+    if(t%140<45)out.push({id:'beaked-whale',kind:'bio',label:'柯氏喙鲸',form:'斜向调频上扫 · 成串咔嗒',frequency:42.1,width:1.9,intensity:.45,bearing:this.bearingFromAzimuth(70)});
+    const run=this.host.run;
+    if(run.powered&&run.activeSonarEnabled&&run.sonarPulseEnabled)out.push({id:'self',kind:'self',label:'本艇主动脉冲',form:'44kHz 周期横条 · 自噪声',frequency:44.2,width:.6,intensity:.8,bearing:'本艇'});
+    return out;
+  }
+  private focusContact(){
+    let best:PassiveContact|null=null;
+    for(const c of this.passiveContacts)if(Math.abs(this.frequency-c.frequency)<=Math.max(.32,c.width)&&(!best||c.intensity>best.intensity))best=c;
+    return best;
+  }
+  private updateFocus(dt:number){
+    const c=this.focusContact(),prev=this.passiveFocus.contact;
+    const held=c&&prev&&prev.id===c.id&&prev.kind===c.kind?this.passiveFocus.held+dt:0;
+    const locked=!!c&&c.kind!=='scatter'&&held>=LOCK_SECONDS;
+    this.passiveFocus={contact:c,held,locked};
+    if(!locked||!c||(c.kind!=='unknown'&&c.kind!=='bio'))return;
+    const last=this.loggedAt.get(c.id);if(last!==undefined&&this.clock-last<90)return;
+    this.loggedAt.set(c.id,this.clock);
+    const text=c.kind==='unknown'
+      ?`未登记声纹。低频宽带摩擦，夹杂不规则刮擦，节律不像机械。大致方位：${c.bearing}。被动声纳不提供距离，需摄影确认。`
+      :`柯氏喙鲸回声定位：成串调频上扫咔嗒，深潜觅食的正常海洋生物。大致方位：${c.bearing}。`;
+    this.radioRecords.push({text,frequency:this.frequency,at:this.clock,kind:c.kind,label:c.label});
+  }
   clearPending(){this.radioQueue=[];this.playbackLeft=0;this.tuneLock=0;}
   enqueueRadio(text:string,initial=false){
     const frequency=[38.4,41.2,36.6,43.3,39.7][this.radioSerial++%5];
@@ -46,11 +105,11 @@ export class HarborRescueNavigation implements NavigationConsole {
   }
   private receiveRadio(dt:number){
     this.playbackLeft=Math.max(0,this.playbackLeft-dt);
-    if(this.host.signalAvailable&&!this.heard&&!this.radioQueue.some(r=>r.initial))this.enqueueRadio('艾里亚斯：有人收到吗？我是接驳港维修员艾里亚斯。我被困在断桥另一边。请回答。',true);
+    if(this.host.signalAvailable&&!this.heard&&!this.radioQueue.some(r=>r.initial))this.enqueueRadio('艾里亚斯：（录音。每隔九十秒，残余蓄电池让一台泵空转三秒，录音就卡在这三秒里）……泵站七，艾里亚斯，修泵的。一个人，断桥对面。……听见请回。小声。',true);
     const next=this.radioQueue[0];
-    if(!next||this.playbackLeft>0||Math.abs(this.frequency-next.frequency)>.32){this.tuneLock=0;return;}
-    this.tuneLock+=dt;if(this.tuneLock<.45)return;this.tuneLock=0;
-    this.radioQueue.shift();this.radioRecords.push({text:next.text,frequency:next.frequency});
+    if(!next||this.playbackLeft>0||!this.voiceClear||Math.abs(this.frequency-next.frequency)>.32){this.tuneLock=0;return;}
+    this.tuneLock+=dt;if(this.tuneLock<LOCK_SECONDS)return;this.tuneLock=0;
+    this.radioQueue.shift();this.radioRecords.push({text:next.text,frequency:next.frequency,at:this.clock,kind:'voice'});
     this.playbackLeft=Math.max(7,Math.min(28,next.text.length*.16));
     this.isDelivering=true;
     try{if(next.initial&&!this.heard){this.captured=true;this.heard=true;this.host.onHeard();}else this.host.speak?.(next.text);}finally{this.isDelivering=false;}
@@ -64,7 +123,7 @@ export class HarborRescueNavigation implements NavigationConsole {
   target: number[] | null = null;
   /** Every written waypoint stays on the sonar until the list exceeds eight. */
   waypoints: number[][] = [];
-  private rows: number[][] = [];
+  private rows: Float32Array[] = [];
   private sampleClock = 0;
   private sample = 0;
   constructor(private readonly host: HarborRescueNavigationHost) {}
@@ -111,29 +170,56 @@ export class HarborRescueNavigation implements NavigationConsole {
     return true;
   }
   tick(dt: number) {
-    this.receiveRadio(Math.max(0,dt));
-    this.sampleClock += Math.max(0, dt);
+    dt=Math.max(0,dt);this.clock+=dt;
+    this.passiveContacts=this.buildContacts();
+    this.updateFocus(dt);
+    this.receiveRadio(dt);
+    this.sampleClock += dt;
     if (this.sampleClock < .35) return;
     this.sampleClock %= .35;
     this.sample++;
-    // Model spectrum, not claimed to be audio FFT; no distance or obstacle data.
-    const signal = this.radioQueue.length>0;
-    const carrier=this.radioQueue[0]?.frequency??38.4;
-    this.rows.unshift(Array.from({ length: 72 }, (_, i) => {
-      const f = 35 + i * 10 / 72;
-      const floor = .025 + .055 * (.5 + .5 * Math.sin(i * 17.17 + this.sample * 3.1));
-      return Math.min(.92, floor + (signal ? .63 * Math.exp(-(((f - carrier - .07*Math.sin(this.sample*2.3)) / .22) ** 2)) * (.82 + .18 * Math.sin(this.sample * .7) ** 2) : 0));
-    }));
-    this.rows.length = Math.min(48, this.rows.length);
+    this.rows.unshift(this.spectrumRow());
+    this.rows.length = Math.min(ROWS, this.rows.length);
   }
-  drawWaterfall(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    ctx.save();ctx.fillStyle = '#071817';ctx.fillRect(0, 0, w, h);
-    for (let row = 0; row < this.rows.length; row++) for (let col = 0; col < 72; col++) {
-      ctx.fillStyle = `rgba(122,225,153,${this.rows[row][col]})`;
-      ctx.fillRect(col * w / 72, row * h / 48, w / 72 + .5, h / 48 + .5);
+  /** Model spectrum, not claimed to be audio FFT; no distance or obstacle data. Each source has its own band and shape. */
+  private spectrumRow(){
+    const n=this.sample,row=new Float32Array(BINS);
+    const rnd=(a:number,b=0)=>{const v=Math.sin(a*127.1+b*311.7+n*74.7)*43758.5453;return v-Math.floor(v);};
+    const add=(f:number,width:number,amp:number)=>{for(let i=0;i<BINS;i++){const fi=F0+(i+.5)*(F1-F0)/BINS;row[i]+=amp*Math.exp(-(((fi-f)/width)**2));}};
+    for(let i=0;i<BINS;i++)row[i]=.03+.05*rnd(i);
+    for(const c of this.passiveContacts){
+      if(c.kind==='voice'){
+        // Syllables gate the carrier on and off, leaving a dashed vertical trace with faint sidebands.
+        const syllable=Math.sin(n*1.7)+Math.sin(n*.63)>-.4?1:.18;
+        add(c.frequency+.05*Math.sin(n*2.3),.16,.72*syllable);add(c.frequency-.62,.12,.22*syllable);add(c.frequency+.62,.12,.22*syllable);
+      }else if(c.kind==='scatter'){
+        for(let k=0;k<7;k++)add(c.frequency+(rnd(k,9)-.5)*2*c.width,.07,.25+.3*rnd(k,3));
+      }else if(c.kind==='unknown'){
+        add(c.frequency+(rnd(5,7)-.5)*.5,c.width*(.8+.4*rnd(6)),.55*c.intensity);
+        if(rnd(8,8)<(this.host.monster?.hunting?.38:.14))for(let f=35.2;f<38.2;f+=.12)add(f,.09,.32*c.intensity*(.5+rnd(f*10,2)));
+      }else if(c.kind==='bio'){
+        // Successive rows step up in frequency: repeating diagonal upsweeps.
+        const phase=(n%9)/9;add(40.3+3.6*phase,.12,.5*c.intensity/.45*(rnd(2,4)>.2?1:.3));
+      }else if(c.kind==='self'&&n%9===0){
+        for(let f=43.4;f<45;f+=.1)add(f,.08,.42);
+        for(let i=0;i<BINS;i++)row[i]+=.06;
+      }
     }
-    ctx.fillStyle = '#abcaba';ctx.font = `${Math.max(11, h * .075)}px "Microsoft YaHei"`;
-    ctx.fillText(this.pendingRadioCount ? `新录音 ${this.pendingRadioCount} · 调频自动接收` : '被动接收常开 · 暂无清晰载波', 8, h - 8);
+    for(let i=0;i<BINS;i++)row[i]=Math.min(.95,row[i]!);
+    return row;
+  }
+  drawWaterfall(ctx: CanvasRenderingContext2D, w: number, h: number, caption=true, amber=false) {
+    ctx.save();ctx.fillStyle = amber?'#120c04':'#071817';ctx.fillRect(0, 0, w, h);
+    const phosphor=amber?'255,178,72':'122,225,153';
+    for (let row = 0; row < this.rows.length; row++) {const r=this.rows[row]!;for (let col = 0; col < r.length; col++) {
+      ctx.fillStyle = `rgba(${phosphor},${r[col]})`;
+      ctx.fillRect(col * w / r.length, row * h / ROWS, w / r.length + .5, h / ROWS + .5);
+    }}
+    if(caption){
+      ctx.fillStyle = '#abcaba';ctx.font = `${Math.max(11, h * .075)}px "Microsoft YaHei"`;
+      const scatter=this.passiveContacts.some(c=>c.kind==='scatter');
+      ctx.fillText(scatter?'载波散乱 · 向声源方位接近':this.pendingRadioCount ? `新录音 ${this.pendingRadioCount} · 调频自动接收` : '被动接收常开 · 暂无清晰载波', 8, h - 8);
+    }
     ctx.restore();
   }
   private same(a: readonly number[], b: readonly number[]) { return a.every((v, i) => Math.abs(v - b[i]!) < .05); }
@@ -219,10 +305,24 @@ export class HarborRescueNavigation implements NavigationConsole {
     else line('惯导指引 · 非障碍回波', 12, '#adc7b5', false);
     ctx.restore();
   }
+  /** Few short lines for a small physical screen: the active waypoint, range, turn and depth change. */
+  waypointBrief() {
+    if (!this.target) return { title: '尚未写入航点', lines: ['用下方键盘输入坐标'] };
+    const t = this.target, info = this.describeWaypoint(t), m = this.markerAt(t, 0, 0, 1);
+    const relative = ((m.a * 180 / Math.PI + 540) % 360) - 180, depthDelta = t[1]! - this.host.position.y;
+    const photoTarget = this.replied && [this.host.photoCoordinates, [77, 1, 7]].some(p => p.every((v, i) => Math.abs(v - t[i]!) < .1));
+    const arrived = (m.distance <= 2.5 && Math.abs(depthDelta) <= 1) || !!this.host.targetReached?.(t);
+    const guidance = photoTarget && arrived ? this.host.photoGuidance?.() : undefined;
+    return { title: `◆${this.waypoints.findIndex(v => this.same(v, t)) + 1} ${info.name}`, lines: [
+      `距离 ${m.distance.toFixed(1)} m`,
+      arrived ? (guidance ? (guidance.ready ? '目标在画内 · 可曝光' : '已到拍摄区') : '已到达 · Shift 制动') : Math.abs(relative) < 3 ? '艇首已对准' : `${relative < 0 ? '左转' : '右转'} ${Math.abs(relative).toFixed(0)}°`,
+      Math.abs(depthDelta) > 1 ? `${depthDelta > 0 ? '上浮' : '下潜'} ${Math.abs(depthDelta).toFixed(1)} m` : m.outside ? '超出量程' : '深度吻合',
+    ] };
+  }
   draw(ctx: CanvasRenderingContext2D, w: number, h: number) {
     this.drawActive(ctx, w, h);
   }
-  snapshot() { return { radioQueue:structuredClone(this.radioQueue),radioRecords:structuredClone(this.radioRecords),radioSerial:this.radioSerial, frequency: this.frequency, captured: this.captured, heard: this.heard, replied: this.replied, target: this.target ? [...this.target] : null, waypoints: this.waypoints.map(w => [...w]) }; }
+  snapshot() { return { clock:this.clock,radioQueue:structuredClone(this.radioQueue),radioRecords:structuredClone(this.radioRecords),radioSerial:this.radioSerial, frequency: this.frequency, captured: this.captured, heard: this.heard, replied: this.replied, target: this.target ? [...this.target] : null, waypoints: this.waypoints.map(w => [...w]) }; }
   static validateSnapshot(value: unknown): boolean {
     if (!value || typeof value !== 'object') return false;
     const s = value as ReturnType<HarborRescueNavigation['snapshot']>;
@@ -231,6 +331,7 @@ export class HarborRescueNavigation implements NavigationConsole {
     if (s.frequency < 35 || s.frequency > 45 || (s.heard && !s.captured) || (s.replied && !s.heard)) return false;
     if(s.radioQueue!==undefined&&(!Array.isArray(s.radioQueue)||s.radioQueue.some(r=>!r||typeof r.text!=='string'||!Number.isFinite(r.frequency)||r.frequency<35||r.frequency>45||typeof r.initial!=='boolean')))return false;
     if(s.radioRecords!==undefined&&(!Array.isArray(s.radioRecords)||s.radioRecords.some(r=>!r||typeof r.text!=='string'||!Number.isFinite(r.frequency))))return false;
+    if(s.clock!==undefined&&(!Number.isFinite(s.clock)||s.clock<0))return false;
     if(s.radioSerial!==undefined&&(!Number.isInteger(s.radioSerial)||s.radioSerial<0))return false;
     if(s.waypoints!==undefined&&(!Array.isArray(s.waypoints)||s.waypoints.length>8||s.waypoints.some(w=>!Array.isArray(w)||w.length!==3||!w.every(Number.isFinite))))return false;
     return true;
@@ -242,6 +343,7 @@ export class HarborRescueNavigation implements NavigationConsole {
     this.target = s.target ? [...s.target] : null;this.rows = [];
     this.waypoints = s.waypoints ? s.waypoints.map(w => [...w]) : this.target ? [[...this.target]] : [];
     this.radioQueue=structuredClone(s.radioQueue??[]);this.radioRecords=structuredClone(s.radioRecords??[]);this.radioSerial=s.radioSerial??this.radioRecords.length;this.tuneLock=0;this.playbackLeft=0;
+    this.clock=Number.isFinite(s.clock)&&s.clock!>=0?s.clock!:Math.max(0,...this.radioRecords.map(r=>r.at??0));this.loggedAt.clear();this.passiveFocus={contact:null,held:0,locked:false};
     return true;
   }
 }

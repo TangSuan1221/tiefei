@@ -48,6 +48,14 @@ function fixture(valid=true){
   run.beginShoot();run.at='lab';internal.tickShot(5);
   assert.equal(run.tapes.length,0);run.analyzeTape();assert.equal(count(),0);
 }
+{
+  const {run,internal}=fixture();
+  run.beginShoot();for(let i=0;i<10;i++)internal.tickShot(.5);internal.tickShot(12.2);
+  const restored=run.tapes[0];const fresh=fixture();fresh.run.tapes.push(structuredClone(restored));
+  fresh.run.beginShoot();for(let i=0;i<10;i++)fresh.internal.tickShot(.5);fresh.internal.tickShot(12.2);
+  assert.equal(fresh.run.tapes.length,2);assert.notEqual(fresh.run.tapes[1].id,restored.id,'restored tape ids must not be reused');
+  assert.equal(fresh.run.tapes[1].ready,true,'a new tape after restore must develop');
+}
 assert.equal(ROUTE[0].depth,1012);
 assert.equal(new PodRun(42).leg.depth,1012);
 {

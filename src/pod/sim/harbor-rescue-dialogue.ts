@@ -1,5 +1,22 @@
 import type {HarborRescueState} from './harbor-rescue';
 
+/** Cost of keeping the film's contents from him: something reaches his boot on the way out. */
+export const LIMP_LINES=['（水听器：一声很轻的金属碰——像有什么敲了敲他的靴跟。之后他的脚步，一轻，一重。）','艾里亚斯：左靴后跟的护板上多了三道印子。……在壳子外面。……你说门里什么都没有。'];
+
+/** Lines after the farewell; Vance reacts to what the player actually did on this route. */
+export function harborTail(o:{meet:unknown;hullHit:boolean;lied:boolean;named:boolean}):string[]{
+ const keep=o.meet==='keepChannel';
+ return [...(keep?['（频道开着。他不说话。接收机上一声高音咔。……三十秒。……咔。）']:[o.meet==='gate'?'艾里亚斯：我关频道了，省电。':'艾里亚斯：我关频道了，省电。下面见。','（咔哒。）']),
+  '（被动声纳：货仓方位一个声源，不动。泄水井方位，又一个。水听器里，两下，一停。）',
+  ...(keep?['（……三十秒。……四十秒。……五十秒。没有咔声。）','（……咔。）']:[]),
+  '（地面频道：载波回来了。偶尔一声按键的咔哒。）',
+  '万斯：语音全断了，我只收得到遥测。有一阵，你的点一动没动。……我没往上报。',
+  ...(o.hullHit?['万斯：你艇壳读数掉了一格。我看见了，没写。']:[]),
+  ...(o.lied?['万斯：你的接收机日志一起传上来了。你最后那次只按了一秒。对面的载波，又亮了十一秒。……你没再按。']:[]),
+  ...(o.named?['万斯：你的发射机有一次开了很久。内容我收不到，我也不问。……签字栏还空着。']:[]),
+  '万斯：往下走吧。我还盯着。'];
+}
+
 const stages=['contact','intro','stop','warning','photo','report','plan','power','powerBrief','open','lureBrief','lure','closeBrief','close','confirmBrief','confirm','escapeBrief','escape','departure','done'] as const;
 type Stage=typeof stages[number];
 type Effect='rumble'|'escape';
@@ -8,12 +25,12 @@ export type DialogueOutput={line?:string;seconds?:number;effects:Effect[]};
 const tasks:Partial<Record<Stage,string>>={
  stop:'关闭主动声纳脉冲',
  photo:'前往01：X60 Y27 DEPTH 1012m，拍摄艾里亚斯附近，等待显影并分析录像',
- report:'已看清现场 · 点击麦克风向艾里亚斯回复',
+ report:'已看清现场 · 按住麦克风，把你看到的告诉艾里亚斯',
  power:'恢复应急电力：02，X42 Y28 DEPTH 1012m，靠近配电面板按F',
  open:'前往01：X60 Y27 DEPTH 1012m，靠近面板按F打开货仓闸门',
  lure:'将怪物引入货仓：穿过闸口驶入03货舱内部 X77 Y7 DEPTH 1011m，在仓内开启脉冲引入；红点进仓后曝光确认，随即停发，低速撤出',
  close:'停止主动脉冲，返回开门时的01面板（X60 Y27 DEPTH 1012m，回到深度1012米）按F关闭货仓闸门',
- confirm:'货仓闸门已关闭 · 点击麦克风，回复艾里亚斯',
+ confirm:'货仓闸门已关闭 · 按住麦克风，告诉艾里亚斯可以出来',
  escape:'留在艇内，观察艾里亚斯沿内侧通道撤离',
  departure:'前往01：X60 Y27 DEPTH 1012m，拍摄并分析艾里亚斯撤离结果',
  done:'返回01接驳面板，按F确认离港',
@@ -36,6 +53,42 @@ export class HarborRescueDialogue {
  get dialogueChoices(){return this.stage==='confirm'&&this.choosing?choices:[];}
  enqueue(text:string){this.pending.push({text});}
  private begin(stage:Stage,beats:Beat[]){this.stage=stage;this.pending.push(...beats);}
+ /** Free-text radio turn. Only contact, report and confirm advance, and only into the same stages the fixed replies used. */
+ exchange(rowan:string,replies:readonly string[],advance:boolean,emitting:boolean,speaker='罗温：'){
+  if(this.busy)return false;
+  const lines:Beat[]=[...(rowan?[{text:speaker+rowan}]:[]),...replies.map(text=>({text}))];
+  const live:Beat[]=rowan?[lines[0],{text:'（循环录音在第三遍中途断掉。一声吞咽。）',seconds:2.5},{text:'艾里亚斯：有人。……真的有人。'},...lines.slice(1)]:lines;
+  if(advance&&this.stage==='contact'){this.begin('intro',[...live,emitting
+   ?{text:'艾里亚斯：那是什么声音——是你在打声纳？关掉。现在就关。它听得见。',end:'stop'}
+   :{text:'艾里亚斯：……别打声纳。千万别。它听得见。',end:'stop'}]);return true;}
+  if(advance&&this.stage==='report'){this.begin('plan',[...lines,
+   {text:'',seconds:1.6},
+   {text:'艾里亚斯：门后是井。通港池。'},
+   {text:'（水听器：井里，一串气泡上浮。）',seconds:2.5},
+   {text:'艾里亚斯：走廊口在井盖正上面。它不挪，我过不去。'},
+   {text:'',seconds:2},
+   {text:'艾里亚斯：东边货仓，门厚。把它引进去，关门。……没电。配电箱在泵站外壁，黄漆的。',end:'power'}]);return true;}
+  if(advance&&this.stage==='confirm'){this.choosing=false;this.begin('escapeBrief',[...lines,
+   {text:'艾里亚斯：走廊。尽头值班室，有观察窗，门能锁。我拔了脐带走——服里的背包够一个钟头。脐带一拔，我也是水声了。少说话，你也是。'},
+   {text:'艾里亚斯：镜头往左打到底，拍走廊口。洗出来的时候我该到了。',end:'escape',effect:'escape'}]);return true;}
+  this.pending.push(...lines);return true;
+ }
+ /** First line once the departure film is verified; the site sets it from story facts. */
+ closingLine='艾里亚斯：……门后面很安静。你还在线吗？';
+ /** Elias's answer to the lure film; the site sets it from what Rowan said earlier. */
+ lureLine='艾里亚斯：……拍到了？关声纳。慢慢出来，比你想的还要慢。回去关门。';
+ /** Current task restated by Elias when asked what to do next; numbers stay on the HUD. */
+ get planLine(){
+  const plan:Partial<Record<Stage,string>>={
+   power:'泵站外壁，黄漆那个配电箱——图上标的02。电不来，货仓门就是一堵墙。',
+   open:'桥头那块面板，开货仓门。慢点。',
+   lureBrief:'你那台是水声电话，问一句，水里就多一句。货仓，最里面。',
+   lure:'你那台是水声电话，问一句，水里就多一句。货仓，最里面。',
+   closeBrief:'关声纳。慢慢出来，回去关门。',
+   close:'关声纳。慢慢出来，回去关门。',
+  };
+  return plan[this.stage]?'艾里亚斯：'+plan[this.stage]:'';
+ }
  reply(){
   if(!this.replyAvailable)return false;
   if(this.stage==='contact'){
@@ -71,23 +124,32 @@ export class HarborRescueDialogue {
   }
   if(!this.pending.length){
    if(this.stage==='stop'&&!emitting)this.begin('warning',[
-    {text:'罗温：它？它是什么？'},
-    {text:'艾里亚斯：听我说，不要开灯，也不要开启主动声纳。保持被动接收。',effect:'rumble'},
-    {text:'',seconds:2.5},
-    {text:'罗温：天哪，这是什么声音？'},
-    {text:'艾里亚斯：你看不见它，需要用摄像机才能看到。去01，X60、Y27、深度1012米，拍摄我这里。等显影完成，到分析台看录像，再用麦克风叫我。',end:'photo'},
+    {text:'艾里亚斯：就这样。我这头走脐带硬线，接港里的固定换能器——窄波束，贴着地板只朝你打——你刚才那声声纳，我记下了方位。你那台是全向的水声电话，你每说一句，整片水都有。',effect:'rumble'},
+    {text:'（水听器：门后，金属刮擦。两下，一停。）',seconds:2.5},
+    {text:'艾里亚斯：两下一停。……它在找。'},
+    {text:'艾里亚斯：你们局的艇我修过两条。灯是老镇流器吧？别开——会嗡。'},
+    {text:'艾里亚斯：把你的艇停到桥头灯杆底下——旧外景机的机位，正对我这扇门。用你的相机。我头盔转不了，看不见身后——你帮我看。头灯快没电了，我挡着，漏一线。拍下来，告诉我上面有什么。',end:'photo'},
    ]);
-   else if(this.stage==='photo'&&s.identified)this.stage='report';
-   else if(this.stage==='power'&&s.powered)this.begin('powerBrief',[{text:'艾里亚斯：好了，听我说。现在回01，X60、Y27、深度1012米，靠近面板按F，把货仓闸门打开。',end:'open'}]);
+   else if(this.stage==='photo'&&s.identified)this.begin('report',[{text:'艾里亚斯：……洗出来了？上面有什么？告诉我。'}]);
+   else if(this.stage==='power'&&s.powered)this.begin('powerBrief',[
+    {text:'（水听器：继电器一排咔哒响过去。刮擦停了。）',seconds:3},
+    {text:'艾里亚斯：别出声。'},
+    {text:'',seconds:6},
+    {text:'（水听器：泵转起来。刮擦重新开始，低了。）',seconds:3,effect:'rumble'},
+    {text:'艾里亚斯：低了。……它下去了，在听泵。那口井也就十来米深——井盖我掀不动，它一顶就开。得把它关起来。'},
+    {text:'艾里亚斯：回桥头那块面板，开货仓门。慢点，门轴会叫。',end:'open'}]);
    else if(this.stage==='open'&&s.gateOpen)this.begin('lureBrief',[
-    {text:'艾里亚斯：接下来的操作很危险，你一定仔细听。闸门开后，从X77、Y22、深度1011米驶入03货舱，一直开到仓内X77、Y7、深度1011米，人在仓里了再开启主动脉冲，把它引进来。'},
-    {text:'艾里亚斯：等它完全进仓，先拍一张确认它在里面，再快速停止主动脉冲，安静离开。停止脉冲后低速驶出货舱，返回开门时的01面板（X60 Y27 DEPTH 1012m，回到深度1012米）关闸。',end:'lure'},
+    {text:'艾里亚斯：它听见门轴了。往下走了，井底。……它听门轴。',effect:'rumble'},
+    {text:'艾里亚斯：货仓最里面。到了再开声纳。你进仓，我就闭嘴——我的波束会打到它身上。我按载波键：一下是等，两下是拍，打闪光。你那台是老式的，八千赫，正好在它耳朵里。我按的是测深仪的键，三十八千赫——三天里我按了几百下，它一次都没回头。'},
+    {text:'艾里亚斯：你要是现在掉头，我不怪你。',end:'lure'},
    ]);
-   else if(this.stage==='lure'&&s.lureConfirmed)this.begin('closeBrief',[{text:'艾里亚斯：你已经拍下它在货仓里了。现在停止主动脉冲，低速撤出货舱，返回开门时的01面板（X60 Y27 DEPTH 1012m，回到深度1012米）关闭货仓闸门！',end:'close'}]);
-   else if(this.stage==='close'&&!s.lureConfirmed&&!s.isolated){this.stage='lure';this.enqueue('艾里亚斯：它又出来了。重新开闸诱导，必须拍下这一次的入仓情况。');}
-   else if(this.stage==='close'&&s.isolated)this.begin('confirmBrief',[{text:'艾里亚斯：你搞定了吗？它关进去了吗？',end:'confirm'}]);
-   else if(this.stage==='escape'&&s.departed)this.begin('escape',[{text:'艾里亚斯：我到内侧门后了。拍下这里的情况，再确认我们能继续往下走。',end:'departure'}]);
-   else if(this.stage==='departure'&&s.departureConfirmed)this.stage='done';
+   else if(this.stage==='lure'&&s.lureConfirmed)this.begin('closeBrief',this.lureLine.split('\n').map((text,i,a):Beat=>i===a.length-1?{text,end:'close'}:{text}));
+   else if(this.stage==='close'&&!s.lureConfirmed&&!s.isolated){this.stage='lure';this.enqueue('艾里亚斯：……刮声又回来了。它出来了。再引一次——这次也得拍下来。');}
+   else if(this.stage==='close'&&s.isolated)this.begin('confirmBrief',[
+    {text:'（水听器：门轴长叫。货仓里的刮擦猛地转向门口。闸落。一声闷撞。）',seconds:4},
+    {text:'艾里亚斯：那一下……是门，还是它？它关进去了吗？',end:'confirm'}]);
+   else if(this.stage==='escape'&&s.departed)this.begin('escape',[{text:'艾里亚斯：墙上有插口——插回去了，又是线了。……我在观察窗后面，门锁上了。这边是黑的。我回身朝你举灯——你拍。我背后，你帮我看着。',end:'departure'}]);
+   else if(this.stage==='departure'&&s.departureConfirmed)this.begin('done',this.closingLine.split('\n').map(text=>({text})));
   }
   if(this.pending.length){this.active=this.pending.shift()!;this.remaining=this.active.seconds??Math.max(4,Math.min(32,this.active.text.length*.18));out.line=this.active.text;out.seconds=this.remaining;}
   return out;

@@ -1,0 +1,210 @@
+{
+  "asset": "manager-office",
+  "scene": "Living_manager-office",
+  "units": "metres",
+  "axes": "Three.js local: +Y up, +X east, +Z south (Blender authored as (x,-z,y), exported with export_yup)",
+  "front": "-Z",
+  "placement": {
+    "position": [
+      167,
+      0,
+      104
+    ],
+    "rotationYDeg": 0.0,
+    "note": "apply as root.position / root.rotation.y in the living-deck world"
+  },
+  "bounds": {
+    "min": [
+      -16.7,
+      -3.008,
+      -13.3
+    ],
+    "max": [
+      6.7,
+      1.23,
+      4.183
+    ]
+  },
+  "triangles": 34388,
+  "bytes": 4600300,
+  "objects": [
+    {
+      "name": "office",
+      "tris": 9588,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "main",
+      "parent": null
+    },
+    {
+      "name": "manager-corpse",
+      "tris": 23444,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "figure",
+      "parent": null
+    },
+    {
+      "name": "stencils",
+      "tris": 96,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "decals",
+      "parent": null
+    },
+    {
+      "name": "code-note",
+      "tris": 264,
+      "origin": [
+        0.0,
+        -2.2,
+        -0.0
+      ],
+      "group": "notes",
+      "parent": null
+    },
+    {
+      "name": "guide-placard",
+      "tris": 744,
+      "origin": [
+        6.4,
+        0.0,
+        -8.0
+      ],
+      "group": "decals",
+      "parent": null
+    },
+    {
+      "name": "delroy-form",
+      "tris": 252,
+      "origin": [
+        -16.4,
+        0.0,
+        -12.0
+      ],
+      "group": "decals",
+      "parent": null
+    }
+  ],
+  "anchors": {
+    "code-note": {
+      "local": [
+        0.0,
+        -2.2,
+        0.0
+      ],
+      "world": [
+        167.0,
+        -2.2,
+        104.0
+      ]
+    },
+    "guide-placard": {
+      "local": [
+        6.4,
+        0.0,
+        -8.0
+      ],
+      "world": [
+        173.4,
+        0.0,
+        96.0
+      ]
+    },
+    "delroy-form": {
+      "local": [
+        -16.4,
+        0.0,
+        -12.0
+      ],
+      "world": [
+        150.6,
+        0.0,
+        92.0
+      ]
+    },
+    "manager-head": {
+      "local": [
+        0.0594,
+        -2.1827,
+        0.2999
+      ],
+      "world": [
+        167.059,
+        -2.183,
+        104.3
+      ]
+    }
+  },
+  "materials": [
+    "lv_manager_office_decals",
+    "lv_manager_office_figure",
+    "lv_manager_office_main",
+    "lv_manager_office_notes"
+  ],
+  "textures": {
+    "main": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        2048,
+        2048
+      ],
+      "normal": [
+        2048,
+        2048
+      ]
+    },
+    "figure": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        2048,
+        2048
+      ],
+      "normal": [
+        2048,
+        2048
+      ]
+    },
+    "decals": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        1024,
+        1024
+      ]
+    },
+    "notes": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        1024,
+        1024
+      ]
+    }
+  },
+  "build": "tools/blender/build-living-manager-office.py",
+  "preview": "qa/living/blender/manager-office.png",
+  "sources": "public/assets/deepsea/living/SOURCES.md",
+  "notes": "Manager slumped over the desk; the code note hangs from her right hand over the far desk edge, facing -Z.",
+  "built": "2026-10-09 20:27",
+  "buildSeconds": 58.7
+}

@@ -4,9 +4,12 @@ const browser=await chromium.launch({channel:'msedge',headless:true});
 try{
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('**/api/**',r=>r.abort());
  await page.goto('http://127.0.0.1:5173/');await page.locator('[data-id="new"]').click();await page.waitForFunction(()=>!!window.__pod);
+ assert.equal(await page.locator('#gm-launch').count(),0,'GM button must not show without ?debug');
+ await page.goto('http://127.0.0.1:5173/?debug');await page.locator('[data-id="new"]').click();await page.waitForFunction(()=>!!window.__pod);
  const records=[];
  for(const level of [1,2,3,4,5,6,7,1]){
   await page.locator('#gm-launch').click();await page.locator(`button[data-gm="进入关卡 ${level}"]`).click();
+  await page.waitForFunction(i=>window.__pod?.legIndex===i&&window.__pod.authoredSite?.index===i,level-1,{timeout:60000});
   const s=await page.evaluate(()=>({index:window.__pod.legIndex,site:window.__pod.authoredSite?.index,phase:window.__pod.phase,error:window.__pod.authoredSiteError,gm:window.__pod.gmLevelSession,menu:!document.querySelector('.gm-console').classList.contains('hidden')}));
   assert.equal(s.index,level-1);assert.equal(s.site,level-1);assert.equal(s.phase,'site');assert.equal(s.error,'');assert.equal(s.menu,false);assert.equal(s.gm,true);records.push(s);
  }

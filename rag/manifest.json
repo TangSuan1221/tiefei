@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-level-metrics",
-  "revision": "2026-10-06-v61-cargo-rework",
+  "revision": "2026-10-10-v63-decor-collision-channel",
   "defaultRuntimeProfile": "main-authored",
   "documents": [
     {
@@ -11,6 +11,11 @@
     }
   ],
   "evidenceFiles": [
+    "tools/decor-collision-channel-check.ts",
+    "src/pod/view/deepsea/expedition-world.ts",
+    "docs/level-02-living-deck-design.md",
+    "src/pod/content/living-deck-layout.ts",
+    "tools/living-layout-check.ts",
     "src/pod/view/cabin-navigation-keyboard.ts",
     "tools/harbor-sonar-inward-preview.mjs",
     "docs/harbor-interaction-audit-2026-10-06.md",

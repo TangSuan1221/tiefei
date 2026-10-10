@@ -39,6 +39,8 @@ function createShared(){
  const environment=pmrem.fromScene(room,.14);room.dispose();pmrem.dispose();
  return{renderer,materials,surfaces,environment};
 }
+/** Other authored sites render through the same WebGL context and room environment. */
+export function sharedExpeditionRenderer(){shared??=createShared();return {renderer:shared.renderer,environment:shared.environment};}
 
 export class PodExpedition implements AuthoredSite {
  readonly level;readonly state;readonly world;
@@ -54,7 +56,7 @@ export class PodExpedition implements AuthoredSite {
  private water:ReturnType<typeof createReferenceWater>;
  private ray=new T.Raycaster();private bounds=new Map<string,T.Box3>();
  private width=0;private height=0;private target:{id:string;door:boolean}|null=null;
- private openedAt=new Map<string,number>();private epoch=0;
+ private openedAt=new Map<string,number>();private epoch=0;private wedgeHintAt=-99;private backoffAt=-99;
  private interactionFeedback='';private feedbackUntil=0;
  private guide:HarborGuide|null=null;private guideLeft=0;private guideIdle=0;private guideReminded=false;
  private armObject:string|null=null;
@@ -307,10 +309,27 @@ export class PodExpedition implements AuthoredSite {
  get elevation(){return this.position.y;}
  turn(degrees:number){
   if(this.index!==0)return (this.run.heading+degrees+360)%360;
+  const turned=sweepHarborHeading(this.run.heading,degrees,h=>this.canMove(this.position,h));
+  // turn() runs every frame while a key is held; back off at most once per 1.5 s or the hull drifts metres.
+  if(degrees===0||turned!==this.run.heading||this.epoch-this.backoffAt<1.5)return turned;
+  this.backoffAt=this.epoch;
+  // A 5 m hull wedged against a frame cannot yaw in place; back off a little so the player is never pinned.
+  const r=T.MathUtils.degToRad(this.run.heading),back=this.position.clone().add(new T.Vector3(-Math.sin(r)*.3,0,Math.cos(r)*.3));
+  if(!this.canMove(back)){this.wedgeHint('艇身两头都贴着结构，转不过来。按住 N 倒车或升降，换个位置再转。');return turned;}
+  this.position.copy(back);
+  this.wedgeHint('艇身贴着结构转不过来，自动倒车让出转向空间。');
   return sweepHarborHeading(this.run.heading,degrees,h=>this.canMove(this.position,h));
  }
+ private wedgeHint(text:string){if(this.epoch-this.wedgeHintAt>6){this.wedgeHintAt=this.epoch;this.feedback(text);this.run.onCue?.('hull.groan',.5);}}
  private recoverHeading(){
-  if(this.index===0&&!this.canMove(this.position))this.run.heading=this.turn(0);
+  if(this.index!==0||this.canMove(this.position))return;
+  this.run.heading=this.turn(0);
+  if(this.canMove(this.position))return;
+  // A gate or door closed onto the hull: every step stays overlapped, so nudge to the nearest clear spot.
+  for(let r=.25;r<=2;r+=.25)for(let a=0;a<16;a++)for(const dy of [0,.5,-.5]){
+   const t=a/16*Math.PI*2,p=this.position.clone().add(new T.Vector3(Math.sin(t)*r,dy,-Math.cos(t)*r));
+   if(this.canMove(p)){this.position.copy(p);this.feedback('艇身卡住，姿态推进器把艇顶了出来。');return;}
+  }
  }
  moveVertical(distance:number){
   this.recoverHeading();
@@ -327,7 +346,7 @@ export class PodExpedition implements AuthoredSite {
   const h=T.MathUtils.degToRad(this.run.heading),p=T.MathUtils.degToRad(this.run.pitch);
   const direction=new T.Vector3(Math.sin(h)*Math.cos(p),-Math.sin(p),-Math.cos(h)*Math.cos(p));
   const steps=Math.max(1,Math.ceil(Math.abs(distance)/.08));
-  for(let i=0;i<steps;i++){const next=this.position.clone().addScaledVector(direction,distance/steps);if(!this.canMove(next))return false;this.position.copy(next);}
+  for(let i=0;i<steps;i++){const next=this.position.clone().addScaledVector(direction,distance/steps);if(!this.canMove(next)){if(this.index===0)this.wedgeHint(distance>0?'前方受阻：艇长五米，船头或侧舷顶住了结构。按住 N 倒车，再调整航向。':'后方受阻：船尾顶住了结构。向前或转向。');return false;}this.position.copy(next);}
   if(this.room&&!this.state.visited.includes(this.room.id))this.state.visited.push(this.room.id);
   return true;
  }
@@ -509,6 +528,7 @@ export class PodExpedition implements AuthoredSite {
    for(const [light,intensity]of lightState)light.intensity=intensity;
   }
  }
+ sonarReadout?:{above:number;below:number;front:number;back:number;left:number;right:number};
  drawDrivingSonar(ctx:CanvasRenderingContext2D,w:number,h:number,time:number,dedicated=false){
   // This is station glass, never part of captureKeyframe / generated footage.
   const size=dedicated?Math.min(w,h/0.93):Math.min(w*(this.run.lit?.28:.40),h*.66),x=dedicated?0:w-size-w*.025,y=dedicated?0:h*.22;
@@ -568,6 +588,7 @@ export class PodExpedition implements AuthoredSite {
   }
   drawSonarOwnship(ctx,cx,cy,Math.max(12,2.5*scale));
   const distances=[0,Math.PI, -Math.PI/2,Math.PI/2].map((a,i)=>Math.max(0,sonarRay(this.position,Math.sin(heading+a),-Math.cos(heading+a),solids)-(i<2?2.5:1.4)));
+  this.sonarReadout={above,below,front:distances[0],back:distances[1],left:distances[2],right:distances[3]};
   ctx.fillStyle=SONAR_STATIC;ctx.fillText(`前 ${distances[0].toFixed(1)}  后 ${distances[1].toFixed(1)}m`,x+size*.04,y+size*.81);
   ctx.fillText(`左 ${distances[2].toFixed(1)}  右 ${distances[3].toFixed(1)}m`,x+size*.04,y+size*.86);
   ctx.font=`${Math.max(10,size*.027)}px "Microsoft YaHei",monospace`;

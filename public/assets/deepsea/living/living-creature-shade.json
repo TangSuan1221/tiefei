@@ -1,0 +1,86 @@
+{
+  "asset": "living-creature-shade",
+  "units": "metres",
+  "axes": "Three.js local, +Y up (Blender authored as (x,-z,y), glTF +Y up)",
+  "triangles": {
+    "body": 23998,
+    "fins": 3072,
+    "teeth": 3840,
+    "lens": 1152
+  },
+  "totalTriangles": 32062,
+  "bounds": {
+    "min": [
+      -0.418,
+      -0.265,
+      -2.664
+    ],
+    "max": [
+      0.418,
+      0.418,
+      2.505
+    ],
+    "size": [
+      0.837,
+      0.683,
+      5.169
+    ]
+  },
+  "bones": [
+    "root",
+    "head",
+    "spine01",
+    "spine02",
+    "spine03",
+    "spine04",
+    "spine05",
+    "spine06",
+    "spine07",
+    "spine08",
+    "spine09",
+    "spine10",
+    "spine11"
+  ],
+  "clips": {
+    "swim": 2.0,
+    "idle": 4.0,
+    "curl": 3.0,
+    "attack": 1.8
+  },
+  "textures": {
+    "skin": {
+      "color": "2048 webp q90 (alpha = thinness)",
+      "normal": "2048 webp lossless",
+      "orm": "1024 png"
+    },
+    "fin": {
+      "color": [
+        1024,
+        256
+      ]
+    },
+    "teeth": "COLOR_0 (alpha = thinness)"
+  },
+  "bytes": 3720940,
+  "build": "tools/blender/build-living-creature-shade.py",
+  "previews": "qa/living/creatures-r4/blender/shade-*.png",
+  "sources": "public/assets/deepsea/living/SOURCES.md",
+  "built": "2026-10-09 18:30",
+  "silhouette": [
+    "continuous frilled dorsal fin + anal fin over a heavy eel trunk",
+    "blunt underbite snout with upward tubular eyes",
+    "five gill slits + fan pectorals behind the head"
+  ],
+  "headAxis": "-Z (procedural body group convention)",
+  "lod1": {
+    "file": "living-creature-shade.lod1.glb",
+    "bytes": 411564,
+    "triangles": {
+      "body_lod1": 7198,
+      "fins_lod1": 1536,
+      "teeth_lod1": 1920,
+      "lens_lod1": 576
+    },
+    "totalTriangles": 11230
+  }
+}

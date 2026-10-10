@@ -14,9 +14,9 @@ const d=new HarborRescueDialogue();assert.equal(d.objective,'');assert.equal(d.r
 for(let i=0;i<30;i++)assert.equal(d.reply(),false);
 d.tick(0,state(),true);for(let i=0;i<3;i++){assert.equal(d.objective,'');completeLine(d,state(),true);}assert.equal(d.objective,'');assert.equal(d.stage,'intro');
 completeLine(d,state(),true);assert.equal(d.stage,'stop');assert.match(d.objective,/关闭/);assert.equal(d.photoUnlocked,false);
-const warning=d.tick(0,state(),false);assert.match(warning.line!,/它是什么/);assert.equal(d.stage,'warning');assert.equal(d.objective,'');
-completeLine(d);const rumble=completeLine(d);assert.deepEqual(rumble.effects,['rumble']);assert.equal(d.stage,'warning');assert.equal(rumble.line,'');
-completeLine(d);completeLine(d);assert.equal(d.objective,'');assert.equal(d.photoUnlocked,false);completeLine(d);assert.equal(d.stage,'photo');assert.equal(d.photoUnlocked,true);
+const warning=d.tick(0,state(),false);assert.match(warning.line!,/水声电话/);assert.equal(d.stage,'warning');assert.equal(d.objective,'');
+const rumble=completeLine(d);assert.deepEqual(rumble.effects,['rumble']);assert.equal(d.stage,'warning');assert.match(rumble.line!,/刮擦/);
+completeLine(d);completeLine(d);completeLine(d);assert.equal(d.objective,'');assert.equal(d.photoUnlocked,false);completeLine(d);assert.equal(d.stage,'photo');assert.equal(d.photoUnlocked,true);
 const identified={...state(),identified:true};d.tick(0,identified,false);assert.equal(d.stage,'report');assert.match(d.objective,/麦克风/);d.tick(1000,identified,false);assert.equal(d.stage,'report');
 assert.equal(d.reply(),true);assert.equal(d.objective,'');for(let i=0;i<20;i++)assert.equal(d.reply(),false);drain(d,identified);assert.equal(d.stage,'power');
 let facts={...identified,powered:true};d.tick(0,facts,false);assert.equal(d.stage,'powerBrief');assert.equal(d.objective,'');drain(d,facts);assert.equal(d.stage,'open');

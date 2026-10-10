@@ -5,6 +5,7 @@ import { seedToCoords } from './core/rng';
 import { formatDepth } from './core/util';
 import { installGmApi } from './pod/view/gm';
 import { hasHarborSave } from './pod/sim/harbor-save';
+import { hasLivingSave } from './pod/sim/living-save';
 
 installGmApi();
 
@@ -19,11 +20,12 @@ bg.start();
 const save = new SaveManager();
 const meta = save.loadMeta();
 // Validate the harbor payload; legacy procedural runs are not resumable here.
-const hasRun = hasHarborSave();
+const hasRun = hasHarborSave() || hasLivingSave();
 const uiRoot = document.getElementById('ui-root') as HTMLDivElement;
 
 // 每次启动生成一个新种子，但玩家可以在"深度坐标"里输入旧的
 const bootSeed = (Date.now() ^ (performance.now() * 1000)) >>> 0;
+const livingEntry = new URLSearchParams(location.search).get('level') === '2';
 
 renderTitle();
 
@@ -38,8 +40,11 @@ function renderTitle(): void {
         <h1 class="title-cn">铁肺迷城</h1>
         <div class="title-en">Ironlung&nbsp;Maze</div>
         <p class="title-tag">
-          <span>你受公司委派，下潜调查接驳港事故。</span>
-          <span>核对救生舱，找回撤离记录，确认下行通道。</span>
+          ${livingEntry
+            ? `<span>接驳港之后，你独自沿竖井下到 -1 层宿舍区。</span>
+          <span>找回动力与工具，绕开看不见的东西，打开 F 闸门与艾里亚斯会合。</span>`
+            : `<span>你受公司委派，下潜调查接驳港事故。</span>
+          <span>核对救生舱，找回撤离记录，确认下行通道。</span>`}
           <span>声纳引路。实体快门曝光。冲洗后的影像，在分析台核验。</span>
         </p>
       </div>
@@ -52,7 +57,7 @@ function renderTitle(): void {
     hasRun
       ? { id: 'continue', label: '继续下潜', sub: '恢复上次的呼吸' }
       : { id: 'continue', label: '继续下潜', sub: '无记录', disabled: true },
-    { id: 'new', label: '开始事故调查', sub: '正式游戏 · 接驳港' },
+    { id: 'new', label: '开始事故调查', sub: livingEntry ? '正式游戏 · 第二关 · -1 层宿舍区' : '正式游戏 · 接驳港' },
     { id: 'expedition', label: '设施探索预览', sub: '独立测试场景 · 非正式剧情入口' },
     { id: 'seed', label: '输入深度坐标', sub: '指定种子' },
     { id: 'archive', label: '档案', sub: `${endings}/8 结局 · ${meta.knowledgeUnlocked.length} 条知识`, disabled: cycles === 0 },
@@ -118,8 +123,8 @@ async function onMenu(id: string): Promise<void> {
       break;
     case 'new':
     case 'continue':
-      if (id === 'continue' && !hasHarborSave()) {
-        showBootLog(['没有有效的接驳港存档，或存档版本不兼容。', '原存档未修改；请选择开始事故调查。']);
+      if (id === 'continue' && !hasHarborSave() && !hasLivingSave()) {
+        showBootLog(['没有有效的接驳港或第二关存档，或存档版本不兼容。', '原存档未修改；请选择开始事故调查。']);
         return;
       }
       await enterGame(id === 'continue');

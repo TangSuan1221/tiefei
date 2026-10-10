@@ -19,7 +19,7 @@ const volumeBox = (v:Volume) => new Box3(new Vector3(v.x0,v.y0,v.z0),new Vector3
  */
 export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMaterials, surfaceMaps?:ExpeditionSurfaceMaps):ExpeditionWorld {
   const root=new Group();root.name='harbor-world';
-  const colliders:Box3[]=[],walkable:Box3[]=[];
+  const colliders:Box3[]=[],decorColliders:Box3[]=[],walkable:Box3[]=[];
   const interactables=new Map<string,Object3D>(),doors:ExpeditionWorld['doors']=new Map();
   const practicalLights:ExpeditionWorld['practicalLights']=[],anchors:ExpeditionWorld['anchors']=[];
   const owned:MeshStandardMaterial[]=[],geometries:BufferGeometry[]=[];
@@ -55,17 +55,18 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
     const flat=g.index?g.toNonIndexed():g;if(flat!==g)g.dispose();flat.clearGroups();
     const bucket=batches.get(m)??[];bucket.push(flat);batches.set(m,bucket);
   }
-  // Substantial world-space set dressing is an obstacle, never an item return.
-  // Tiny labels/lamp trims remain cosmetic; articulated props supply their own
-  // bounds and explicitly opt out here (their coordinates are parent-local).
-  function box(p:V,s:V,m=steel,solid?:boolean,parent?:Group,rot:V=[0,0,0]){
-    const obstacle=solid??(!parent&&s.every(v=>v>=.3));
+  // MET-042: only solid===true (shell, door frame, pilaster) blocks the hull.
+  // Implicit substantial dressing and 'decor' go to decorColliders, which the
+  // pod, sonar and photo line-of-sight ignore. Articulated props opt out with
+  // false (their coordinates are parent-local).
+  function box(p:V,s:V,m=steel,solid?:boolean|'decor',parent?:Group,rot:V=[0,0,0]){
+    const obstacle=solid===undefined?!parent&&s.every(v=>v>=.3):solid!==false;
     const bounds=new Box3().setFromCenterAndSize(new Vector3(),new Vector3(...s));
     bounds.applyMatrix4(new Matrix4().compose(new Vector3(...p),new Quaternion().setFromEuler(new Euler(...rot)),new Vector3(1,1,1)));
     // Remove misplaced decorative geometry as well as its collider: never leave
     // a visible prop that can be driven through just to keep a doorway open.
     if(solid===undefined&&obstacle&&dressingClearance.some(b=>b.intersectsBox(bounds)))return;
-    shape(new BoxGeometry(...s),m,p,rot,parent,!parent&&Math.max(...s)>=2.5);if(obstacle)colliders.push(bounds);
+    shape(new BoxGeometry(...s),m,p,rot,parent,!parent&&Math.max(...s)>=2.5);if(obstacle)(solid===true?colliders:decorColliders).push(bounds);
   }
   function rounded(p:V,s:V,m=steel,rot:V=[0,0,0]){shape(new RoundedBoxGeometry(...s,2,Math.min(.09,...s.map(v=>v*.18))),m,p,rot);}
   function rod(a:V,b:V,r=.09,m=steel){const start=new Vector3(...a),end=new Vector3(...b),delta=end.clone().sub(start);const g=new CylinderGeometry(r,r,delta.length(),8);g.applyQuaternion(new Quaternion().setFromUnitVectors(new Vector3(0,1,0),delta.normalize()));shape(g,m,start.add(end).multiplyScalar(.5).toArray() as V);}
@@ -282,7 +283,7 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
       for(const z of [7.1,12.9])box([15,-2.97,z],[14,.045,.12],steel,false);
       for(let x=4;x<22;x+=2){box([x,-2.96,5],[1.8,.045,.7],steel,false);for(let k=0;k<8;k++)box([x-.75+k*.2,-2.93,5],[.055,.035,.65],materials.rubber,false);}
       for(const z of [3,6]){
-        box([2.6,-1.2,z],[1.3,3.3,.8],pale,true);
+        box([2.6,-1.2,z],[1.3,3.3,.8],pale,'decor');
         for(let j=0;j<4;j++){box([2.6,-2.2+j*.65,z+.43],[1.05,.46,.08],steel,false);box([2.3,-2.2+j*.65,z+.5],[.09,.12,.05],amber,false);}
       }
     }
@@ -309,7 +310,7 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
         const p=point(t,r.floor+(r.top-r.floor)/2,.25);
         const envelope=new Box3().setFromCenterAndSize(new Vector3(...p),new Vector3(...size(3.3,r.top-r.floor,1.6)));
         if(protectedVolumes.some(b=>b.intersectsBox(envelope)))continue;
-        box(p,size(.14,r.top-r.floor,.28),steel,true);
+        box(p,size(.14,r.top-r.floor,.28),steel,'decor');
         // Recessed access plates break large wall fields without stealing navigation volume.
         for(let panelY=r.floor+1.65;panelY<r.top-1;panelY+=3.2){
           box(point(t,panelY,.13),size(2.9,2.75,.055),ceilingSkin,false);
@@ -328,7 +329,7 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
         const y=r.floor+1.7;
         if(i===2||i===7){
           // Open service panels with relay banks; archives use narrow drawers.
-          box(point(t,y,.5),size(2.5,2.8,.45),steel,true);
+          box(point(t,y,.5),size(2.5,2.8,.45),steel,'decor');
           for(let n=0;n<5;n++){
             box(point(t,y-1+n*.48,.8),size(2.15,.32,.18),i===7?pale:materials.rubber);
             box(point(t+.6,y-1+n*.48,.92),size(.4,.06,.06),amber);
@@ -338,8 +339,8 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
           // Boarding luggage shelving versus cargo restraints, never generic cubes.
           for(const dt of [-1.2,1.2])rod(point(t+dt,r.floor,.9),point(t+dt,r.floor+3.6,.9),.085,steel);
           for(let n=0;n<3;n++){
-            box(point(t,r.floor+.3+n*1.1,.7),size(2.5,.12,1.25),steel,true);
-            box(point(t-.35,r.floor+.65+n*1.1,.8),size(1.1,.55,.8),n%2?rust:materials.rubber,true);
+            box(point(t,r.floor+.3+n*1.1,.7),size(2.5,.12,1.25),steel,'decor');
+            box(point(t-.35,r.floor+.65+n*1.1,.8),size(1.1,.55,.8),n%2?rust:materials.rubber,'decor');
             box(point(t-.35,r.floor+.96+n*1.1,.8),size(.4,.055,.2),pale);
           }
           rod(point(t-1.1,r.floor+.3,1.3),point(t+1,r.floor+3.4,1.3),.05,amber);
@@ -557,7 +558,7 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
   // seven-metre aperture stays clear; no freestanding sign or screen overlay.
   for(const side of [-1,1]){
     const px=a.x+side*4.8,pz=a.z+a.depth/2-1;
-    box([px,a.y,pz],[.65,5.2,1],rust,true);
+    box([px,a.y,pz],[.65,5.2,1],rust,'decor');
     for(const yy of [-1.5,0,1.5]){ring([px,a.y+yy,pz-.6],.43,amber);box([px,a.y+yy,pz-.8],[.55,.12,.15],steel);}
     rod([px,a.y-1.9,pz],[px,a.y-1.9,c.z-7],.17,materials.rubber);
     light(a.id,[px,a.y+2.2,pz-.5],'#d6b485',20,13);
@@ -565,7 +566,7 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
   const entryView={name:'岸电缆引向维修湾',view:[level.spawn[0],a.y,level.spawn[1]] as V,yaw:Math.atan2(-(c.x-level.spawn[0]),-(c.z-level.spawn[1])),pitch:0};
   root.userData.entryView=entryView;root.userData.geometryContract={elevation:'driving-center absolute Y',floorY:'absolute Y',path:'absolute [x,y,z]',minimumPassageWidth:7};
   let last:number|undefined;
-  return {root,colliders,walkable,interactables,doors,anchors,practicalLights,entryView,storyViews:[],passageViews:[],
+  return {root,colliders,decorColliders,walkable,interactables,doors,anchors,practicalLights,entryView,storyViews:[],passageViews:[],
     update(state,time){const dt=last===undefined?1:Math.min(.1,Math.max(0,time-last));last=time;const ease=1-Math.exp(-dt*6);
       for(const [id,lights] of emergencyDoors)lights.update(!doors.has(id)||state.opened.includes(id));
       for(const indicator of gateIndicators){
@@ -575,7 +576,7 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
       for(const d of movingDoors){d.amount+=((state.opened.includes(d.id)?1:0)-d.amount)*ease;d.group.position.y=d.y+d.amount*7.2;}
       for(const it of items){const collected=state.collected.includes(it.id);it.group.userData.collected=collected;it.group.visible=it.kind!=='pickup'||!collected;if(it.lid){it.amount+=((state.opened.includes(it.id)||collected?1:0)-it.amount)*ease;it.lid.rotation.x=-it.amount*1.3;}}
     },
-    dispose(){emergencyDoors.forEach(x=>x.dispose());root.clear();geometries.forEach(g=>g.dispose());owned.forEach(m=>m.dispose());colliders.length=walkable.length=0;interactables.clear();doors.clear();}
+    dispose(){emergencyDoors.forEach(x=>x.dispose());root.clear();geometries.forEach(g=>g.dispose());owned.forEach(m=>m.dispose());colliders.length=decorColliders.length=walkable.length=0;interactables.clear();doors.clear();}
   };
 }
 

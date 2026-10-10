@@ -1737,7 +1737,7 @@ export class PodRun {
     this.sweepAtDistance = this.traveled;
     this.sweepId++;
     // Continuous scanning repeats every 3s, so each repeat costs far less than a manual ping.
-    this.power = clamp01(this.power - (periodic ? 0.003 : [0.004, 0.014, 0.034][power]));
+    this.power = clamp01(this.power - (periodic ? 0.003*(this.authoredSite?.pulseCostScale??1) : [0.004, 0.014, 0.034][power]));
     this.contacts = this.buildContacts(power);
     if(power>0)this.sonarPulseLeft=3;
     this.authoredSite?.sonarPulse?.(power);
@@ -1753,7 +1753,7 @@ export class PodRun {
   }
 
   toggleActiveSonar(): void {
-    if (!this.powered) {
+    if (!this.powered && !this.activeSonarEnabled) {
       this.pushLog('没有电。主动声纳换能器无法启动。', 'bad');
       this.onCue?.('ui.error', 0.6);
       return;
@@ -2351,6 +2351,28 @@ export class PodRun {
    */
   beginHarborApproach():void {if(this.legIndex===0&&this.phase==='transit')this.arrive();}
 
+  /** Level two is an authored site entered straight from the harbor's lower door; it has no transit leg. */
+  beginLivingDeck():void {
+    if(this.legIndex===1&&this.phase==='site'&&this.authoredSite)return;
+    this.authoredSite?.dispose();this.authoredSite=null;this.authoredSiteError='';
+    this.legIndex=1;this.navDriveEngaged=false;this.phase='site';this.traveled=this.leg.length;this.throttle=0;
+    this.siteBreaths=0;this.siteIdleSec=0;this.hookNudged.clear();this.resetArm();this.resetShot();this.siteShadow=[];this.threat=null;
+    this.contacts=[];this.campaign.record(1,'arrival');this.ensureAuthoredSite();
+  }
+
+  /**
+   * A recording made by someone else's camera (e.g. the probe in Elias's hands), delivered over the
+   * link. It is already developed; frames must be real renders and it still needs lab analysis.
+   */
+  receiveRemoteTape(t:{id:string;siteName:string;frames:string[];siteEvidence:unknown;note?:string}):boolean {
+    if(this.phase!=='site'||t.frames.length<3||this.tapes.some(x=>x.id===t.id))return false;
+    this.tapes.push({sensorFrames:t.frames.slice(),siteEvidence:structuredClone(t.siteEvidence),sensorEvidence:true,keyframe:t.frames[0],ready:true,videoResult:'failed',
+      id:t.id,legId:this.leg.id,siteName:t.siteName,purpose:'identify',atBreath:this.breaths,fauna:[],caughtThreat:null,creatureMissing:false,analyzed:false,report:[]});
+    this.tapeCursor=this.tapes.length-1;
+    this.pushLog(t.note??`收到远端录像：${t.siteName}。到分析台播放。`,'system');this.onCue?.('radio.squelch',.4);
+    return true;
+  }
+
   private arrive(): void {
     this.navDriveEngaged=false;
     this.phase = 'site';
@@ -2416,6 +2438,12 @@ export class PodRun {
     }
     // 台面上还摊着东西就起步：它们会在第一次推进里滚进舱底的水。
     // 这一条必须说出来 —— 玩家是在被告知之后才失去它们的。
+    // Level three is not built: completing deck −1 must not fall into the legacy transit legs.
+    if(this.legIndex===1&&this.authoredSite?.index===1){
+      this.pushLog('第二关完成 · 向-2层下潜（第三关制作中）。','system');
+      this.storyCaption='第二关完成 · 向-2层下潜（第三关制作中）';this.storyCaptionLeft=10;
+      return;
+    }
     if(this.legIndex===6 && !this.campaign.choice) {
       this.pushLog('井口已就绪。先去无线电台选择：转发载波、切断载波，或封存证据。','system');
       return;
@@ -2459,6 +2487,7 @@ export class PodRun {
     this.siteShadow = [];
     this.contacts = this.buildContacts(this.sweepPower as 0 | 1 | 2);
     this.beginLeg(this.legIndex);
+    if(this.legIndex===1){this.beginLivingDeck();return;}
     this.onCue?.('knowledge.gain', 0.55);
     this.pushLog(`离开近场。声呐上只有下一处未知废墟。`, 'good');
   }
@@ -2660,7 +2689,8 @@ export class PodRun {
     s.sensorSampleLeft=.5;
     s.siteEvidence=this.authoredSite?.captureEvidence ? structuredClone(this.authoredSite.captureEvidence()) : undefined;
     s.pendingResult=undefined;
-    s.token++;
+    // Restored saves keep tapes but not the shot counter; a reused id would settle the old tape instead.
+    s.token=Math.max(s.token,...this.tapes.map(t=>Number(t.id.slice(5))||0))+1;
     s.phase = 'exposing';
     s.legId = purpose === 'survey' ? actAt(this.legIndex + 1).leg.id : this.leg.id;
     s.purpose = purpose;

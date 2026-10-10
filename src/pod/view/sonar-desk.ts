@@ -3,6 +3,7 @@ import type { HitMap } from './chrome';
 import { drawDrivingSonarInstrument } from './stations';
 import { layoutCJK } from '@/ui/typography';
 import { COORD_AXES, formatCoords, worldFromFields } from '../sim/site-coords';
+import type { PassiveKind, SoundRecord } from '../sim/authored-site';
 
 /** Surface depth of the current site's world y=0, so DEPTH = datum − y. */
 export function coordinateDatum(run:PodRun):number {
@@ -14,6 +15,15 @@ type Desk={frequency:number;axis:number;fields:string[];target:number[]|null;pag
 const desks=new WeakMap<PodRun,Desk>();
 const compactPages=new WeakMap<PodRun,'nav'|'radio'>();
 const radioPages=new WeakMap<PodRun,{list:number;text:number}>();
+/** Transient passive-CRT UI state; deliberately outside the saved desk snapshot. */
+type PassiveUi={tab:'main'|'log'|'help';choice:number|null;micSince:number|null;logPage:number;logSelected:number|null;textPage:number};
+const passiveUis=new WeakMap<PodRun,PassiveUi>();
+export function passiveUi(run:PodRun):PassiveUi{
+ let u=passiveUis.get(run);if(!u){u={tab:'main',choice:null,micSince:null,logPage:0,logSelected:null,textPage:0};passiveUis.set(run,u);}return u;
+}
+/** Push-to-talk must be held this long; a tap is treated as a mis-click. */
+export const MIC_HOLD_MS=450;
+const now=()=>globalThis.performance?.now()??Date.now();
 export function sonarDeskState(run:PodRun):Desk {
  let s=desks.get(run);if(!s){s={frequency:37.8,axis:0,fields:['','',''],target:null,page:'home',records:[],message:''};desks.set(run,s);}return s;
 }
@@ -24,6 +34,30 @@ export function sonarAction(run:PodRun,id:string):boolean {
   if(!site?.managesNarrative||!Number.isInteger(index)||index<0||!site.dialogueChoices?.[index])return false;
   const ok=site.chooseDialogue?.(index)??false;s.message=ok?'回复已发送':'此时无法发送这条回复';return ok;
  }
+ const ui=passiveUi(run);
+ if(id==='sonar.tab.main'||id==='sonar.tab.log'||id==='sonar.tab.help'){ui.tab=id.slice(10) as PassiveUi['tab'];if(ui.tab==='log'){ui.logSelected=null;ui.textPage=0;}return true;}
+ if(id.startsWith('sonar.choose.')){
+  const index=Number(id.slice(13)),choices=run.authoredSite?.dialogueChoices??[];
+  if(!Number.isInteger(index)||!choices[index])return false;ui.choice=index;s.message='已选择 · 按住麦克风说话，松开发送';return true;
+ }
+ if(id==='sonar.mic.down'){ui.micSince=now();return true;}
+ if(id==='sonar.mic.cancel'){ui.micSince=null;return true;}
+ if(id==='sonar.mic.up'){
+  if(ui.micSince===null)return false;
+  const held=now()-ui.micSince;ui.micSince=null;
+  if(held<MIC_HOLD_MS){s.message='按住麦克风说话，松开发送';return false;}
+  const choices=run.authoredSite?.managesNarrative?run.authoredSite.dialogueChoices??[]:[];
+  if(choices.length){
+   if(ui.choice===null||!choices[ui.choice]){s.message='先在屏幕上选择要说的话';return false;}
+   const ok=sonarAction(run,'sonar.rescueReply.'+ui.choice);if(ok)ui.choice=null;return ok;
+  }
+  return sonarAction(run,'sonar.reply');
+ }
+ if(id==='sonar.log.prev'){ui.logPage=Math.max(0,ui.logPage-1);return true;}
+ if(id==='sonar.log.next'){ui.logPage++;return true;}
+ if(id==='sonar.log.textPrev'){ui.textPage=Math.max(0,ui.textPage-1);return true;}
+ if(id==='sonar.log.textNext'){ui.textPage++;return true;}
+ if(id.startsWith('sonar.log.open.')){const index=Number(id.slice(15));if(!Number.isInteger(index)||index<0)return false;ui.logSelected=index;ui.textPage=0;return true;}
  if(id==='sonar.compact.nav'||id==='sonar.compact.radio'){compactPages.set(run,id.endsWith('radio')?'radio':'nav');return true;}
  if(receiver?.autoReceive&&id.startsWith('sonar.radio.')){const pages=radioPages.get(run)??{list:0,text:0};radioPages.set(run,pages);if(id==='sonar.radio.prev')pages.list=Math.max(0,pages.list-1);if(id==='sonar.radio.next')pages.list++;if(id==='sonar.radio.textPrev')pages.text=Math.max(0,pages.text-1);if(id==='sonar.radio.textNext')pages.text++;if(id.startsWith('sonar.radio.open.')){s.selected=Number(id.slice(17));s.page='result';pages.text=0;}return true;}
  if(id.startsWith('sonar.tune.')){s.frequency=35+Math.max(0,Math.min(100,Number(id.slice(11))))/10;receiver?.setFrequency?.(s.frequency);return true;}
@@ -39,7 +73,7 @@ export function sonarAction(run:PodRun,id:string):boolean {
   const typed=s.fields.map(Number);if(s.fields.some(f=>!f.trim())||!typed.every(Number.isFinite)){s.message='坐标格式不正确';return false;}
   const v=worldFromFields(typed,coordinateDatum(run));
   if(receiver?.setWaypoint&&!receiver.setWaypoint(v)){s.message='坐标超出本地航区';return false;}
-  s.target=v;s.message='航点已写入 · 手动驾驶';return true;
+  s.target=v;s.message=run.activeSonarEnabled?'航点已写入 · 按声纳图上的转向角用 J / L 转船头':'航点已写入 · 主动声纳电源未开，航向指引不显示';return true;
  }
  if(id==='sonar.analyze'){
   receiver?.setFrequency?.(s.frequency);
@@ -49,7 +83,7 @@ export function sonarAction(run:PodRun,id:string):boolean {
   if(!s.records.some(r=>r.text===result.text&&r.recording===('recording' in result?result.recording:undefined)))s.records.push({...result,frequency:s.frequency});
   s.selected=s.records.length-1;s.page='result';s.message='';return true;
  }
- if(id==='sonar.history'){s.page='history';return true;}
+ if(id==='sonar.history'){s.page='history';ui.tab='log';return true;}
  if(id==='sonar.home'){s.page='home';return true;}
  if(id.startsWith('sonar.result.')){const index=Number(id.slice(13));if(s.records[index]){s.selected=index;s.page='result';}return true;}
  if(id==='sonar.play'){
@@ -120,32 +154,125 @@ export function drawSonarDesk(ctx:CanvasRenderingContext2D,run:PodRun,x:number,y
  ctx.restore();
 }
 
-/** Reuses the exact controls and hit rectangles at CRT-readable scale. */
-export function drawCompactSonarDesk(ctx:CanvasRenderingContext2D,run:PodRun,hits:HitMap,time:number){
- const s=sonarDeskState(run),r=run.authoredSite?.navigationConsole;
- const choices=run.authoredSite?.managesNarrative?run.authoredSite.dialogueChoices??[]:[];
- if(s.page!=='home'){ctx.save();ctx.beginPath();ctx.rect(0,0,1024,720);ctx.clip();drawSonarDesk(ctx,run,0,-374*720/346,1024,720*720/346,hits,time);ctx.restore();return;}
- ctx.fillStyle='#100e08';ctx.fillRect(0,0,1024,720);ctx.textAlign='left';ctx.textBaseline='middle';
- const text=(v:string,x:number,y:number,size=28)=>{ctx.fillStyle='#f0c477';ctx.font=size+'px Microsoft YaHei';ctx.fillText(v,x,y);};
- const button=(id:string,v:string,x:number,y:number,w:number)=>{ctx.strokeStyle='#98783c';ctx.lineWidth=2;ctx.strokeRect(x,y,w,58);text(v,x+14,y+29,26);hits.add({id,x,y,w,h:58});};
- ctx.strokeStyle='#b48c48';ctx.lineWidth=3;ctx.strokeRect(18,22,573,518);ctx.strokeRect(608,22,396,518);
- text('03 被动声纳 / 频谱 · 声源',34,60,28);text('04 接收控制 / 通信',626,60,27);
- ctx.save();ctx.beginPath();ctx.rect(34,97,540,350);ctx.clip();ctx.translate(34,97);r?.drawWaterfall?.(ctx,540,350);ctx.restore();
- const cursor=34+(s.frequency-35)*54;ctx.strokeStyle='#f0c477';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cursor,97);ctx.lineTo(cursor,447);ctx.stroke();
- text('35 kHz',34,497);text(s.frequency.toFixed(1)+' kHz',224,497,32);text('45 kHz',457,497);
- button('sonar.history','声音记录 ('+(r?.radioRecords?.length??s.records.length)+')',626,100,360);
- if(choices.length){
-  text('麦克风 / 选择回复',626,196,25);let cy=226;
-  choices.forEach((choice,i)=>{
-   ctx.font='25px Microsoft YaHei';const lines=layoutCJK(ctx,choice,330),bh=Math.max(62,lines.length*31+18);
-   ctx.strokeStyle='#98783c';ctx.lineWidth=2;ctx.strokeRect(626,cy,360,bh);
-   lines.forEach((line,j)=>text(line,640,cy+24+j*31,25));hits.add({id:'sonar.rescueReply.'+i,x:626,y:cy,w:360,h:bh});cy+=bh+10;
-  });
- }else{
-  text(r?.pendingRadioCount?'新载波 · 等待调谐':'持续监听中',626,209);text('拖动滑块对准声带',626,262,25);text(r?.autoReceive?'调谐稳定后自动播放':'选择声带后分析',626,310,25);
-  if(!r?.autoReceive)button('sonar.analyze','分析频带',626,370,360);
- }
- ctx.fillStyle='#332c1a';ctx.fillRect(34,588,540,12);ctx.fillStyle='#d3b77e';ctx.fillRect(cursor-12,569,24,48);
- for(let i=0;i<=100;i++)hits.add({id:'sonar.tune.'+i,x:29+i*5.4,y:560,w:6,h:70});
- if(!choices.length)button('sonar.reply','麦克风 / 回复',626,568,360);else text('点击语句发送回复',626,594,25);text(s.message||'被动阵列常开 · 仅提供声源方位',34,675,24);
+const AMBER='#f0c477',DIM='#98783c',BRIGHT='#ffe6ad',INK='#100e08';
+const KIND_NAME:Record<PassiveKind,string>={voice:'人声',scatter:'散乱载波',unknown:'???',bio:'海洋生物',self:'本艇脉冲'};
+const SPEAKERS:Record<string,string>={艾里亚斯:'人声 · 艾里亚斯 · 固定水声通信',万斯:'人声 · 万斯 · 基地中继',罗温:'本艇麦克风 · 罗温'};
+const missionTime=(at?:number)=>at===undefined?'T+--:--':`T+${String(Math.floor(at/60)).padStart(2,'0')}:${String(Math.floor(at%60)).padStart(2,'0')}`;
+function recordArchive(record:SoundRecord){
+ if(record.kind==='unknown')return {title:'??? · 未登记声纹',form:'低频宽带 · 不规则横向刮擦',kind:'unknown' as PassiveKind};
+ if(record.kind==='bio')return {title:`${record.label??'海洋生物'} · 已登记`,form:'斜向调频上扫 · 成串咔嗒',kind:'bio' as PassiveKind};
+ const speaker=record.text.split('：')[0]??'';
+ return {title:SPEAKERS[speaker]??'人声 · 未识别说话人',form:'窄带断续 · 语音调制',kind:'voice' as PassiveKind};
 }
+/** Small envelope plot; live mode samples the waterfall at the cursor, archive mode draws the stored shape for that kind. */
+function drawVoiceprint(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,kind:PassiveKind|null,live?:{rows:readonly ArrayLike<number>[];bin:number},seed=1){
+ ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+ ctx.strokeStyle='rgba(152,120,60,.45)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y+h/2);ctx.lineTo(x+w,y+h/2);ctx.stroke();
+ const bars=40,bw=w/bars;ctx.fillStyle=AMBER;
+ for(let i=0;i<bars;i++){
+  let v:number;
+  if(live){const row=live.rows[bars-1-i];v=row?Math.max(0,(Number(row[live.bin])||0)-.06)*1.3:0;}
+  else{const t=i+seed*7.3,rnd=Math.abs(Math.sin(t*12.9898)*43758.5453)%1;
+   v=kind==='voice'?(Math.sin(t*.9)+Math.sin(t*.37)>-.3?.45+.45*rnd:.06):kind==='unknown'?(.25+.35*rnd+(rnd>.82?.35:0)):kind==='bio'?(i%5===0?.85:i%5===1?.35:.05):kind==='self'?(i%9===0?.95:.04):.1*rnd;}
+  const bh=Math.min(1,v)*(h-8);ctx.fillRect(x+i*bw+1,y+h/2-bh/2,Math.max(1,bw-2),Math.max(1,bh));
+ }
+ ctx.restore();
+}
+
+/** Passive CRT, kept sparse: label–value rows, thin rules, one status line. Slider and microphone are physical models on the bezel. */
+export function drawCompactSonarDesk(ctx:CanvasRenderingContext2D,run:PodRun,hits:HitMap,_time:number,H=720){
+ const s=sonarDeskState(run),r=run.authoredSite?.navigationConsole,ui=passiveUi(run);
+ const choices=run.authoredSite?.managesNarrative?run.authoredSite.dialogueChoices??[]:[];
+ const records=r?.radioRecords??[];
+ const micTarget=run.authoredSite?.radioSay?run.authoredSite.micTarget??null:null;
+ if(ui.choice!==null&&!choices[ui.choice])ui.choice=null;
+ ctx.fillStyle=INK;ctx.fillRect(0,0,1024,H);ctx.textAlign='left';ctx.textBaseline='middle';
+ const text=(v:string,x:number,y:number,size=26,color=AMBER,maxWidth?:number)=>{ctx.fillStyle=color;ctx.font=size+'px "Microsoft YaHei",sans-serif';ctx.fillText(v,x,y,maxWidth);};
+ const rule=(x0:number,y:number,x1:number)=>{ctx.strokeStyle=DIM;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();};
+ const row=(label:string,value:string,y:number,color=AMBER)=>{text(label,28,y,24,DIM);text(value,128,y,26,color,160);};
+ const pill=(id:string,label:string,x:number,y:number,w:number,h:number,active:boolean)=>{
+  if(active){ctx.fillStyle=AMBER;ctx.fillRect(x,y,w,h);}else{ctx.strokeStyle=DIM;ctx.lineWidth=1.5;ctx.strokeRect(x,y,w,h);}
+  ctx.textAlign='center';text(label,x+w/2,y+h/2,26,active?INK:AMBER,w-12);ctx.textAlign='left';hits.add({id,x,y,w,h});
+ };
+ // Tabs: a narrow column on the right.
+ ([['main','声纳'],['log','记录'],['help','说明']] as const).forEach(([tab,label],i)=>pill('sonar.tab.'+tab,label,900,20+i*84,104,70,ui.tab===tab));
+ if(ui.micSince!==null){const held=Math.min(1,(now()-ui.micSince)/MIC_HOLD_MS);ctx.textAlign='center';text(held>=1?'● 发送':'● 按住',952,H-60,24,BRIGHT);ctx.textAlign='left';ctx.fillStyle=BRIGHT;ctx.fillRect(904,H-36,96*held,6);}
+ ctx.strokeStyle=DIM;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(884,20);ctx.lineTo(884,H-20);ctx.stroke();
+
+ if(ui.tab==='main'){
+  const focus=r?.passiveFocus,c=focus?.contact??null;
+  text('声纹分析',28,40,22,DIM);
+  text(c?(c.kind==='bio'?c.label:KIND_NAME[c.kind]):'—',28,100,c?.kind==='unknown'?60:48,c?BRIGHT:DIM,250);
+  text(c?.form??'滑块对准声带',28,148,20,DIM,256);
+  rule(28,176,290);
+  row('频段',c?`${c.frequency.toFixed(1)} kHz`:'—',212);
+  row('方位',c?.bearing??'—',256);
+  row('状态',!c?'—':c.kind==='scatter'?'无法锁定':focus!.locked?'已锁定':`${Math.round(Math.min(1,focus!.held/.45)*100)}%`,300,c&&focus!.locked?BRIGHT:AMBER);
+  // Waterfall with frequency axis and a thin envelope strip beneath, like a second sensor trace.
+  const X=316,W=552,Y=24,WH=320;
+  ctx.save();ctx.beginPath();ctx.rect(X,Y,W,WH);ctx.clip();ctx.translate(X,Y);
+  if(r?.drawWaterfall)r.drawWaterfall(ctx,W,WH,false,true);else{ctx.fillStyle='#120c04';ctx.fillRect(0,0,W,WH);}
+  ctx.restore();
+  for(const contact of r?.passiveContacts??[]){if(contact.kind==='self')continue;const cx=X+(contact.frequency-35)/10*W;ctx.fillStyle=AMBER;ctx.beginPath();ctx.moveTo(cx-7,Y);ctx.lineTo(cx+7,Y);ctx.lineTo(cx,Y+11);ctx.fill();}
+  const cursor=X+(s.frequency-35)/10*W;ctx.strokeStyle=BRIGHT;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(cursor,Y);ctx.lineTo(cursor,Y+WH);ctx.stroke();
+  for(let k=0;k<=10;k++){const tx=X+k*W/10;ctx.fillStyle=DIM;ctx.fillRect(tx-.75,Y+WH,1.5,k%5?6:12);}
+  text('35',X,Y+WH+30,22,DIM);text('45',X+W-24,Y+WH+30,22,DIM);ctx.textAlign='center';text(s.frequency.toFixed(1)+' kHz',Math.max(X+80,Math.min(X+W-80,cursor)),Y+WH+30,24,BRIGHT);ctx.textAlign='left';
+  // With reply choices on screen the envelope strip yields its space to them.
+  const rows=r?.passiveRows??[],bins=rows[0]?.length??120,ruleY=choices.length?Y+WH+50:Y+WH+112;
+  if(!choices.length)drawVoiceprint(ctx,X,Y+WH+52,W,46,c?.kind??null,{rows,bin:Math.max(0,Math.min(bins-1,Math.floor((s.frequency-35)/10*bins)))});
+  rule(28,ruleY,868);
+  if(choices.length){
+   text(micTarget?`麦克风 · 可通话：${micTarget} · 按住说话或按 M，可自由输入`:ui.choice===null?'选择一句，再按住麦克风':'按住麦克风说话 · 松开发送',28,ruleY+26,22,micTarget?AMBER:DIM,840);let cy=ruleY+46;
+   choices.forEach((choice,i)=>{
+    ctx.font='24px "Microsoft YaHei"';const lines=layoutCJK(ctx,choice,780).slice(0,2),bh=lines.length*30+10,active=ui.choice===i;
+    if(active){ctx.fillStyle='rgba(240,196,119,.16)';ctx.fillRect(24,cy,844,bh);}
+    text(active?'▶':String(i+1),32,cy+bh/2-(lines.length-1)*15,24,active?BRIGHT:DIM);
+    lines.forEach((line,j)=>text(line,64,cy+20+j*30,24,active?BRIGHT:AMBER));hits.add({id:'sonar.choose.'+i,x:24,y:cy,w:844,h:bh});cy+=bh+4;
+   });
+  }else{
+   const scatter=r?.passiveContacts?.find(x=>x.kind==='scatter');
+   text(scatter?`载波散乱 · 向${scatter.bearing}接近`:r?.pendingRadioCount?'新载波 · 对准声带自动播放':'持续监听',28,ruleY+44,28,BRIGHT,840);
+   if(s.message)text(s.message,28,ruleY+88,22,DIM,840);
+   if(micTarget)text(`麦克风 · 可通话：${micTarget}`,28,ruleY+(s.message?124:88),22,AMBER,840);
+  }
+  return;
+ }
+ if(ui.tab==='log'){
+  if(!records.length){text('暂无声音记录',28,60,26,DIM);return;}
+  const perPage=Math.floor((H-150)/60),pages=Math.max(1,Math.ceil(records.length/perPage));ui.logPage=Math.min(ui.logPage,pages-1);
+  const selected=Math.min(ui.logSelected??records.length-1,records.length-1);
+  text('时间',28,40,22,DIM);
+  records.slice(ui.logPage*perPage,ui.logPage*perPage+perPage).forEach((record,k)=>{
+   const i=ui.logPage*perPage+k,y=64+k*60,active=i===selected,arch=recordArchive(record);
+   if(active){ctx.fillStyle=AMBER;ctx.fillRect(24,y,266,52);}
+   text(missionTime(record.at),34,y+26,22,active?INK:AMBER);
+   text(arch.kind==='unknown'?'???':arch.title.split(' · ')[arch.kind==='voice'?1:0]??'',150,y+26,22,active?INK:DIM,132);
+   hits.add({id:'sonar.log.open.'+i,x:24,y,w:266,h:52});
+  });
+  const pagerY=H-44;
+  if(pages>1){text('◀',40,pagerY,28,ui.logPage>0?AMBER:DIM);text(`${ui.logPage+1}/${pages}`,128,pagerY,22,DIM);text('▶',250,pagerY,28,ui.logPage<pages-1?AMBER:DIM);hits.add({id:'sonar.log.prev',x:24,y:pagerY-28,w:90,h:56});hits.add({id:'sonar.log.next',x:206,y:pagerY-28,w:90,h:56});}
+  ctx.strokeStyle=DIM;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(304,24);ctx.lineTo(304,H-20);ctx.stroke();
+  const record=records[selected]!,arch=recordArchive(record);
+  text('声纹档案',324,40,22,DIM);
+  text(arch.title,324,84,28,BRIGHT,540);
+  text(`${record.frequency.toFixed(1)} kHz · ${arch.form}`,324,122,22,DIM,540);
+  drawVoiceprint(ctx,324,142,544,52,arch.kind,undefined,record.text.length);
+  rule(324,214,868);
+  ctx.font='26px "Microsoft YaHei"';const lines=layoutCJK(ctx,record.text,540),perText=Math.floor((pagerY-40-250)/36)+1,textPages=Math.max(1,Math.ceil(lines.length/perText));
+  ui.textPage=Math.min(ui.textPage,textPages-1);
+  lines.slice(ui.textPage*perText,ui.textPage*perText+perText).forEach((line,i)=>text(line,324,250+i*36,26));
+  if(textPages>1){text('◀',700,pagerY,28,AMBER);text(`${ui.textPage+1}/${textPages}`,756,pagerY,22,DIM);text('▶',836,pagerY,28,AMBER);hits.add({id:'sonar.log.textPrev',x:684,y:pagerY-28,w:64,h:56});hits.add({id:'sonar.log.textNext',x:816,y:pagerY-28,w:64,h:56});}
+  return;
+ }
+ const help:[string,string][]=[
+  ['常开','被动阵列不耗电、不发声，不会暴露潜艇。'],
+  ['方位','只给大致方位，不给距离和障碍；测距用主动声纳。'],
+  ['调频','拖动屏幕下方实体滑块，竖线对准声带约半秒即锁定。'],
+  ['声带','人声：断续竖线　???：低频宽带加横向刮擦\n喙鲸：斜向扫线　本艇脉冲：44 kHz 横条'],
+  ['散乱','求救载波太远时呈散乱噪点，朝方位接近后才能锁定。'],
+  run.authoredSite?.radioSay?['回复','按住右下实体麦克风说话（或按 M），松开后可口述或输入原话，Enter 发送、Esc 取消；也可点快捷语。']:['回复','有选项先点选一句；按住右下实体麦克风说话，松开发送。'],
+ ];
+ let cy=48;
+ help.forEach(([label,body])=>{text(label,28,cy,24,BRIGHT);ctx.font='24px "Microsoft YaHei"';for(const part of body.split('\n'))for(const line of layoutCJK(ctx,part,730)){text(line,124,cy,24);cy+=34;}cy+=20;rule(28,cy-18,868);});
+}
+

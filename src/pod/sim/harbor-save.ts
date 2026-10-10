@@ -127,6 +127,8 @@ export function restoreHarborSave(run:PodRun,save:HarborSave):boolean {
   for(const k of maps){const map=run[k] as Map<string,unknown>;map.clear();for(const [id,value]of r[k])map.set(id,value);}
   for(const k of sets){const set=run[k] as Set<string>;set.clear();for(const id of r[k])set.add(id);}
   for(const k of arrays){const list=run[k] as unknown[];list.splice(0,list.length,...r[k]);}
+  // A tape saved mid-development has no live job after reload; it survives as onboard film.
+  for(const t of r.tapes)if(!t.ready&&(t.sensorEvidence||t.sensorFrames?.length)){t.ready=true;t.videoResult='failed';}
   run.tapes.splice(0,run.tapes.length,...r.tapes);run.tapeCursor=Math.max(0,Math.min(r.tapeCursor??0,run.tapes.length-1));
   run.volumeAt=r.volumeAt;Object.assign(run.cabinPos,r.cabinPos);
   const runtime=run as unknown as Obj;

@@ -1,0 +1,146 @@
+{
+  "pair_01.jpg": {
+    "category": "corridor",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\02-corridor-C1.png",
+    "ref_file": "stillwakes_07.jpg"
+  },
+  "pair_02.jpg": {
+    "category": "corridor",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\04-C1-east-end.png",
+    "ref_file": "soma_08.jpg"
+  },
+  "pair_03.jpg": {
+    "category": "corridor",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\05-C2-end.png",
+    "ref_file": "deadspace_07.jpg"
+  },
+  "pair_04.jpg": {
+    "category": "corridor",
+    "ours": "A",
+    "ours_file": "qa\\living\\env-r3\\r3\\25-C3-long.png",
+    "ref_file": "bunker_01.jpg"
+  },
+  "pair_05.jpg": {
+    "category": "corridor",
+    "ours": "A",
+    "ours_file": "qa\\living\\env-r3\\r3\\18-live-corridor.png",
+    "ref_file": "soma_09.jpg"
+  },
+  "pair_06.jpg": {
+    "category": "atrium",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\11-atrium-wide.png",
+    "ref_file": "bioshock_03.jpg"
+  },
+  "pair_07.jpg": {
+    "category": "atrium",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\12-atrium-floor.png",
+    "ref_file": "bioshock2_01.jpg"
+  },
+  "pair_08.jpg": {
+    "category": "atrium",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\13-atrium-east.png",
+    "ref_file": "bioshock_04.jpg"
+  },
+  "pair_09.jpg": {
+    "category": "atrium",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\19-live-atrium.png",
+    "ref_file": "subnautica2_02.jpg"
+  },
+  "pair_10.jpg": {
+    "category": "atrium",
+    "ours": "A",
+    "ours_file": "qa\\living\\env-r3\\r3\\20-atrium-north-shops.png",
+    "ref_file": "bioshock2_05.jpg"
+  },
+  "pair_11.jpg": {
+    "category": "machinery",
+    "ours": "A",
+    "ours_file": "qa\\living\\env-r3\\r3\\08-ballast-R4.png",
+    "ref_file": "deadspace_02.jpg"
+  },
+  "pair_12.jpg": {
+    "category": "prop-closeup",
+    "ours": "B",
+    "ours_file": "qa\\living\\hero-r3\\shots\\h03-valves.png",
+    "ref_file": "soma_05.jpg"
+  },
+  "pair_13.jpg": {
+    "category": "room",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\07-security-R3.png",
+    "ref_file": "stillwakes_04.jpg"
+  },
+  "pair_14.jpg": {
+    "category": "room",
+    "ours": "A",
+    "ours_file": "qa\\living\\env-r3\\r3\\14-office-R5.png",
+    "ref_file": "stillwakes_12.jpg"
+  },
+  "pair_15.jpg": {
+    "category": "prop-closeup",
+    "ours": "A",
+    "ours_file": "qa\\living\\hero-r3\\shots\\h07-office-z1.png",
+    "ref_file": "bunker_05.jpg"
+  },
+  "pair_16.jpg": {
+    "category": "corpse",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\23-probe-cocoon.png",
+    "ref_file": "stillwakes_01.jpg"
+  },
+  "pair_17.jpg": {
+    "category": "slime",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\24-probe-slime-wall.png",
+    "ref_file": "deadspace_10.jpg"
+  },
+  "pair_18.jpg": {
+    "category": "creature",
+    "ours": "A",
+    "ours_file": "qa\\living\\hero-r3\\shots\\k7-swarm.png",
+    "ref_file": "deadspace_03.jpg"
+  },
+  "pair_19.jpg": {
+    "category": "signage",
+    "ours": "B",
+    "ours_file": "qa\\living\\hero-r3\\shots\\h22-code-legal-31.png",
+    "ref_file": "soma_02.jpg"
+  },
+  "pair_20.jpg": {
+    "category": "room",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\17-laundry-R1.png",
+    "ref_file": "bioshock2_03.jpg"
+  },
+  "pair_21.jpg": {
+    "category": "shaft",
+    "ours": "A",
+    "ours_file": "qa\\living\\env-r3\\r3\\01-shaft-S.png",
+    "ref_file": "stillwakes_06.jpg"
+  },
+  "pair_22.jpg": {
+    "category": "viewport",
+    "ours": "B",
+    "ours_file": "qa\\living\\env-r3\\r3\\03-solarium-C1.png",
+    "ref_file": "soma_07.jpg"
+  },
+  "pair_23.jpg": {
+    "category": "door",
+    "ours": "A",
+    "ours_file": "qa\\living\\env-r3\\r3\\16-C7-D.png",
+    "ref_file": "deadspace_06.jpg"
+  },
+  "pair_24.jpg": {
+    "category": "figure",
+    "ours": "A",
+    "ours_file": "qa\\living\\hero-r3\\shots\\h08-office-z2.png",
+    "ref_file": "deadspace_05.jpg"
+  }
+}

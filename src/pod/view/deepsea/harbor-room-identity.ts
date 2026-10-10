@@ -35,7 +35,7 @@ export function addHarborRoomIdentity(level:ExpeditionLevel,world:ExpeditionWorl
   const bounds=new Box3().setFromCenterAndSize(new Vector3(...p),new Vector3(...s));if(reserve.some(v=>v.intersectsBox(bounds)))return;
   const g=new BoxGeometry(s[0],s[1],s[2]);const pos=g.getAttribute('position'),n=g.getAttribute('normal'),uv=g.getAttribute('uv');
   for(let i=0;i<pos.count;i++)uv.setXY(i,Math.abs(n.getX(i))>.5?pos.getZ(i):pos.getX(i),Math.abs(n.getY(i))>.5?pos.getZ(i):pos.getY(i));
-  g.translate(p[0],p[1],p[2]);const flat=g.toNonIndexed();g.dispose();flat.clearGroups();const parts=batches.get(mat)??[];parts.push(flat);batches.set(mat,parts);world.colliders.push(bounds);
+  g.translate(p[0],p[1],p[2]);const flat=g.toNonIndexed();g.dispose();flat.clearGroups();const parts=batches.get(mat)??[];parts.push(flat);batches.set(mat,parts);world.decorColliders.push(bounds);
  }
  // Recessed fixtures at corridor bends provide a real destination beyond each
  // doorway. They are above the swept hull, not arrows painted on the camera.

@@ -1,0 +1,67 @@
+{
+  "asset": "cocoon-corpse",
+  "units": "metres",
+  "axes": "Three.js local: +Y up, +X east, +Z south (Blender authored as (x,-z,y), exported with export_yup)",
+  "front": "figure faces (0.47, 0, 0.88)",
+  "placement": {
+    "position": [
+      170,
+      0,
+      -14
+    ],
+    "rotationYDeg": 0.0,
+    "note": "hero frame (floor y=-3); loaded by living-cocoon.ts, not by loadHeroGlbs"
+  },
+  "triangles": 25754,
+  "bytes": 591248,
+  "objects": [
+    {
+      "name": "cocoon-body",
+      "tris": 10990
+    },
+    {
+      "name": "cocoon-shell",
+      "tris": 11092
+    },
+    {
+      "name": "cocoon-pool",
+      "tris": 3672
+    }
+  ],
+  "anchors": {
+    "cocoon": {
+      "local": [
+        0.0,
+        -2.4,
+        0.0
+      ],
+      "world": [
+        170.0,
+        -2.4,
+        -14.0
+      ]
+    },
+    "shell-centre": {
+      "local": [
+        0.2674,
+        -2.5657,
+        0.2299
+      ],
+      "world": [
+        170.2674,
+        -2.5657,
+        -13.7701
+      ]
+    }
+  },
+  "materials": [
+    "cocoon_body",
+    "cocoon_shell",
+    "cocoon_pool"
+  ],
+  "build": "tools/blender/build-living-cocoon-corpse.py",
+  "sources": "public/assets/deepsea/living/SOURCES.md",
+  "notes": "Seated curled figure (CC0 Blender Studio human base mesh, smoothed, featureless) in a body-following amber shell; runtime rebinds materials by node name. No identifying detail.",
+  "built": "2026-10-09 19:56",
+  "buildSeconds": 6.5
+}

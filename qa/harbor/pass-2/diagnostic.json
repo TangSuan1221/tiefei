@@ -26,14 +26,174 @@
       "exposures": []
     },
     "events": {
+      "hunt": {
+        "first": false,
+        "dwell": 0,
+        "pressure": 0,
+        "cooldown": 0
+      },
       "broadcastOn": false,
       "broadcastElapsed": 0,
       "encounterStarted": false,
-      "knockDone": false
+      "knockDone": false,
+      "knockInvited": false,
+      "knockReplyAt": -1,
+      "revealSeen": false
     },
     "rooms": 9,
     "doors": 6,
-    "anchors": 9
+    "anchors": 9,
+    "adapter": "harbor-rescue",
+    "adapterVersion": 1,
+    "heading": 0,
+    "rescue": {
+      "version": 1,
+      "epoch": 0,
+      "signal": false,
+      "heard": false,
+      "replied": false,
+      "identified": false,
+      "warned": false,
+      "powered": false,
+      "gateOpen": false,
+      "gateClosed": false,
+      "monsterInside": false,
+      "lureConfirmed": false,
+      "isolated": false,
+      "verified": false,
+      "departing": false,
+      "departed": false,
+      "departureConfirmed": false,
+      "complete": false,
+      "failed": false,
+      "lureSeconds": 0,
+      "holdSeconds": 0,
+      "noiseSeconds": 0,
+      "noiseStrikes": 0,
+      "damageTotal": 0,
+      "departureSeconds": 0,
+      "captures": [],
+      "analyzed": []
+    },
+    "navigation": {
+      "clock": 0,
+      "radioQueue": [],
+      "radioRecords": [
+        {
+          "text": "万斯：坐标发你了，在导航台上。过气闸走维修湾那条缝——全队只有你的艇挤得进去。",
+          "frequency": 37.8,
+          "at": 0,
+          "kind": "voice"
+        }
+      ],
+      "radioSerial": 0,
+      "frequency": 37.8,
+      "captured": false,
+      "heard": false,
+      "replied": false,
+      "target": null,
+      "waypoints": []
+    },
+    "sonarDesk": {
+      "frequency": 37.8,
+      "axis": 0,
+      "fields": [
+        "",
+        "",
+        ""
+      ],
+      "target": null,
+      "page": "home",
+      "records": [],
+      "message": ""
+    },
+    "entryReached": false,
+    "elapsed": 0,
+    "sequence": 0,
+    "dialogue": {
+      "version": 1,
+      "stage": "contact",
+      "pending": [
+        {
+          "text": "万斯：主动声纳别关——不开，那条缝你看不见。慢点开，罗温。我盯着你的点。"
+        }
+      ],
+      "active": {
+        "text": "万斯：坐标发你了，在导航台上。过气闸走维修湾那条缝——全队只有你的艇挤得进去。"
+      },
+      "remaining": 7.02,
+      "choosing": false
+    },
+    "story": {
+      "version": 1,
+      "state": {
+        "rescue.heard": false,
+        "rescue.replied": false,
+        "rescue.identified": false,
+        "rescue.warned": false,
+        "rescue.gateOpen": false,
+        "rescue.isolated": false,
+        "rescue.verified": false,
+        "rescue.departing": false,
+        "rescue.departed": false,
+        "pod.pulse": "on",
+        "pod.lamp": "off",
+        "pod.hull": "intact",
+        "creature.zone": "near_elias",
+        "elias.location": "wall",
+        "corpse.present": "none",
+        "evidence.threat": false,
+        "evidence.lure": false,
+        "evidence.gate": false,
+        "evidence.departure": false,
+        "evidence.bodyPosition": false,
+        "elias.hears.pulse": false,
+        "elias.hears.scrape": false,
+        "elias.believes.monster": "unknown",
+        "elias.knows.rowanRole": "unknown",
+        "elias.knows.rowanName": false,
+        "elias.knows.rowanAskedBody": false,
+        "elias.instruction.hold": "none",
+        "elias.instruction.route": "none",
+        "rowan.knows.monster": false,
+        "rowan.notedBody": false,
+        "rowan.demeanor": "calm",
+        "vance.knows.rowanUneasy": false,
+        "vance.lastHeard": "none",
+        "relation.elias.trust": 0,
+        "relation.vance.rapport": 0,
+        "said.rowan.promisedRescue": false,
+        "said.rowan.downplayed": false,
+        "said.rowan.falseClear": 0,
+        "said.rowan.release": false,
+        "commitment.elias.records": false,
+        "commitment.elias.meet": "none",
+        "testimony.vance.official": false,
+        "testimony.elias.accident": false
+      },
+      "used": {},
+      "misses": {}
+    },
+    "radio": {
+      "vanceFading": false,
+      "vanceLost": false
+    },
+    "ambienceLeft": 4,
+    "ambienceBeat": 0,
+    "pursuit": {
+      "position": [
+        46,
+        -1.2,
+        5
+      ],
+      "heard": null,
+      "heardHeading": 0,
+      "mode": "roam",
+      "goal": null,
+      "pause": 3.2233661921589345,
+      "sniffLeft": 0,
+      "orbitDir": 1
+    }
   },
   "probes": [
     {
@@ -54,14 +214,14 @@
       "id": "harbor.item.power",
       "tag": "harbor.item.power",
       "position": [
-        16,
+        18,
         -0.7,
-        37
+        44
       ],
       "approach": [
-        16,
+        18,
         0,
-        40.2
+        47.2
       ]
     },
     {
@@ -96,14 +256,14 @@
       "id": "harbor.item.employee-card",
       "tag": "harbor.item.employee-card",
       "position": [
-        81,
+        83,
         -8.7,
-        63
+        56
       ],
       "approach": [
-        81,
+        83,
         -8,
-        66.2
+        59.2
       ]
     },
     {
@@ -138,12 +298,12 @@
       "id": "harbor.item.shortcut",
       "tag": "harbor.item.shortcut",
       "position": [
-        113,
+        119,
         -0.7,
         34
       ],
       "approach": [
-        113,
+        119,
         0,
         37.2
       ]
@@ -206,52 +366,46 @@
     }
   ],
   "evidence": {
-    "id": "harbor.exposure.1",
-    "roomId": "harbor.room.B",
-    "position": [
-      72,
-      3,
-      34
-    ],
-    "direction": [
-      -0.5970223141259937,
-      0.39801487608399566,
-      -0.6965260331469922
-    ],
-    "capturedAt": 2.6803000000000017,
-    "targetId": "harbor.asset.rescue-pod",
-    "targetVisible": true,
-    "unobstructed": true,
-    "distance": 20.026699590761798,
-    "stableSeconds": 1.2378000000000011,
-    "lightOn": true,
-    "threat": "calm"
+    "diagnostic": "曝光镜头 319° / 俯仰 -23°；艇位 72.0 / 3.0 / 18.0。先听完艾里亚斯的拍摄指引，等待右上角生成拍摄任务。",
+    "version": 1,
+    "id": "rescue-1",
+    "kind": "threat",
+    "epoch": 0,
+    "visible": false,
+    "monsterInside": false,
+    "gateClosed": false,
+    "departed": false
   },
   "center": [
     59.969637287050425,
     10.905887866994638,
-    20.07749999001622
+    4.077499990016221
   ],
   "projected": [
-    -0.0036703868308498432,
-    -0.0056561896953563435,
+    -0.0041291851847064754,
+    -0.005656189695356345,
     0.9933394548751798
   ],
   "hits": [
     [
       "",
-      "harbor.asset.rescue-pod",
-      15.908385157616623
+      "harbor-structure-bound-surface-wear",
+      2.4093881494926936
     ],
     [
       "",
-      "harbor.asset.rescue-pod",
-      17.07102929305605
+      "harbor-rescue-world",
+      2.5172723475454344
     ],
     [
-      "harbor.static.reference.hull",
-      "harbor-world",
-      45.5964717307262
+      "",
+      "harbor-rescue-world",
+      3.4125982946056084
+    ],
+    [
+      "",
+      "rescue-industrial-architecture",
+      4.25824822444513
     ]
   ],
   "errors": []

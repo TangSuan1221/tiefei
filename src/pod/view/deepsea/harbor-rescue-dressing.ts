@@ -194,7 +194,7 @@ export function createHarborRescueDressing(parent:T.Group,m:ReferenceMaterials){
  }
  // Merge static pieces by material.
  for(const [mat,parts] of batches){const g=mergeGeometries(parts);for(const p of parts)p.dispose();if(!g)continue;geometries.push(g);const mesh=new T.Mesh(g,mat);mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);}
- return{root,colliders:caissons.colliders,dispose(){powerCabinet.dispose();controlPod.dispose();caissons.dispose();surfaces.dispose();blender.dispose();root.removeFromParent();for(const g of geometries)g.dispose();for(const material of owned)material.dispose();}};
+ return{root,colliders:caissons.colliders,decorColliders:caissons.decorColliders,dispose(){powerCabinet.dispose();controlPod.dispose();caissons.dispose();surfaces.dispose();blender.dispose();root.removeFromParent();for(const g of geometries)g.dispose();for(const material of owned)material.dispose();}};
 }
 
 

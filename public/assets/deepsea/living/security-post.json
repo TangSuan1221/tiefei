@@ -1,0 +1,224 @@
+{
+  "asset": "security-post",
+  "scene": "Living_security-post",
+  "units": "metres",
+  "axes": "Three.js local: +Y up, +X east, +Z south (Blender authored as (x,-z,y), exported with export_yup)",
+  "front": "+Z",
+  "placement": {
+    "position": [
+      76,
+      0,
+      -61.5
+    ],
+    "rotationYDeg": 0.0,
+    "note": "apply as root.position / root.rotation.y in the living-deck world"
+  },
+  "bounds": {
+    "min": [
+      -1.6,
+      -3.136,
+      -4.215
+    ],
+    "max": [
+      2.38,
+      -0.09,
+      0.353
+    ]
+  },
+  "triangles": 42024,
+  "bytes": 4712212,
+  "objects": [
+    {
+      "name": "security-console",
+      "tris": 10126,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "main",
+      "parent": null
+    },
+    {
+      "name": "lockers",
+      "tris": 2468,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "main",
+      "parent": null
+    },
+    {
+      "name": "security-diver",
+      "tris": 27622,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "figure",
+      "parent": null
+    },
+    {
+      "name": "diver-visor",
+      "tris": 240,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "visor",
+      "parent": null
+    },
+    {
+      "name": "probe-case",
+      "tris": 1460,
+      "origin": [
+        0.0,
+        -1.2,
+        -0.0
+      ],
+      "group": "case",
+      "parent": null
+    },
+    {
+      "name": "probe-case-label",
+      "tris": 24,
+      "origin": [
+        0.0,
+        -1.2,
+        -0.0
+      ],
+      "group": "decals",
+      "parent": "probe-case"
+    },
+    {
+      "name": "stencils",
+      "tris": 84,
+      "origin": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "group": "decals",
+      "parent": null
+    }
+  ],
+  "anchors": {
+    "probe-case": {
+      "local": [
+        0.0,
+        -1.2,
+        0.0
+      ],
+      "world": [
+        76.0,
+        -1.2,
+        -61.5
+      ]
+    },
+    "diver-head": {
+      "local": [
+        -1.094,
+        -0.8904,
+        0.1048
+      ],
+      "world": [
+        74.906,
+        -0.89,
+        -61.395
+      ]
+    },
+    "pod-photo-target": {
+      "local": [
+        0.0,
+        -1.2,
+        0.0
+      ],
+      "world": [
+        76.0,
+        -1.2,
+        -61.5
+      ]
+    }
+  },
+  "materials": [
+    "lv_security_post_case",
+    "lv_security_post_decals",
+    "lv_security_post_figure",
+    "lv_security_post_main",
+    "lv_security_post_visor"
+  ],
+  "textures": {
+    "main": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        2048,
+        2048
+      ],
+      "normal": [
+        2048,
+        2048
+      ]
+    },
+    "figure": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        2048,
+        2048
+      ],
+      "normal": [
+        2048,
+        2048
+      ]
+    },
+    "visor": {
+      "color": [
+        256,
+        256
+      ],
+      "orm": [
+        256,
+        256
+      ]
+    },
+    "case": {
+      "color": [
+        1024,
+        1024
+      ],
+      "orm": [
+        1024,
+        1024
+      ],
+      "normal": [
+        1024,
+        1024
+      ]
+    },
+    "decals": {
+      "color": [
+        2048,
+        2048
+      ],
+      "orm": [
+        1024,
+        1024
+      ]
+    }
+  },
+  "build": "tools/blender/build-living-security-post.py",
+  "preview": "qa/living/blender/security-post.png",
+  "sources": "public/assets/deepsea/living/SOURCES.md",
+  "notes": "Drowned security diver floats against the console; 'probe-case' hangs from his left hip D-ring.",
+  "built": "2026-10-09 20:35",
+  "buildSeconds": 40.2
+}

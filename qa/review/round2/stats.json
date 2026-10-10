@@ -1,0 +1,273 @@
+{
+ "stats": {
+  "01-shaft-S.png": {
+   "mean_luma": 0.107,
+   "pct_black(<0.03)": 0.295,
+   "pct_clip(>0.95)": 0.0001,
+   "sat_mean": 0.03,
+   "md5": "4e7febe21a"
+  },
+  "02-corridor-C1.png": {
+   "mean_luma": 0.117,
+   "pct_black(<0.03)": 0.212,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.028,
+   "md5": "c843a5b825"
+  },
+  "03-solarium-C1.png": {
+   "mean_luma": 0.166,
+   "pct_black(<0.03)": 0.232,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.033,
+   "md5": "59fa94697f"
+  },
+  "04-C1-east-end.png": {
+   "mean_luma": 0.128,
+   "pct_black(<0.03)": 0.28,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.027,
+   "md5": "fdc0d76f33"
+  },
+  "05-C2-end.png": {
+   "mean_luma": 0.108,
+   "pct_black(<0.03)": 0.297,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.028,
+   "md5": "2d36ec753c"
+  },
+  "06-C3-east-end.png": {
+   "mean_luma": 0.117,
+   "pct_black(<0.03)": 0.293,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.024,
+   "md5": "266a735aef"
+  },
+  "07-security-R3.png": {
+   "mean_luma": 0.126,
+   "pct_black(<0.03)": 0.184,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.03,
+   "md5": "b8585750f8"
+  },
+  "08-ballast-R4.png": {
+   "mean_luma": 0.104,
+   "pct_black(<0.03)": 0.326,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.023,
+   "md5": "d19e87f403"
+  },
+  "09-C4-V.png": {
+   "mean_luma": 0.107,
+   "pct_black(<0.03)": 0.282,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.029,
+   "md5": "06244164b1"
+  },
+  "10-C5-south.png": {
+   "mean_luma": 0.149,
+   "pct_black(<0.03)": 0.236,
+   "pct_clip(>0.95)": 0.0001,
+   "sat_mean": 0.03,
+   "md5": "434581cc0d"
+  },
+  "11-atrium-wide.png": {
+   "mean_luma": 0.076,
+   "pct_black(<0.03)": 0.187,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.027,
+   "md5": "d706544751"
+  },
+  "12-atrium-floor.png": {
+   "mean_luma": 0.106,
+   "pct_black(<0.03)": 0.15,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.027,
+   "md5": "46fe9113ee"
+  },
+  "13-atrium-east.png": {
+   "mean_luma": 0.077,
+   "pct_black(<0.03)": 0.317,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.027,
+   "md5": "4bfdc78c27"
+  },
+  "14-office-R5.png": {
+   "mean_luma": 0.143,
+   "pct_black(<0.03)": 0.243,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.022,
+   "md5": "931997a70c"
+  },
+  "15-R5-wide.png": {
+   "mean_luma": 0.111,
+   "pct_black(<0.03)": 0.177,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.03,
+   "md5": "f1c38603d9"
+  },
+  "16-C7-D.png": {
+   "mean_luma": 0.111,
+   "pct_black(<0.03)": 0.324,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.025,
+   "md5": "35a148708b"
+  },
+  "17-laundry-R1.png": {
+   "mean_luma": 0.114,
+   "pct_black(<0.03)": 0.265,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.033,
+   "md5": "afbdec6e46"
+  },
+  "18-live-corridor.png": {
+   "mean_luma": 0.058,
+   "pct_black(<0.03)": 0.426,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.013,
+   "md5": "f805c9848f"
+  },
+  "19-live-atrium.png": {
+   "mean_luma": 0.025,
+   "pct_black(<0.03)": 0.682,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.008,
+   "md5": "c4b7e4be92"
+  },
+  "20-atrium-north-shops.png": {
+   "mean_luma": 0.106,
+   "pct_black(<0.03)": 0.218,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.036,
+   "md5": "2d1dcc7ea4"
+  },
+  "21-atrium-to-C7.png": {
+   "mean_luma": 0.074,
+   "pct_black(<0.03)": 0.208,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.027,
+   "md5": "e11b68a313"
+  },
+  "22-atrium-to-R5.png": {
+   "mean_luma": 0.083,
+   "pct_black(<0.03)": 0.154,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.034,
+   "md5": "1e2cb771d8"
+  },
+  "23-probe-cocoon.png": {
+   "mean_luma": 0.198,
+   "pct_black(<0.03)": 0.229,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.041,
+   "md5": "9c90f8aa01"
+  },
+  "24-probe-slime-wall.png": {
+   "mean_luma": 0.152,
+   "pct_black(<0.03)": 0.231,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.042,
+   "md5": "96ca936551"
+  },
+  "25-C3-long.png": {
+   "mean_luma": 0.112,
+   "pct_black(<0.03)": 0.306,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.027,
+   "md5": "705e675a11"
+  },
+  "h03-valves.png": {
+   "mean_luma": 0.145,
+   "pct_black(<0.03)": 0.188,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.027,
+   "md5": "ede4c81580"
+  },
+  "h07-office-z1.png": {
+   "mean_luma": 0.142,
+   "pct_black(<0.03)": 0.242,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.022,
+   "md5": "28a6374208"
+  },
+  "h08-office-z2.png": {
+   "mean_luma": 0.19,
+   "pct_black(<0.03)": 0.0,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.023,
+   "md5": "99e89fe897"
+  },
+  "h15-ballast-park.png": {
+   "mean_luma": 0.241,
+   "pct_black(<0.03)": 0.023,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.038,
+   "md5": "a580bc93e3"
+  },
+  "h16-ballast-wide.png": {
+   "mean_luma": 0.125,
+   "pct_black(<0.03)": 0.186,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.025,
+   "md5": "f1c70924f0"
+  },
+  "h17-atrium-balcony.png": {
+   "mean_luma": 0.164,
+   "pct_black(<0.03)": 0.024,
+   "pct_clip(>0.95)": 0.0001,
+   "sat_mean": 0.045,
+   "md5": "1d505d27ce"
+  },
+  "h18-atrium-upper.png": {
+   "mean_luma": 0.09,
+   "pct_black(<0.03)": 0.239,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.03,
+   "md5": "30eea68e75"
+  },
+  "h22-code-legal-31.png": {
+   "mean_luma": 0.238,
+   "pct_black(<0.03)": 0.141,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.03,
+   "md5": "7831abc8f8"
+  },
+  "h23-code-legal-34.png": {
+   "mean_luma": 0.226,
+   "pct_black(<0.03)": 0.154,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.029,
+   "md5": "a272209d4a"
+  },
+  "h24-code-legal-oblique.png": {
+   "mean_luma": 0.211,
+   "pct_black(<0.03)": 0.156,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.03,
+   "md5": "cd98b86272"
+  },
+  "k7-swarm.png": {
+   "mean_luma": 0.145,
+   "pct_black(<0.03)": 0.177,
+   "pct_clip(>0.95)": 0.0,
+   "sat_mean": 0.03,
+   "md5": "634853ab12"
+  }
+ },
+ "near_duplicates": [
+  [
+   "06-C3-east-end.png",
+   "25-C3-long.png",
+   3.93
+  ],
+  [
+   "08-ballast-R4.png",
+   "09-C4-V.png",
+   3.79
+  ],
+  [
+   "14-office-R5.png",
+   "h07-office-z1.png",
+   0.98
+  ]
+ ]
+}

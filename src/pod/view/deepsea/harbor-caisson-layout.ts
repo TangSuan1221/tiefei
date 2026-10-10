@@ -8,10 +8,12 @@ type V=[number,number,number];
 export function createHarborCaissonLayout(parent:T.Group,m:ReferenceMaterials){
  const root=new T.Group();root.name='harbor-deep-caisson-layout';parent.add(root);
  const owned:T.MeshStandardMaterial[]=[],geometries:T.BufferGeometry[]=[];
- const colliders:T.Box3[]=[];
- function cylinderBounds(p:V,r:number,h:number){
+ // MET-042: struts and service lamps are dressing; only drums, galleries,
+ // pedestals and gangway braces block the hull.
+ const colliders:T.Box3[]=[],decorColliders:T.Box3[]=[];
+ function cylinderBounds(p:V,r:number,h:number,into=colliders){
   const slices=Math.max(2,Math.ceil(2*r/.18)),step=2*r/slices;
-  for(let i=0;i<slices;i++){const lo=-r+i*step,hi=lo+step,near=lo>0?lo:hi<0?-hi:0,extent=Math.sqrt(Math.max(0,r*r-near*near));colliders.push(new T.Box3(new T.Vector3(p[0]+lo,p[1]-h/2,p[2]-extent),new T.Vector3(p[0]+hi,p[1]+h/2,p[2]+extent)));}
+  for(let i=0;i<slices;i++){const lo=-r+i*step,hi=lo+step,near=lo>0?lo:hi<0?-hi:0,extent=Math.sqrt(Math.max(0,r*r-near*near));into.push(new T.Box3(new T.Vector3(p[0]+lo,p[1]-h/2,p[2]-extent),new T.Vector3(p[0]+hi,p[1]+h/2,p[2]+extent)));}
  }
  function annulusBounds(x:number,z:number,y0:number,y1:number,inner:number,outer:number){
   const count=Math.ceil(Math.PI*2*outer/.8),step=Math.PI*2/count;
@@ -41,7 +43,7 @@ export function createHarborCaissonLayout(parent:T.Group,m:ReferenceMaterials){
    else uv.setXY(i,uv.getX(i)*Math.PI*r,uv.getY(i)*h*.5);
   }
  }
- function cylinder(p:V,r:number,h:number,mat:T.Material=plate,padding=0){const g=new T.CylinderGeometry(r,r,h,48);cylinderUV(g,r,h);add(g,mat,p);cylinderBounds(p,r+padding,h);}
+ function cylinder(p:V,r:number,h:number,mat:T.Material=plate,padding=0,into=colliders){const g=new T.CylinderGeometry(r,r,h,48);cylinderUV(g,r,h);add(g,mat,p);cylinderBounds(p,r+padding,h,into);}
  const box=(p:V,s:V,mat:T.Material=steel)=>add(new T.BoxGeometry(...s),mat,p);
  function rod(a:V,b:V,r=.07,mat:T.Material=steel){const aa=new T.Vector3(...a),bb=new T.Vector3(...b),d=bb.clone().sub(aa);const length=d.length();const g=new T.CylinderGeometry(r,r,length,8);cylinderUV(g,r,length);g.applyQuaternion(new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),d.normalize()));add(g,mat,aa.clone().add(bb).multiplyScalar(.5).toArray() as V);if(r>=.1){const count=Math.ceil(length/.4);for(let i=0;i<count;i++)colliders.push(new T.Box3().setFromPoints([aa.clone().lerp(bb,i/count),aa.clone().lerp(bb,(i+1)/count)]).expandByScalar(r));}}
  function ring(p:V,r:number,t=.065,mat:T.Material=steel){const g=new T.TorusGeometry(r,t,6,64),uv=g.getAttribute('uv');for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*Math.PI*r,uv.getY(i)*Math.PI*t);add(g,mat,p,[Math.PI/2,0,0]);}
@@ -76,7 +78,7 @@ export function createHarborCaissonLayout(parent:T.Group,m:ReferenceMaterials){
   gallery(x,z,top-1.1,r+1.05);gallery(x,z,top-6.4,r+.85);
   for(const a of [-.65,.65,2.4]){
    const sx=x+Math.sin(a)*(r+.12),sz=z+Math.cos(a)*(r+.12);
-   cylinder([sx,top-5.2,sz],.16,7.0,steel);
+   cylinder([sx,top-5.2,sz],.16,7.0,steel,0,decorColliders);
    for(const y of [top-2.5,top-5.9]){box([sx,y,sz],[.31,.18,.28],steel);box([sx,y-.10,sz+.08],[.20,.025,.19],glow);}
   }
  }
@@ -109,11 +111,11 @@ export function createHarborCaissonLayout(parent:T.Group,m:ReferenceMaterials){
   box([x,-2.002,21.25],[.14,.012,.11],glow);
   box([x,-2.12,21.355],[.24,.30,.025],steel);
   for(const dx of [-.085,.085])rod([x+dx,-2.28,21.38],[x+dx,-2.02,21.38],.012,trim);
-  colliders.push(new T.Box3().setFromCenterAndSize(new T.Vector3(...p),new T.Vector3(.24,.30,.28)));
+  decorColliders.push(new T.Box3().setFromCenterAndSize(new T.Vector3(...p),new T.Vector3(.24,.30,.28)));
   const light=new T.PointLight('#cfdee2',2.5,5.5,1.8);light.position.set(x,-1.93,21.32);root.add(light);
  }
  for(const[mat,parts]of batches){const merged=mergeGeometries(parts);for(const p of parts)p.dispose();if(!merged)continue;geometries.push(merged);const mesh=new T.Mesh(merged,mat);mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);}
- return{root,colliders,dispose(){root.removeFromParent();for(const g of geometries)g.dispose();for(const mat of owned)mat.dispose();}};
+ return{root,colliders,decorColliders,dispose(){root.removeFromParent();for(const g of geometries)g.dispose();for(const mat of owned)mat.dispose();}};
 }
 
 

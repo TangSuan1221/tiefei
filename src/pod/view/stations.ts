@@ -165,8 +165,10 @@ function drawStationViewInner(
 
   const screenY = y + pad + refH * 0.062;
   const instrument=undefined as import('../sim/authored-site').NavigationConsole|undefined;
-  const screenH = h * (instrument?(instrument.editing?.30:.57):.70);
-  const ctrlY = instrument?screenY+screenH+pad:y + h - pad - refH * 0.11;
+  const largeLab=id==='lab'&&run.labVideoExpanded&&!!run.authoredSite?.presentation?.labLargeFrame;
+  const baseH = h * (instrument?(instrument.editing?.30:.57):.70);
+  const ctrlY = instrument?screenY+baseH+pad:y + h - pad - refH * 0.11;
+  const screenH = largeLab?ctrlY-screenY-pad*.5:baseH;
   const ctrlH = refH * 0.10;
   const screenX = x + pad;
   const screenW = w - pad * 2;
@@ -510,7 +512,7 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
     ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle='#efd6a3';ctx.font=cjk(h*.045,600);
     ctx.fillText(`片盒保留 ${run.tapes.length} 卷 · 尚不能播放或核验`,w*.06,h*.30,w*.88);
     ctx.font=cjk(h*.032,500);ctx.fillStyle='#d8d5ca';
-    const lines=run.blackout?['艇内总闸已断开。点击下方「恢复总闸」。','这不会开启主动声纳或探照灯。']:['艇内电池电量不足。点击「前往配电盘」。',`备用电池组：${run.count('sup.cell')} 组；在配电盘使用后返回分析台。`];
+    const lines=run.blackout?['艇内总闸已断开。点击下方「恢复总闸」。','这不会开启主动声纳或探照灯。']:run.count('sup.cell')?['艇内电池电量不足。点击「前往生命维持」。',`备用电池组：${run.count('sup.cell')} 组；在生命维持面板接入后返回分析台。`]:['艇内电池电量不足，备用电池组已用完。',run.legIndex===0?'先关主动声纳。压力门走港区液压，没电也能开；维修湾里的02配电箱可以充满。':run.legIndex===1?'先关主动声纳和探照灯。推进不耗主电也能开；R1洗衣储物间有应急电池箱。':'先关主动声纳，到设施里找岸电接口。'];
     lines.forEach((line,i)=>ctx.fillText(line,w*.06,h*(.46+i*.12),w*.88));
     return;
   }
@@ -530,6 +532,21 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
     ctx.fillStyle='#a4aca9';ctx.font=cjk(h*.022,400);
     ctx.fillText('1 / 2 返回片盒 · 3 查看所选录像分析',w*.07,h*.90);
     return;
+  }
+  if(run.labVideoExpanded&&run.selectedTape&&run.authoredSite?.presentation?.labLargeFrame){
+    // Playback takes the whole CRT body; one status line below keeps every label at ≥24 canvas px.
+    const tape=run.selectedTape,fs=Math.max(24,h*.046),foot=fs*1.9,verdict=tape.legId===run.leg.id?run.authoredSite.evidenceStatus?.(tape.siteEvidence):undefined;
+    const vh=h-foot,vw=Math.min(w,vh*16/9),vx=(w-vw)/2;
+    ctx.save();ctx.beginPath();ctx.rect(vx,0,vw,vh);ctx.clip();ctx.translate(vx,0);
+    const status=drawVerifiedRecording(ctx,run,vw,vh);
+    ctx.restore();ctx.strokeStyle='#6d9990';ctx.lineWidth=2;ctx.strokeRect(vx,0,vw,vh);
+    const state=tape.ready===false?'显影中':!tape.analyzed?(run.at==='lab'?'按 3 核验':'按 2 去分析台核验'):verdict?(verdict.accepted?'✓ 证据已核验':`× 未通过 · ${verdict.next||'需重拍'}`):'已核验';
+    ctx.textAlign='left';ctx.textBaseline='middle';ctx.font=cjk(fs,600);
+    ctx.fillStyle=verdict&&tape.analyzed?(verdict.accepted?'#79efd0':'#ffbb82'):'#efc576';
+    const head=`${run.tapeCursor+1}/${run.tapes.length} ${tape.siteName} · ${state}`;ctx.fillText(head,vx,vh+foot*.5,vw*.62);
+    ctx.textAlign='right';ctx.fillStyle='#bcd2c9';ctx.font=cjk(fs*.86,500);
+    ctx.fillText(`${status.split(' · ').slice(-1)[0]} · 4 列表/报告`,vx+vw,vh+foot*.5,vw*.37);
+    ctx.textAlign='left';ctx.textBaseline='alphabetic';return;
   }
   if(run.labVideoExpanded&&run.selectedTape){
     ctx.save();ctx.translate(w*.03,h*.12);
@@ -595,7 +612,7 @@ function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: numbe
   ctx.fillStyle = verdict?(tape.analyzed?(verdict.accepted?'#79efd0':'#ffbb82'):'#efc576'):rgba(PALETTE.boneDim, 0.8);
   ctx.font = cjk(h * 0.043, 600);
   const verdictText=
-    verdict?(tape.ready===false?'显影中 · 尚未核验':!tape.analyzed?'录像已拍成 · 按3核验':verdict.accepted?'✓ 证据已核验':'× 证据未通过 · 需要重拍'):tape.analyzed ? '读片完成。习性在下面。' : '未上卷。把这一卷送进读片机。'
+    verdict?(tape.ready===false?'显影中 · 尚未核验':!tape.analyzed?(run.at==='lab'?'录像已拍成 · 按3核验':'录像已拍成 · 按2去分析台核验'):verdict.accepted?'✓ 证据已核验':'× 证据未通过 · 需要重拍'):tape.analyzed ? '读片完成。习性在下面。' : '未上卷。把这一卷送进读片机。'
   ;
   layoutCJK(ctx,verdictText,bodyW).slice(0,2).forEach((line,index)=>ctx.fillText(line,bodyX,h*(.282+index*.053)));
 
@@ -1922,7 +1939,7 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
       const tape = run.selectedTape;
       if(!run.powered)return filterControls([
         run.blackout?{id:'lab.restoreBus',key:'1',label:'恢复总闸',hint:'仅恢复艇内供电'}:null,
-        {id:'station:life',key:'2',label:'前往配电盘',hint:`备用电池 ×${run.count('sup.cell')}`},
+        {id:'station:life',key:'2',label:'前往生命维持',hint:`备用电池 ×${run.count('sup.cell')}`},
       ]);
       const repairReport=tape?.siteEvidence!==undefined&&(tape.sensorFrames?.length??0)>=3&&tape.report[0]?.startsWith('GM 模拟分析');
       const verdict=tape?.legId===run.leg.id?run.authoredSite?.evidenceStatus?.(tape?.siteEvidence):undefined;
