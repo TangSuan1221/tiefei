@@ -1,0 +1,16 @@
+import{readFileSync}from'node:fs';import assert from'node:assert/strict';import vm from'node:vm';import ts from'typescript';
+const source=readFileSync('src/pod/view/session.ts','utf8'),start=source.indexOf('  private onPointer = '),end=source.indexOf('  /** Windows Chromium',start);assert.ok(start>0&&end>start);
+const isolated=ts.transpileModule('class InputRoute { '+source.slice(start,end)+' };globalThis.InputRoute=InputRoute;', {compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}}).outputText;
+const document={getElementById(){return null}},context=vm.createContext({document});vm.runInContext(isolated,context);const Route=context.InputRoute;
+for(const device of ['lab','nav']){const session=new Route(),canvas={};Object.assign(session,{canvas,keys:new Set(),run:{at:device==='lab'?'nav':'lab',outcome:{kind:'alive'},walkTo(id){this.at=id;}},view:{unlockAudio(){},pick(){return 'desk:'+device+':lab.expand';},cabin:{deviceClick(){return true;},zoomedDevice:device}},syncInputBlock(){return false;},releaseStick(){},sonarDrag:true});session.onPointer({target:canvas,button:0,clientX:1,clientY:1});assert.equal(session.run.at,device);assert.equal(session.sonarDrag,false);}
+console.log('PASS actual pointer handler: nav→lab and lab→nav device zoom synchronize keyboard station without GPU');
+// Exercise the actual key handler and real stationControls/performControl too.
+const stations=readFileSync('src/pod/view/stations.ts','utf8');const controls=stations.slice(stations.indexOf('export function stationControls'),stations.indexOf('function drawScopeCursors')).replaceAll('export function','function');
+const keyStart=source.indexOf('  private onKeyDown = '),keyEnd=source.indexOf('  private onKeyUp = ',keyStart);
+const code=ts.transpileModule(controls+'\nclass KeyRoute {'+source.slice(keyStart,keyEnd)+'};globalThis.KeyRoute=KeyRoute;',{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}}).outputText;
+Object.assign(context,{isGmConsoleOpen:()=>false,localPlaybackStates:new WeakMap(),evidenceReadouts:new WeakMap()});vm.runInContext(code,context);
+const state={at:'nav',powered:true,clock:0,outcome:{kind:'alive'},selectedTape:{ready:true,report:[],analyzed:true,legId:'harbor'},leg:{id:'harbor'},tapes:[{}],labVideoExpanded:false,pilot:{stop(){}},authoredSite:{navigationConsole:{key(){throw Error('Lab key incorrectly routed to navigation');}}},walkTo(id){this.at=id;}};
+const pointer=new Route();Object.assign(pointer,{canvas:{},keys:new Set(),run:state,view:{unlockAudio(){},pick(){return null;},cabin:{deviceClick(){return true;},zoomedDevice:'lab'}},syncInputBlock(){return false;},releaseStick(){}});pointer.onPointer({target:pointer.canvas,button:0});
+const key=new context.KeyRoute();Object.assign(key,{run:state,keys:new Set(),syncInputBlock(){return false;},view:{unlockAudio(){}}});key.onKeyDown({key:'4',code:'Digit4',preventDefault(){}});assert.equal(state.labVideoExpanded,true);
+let routed='';state.at='nav';state.authoredSite.navigationConsole.key=value=>{routed=value;return true;};key.onKeyDown({key:'8',code:'Digit8',preventDefault(){}});assert.equal(routed,'8');assert.equal(state.labVideoExpanded,true);
+console.log('PASS actual pointer→key→station action: lab key 4 expands ready reel; nav input remains routed to navigation');

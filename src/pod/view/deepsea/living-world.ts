@@ -23,7 +23,7 @@ export interface LivingWorldState {
   probe: 'none' | 'carried' | 'launched' | 'withAlex';
   valves: {heat: boolean; feed: boolean; cool: boolean}; valveTurn: {heat: number; feed: number; cool: number};
   slime: number; gateOpen: number;
-  alex: {position: Vec3; heading: number; visible: boolean; pose: 'idle' | 'swim' | 'gesture' | 'type' | 'film'};
+  alex: {identity?:'elias'|'keeper';position: Vec3; heading: number; visible: boolean; pose: 'idle' | 'swim' | 'gesture' | 'type' | 'film'};
   creatures: readonly LivingCreatureVisual[];
 }
 export type LivingProbeShot = 'alex-glass' | 'pipe-bands' | 'slime-wall' | 'cocoon' | 'slime-floor' | 'gate-inner' | 'security-console';
@@ -110,6 +110,9 @@ export function createLivingWorld(): LivingWorld {
       const mm = (o as T.Mesh).material;
       for (const x of Array.isArray(mm) ? mm : mm ? [mm] : []) if (x instanceof T.MeshStandardMaterial) withStaticLights(x, 'glb');
     });
+    if(name==='manager-office'){
+      const oldNote=scene.getObjectByName('code-note');if(oldNote)oldNote.visible=false;
+    }
     if (name === 'atrium-balcony') {
       // Six tiles × (hi + lo): the small dressing parts add shadow draws without a readable shadow at hall scale.
       scene.traverse(o => { if ((o as T.Mesh).isMesh && /^(stencils|tablecloth|pendant-lights|plants)/.test(o.name)) o.castShadow = false; });

@@ -8,6 +8,8 @@ export class PilotMotion {
     this.speed=Math.max(-.65,Math.min(1.6,this.speed));
     this.yawRate+=(yaw*36-this.yawRate*2.4)*dt;
     this.pitchRate+=(pitch*7-this.pitchRate*1.8)*dt;
+    if(!yaw&&Math.abs(this.yawRate)<.003)this.yawRate=0;
+    if(!pitch&&Math.abs(this.pitchRate)<.003)this.pitchRate=0;
     this.verticalSpeed+=(heave*.65-this.verticalSpeed*(brake?4:1.3))*dt;
     if(Math.abs(this.verticalSpeed)<.003&&!heave)this.verticalSpeed=0;
     if(Math.abs(this.speed)<.003 && !thrust)this.speed=0;

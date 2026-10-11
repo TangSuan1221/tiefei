@@ -52,6 +52,8 @@ export class HarborRescueDialogue {
  get replyAvailable(){return !this.busy&&['contact','report','confirm'].includes(this.stage);}
  get dialogueChoices(){return this.stage==='confirm'&&this.choosing?choices:[];}
  enqueue(text:string){this.pending.push({text});}
+ /** Urgent player instructions supersede queued plans, including their old end effects. */
+ interrupt(stage:Stage,lines:readonly string[]){this.pending=[];this.active=null;this.remaining=0;this.choosing=false;this.stage=stage;for(const text of lines)this.enqueue(text);}
  private begin(stage:Stage,beats:Beat[]){this.stage=stage;this.pending.push(...beats);}
  /** Free-text radio turn. Only contact, report and confirm advance, and only into the same stages the fixed replies used. */
  exchange(rowan:string,replies:readonly string[],advance:boolean,emitting:boolean,speaker='罗温：'){
@@ -148,7 +150,7 @@ export class HarborRescueDialogue {
    else if(this.stage==='close'&&s.isolated)this.begin('confirmBrief',[
     {text:'（水听器：门轴长叫。货仓里的刮擦猛地转向门口。闸落。一声闷撞。）',seconds:4},
     {text:'艾里亚斯：那一下……是门，还是它？它关进去了吗？',end:'confirm'}]);
-   else if(this.stage==='escape'&&s.departed)this.begin('escape',[{text:'艾里亚斯：墙上有插口——插回去了，又是线了。……我在观察窗后面，门锁上了。这边是黑的。我回身朝你举灯——你拍。我背后，你帮我看着。',end:'departure'}]);
+   else if(this.stage==='escape'&&s.departed)this.begin('escape',[{text:s.injured?'艾里亚斯：我进值班室了，门锁好了。腿不能承重，我留在这里。你拍一下，记下我的位置。':'艾里亚斯：我在观察窗后面，门锁上了。我回身举灯，你拍一下我背后。',end:'departure'}]);
    else if(this.stage==='departure'&&s.departureConfirmed)this.begin('done',this.closingLine.split('\n').map(text=>({text})));
   }
   if(this.pending.length){this.active=this.pending.shift()!;this.remaining=this.active.seconds??Math.max(4,Math.min(32,this.active.text.length*.18));out.line=this.active.text;out.seconds=this.remaining;}

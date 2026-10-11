@@ -1,3 +1,5 @@
+import { drawLabDesk, labDeskAction, labDeskState } from './lab-desk';
+import { terminalFeedback } from './tactical-diagnostics';
 import { drawSonarDesk, sonarAction } from './sonar-desk';
 ﻿/**
  * 五个工位的近景。
@@ -25,8 +27,8 @@ import {
   armGrabbed,
   wrenchChance,
 } from '../sim/manipulator';
-import { PodRun, TAPE_PURPOSE_CN, type CameraDriveAction } from '../sim/run';
-import { drawCameraFeed } from './creature';
+import { PodRun, type CameraDriveAction } from '../sim/run';
+import { drawCameraFeed, drawPortholeReadouts } from './creature';
 import { drawLabRecording } from './footage';
 import { isNoVideoMode, revealPrompt } from './gm';
 import { drawHoloMap } from './wire';
@@ -133,6 +135,7 @@ function drawStationViewInner(
 ): void {
   id = canonicalStation(id);
   if(id==='nav'){drawSonarDesk(ctx,run,x,y,w,h,hits,view.time);return;}
+  if(id==='lab'){drawLabDesk(ctx,run,x,y,w,h,hits,view.hovered,{playback:(c,pw,ph)=>drawVerifiedRecording(c,run,pw,ph),controls:stationControls(run,'lab'),document:evidenceReadouts.get(run)?.lines});return;}
   const refH = h;
   drawPanel(ctx, x, y, w, h, refH);
 
@@ -153,7 +156,7 @@ function drawStationViewInner(
   ctx.font = mono(bh * 0.42, 600);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(id==='lab'?'返回总控':'ESC 离开', bx + bw / 2, by + bh / 2);
+  ctx.fillText('ESC 离开', bx + bw / 2, by + bh / 2);
 
   if (id === 'camera') {
     drawCameraWorkbench(ctx, run, x + pad, y + pad + refH * 0.062, w - pad * 2, refH, hits, view);
@@ -165,7 +168,7 @@ function drawStationViewInner(
 
   const screenY = y + pad + refH * 0.062;
   const instrument=undefined as import('../sim/authored-site').NavigationConsole|undefined;
-  const largeLab=id==='lab'&&run.labVideoExpanded&&!!run.authoredSite?.presentation?.labLargeFrame;
+  const largeLab=false;
   const baseH = h * (instrument?(instrument.editing?.30:.57):.70);
   const ctrlY = instrument?screenY+baseH+pad:y + h - pad - refH * 0.11;
   const screenH = largeLab?ctrlY-screenY-pad*.5:baseH;
@@ -174,7 +177,7 @@ function drawStationViewInner(
   const screenW = w - pad * 2;
 
   // Keep the bench's offline notice legible; this does not power playback or analysis.
-  const gain = id === 'lab' && !run.powered ? .85 : run.powered || id === 'life' ? clamp01(run.blackout && id !== 'life' ? 0.04 : 0.15 + run.power * 0.9) : 0;
+  const gain = run.powered || id === 'life' ? clamp01(run.blackout && id !== 'life' ? 0.04 : 0.15 + run.power * 0.9) : 0;
   const noise = run.corruption * 0.45 + (run.mode === 'alert' ? 0.12 : 0.04);
 
   drawCRT(ctx, screenX, screenY, screenW, screenH, view.time, { gain, noise, warp: run.corruption * 0.4 }, (c) => {
@@ -212,7 +215,7 @@ export function drawStationScreen(
     case 'camera':
       return drawCamera(ctx, run, w, h, view);
     case 'lab':
-      return drawLab(ctx, run, w, h);
+      return drawLabDesk(ctx,run,0,0,w,h,undefined,view.hovered,{playback:(c,pw,ph)=>drawVerifiedRecording(c,run,pw,ph),controls:stationControls(run,'lab'),document:evidenceReadouts.get(run)?.lines});
     case 'nav':
       return drawNav(ctx, run, w, h, view);
   }
@@ -499,159 +502,10 @@ function drawRadio(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: num
 }
 
 // ============================================================================
-// 分析台
+// 导航显示
 // ============================================================================
 
-/**
- * 读片机。摄像头负责把外面变成一卷胶片；这块台子负责把胶片变成知识。
- * 不上卷，习性不会自己长到日志里。
- */
-function drawLab(ctx: CanvasRenderingContext2D, run: PodRun, w: number, h: number): void {
-  if(!run.powered){
-    screenTitle(ctx,w*.06,h*.08,w*.88,'LAB  供电中断',h);
-    ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle='#efd6a3';ctx.font=cjk(h*.045,600);
-    ctx.fillText(`片盒保留 ${run.tapes.length} 卷 · 尚不能播放或核验`,w*.06,h*.30,w*.88);
-    ctx.font=cjk(h*.032,500);ctx.fillStyle='#d8d5ca';
-    const lines=run.blackout?['艇内总闸已断开。点击下方「恢复总闸」。','这不会开启主动声纳或探照灯。']:run.count('sup.cell')?['艇内电池电量不足。点击「前往生命维持」。',`备用电池组：${run.count('sup.cell')} 组；在生命维持面板接入后返回分析台。`]:['艇内电池电量不足，备用电池组已用完。',run.legIndex===0?'先关主动声纳。压力门走港区液压，没电也能开；维修湾里的02配电箱可以充满。':run.legIndex===1?'先关主动声纳和探照灯。推进不耗主电也能开；R1洗衣储物间有应急电池箱。':'先关主动声纳，到设施里找岸电接口。'];
-    lines.forEach((line,i)=>ctx.fillText(line,w*.06,h*(.46+i*.12),w*.88));
-    return;
-  }
-  const evidenceReport=evidenceReadouts.get(run);
-  if(evidenceReport && !run.labVideoExpanded){
-    screenTitle(ctx,w*.06,h*.08,w*.88,'LAB  EVIDENCE',h);
-    ctx.textAlign='left';ctx.fillStyle='#cbbb98';ctx.font=cjk(h*.025,500);
-    ctx.fillText(`来源：已持有实物记录 · 核验 T+${evidenceReport.time.toFixed(0)}s`,w*.06,h*.18,w*.88);
-    ctx.fillStyle='#d8d5ca';ctx.font=cjk(h*.029,400);
-    let row=0;
-    for(const line of evidenceReport.lines){
-      for(const wrapped of layoutCJK(ctx,line,w*.86)){
-        if(row>=10)break;
-        ctx.fillText(wrapped,w*.07,h*(.28+row++*.05));
-      }
-    }
-    ctx.fillStyle='#a4aca9';ctx.font=cjk(h*.022,400);
-    ctx.fillText('1 / 2 返回片盒 · 3 查看所选录像分析',w*.07,h*.90);
-    return;
-  }
-  if(run.labVideoExpanded&&run.selectedTape&&run.authoredSite?.presentation?.labLargeFrame){
-    // Playback takes the whole CRT body; one status line below keeps every label at ≥24 canvas px.
-    const tape=run.selectedTape,fs=Math.max(24,h*.046),foot=fs*1.9,verdict=tape.legId===run.leg.id?run.authoredSite.evidenceStatus?.(tape.siteEvidence):undefined;
-    const vh=h-foot,vw=Math.min(w,vh*16/9),vx=(w-vw)/2;
-    ctx.save();ctx.beginPath();ctx.rect(vx,0,vw,vh);ctx.clip();ctx.translate(vx,0);
-    const status=drawVerifiedRecording(ctx,run,vw,vh);
-    ctx.restore();ctx.strokeStyle='#6d9990';ctx.lineWidth=2;ctx.strokeRect(vx,0,vw,vh);
-    const state=tape.ready===false?'显影中':!tape.analyzed?(run.at==='lab'?'按 3 核验':'按 2 去分析台核验'):verdict?(verdict.accepted?'✓ 证据已核验':`× 未通过 · ${verdict.next||'需重拍'}`):'已核验';
-    ctx.textAlign='left';ctx.textBaseline='middle';ctx.font=cjk(fs,600);
-    ctx.fillStyle=verdict&&tape.analyzed?(verdict.accepted?'#79efd0':'#ffbb82'):'#efc576';
-    const head=`${run.tapeCursor+1}/${run.tapes.length} ${tape.siteName} · ${state}`;ctx.fillText(head,vx,vh+foot*.5,vw*.62);
-    ctx.textAlign='right';ctx.fillStyle='#bcd2c9';ctx.font=cjk(fs*.86,500);
-    ctx.fillText(`${status.split(' · ').slice(-1)[0]} · 4 列表/报告`,vx+vw,vh+foot*.5,vw*.37);
-    ctx.textAlign='left';ctx.textBaseline='alphabetic';return;
-  }
-  if(run.labVideoExpanded&&run.selectedTape){
-    ctx.save();ctx.translate(w*.03,h*.12);
-    const status=drawVerifiedRecording(ctx,run,w*.94,h*.72);
-    ctx.restore();ctx.fillStyle='#accbc1';ctx.font=cjk(h*.025,500);
-    ctx.fillText(`${status} · 按 4 返回分析布局`,w*.04,h*.90);return;
-  }
-  screenTitle(ctx, w * 0.06, h * 0.08, w * 0.88, 'LAB  FILM BENCH', h);
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
 
-  const listX = w * 0.06;
-  const listW = w * 0.28;
-  const bodyX = w * 0.38;
-  const bodyW = w * 0.56;
-
-  ctx.fillStyle = rgba(PALETTE.boneWhisper, 0.7);
-  ctx.font = mono(h * 0.028, 500);
-  ctx.fillText(`MAG  ${String(run.tapes.length).padStart(2, '0')}`, listX, h * 0.16);
-  ctx.fillStyle = rgba(PALETTE.ember, run.unanalyzedCount ? 0.85 : 0.4);
-  ctx.fillText(`UNREAD  ${run.unanalyzedCount}`, listX + listW * 0.55, h * 0.16);
-
-  if (!run.tapes.length) {
-    ctx.fillStyle = '#efd6a3';
-    ctx.font = cjk(h * 0.064, 600);
-    ctx.fillText('片盒是空的', w * .09, h * .38);
-    ctx.fillStyle = '#dbd4be';ctx.font = cjk(h * .043, 500);
-    let emptyY=h*.51;
-    for(const line of [`先在${stationRef('camera')}拍一卷，等冲洗完。`,'冲出来的片子会自动进盒。这里负责拆习性。']){
-      for(const wrapped of layoutCJK(ctx,line,w*.80)){ctx.fillText(wrapped,w*.09,emptyY);emptyY+=h*.066;}
-    }
-    return;
-  }
-
-  const start = Math.max(0, run.tapeCursor - (run.authoredSite?.evidenceStatus?3:4));
-  const vis = run.tapes.slice(start, start + (run.authoredSite?.evidenceStatus?4:8));
-  vis.forEach((tape, i) => {
-    const idx = start + i;
-    const y = h * 0.23 + i * h * 0.075;
-    const here = idx === run.tapeCursor;
-    ctx.fillStyle = here ? rgba(PALETTE.rustDeep, 0.55) : 'rgba(0,0,0,0)';
-    if (here) ctx.fillRect(listX - w * 0.01, y - h * 0.04, listW + w * 0.02, h * 0.07);
-    ctx.fillStyle = rgba(here ? PALETTE.ember : PALETTE.boneDim, here ? 0.95 : 0.7);
-    ctx.font = cjk(h * 0.036, here ? 600 : 500);
-    ctx.fillText(`${tape.analyzed ? '●' : '○'} ${tape.siteName}`, listX, y,listW);
-    ctx.fillStyle = rgba(PALETTE.boneWhisper, 0.65);
-    ctx.font = mono(h * 0.022, 500);
-    ctx.fillText(TAPE_PURPOSE_CN[tape.purpose], listX, y + h * 0.028);
-  });
-
-  const tape = run.selectedTape;
-  if (!tape) return;
-  const verdict=tape.legId===run.leg.id?run.authoredSite?.evidenceStatus?.(tape.siteEvidence):undefined;
-  ctx.save();ctx.translate(bodyX,h*.365);
-  ctx.fillStyle='#03080b';ctx.fillRect(0,0,bodyW,h*.275);
-  const recordingStatus=drawVerifiedRecording(ctx,run,bodyW,h*.275);
-  ctx.restore();
-  ctx.strokeStyle='#6d9990';ctx.strokeRect(bodyX,h*.365,bodyW,h*.275);
-  ctx.fillStyle='#bbd4c9';ctx.font=cjk(h*.025,500);ctx.fillText(recordingStatus,bodyX,h*.685,bodyW);
-  ctx.fillStyle = rgba(PALETTE.ember, 0.9);
-  ctx.font = cjk(h * 0.045, 600);
-  ctx.fillText(tape.siteName, bodyX, h * 0.22);
-  ctx.fillStyle = verdict?(tape.analyzed?(verdict.accepted?'#79efd0':'#ffbb82'):'#efc576'):rgba(PALETTE.boneDim, 0.8);
-  ctx.font = cjk(h * 0.043, 600);
-  const verdictText=
-    verdict?(tape.ready===false?'显影中 · 尚未核验':!tape.analyzed?(run.at==='lab'?'录像已拍成 · 按3核验':'录像已拍成 · 按2去分析台核验'):verdict.accepted?'✓ 证据已核验':'× 证据未通过 · 需要重拍'):tape.analyzed ? '读片完成。习性在下面。' : '未上卷。把这一卷送进读片机。'
-  ;
-  layoutCJK(ctx,verdictText,bodyW).slice(0,2).forEach((line,index)=>ctx.fillText(line,bodyX,h*(.282+index*.053)));
-
-  const lines = verdict && tape.analyzed ? [verdict.accepted?'核验结果：本卷证据有效。':'核验结果：本卷未取得有效目标证据。'] : tape.testDescription ? (tape.analyzed?tape.report:['3 核验本次拍摄描述']) : (tape.sensorFrames?.length ?? 0) < 3 && (tape.videoResult==='failed' || tape.videoResult==='prompt')
-    ? ['未取得生成视频。不能据此判断怪物是否出现。', '现场证据与视频生成状态分开核验。']
-    : tape.analyzed
-    ? tape.report
-    : [
-        `${TAPE_PURPOSE_CN[tape.purpose]} · 第 ${run.tapeCursor + 1}/${run.tapes.length} 卷`,
-        tape.fauna.length ? `画面里有 ${tape.fauna.length} 个未命名的东西。` : '这一卷看起来只有几何。',
-        tape.creatureMissing ? '那个红点没进画。' : '',
-        '上卷之后才会有名字、习性和驱离办法。',
-      ].filter(Boolean);
-  ctx.font = cjk(h * 0.037, 500);
-  ctx.fillStyle = '#ded8c4';
-  let y = h * 0.73;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]!;
-    if (!line) {
-      y += h * 0.014;
-      continue;
-    }
-    const head = i === 0 || (!line.endsWith('。') && line.length < 18);
-    ctx.fillStyle = head ? '#edce95' : '#ded8c4';
-    for(const wrapped of layoutCJK(ctx,line,bodyW)){
-      ctx.fillText(wrapped,bodyX,y);
-      y+=h*.052;
-      if(y>h*.94)break;
-    }
-    if (y > h * 0.94) break;
-  }
-}
-
-/**
- * 领航台：声呐 PPI + 全息几何台 + 舵。
- *
- * 声呐只报回波（开口、硬回波、红点）。立体线框是旁边那块全息台的事 ——
- * 真设备不会在 PPI 上画出一张洞穴地图。
- */
 function drawNav(
   ctx: CanvasRenderingContext2D,
   run: PodRun,
@@ -877,6 +731,7 @@ function drawHeadingTape(
   ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
 
+
 // ============================================================================
 // 摄像头
 // ============================================================================
@@ -889,7 +744,18 @@ export function drawObservationWindow(ctx:CanvasRenderingContext2D,run:PodRun,hi
   const shade=ctx.createRadialGradient(512,300,170,512,330,610);
   shade.addColorStop(0,'rgba(0,8,11,0)');shade.addColorStop(1,'rgba(0,5,8,.85)');
   ctx.fillStyle=shade;ctx.fillRect(0,0,1024,720);ctx.restore();
-
+  if(!run.shot.viewing)run.authoredSite?.drawWindowLocks?.(ctx,1024,720);
+  else run.authoredSite?.resetWindowFocus?.();
+  drawPortholeReadouts(ctx,1024,720,run);
+  if(!run.shot.viewing&&run.movementBlocked){
+    // Hull contact annunciator, kept below the optical working area.
+    ctx.save();ctx.strokeStyle='rgba(218,164,102,.85)';ctx.lineWidth=1;
+    ctx.shadowColor='rgba(12,9,5,.5)';ctx.shadowBlur=1;ctx.shadowOffsetY=1;
+    ctx.beginPath();ctx.moveTo(504,603);ctx.lineTo(504,615);ctx.lineTo(520,615);ctx.lineTo(520,603);
+    ctx.moveTo(508,608);ctx.lineTo(512,604);ctx.lineTo(516,608);
+    ctx.moveTo(512,604);ctx.lineTo(512,612);
+    ctx.moveTo(485,608);ctx.lineTo(494,608);ctx.moveTo(530,608);ctx.lineTo(539,608);ctx.stroke();ctx.restore();
+  }
 }
 
 function drawCameraWorkbench(
@@ -966,8 +832,9 @@ function drawCamera(
       :shot.phase==='failed'?'视频未生成 · 分析台查阅'
       :shot.phase==='ready'?'片盒有记录 · 分析台核验'
       :run.mode==='alert'?'舱外异响 · 留意声源与推进噪声':'';
-    ctx.fillStyle='#c8d9d0';ctx.font=cjk(Math.max(12,h*.019),500);ctx.textAlign='left';
-    ctx.fillText(status,w*(circular?.34:.10),h*(circular?.86:.92),w*(circular?.32:.80));
+    ctx.save();ctx.shadowColor='#659d43';ctx.shadowBlur=2;
+    ctx.fillStyle='#b6e889';ctx.font=cjk(Math.max(12,h*.019),500);ctx.textAlign='left';
+    ctx.fillText(status,w*(circular?.34:.10),h*(circular?.86:.92),w*(circular?.32:.80));ctx.restore();
     return;
   }
   // 臂画在实景之上、读数之下：它是镜头前的东西，不是屏幕上的东西
@@ -1936,6 +1803,16 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
       ]);
     }
     case 'lab': {
+      const tab=labDeskState(run).tab;
+      if(tab==='status')return filterControls([
+        {id:'station:life',key:'2',label:'前往维护'},
+        run.blackout?{id:'lab.restoreBus',key:'1',label:'恢复总闸'}:null,
+      ]);
+      if(tab==='cargo')return filterControls([
+        {id:'lab.cargoPrev',key:'1',label:'上一页'},
+        {id:'lab.cargoNext',key:'2',label:'下一页'},
+        run.authoredSite?.recoveredDocument?{id:'lab.document',key:'7',label:'读取密码卡',state:run.powered?'normal':'disabled'}:null,
+      ]);
       const tape = run.selectedTape;
       if(!run.powered)return filterControls([
         run.blackout?{id:'lab.restoreBus',key:'1',label:'恢复总闸',hint:'仅恢复艇内供电'}:null,
@@ -1945,6 +1822,7 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
       const verdict=tape?.legId===run.leg.id?run.authoredSite?.evidenceStatus?.(tape?.siteEvidence):undefined;
       return filterControls([
         { id: 'lab.prev', key: '1', label: '上一卷', hint: '', state: run.tapes.length > 1 || evidenceReadouts.has(run) ? 'normal' : 'disabled' },
+        run.authoredSite?.recoveredDocument?{id:'lab.document',key:'7',label:'读取密码卡',hint:'机械臂收回的实物 · 无需摄影'}:null,
         { id: 'lab.next', key: '2', label: '下一卷', hint: '', state: run.tapes.length > 1 || evidenceReadouts.has(run) ? 'normal' : 'disabled' },
         run.authoredSite?.managesNarrative ? null : { id: 'lab.evidence', key: '7', label: '核验实物', hint: '已持有记录 · 交叉核验', state: run.powered && run.authoredSite?.analyzeEvidence ? 'normal' : 'disabled' },
         { id: 'lab.localPlayback', key: '5', label: localPlaybackStates.get(run)?.paused?'继续播放':'暂停播放', hint:'本地感光序列 · 非AI', state: tape?.ready && (tape.sensorFrames?.length??0)>=3 && tape.videoResult!=='video'?'normal':'disabled' },
@@ -1952,7 +1830,7 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
         {
           id: 'lab.analyze',
           key: '3',
-          label: repairReport ? '重新核验' : tape?.analyzed ? (verdict?(verdict.accepted?'证据通过':'未通过·重拍'):'已拆过') : '核验录像',
+          label: repairReport ? '重新核验' : tape?.analyzed ? '已分析' : '分析 / 核验',
           hint: tape ? (tape.ready === false ? '等待显影完成' : repairReport ? '读取本地摄影证据' : tape.analyzed ? '报告在屏上' : '6口气 · 扣电') : '片盒空',
           state:
             !tape || tape.ready === false ? 'disabled'
@@ -2052,6 +1930,9 @@ function filterControls(list: (Control | null)[]): Control[] {
 
 /** 处理一次点击/按键。返回是否消耗了这次输入。 */
 export function performControl(run: PodRun, actionId: string): boolean {
+  if(run.at==='lab'&&(actionId.startsWith('lab.')||actionId==='station:life'))terminalFeedback(run,actionId);
+  if(actionId.startsWith('lab.tab:')||actionId.startsWith('lab.select:'))evidenceReadouts.delete(run);
+  if(actionId.startsWith('lab.')&&run.at==='lab'&&labDeskAction(run,actionId))return true;
   if(actionId.startsWith('sonar.'))return run.at==='nav' && sonarAction(run,actionId);
   if(actionId==='nav.thrust'&&run.at==='nav'&&run.authoredSite?.navigationConsole){run.navDriveEngaged=!run.navDriveEngaged;if(!run.navDriveEngaged)run.pilot.stop();return true;}
   if(actionId.startsWith('port.')&&run.at==='nav')return run.authoredSite?.navigationConsole?.action(actionId)??false;
@@ -2209,6 +2090,12 @@ export function performControl(run: PodRun, actionId: string): boolean {
       evidenceReadouts.delete(run);
       run.cycleTape(1);
       return true;
+    case 'lab.document': {
+      labDeskState(run).tab='cargo';
+      if(!run.powered||!run.authoredSite?.recoveredDocument)return false;
+      const lines=run.authoredSite.readRecoveredDocument?.();if(!lines)return false;
+      run.labVideoExpanded=false;evidenceReadouts.set(run,{time:run.clock,lines});return true;
+    }
     case 'lab.analyze':
       evidenceReadouts.delete(run);
       run.analyzeTape();
@@ -2384,4 +2271,3 @@ function roundish(
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
 }
-

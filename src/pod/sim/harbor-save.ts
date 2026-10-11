@@ -24,6 +24,12 @@ function tapesForSave(run:PodRun):Obj[] {
     const extra=frames.reduce((sum,f)=>sum+f.length,0)-tapes[index].sensorFrames.reduce((sum:number,f:string)=>sum+f.length,0);
     if(used+extra<=SENSOR_BUDGET){tapes[index].sensorFrames=[...frames];used+=extra;}
   }
+  // Preserve a playable three-frame copy of analyzed harbor evidence for later NPC delivery.
+  for(let index=run.tapes.length-1;index>=0;index--){const t=run.tapes[index],e=t.siteEvidence as {kind?:string}|undefined;
+    if(!t.analyzed||!e?.kind||!['threat','lure','gate','departure'].includes(e.kind)||(t.sensorFrames?.length??0)<3)continue;
+    const f=t.sensorFrames!,frames=[f[0],f[Math.floor((f.length-1)/2)],f[f.length-1]],cost=frames.reduce((n,x)=>n+x.length,0);
+    if(used+cost<=SENSOR_BUDGET){used+=cost;tapes[index].sensorFrames=frames;}
+  }
   return tapes;
 }
 const numbers = ['breaths','clock','power','hull','flood','leak','scrubber','cabinTemp','noise','traveled','siteBreaths','heading','pitch','collisions','camPan','camTilt','camZoom','flareLeft','corruption','suspicion','huntRecoveryUntil'] as const;

@@ -3,9 +3,11 @@ import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type {ExpeditionLevel} from '../../content/expedition';
 import type {ExpeditionWorld} from './expedition-world';
 import type {ReferenceMaterials} from './reference-materials';
+import {addHarborAccidentDressing} from './harbor-accident-dressing';
 
 /** Room-specific service equipment; reserves actual ship routes and item approaches. */
 export function addHarborRoomIdentity(level:ExpeditionLevel,world:ExpeditionWorld,m:ReferenceMaterials){
+ const disposeAccident=addHarborAccidentDressing(level,world,m);
  const root=new Group();root.name='harbor-room-service-equipment';world.root.add(root);
  const guideGlass=new MeshStandardMaterial({color:0xd9c59b,emissive:0xd9ad69,emissiveIntensity:.65,roughness:.38});
  const labels:CanvasTexture[]=[],labelMaterials:MeshStandardMaterial[]=[];
@@ -116,5 +118,5 @@ export function addHarborRoomIdentity(level:ExpeditionLevel,world:ExpeditionWorl
   }
  }
  for(const [material,parts]of batches){const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());if(!g)continue;geometries.push(g);const mesh=new Mesh(g,material);mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);}
- return ()=>{root.removeFromParent();geometries.forEach(g=>g.dispose());guideGlass.dispose();labels.forEach(t=>t.dispose());labelMaterials.forEach(m=>m.dispose());};
+ return ()=>{disposeAccident();root.removeFromParent();geometries.forEach(g=>g.dispose());guideGlass.dispose();labels.forEach(t=>t.dispose());labelMaterials.forEach(m=>m.dispose());};
 }

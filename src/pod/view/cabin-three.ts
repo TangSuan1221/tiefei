@@ -315,8 +315,8 @@ export class CabinThree {
       // the XYZ keypad below them still inside the shot.
       const navs=this.screens.filter(s=>s.id==='nav');
       look.set(0,0,0);for(const s of navs)look.add(s.mesh.getWorldPosition(new THREE.Vector3()));look.divideScalar(navs.length);
-      look.y-=.09;
-      pos.copy(look).addScaledVector(new THREE.Vector3(0,0,1).applyQuaternion(navs[0]!.group.quaternion),.82);
+      look.y-=.12;
+      pos.copy(look).addScaledVector(new THREE.Vector3(0,0,1).applyQuaternion(navs[0]!.group.quaternion),Math.max(.94,.70/this.camera.aspect));
     }
     if(this.deviceZoom==='lab'){pos.set(.64,1.45,-.57);look.set(.72,1.45,-1.35);}
     const k=1-Math.exp(-view.dt*7);
@@ -363,10 +363,10 @@ export class CabinThree {
         if(screen.id==='nav'){
           // 1024×720 canvas on a 0.32×0.26 m glass: canvas Y pixels display 1/ASPECT taller than X pixels.
           // The site sonar is drawn at 775×720 with its radar disc (r≈232) around (387,372); its own small
-          // corner text is cropped away and the cabin redraws the readings in large type on the right.
-          const ASPECT=(1024/720)*(.26/.32),SONAR_H=470,SONAR_W=Math.round(SONAR_H*ASPECT),CROP=[149,134,476] as const;
+          // corner text is cropped away. Keep only the waypoint beside the enlarged map.
+          const ASPECT=(1024/720)*(.26/.32),SONAR_H=610,SONAR_W=Math.round(SONAR_H*ASPECT),CROP=[149,134,476] as const;
           const sx=SONAR_W/CROP[2],sy=SONAR_H/CROP[2];
-          const site=run.authoredSite,nav=site?.navigationConsole,live=run.activeSonarEnabled&&run.powered;
+          const site=run.authoredSite,nav=site?.navigationConsole,live=run.powered&&(run.activeSonarEnabled||!!nav?.drawActive);
           c.save();c.beginPath();c.rect(0,0,SONAR_W,SONAR_H);c.clip();c.scale(sx,sy);c.translate(-CROP[0],-CROP[1]);
           if(live){if(nav?.drawActive)nav.drawActive(c,775,720,false);else drawDrivingSonarInstrument(c,run,775,720,view.time);}
           else{c.strokeStyle='#456d3e';c.lineWidth=3;for(const radius of [77,155,232]){c.beginPath();c.arc(387,372,radius,0,Math.PI*2);c.stroke();}}
@@ -377,25 +377,11 @@ export class CabinThree {
           c.fillStyle='#06140f';c.fillRect(px-8,4,pw+14,SONAR_H-8);c.strokeStyle='#2f5a3a';c.lineWidth=2;c.strokeRect(px-8,4,pw+14,SONAR_H-8);
           c.save();c.translate(px,0);c.scale(1,1/ASPECT);c.textAlign='left';c.textBaseline='alphabetic';
           const text=(value:string,x:number,y:number,size:number,color:string,bold=true)=>{c.font=`${bold?'bold ':''}${size}px "Microsoft YaHei",monospace`;c.fillStyle=color;c.fillText(value,x,y,pw-x);};
-          text(`航向 ${String(Math.round(((run.heading%360)+360)%360)).padStart(3,'0')}°`,0,58,48,'#e6f3d0');
-          if(!live){
-            text(run.powered?'主动声纳断电':'艇内供电中断',0,140,42,'#c4c095');
-            text('无地形与距离',0,200,36,'#7f9f78',false);
-          }else{
-            const r=site?.sonarReadout,f=(v?:number)=>v===undefined?' —':v.toFixed(1);
-            text(run.sonarEmitting?'回波间距 · 米':'上次回波 · 米',0,108,28,'#7f9f78',false);
-            for(const [row,[a,av,b,bv]] of ([['前',r?.front,'后',r?.back],['左',r?.left,'右',r?.right],['顶',r?.above,'底',r?.below]] as const).entries()){
-              const y=160+row*54;text(a+f(av),0,y,42,'#b9e0a0');text(b+f(bv),pw/2,y,42,'#b9e0a0');
-            }
-          }
-          c.fillStyle='#2f5a3a';c.fillRect(0,300,pw,3);
           const brief=nav?.waypointBrief?.();
-          if(brief){text(brief.title,0,352,40,'#63fff1');brief.lines.forEach((line,i)=>text(line,0,404+i*48,36,'#d8f5ea'));}
+          if(brief){text(brief.title,0,58,40,'#63fff1');brief.lines.forEach((line,i)=>text(line,0,110+i*48,36,'#d8f5ea'));}
           c.restore();
           const input=sonarDeskState(run);c.fillStyle='#10180e';c.fillRect(0,SONAR_H,1024,720-SONAR_H);c.textAlign='left';c.textBaseline='middle';
           input.fields.forEach((value,i)=>{const x=14+i*336,y=SONAR_H+10;c.strokeStyle=input.axis===i?'#d9d59c':'#526447';c.lineWidth=3;c.strokeRect(x,y,324,96);c.fillStyle=input.axis===i?'#fff0b0':'#b9d296';c.font='bold 58px monospace';c.fillText(COORD_AXES[i]+' '+(value||'_'),x+14,y+50,300);screen.hits.add({id:'sonar.axis.'+i,x,y,w:324,h:96});});
-          c.font='bold 46px Microsoft YaHei';c.fillStyle=live&&run.sonarPulseEnabled?'#f0c060':'#c4c095';c.fillText(!run.powered?'艇内供电中断':!run.activeSonarEnabled?'电源关 · 按下方「声纳电源」':run.sonarPulseEnabled?'周期扫描中 · 持续发声':'静默 · 按下方「脉冲扫描」',16,SONAR_H+160,990);
-          c.font='32px Microsoft YaHei';c.fillStyle='#7f9f78';c.fillText('点 X / Y / DEPTH → 键盘输入 → 「写入」',16,SONAR_H+216,990);
         }else{
           c.fillStyle='#d4a253';c.font='30px monospace';c.fillText('OPTICAL / RECORDER',55,70);
           c.fillStyle='#647749';c.font='26px monospace';c.fillText('DEPTH '+Math.round(run.depth)+' m',55,615);c.fillText('HULL '+Math.round(run.hull*100)+' %',55,657);
@@ -442,7 +428,7 @@ export class CabinThree {
 
         // A full-colour lab frame keeps the recording legible (pipe colour bands); the default stays amber.
         const trueColour=screen.id==='lab'&&run.labVideoExpanded&&!!run.authoredSite?.presentation?.labLargeFrame;
-        c.save();c.globalCompositeOperation='multiply';c.fillStyle=screen.repeater&&screen.id==='nav'?'#a4ffa0':trueColour?'#fff2de':'#ffbc63';c.fillRect(0,0,1024,ch);c.restore();
+        c.save();c.globalCompositeOperation='multiply';c.fillStyle=screen.repeater&&screen.id==='nav'?'#a4ffa0':screen.id==='lab'?'#ffffff':trueColour?'#fff2de':'#ffbc63';c.fillRect(0,0,1024,ch);c.restore();
         c.fillStyle='rgba(0,0,0,.12)';for(let y=0;y<ch;y+=4)c.fillRect(0,y,1024,1);
         const vignette=c.createRadialGradient(512,ch*.47,260,512,ch/2,620);vignette.addColorStop(0,'rgba(0,0,0,0)');vignette.addColorStop(1,'rgba(0,0,0,.42)');c.fillStyle=vignette;c.fillRect(0,0,1024,ch);
       }

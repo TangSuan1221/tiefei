@@ -1,3 +1,4 @@
+import type {VideoContext} from '../content/video-policy';
 import type { Control } from '../view/chrome';
 /** voice=clean human carrier, scatter=human carrier too far to lock, unknown=unregistered (shown ???), bio=known fauna, self=own pulse. */
 export type PassiveKind='voice'|'scatter'|'unknown'|'bio'|'self';
@@ -48,6 +49,7 @@ export interface AuthoredSite {
   chooseDialogue?(index:number):boolean;
   /** Free-text radio line through the passive-sonar microphone. */
   radioSay?(text:string):boolean;
+  receiveTape?(recipient:'vance'|'elias',tapeId:string):boolean;
   /** Who the microphone reaches now ('万斯' / '艾里亚斯'), null when only static. */
   readonly micTarget?:string|null;
   /** True when someone is listening and not mid-sentence. */
@@ -77,16 +79,23 @@ export interface AuthoredSite {
   readonly noiseFloor?:number;
   /** Multiplier on the periodic active-sonar drain (default 1). */
   readonly pulseCostScale?:number;
+  videoContext?():VideoContext;
   captureEvidence?():unknown;
   prepareCapture?():{ok:boolean;message?:string};
   finishCapture?():void;
   commitEvidence?(capture:unknown):void;
   analyzeEvidence?(snapshot:unknown):string[];
+  readonly recoveredDocument?:boolean;
+  readonly cargoManifest?: readonly {name:string;quantity:number}[];
+  readRecoveredDocument?():string[];
   evidenceStatus?(capture:unknown):{accepted:boolean;next:string};
   tick?(dt:number):void;
   restore?(snapshot:unknown):boolean;
   canCounter?(action:{kind:string}):boolean;
   drawInteraction?(ctx:CanvasRenderingContext2D,w:number,h:number):void;
+  /** Live window only; never burned into evidence or replay. */
+  resetWindowFocus?():void;
+  drawWindowLocks?(ctx:CanvasRenderingContext2D,w:number,h:number):void;
   drawDrivingSonar?(ctx:CanvasRenderingContext2D,w:number,h:number,time:number,dedicated?:boolean):void;
   /** Clearances measured by the most recent active sweep (m, already net of hull); absent until one is drawn. */
   readonly sonarReadout?:{readonly above:number;readonly below:number;readonly front:number;readonly back:number;readonly left:number;readonly right:number};

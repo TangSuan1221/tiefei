@@ -299,14 +299,16 @@ export function buildHeroes(m: LivingMaterials, shells: ShellBuild, spaceGroups:
   (note.mesh.material as T.MeshStandardMaterial).color.set('#a39d8f');
   {
     const g = new T.Group(); g.name = 'living.photo.code';
-    note.mesh.position.z = .008; g.add(note.mesh);
+    // Closed, opaque document holder: no password face is exposed outside the pod.
+    note.mesh.visible=false;
     const board = new T.Mesh(new T.BoxGeometry(.34, .44, .012), m.trim); owned.push(board.geometry); g.add(board);
-    const clip = new T.Mesh(new T.BoxGeometry(.12, .035, .025), m.chrome); clip.position.set(0, .205, .012); owned.push(clip.geometry); g.add(clip);
+    g.scale.setScalar(.45);
     g.traverse(o => { o.userData.interactionId = 'living.photo.code'; });
-    const lean = 16 * PI / 180, c = new T.Vector3(167, -2.083, 104), hz = new T.Vector3(162 - c.x, 0, 96 - c.z).normalize();
+    // At the slumped torso's coat pocket, not on the desk clipboard stand.
+    const lean = 16 * PI / 180, c = new T.Vector3(167.15, -2.05, 104.6), hz = new T.Vector3(162 - c.x, 0, 96 - c.z).normalize();
     const face = hz.multiplyScalar(Math.cos(lean)).add(new T.Vector3(0, Math.sin(lean), 0));
     g.position.copy(c); g.lookAt(c.clone().add(face));
-    spaceGroups.get('R5')!.add(g); interactables.set('living.photo.code', g); photoTargets.set('living.photo.code', g);
+    spaceGroups.get('R5')!.add(g); interactables.set('living.photo.code', g);
   }
   // Emergency gate-release placard (east wall, facing west).
   const guide = documentMesh(2.8, 2.0, 1536, (c, w, h) => {

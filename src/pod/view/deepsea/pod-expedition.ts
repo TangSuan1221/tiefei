@@ -4,6 +4,7 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {SSAOPass} from 'three/addons/postprocessing/SSAOPass.js';
+import {reuseShadowsForNormalPass} from './ssao-shadow-reuse';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {createExpedition,newExpeditionState,openDoor,interactExpedition} from '../../content/expedition';
@@ -17,7 +18,7 @@ import {createReferenceWater} from './reference-water';
 import {EXPEDITION_ART} from './expedition-art-direction';
 import {beginExtend,beginGrip,newArm,ARM_PHASE_CN} from '../../sim/manipulator';
 import {createSalvageArm} from './salvage-arm';
-import {harborHullClear,sweepHarborHeading} from '../../sim/harbor-navigation';
+import {harborHullClear,sweepHarborHeading,sweepHarborRetreat} from '../../sim/harbor-navigation';
 import {scanNavigationSonar,sonarRay,sonarEchoAlpha,SONAR_RANGE,SONAR_STATIC,SONAR_THREAT} from '../../sim/navigation-sonar';
 import {drawSonarSweep} from '../sonar-sweep';
 import {HARBOR} from '../../content/harbor-level';
@@ -26,7 +27,7 @@ import {advanceEncounter,newEncounterPressure} from '../../sim/harbor-encounters
 import {harborGuide,harborGuideMedia,type HarborGuide} from '../../sim/harbor-guidance';
 import {newHarborProgress,captureHarborEvidence,resolveHarborEvidence,analyzeHarborEvidence,grantHarborEvent,syncHarborInventory,harborObjective,HARBOR_PHOTO_TARGET,type HarborProgress,type HarborResult} from '../../sim/harbor-progress';
 
-const LIVE_SEARCHLIGHT_GAIN=6,LIVE_SEARCHLIGHT_SCATTER=.12;
+const LIVE_SEARCHLIGHT_GAIN=6,LIVE_SEARCHLIGHT_SCATTER=.065;
 
 // One context for all seven chapters, not one WebGL context per room/screen.
 let shared:ReturnType<typeof createShared>|null=null;
@@ -46,12 +47,12 @@ export class PodExpedition implements AuthoredSite {
  readonly level;readonly state;readonly world;
  readonly position=new T.Vector3();
  private scene=new T.Scene();private camera=new T.PerspectiveCamera(64,1,.08,120);
- private lamp=new T.SpotLight(0xc0e7e7,40,32,.72,.6,1.65);
+ private lamp=new T.SpotLight(0xc0e7e7,40,32,1.15,.35,1.65);
  private fill=new T.PointLight(0x568b9a,1.5,7,2);
  private fixtures=Array.from({length:4},()=>new T.PointLight());
  private harborKeys=Array.from({length:2},()=>new T.SpotLight(0xc4cfda,0,24,.78,.65,1.6));
  private ambient=new T.HemisphereLight(0x63818a,0x11191b,.012);
- private atmosphere=createExpeditionAtmosphere();
+ private atmosphere:ReturnType<typeof createExpeditionAtmosphere>;
  private composer:EffectComposer;private ao:SSAOPass;
  private water:ReturnType<typeof createReferenceWater>;
  private ray=new T.Raycaster();private bounds=new Map<string,T.Box3>();
@@ -120,6 +121,7 @@ export class PodExpedition implements AuthoredSite {
  private feedback(message:string){this.interactionFeedback=message;this.feedbackUntil=performance.now()+4000;this.run.pushLog(message,'system');}
  private resources;
  constructor(readonly run:PodRun,readonly index:number){
+  this.atmosphere=createExpeditionAtmosphere(index===0);
   this.resources=shared??=createShared();const {renderer,materials,surfaces,environment}=this.resources;
   this.level=createExpedition(index);this.state=newExpeditionState(this.level);
   this.world=createExpeditionWorld(this.level,materials,surfaces.maps);
@@ -129,7 +131,7 @@ export class PodExpedition implements AuthoredSite {
   this.scene.environment=environment.texture;this.scene.environmentIntensity=.008;
   this.lamp.color.set(art.key);this.fill.color.set(art.fill);this.lamp.castShadow=true;
   if(index===0){
-   this.scene.fog=new T.FogExp2('#143239',.022);this.scene.environmentIntensity=.20;this.lamp.color.set('#bfd8cb');this.lamp.distance=48;this.lamp.decay=1.5;this.fill.color.set('#619c99');this.ambient.intensity=.075;
+   this.scene.fog=new T.FogExp2('#101f22',.026);this.scene.environmentIntensity=.10;this.lamp.color.set('#f2e2c4');this.lamp.distance=48;this.lamp.decay=1.5;this.fill.color.set('#93aba6');this.ambient.intensity=.032;
    for(const key of this.harborKeys){key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.bias=-.0003;key.shadow.normalBias=.025;this.scene.add(key,key.target);}
    // Architectural bounce belongs to the inaccessible north bank, not the pilot's lamp.
    for(const [x,y,z,color,intensity,range] of [[45,5,13,0x68a6a5,55,22],[62,11,2,0x5d9999,70,28],[84,7,10,0x78a7a0,45,20],[55,1,9,0xe9a459,12,6],[40,-8.8,27,0x76b7b1,38,12],[63,-9.8,22,0x69a6ab,32,12],[78,-8.8,26,0x7ab9b5,34,12]] as const){const bounce=new T.PointLight(color,intensity,range,1.8);bounce.position.set(x,y,z);this.scene.add(bounce);}
@@ -146,7 +148,7 @@ export class PodExpedition implements AuthoredSite {
   for(const [id,obj] of this.world.interactables)this.bounds.set(id,new T.Box3().setFromObject(obj));
   this.composer=new EffectComposer(renderer);
   if(index===0){this.composer.renderTarget1.samples=4;this.composer.renderTarget2.samples=4;}this.composer.addPass(new RenderPass(this.scene,this.camera));
-  this.ao=new SSAOPass(this.scene,this.camera,1024,720);this.ao.kernelRadius=.2;this.ao.minDistance=.002;this.ao.maxDistance=.12;this.composer.addPass(this.ao);
+  this.ao=new SSAOPass(this.scene,this.camera,1024,720);if(index===0)reuseShadowsForNormalPass(this.ao);this.ao.kernelRadius=index===0?.55:.2;this.ao.minDistance=.002;this.ao.maxDistance=index===0?.065:.12;this.composer.addPass(this.ao);
   this.water=createReferenceWater(this.camera,this.lamp,this.ao.normalRenderTarget.depthTexture!,index===0?this.harborKeys:[]);this.composer.addPass(this.water.pass);
   if(index===0)this.composer.addPass(new UnrealBloomPass(new T.Vector2(1024,720),.11,.35,1.4));
   this.composer.addPass(new OutputPass());
@@ -313,11 +315,12 @@ export class PodExpedition implements AuthoredSite {
   // turn() runs every frame while a key is held; back off at most once per 1.5 s or the hull drifts metres.
   if(degrees===0||turned!==this.run.heading||this.epoch-this.backoffAt<1.5)return turned;
   this.backoffAt=this.epoch;
-  // A 5 m hull wedged against a frame cannot yaw in place; back off a little so the player is never pinned.
-  const r=T.MathUtils.degToRad(this.run.heading),back=this.position.clone().add(new T.Vector3(-Math.sin(r)*.3,0,Math.cos(r)*.3));
-  if(!this.canMove(back)){this.wedgeHint('艇身两头都贴着结构，转不过来。按住 N 倒车或升降，换个位置再转。');return turned;}
+  // Back off only through continuously clear space; an opposite yaw can be
+  // the sole valid exit from an angled frame, so do not promise reverse helps.
+  const back=sweepHarborRetreat(this.position,this.run.heading,.3,p=>this.canMove(p));
+  if(back.distanceToSquared(this.position)<1e-10){this.wedgeHint('斜贴门框，当前转向和倒车都受阻。松开推进，尝试反向 J / L 回正；再沿能移动的方向离开门框。');return turned;}
   this.position.copy(back);
-  this.wedgeHint('艇身贴着结构转不过来，自动倒车让出转向空间。');
+  this.wedgeHint('艇身贴着结构，已沿安全空间略微退让。若仍转不动，松开推进并尝试反向 J / L 回正。');
   return sweepHarborHeading(this.run.heading,degrees,h=>this.canMove(this.position,h));
  }
  private wedgeHint(text:string){if(this.epoch-this.wedgeHintAt>6){this.wedgeHintAt=this.epoch;this.feedback(text);this.run.onCue?.('hull.groan',.5);}}
@@ -346,7 +349,7 @@ export class PodExpedition implements AuthoredSite {
   const h=T.MathUtils.degToRad(this.run.heading),p=T.MathUtils.degToRad(this.run.pitch);
   const direction=new T.Vector3(Math.sin(h)*Math.cos(p),-Math.sin(p),-Math.cos(h)*Math.cos(p));
   const steps=Math.max(1,Math.ceil(Math.abs(distance)/.08));
-  for(let i=0;i<steps;i++){const next=this.position.clone().addScaledVector(direction,distance/steps);if(!this.canMove(next)){if(this.index===0)this.wedgeHint(distance>0?'前方受阻：艇长五米，船头或侧舷顶住了结构。按住 N 倒车，再调整航向。':'后方受阻：船尾顶住了结构。向前或转向。');return false;}this.position.copy(next);}
+  for(let i=0;i<steps;i++){const next=this.position.clone().addScaledVector(direction,distance/steps);if(!this.canMove(next)){if(this.index===0)this.wedgeHint(distance>0?'前进受阻：船头或侧舷贴着结构。松开推进，尝试 J / L 回正；也可沿可动方向退出。':'倒车受阻：船尾或侧舷贴着结构。松开倒车，尝试反向 J / L 回正，再前进离开门框。');return false;}this.position.copy(next);}
   if(this.room&&!this.state.visited.includes(this.room.id))this.state.visited.push(this.room.id);
   return true;
  }
@@ -356,6 +359,8 @@ export class PodExpedition implements AuthoredSite {
   this.target=null;let o:T.Object3D|null=hit?.object??null;
   while(o){if(o.userData.interactionId){this.target={id:o.userData.interactionId,door:false};break;}if(o.userData.doorId){this.target={id:o.userData.doorId,door:true};break;}o=o.parent;}
  }
+ /** Authored first-chapter facilities share the visible physical arm. */
+ setExternalArmAnchor(anchor:T.Vector3|null){this.armAnchor=anchor?.clone()??null;this.armNormal.copy(anchor?this.position.clone().sub(anchor).normalize():new T.Vector3(0,0,1));}
  interact(){
   if(this.run.arm.phase==='aiming'&&this.pendingCargo){this.run.retractArm();this.feedback('取物已夹紧 · 正在回收，收臂完成后才入库');return;}
   if(this.run.arm.phase==='gone'){
@@ -475,15 +480,16 @@ export class PodExpedition implements AuthoredSite {
   ctx.fillStyle='#8c9c9c';ctx.fillText(phase==='stowed'?'F 操作':'机械臂链路 / F 下一步 · C 收臂',x+10,y+ph-h*.014,pw-20);
   ctx.restore();
  }
+ copyRenderedFrame(ctx:CanvasRenderingContext2D,w:number,h:number){ctx.drawImage(this.resources.renderer.domElement,0,0,w,h);}
  draw(ctx:CanvasRenderingContext2D,w:number,h:number,time:number,recording=true){
   this.epoch=time;this.pose();this.world.update(this.state,time);
   this.salvageArm.update(this.run.arm,time,this.armAnchor?this.camera.worldToLocal(this.armAnchor.clone()):undefined,this.armNormal.clone().transformDirection(this.camera.matrixWorldInverse));
   const renderer=this.resources.renderer;
   if(this.width!==w||this.height!==h){renderer.setSize(w,h,false);this.composer.setSize(w,h);this.width=w;this.height=h;}
   this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
-  const dir=this.camera.getWorldDirection(new T.Vector3());this.lamp.position.copy(this.position);this.lamp.position.y-=.18;
+  const dir=this.camera.getWorldDirection(new T.Vector3());this.lamp.position.copy(this.position).addScaledVector(new T.Vector3().setFromMatrixColumn(this.camera.matrixWorld,0),.42);this.lamp.position.y-=.32;
   this.lamp.target.position.copy(this.position).addScaledVector(dir,12);
-  this.lamp.intensity=this.run.lit?(this.index===0?58:48):0;this.fill.position.copy(this.position);this.fill.intensity=this.run.lit?(this.index===0?1.1:1.5):0;
+  this.lamp.intensity=this.run.lit?(this.index===0?58:48):0;this.fill.position.copy(this.position);this.fill.intensity=this.run.lit?(this.index===0?.35:1.5):0;
   const lights=this.world.practicalLights.filter(l=>this.index===0?new T.Vector3(...l.position).distanceTo(this.position)<22:this.room?l.room===this.room.id:new T.Vector3(...l.position).distanceTo(this.position)<14)
    .sort((a,b)=>b.intensity/(4+new T.Vector3(...b.position).distanceToSquared(this.position))-a.intensity/(4+new T.Vector3(...a.position).distanceToSquared(this.position)));
   // Emergency fixtures stay visible but must not flood the room like working lights.
@@ -493,7 +499,7 @@ export class PodExpedition implements AuthoredSite {
    if(this.position.x>31&&this.position.z<42){
     key.position.set(i===0?54:80,i===0?5:6,i===0?16:17);key.target.position.set(i===0?57:77,i===0?-.1:-1,i===0?11:12);
     key.angle=i===0?.43:.65;key.penumbra=.7;
-    key.color.set(i===0?'#a4d4ce':'#a6c6c7');key.intensity=i===0?460:250;key.distance=30;return;
+    key.color.set(i===0?'#dcc49c':'#86a9ab');key.intensity=i===0?330:170;key.distance=30;return;
    }
    const source=lights.filter(l=>l.position[1]>=(this.room?.floorY??-3)+4)[i];
    key.intensity=source?source.intensity*3.8:0;
@@ -507,7 +513,7 @@ export class PodExpedition implements AuthoredSite {
   // Reduce actual scene illumination, including imported practical lights,
   // rather than obscuring the finished image with a black canvas overlay.
   const liveOptics=this.index===0&&!recording;
-  const exposure=renderer.toneMappingExposure,environment=this.scene.environmentIntensity;
+  const exposure=renderer.toneMappingExposure,environment=this.scene.environmentIntensity,decay=this.lamp.decay;
   const lightState:Array<[T.Light,number]>=[];
   if(liveOptics){
    // Practical and ambient light are crushed to near-black, but the player's
@@ -515,16 +521,19 @@ export class PodExpedition implements AuthoredSite {
    // on still reveals nearby steel in live view.
    this.scene.traverse(object=>{if(object instanceof T.Light){lightState.push([object,object.intensity]);object.intensity*=object===this.lamp||object===this.fill?LIVE_SEARCHLIGHT_GAIN:.065;}});
    this.scene.environmentIntensity=environment*.035;
-   renderer.toneMappingExposure=exposure*.13;
+   // Match the living deck's pushed live sensor and longer lamp throw. This
+   // reveals nearby architecture; recorded-only subjects remain adapter-owned.
+   renderer.toneMappingExposure=.4186;
+   this.lamp.decay=1.05;
   }
   try{
    this.atmosphere.update(time,this.camera,this.lamp);
-   this.water.update(this.run.lit?(liveOptics?LIVE_SEARCHLIGHT_SCATTER:.5):0);
+   this.water.update(this.run.lit?(liveOptics?LIVE_SEARCHLIGHT_SCATTER:this.index===0?.055:.5):0);
    this.composer.render();ctx.drawImage(renderer.domElement,0,0,w,h);
   }finally{
    // One shared renderer serves live view, captured frames and other scenes.
    // Restore every temporary value even if a rendering/canvas operation fails.
-   renderer.toneMappingExposure=exposure;this.scene.environmentIntensity=environment;
+   renderer.toneMappingExposure=exposure;this.scene.environmentIntensity=environment;this.lamp.decay=decay;
    for(const [light,intensity]of lightState)light.intensity=intensity;
   }
  }
@@ -556,8 +565,9 @@ export class PodExpedition implements AuthoredSite {
   ctx.globalAlpha=1;drawSonarSweep(ctx,cx,cy,radius,time);
   const heading=this.run.heading*Math.PI/180;
   for(const [id,obj]of this.world.interactables){
-   // Only authored gameplay items get a symbol. Decoration contributes to the
-   // collision scan above, not this list. Recovered cargo is no longer a target.
+   // Only authored gameplay items get a symbol. Structural geometry contributes
+   // to the scan above; decoration stays excluded (MET-042).
+   // Recovered cargo is no longer a target.
    const item=this.level.items.find(item=>item.id===id);
    if(!item||((item.kind==='pickup'||item.kind==='cache')&&this.state.collected.includes(id)))continue;
    if(!obj.visible)continue;const dx=obj.position.x-this.position.x,dz=obj.position.z-this.position.z,dist=Math.hypot(dx,dz);
@@ -626,6 +636,3 @@ export class PodExpedition implements AuthoredSite {
  }
  dispose(){this.salvageArm.dispose();this.world.dispose();this.atmosphere.dispose();this.composer.passes.forEach(p=>p.dispose());this.composer.dispose();this.lamp.shadow.dispose();this.harborKeys.forEach(key=>key.shadow.dispose());}
 }
-
-
-

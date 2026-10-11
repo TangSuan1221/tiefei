@@ -1,5 +1,5 @@
 /**
- * 自由发言的无线电发射面板：松开实体麦克风（或按 M）后浮在 CRT 上方。
+ * 自由发言的无线电发射面板：松开实体麦克风（或按 M）后显示在画面下方。
  * 只负责输入与确认；说什么、谁在听、能不能回答，全部由关卡的 radioSay 决定。
  */
 
@@ -11,6 +11,7 @@ type TransmitOptions = {
   onSend: (text: string) => void;
   onChoose: (index: number) => void;
   onClose: () => void;
+  onDraft?: (text:string) => void;
 };
 
 const STYLE_ID = 'radio-tx-style';
@@ -48,6 +49,7 @@ export class RadioTransmit {
     }
     this.opts = opts; this.dirty = false;
     const root = document.createElement('div'); root.id = 'radio-tx';
+    // Keep the native editor visible and clickable for Chinese IME and focus recovery.
     root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '无线电发射 · ' + opts.target);
     const header = document.createElement('header');
     const carrier = document.createElement('span'); carrier.className = 'carrier';
@@ -57,8 +59,9 @@ export class RadioTransmit {
 
     const input = document.createElement('input');
     input.type = 'text'; input.maxLength = 80; input.autocomplete = 'off'; input.spellcheck = false;
+    input.setAttribute('aria-label', '无线电发言');
     input.placeholder = '对着麦克风说的话……'; input.value = opts.prefill ?? '';
-    input.addEventListener('input', () => { this.dirty = true; });
+    input.addEventListener('input', () => { this.dirty = true;this.opts?.onDraft?.(input.value); });
     input.addEventListener('keydown', (e) => {
       e.stopPropagation();
       if (e.key === 'Escape') { e.preventDefault(); this.close(); return; }
@@ -95,6 +98,7 @@ export class RadioTransmit {
   setTranscript(text: string): void {
     if (!this.input || this.dirty) return;
     this.input.value = text.slice(0, 80);
+    this.opts?.onDraft?.(this.input.value);
     this.input.setSelectionRange(this.input.value.length, this.input.value.length);
   }
 

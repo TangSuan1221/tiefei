@@ -1,0 +1,212 @@
+{
+  "version": 1,
+  "duration": 10,
+  "maxCharacters": 3600,
+  "style": "16:9 restrained photorealistic underwater industrial footage. Rust-orange practical lights, blue-black shadows, pale highlights. Slowly drifting silt and mild analogue grain never obscure the subjects. No captions, UI, watermark, music or narration.",
+  "profiles": {
+    "elias": {
+      "description": "Elias is one adult male maintenance worker, approximately 1.73 m tall, with ordinary human proportions. He wears a dark charcoal rubber diving suit, worn brown canvas panels, heavy dark gloves and boots, webbing straps, and a scuffed ochre metal diving helmet with a dark glass visor. His face remains obscured; do not invent visible facial features. His suit and cuffs are intact. His shoulders are tense and his movements cautious. Keep his helmet, suit and human anatomy consistent.",
+      "sources": [
+        "src/pod/view/deepsea/harbor-elias-skin.ts",
+        "src/pod/view/deepsea/living-alex.ts",
+        "docs/video-prompts/level-01-harbor-rescue.md"
+      ]
+    },
+    "harbor": {
+      "description": "The harbor creature is a terrifying abyssal Lovecraftian humanoid: pale hairless skin, a twisted low torso, disproportionately long arms, three long fingers on each hand and a low row of fin-like dorsal spines. Grey workwear scraps cling to its damp body. Its head droops; its slack, eerily calm face clashes with the distorted anatomy, never cute or friendly. Slow limb strokes and unsettling pauses keep it close to structures. Preserve the four-limbed reference silhouette: no shark, dolphin, added tentacles, glowing eyes or costume-monster look.",
+      "sources": [
+        "docs/video-prompts/level-01-harbor-rescue.md",
+        "docs/story-split-route-2026-09-30.md",
+        "docs/video-prompts/structured-prompt-standard.md"
+      ]
+    }
+  },
+  "shots": [
+    {
+      "observation": "camera",
+      "space": "Flooded industrial docking harbor, level 0. Broken bridge, structural supports, a cargo grille and an inner guardroom remain in their existing positions. Use the reference exposure image for geometry and occlusion; without one, this is only a text-to-video test layout.",
+      "camera": "Stationary submarine external camera, medium-wide view across the broken bridge.",
+      "light": "Weak existing orange emergency lamps and readable pale highlights; surrounding water remains dark. No glowing sonar rings or visible sound beams.",
+      "audio": "Muted underwater ambience only; do not invent speech or a visible source for off-screen sounds.",
+      "sources": [
+        "src/narrative-lab/campaign.ts",
+        "docs/video-prompts/generation-standard.md"
+      ],
+      "id": "NS-001",
+      "sceneId": "L0-01",
+      "choiceId": "lure-dark",
+      "profiles": [
+        "harbor"
+      ],
+      "sourceResult": "短促灯光熄灭后，生物仍贴着门外的桥基，没有追随光斑。门后的艾里亚斯仍在等待，通路没有清空。",
+      "subject": "One pale long-limbed creature stays at the bridge support outside a closed shelter; the survivor remains hidden.",
+      "beats": [
+        "0–3 s: The short light flash has already ended. Creature remains against the bridge base.",
+        "3–7 s: Small limb adjustments and drifting silt; it does not follow a light spot.",
+        "7–10 s: Hold the occupied route and closed shelter. No survivor becomes visible."
+      ],
+      "endState": "Route remains dangerous, no lure success, no door movement or rescue.",
+      "storyboard": "探照灯的最后一束光已经熄灭。桥基下的苍白长肢生物没有跟随光斑离开，仍伏在门外水道旁；三根细长手指搭在钢梁边缘，少量淤泥在指尖周围散开。通往值班室的内侧通路仍从它上方经过。艾里亚斯所在的门保持关闭，画面里看不到他；本卷没有发生开门、出发或救援。"
+    },
+    {
+      "observation": "camera",
+      "space": "Flooded industrial docking harbor, level 0. Broken bridge, structural supports, a cargo grille and an inner guardroom remain in their existing positions. Use the reference exposure image for geometry and occlusion; without one, this is only a text-to-video test layout.",
+      "camera": "Stationary submarine external camera, medium-wide view across the broken bridge.",
+      "light": "Weak existing orange emergency lamps and readable pale highlights; surrounding water remains dark. No glowing sonar rings or visible sound beams.",
+      "audio": "Muted underwater ambience only; do not invent speech or a visible source for off-screen sounds.",
+      "sources": [
+        "src/narrative-lab/campaign.ts",
+        "docs/video-prompts/generation-standard.md"
+      ],
+      "id": "NS-002",
+      "sceneId": "L0-01",
+      "choiceId": "lure-noise",
+      "profiles": [
+        "harbor"
+      ],
+      "sourceResult": "生物离开门口，贴近正在发声的艇壳。它没有进入货仓。艾里亚斯仍在掩体内，潜艇回撤路线被占。",
+      "subject": "One pale long-limbed creature is close beside the emitting submarine, outside the cargo hold.",
+      "beats": [
+        "0–3 s: Begin with the creature already near the hull, not among bridge bars.",
+        "3–7 s: It stays near the camera-side hull with restrained limb motion. Do not add an impact or injury.",
+        "7–10 s: Hold its proximity; shelter stays opaque and the survivor stays off-screen."
+      ],
+      "endState": "Creature outside cargo hold, withdrawal route occupied. No entrapment, shutter operation or rescue.",
+      "storyboard": "镜头固定在潜艇外侧，苍白长肢生物已经离开远处门口，贴近艇壳一侧。它的低垂头部和长臂进入画幅，艇旁的水中退路被它占住。远处货仓入口仍敞开，格栅没有落下，生物不在货仓内。艾里亚斯仍在不透明的掩体后，没有出现在录像里。全片只保留生物的小幅肢体活动与漂浮颗粒，不增加撞击。"
+    },
+    {
+      "observation": "camera",
+      "space": "Flooded industrial docking harbor, level 0. Broken bridge, structural supports, a cargo grille and an inner guardroom remain in their existing positions. Use the reference exposure image for geometry and occlusion; without one, this is only a text-to-video test layout.",
+      "camera": "Stationary submarine external camera, medium-wide view across the broken bridge.",
+      "light": "Weak existing orange emergency lamps and readable pale highlights; surrounding water remains dark. No glowing sonar rings or visible sound beams.",
+      "audio": "Muted underwater ambience only; do not invent speech or a visible source for off-screen sounds.",
+      "sources": [
+        "src/narrative-lab/campaign.ts",
+        "docs/video-prompts/generation-standard.md"
+      ],
+      "id": "NS-003",
+      "sceneId": "L0-01",
+      "choiceId": "false-clear",
+      "profiles": [
+        "elias",
+        "harbor"
+      ],
+      "sourceResult": "艾里亚斯已经退回门内，扶着受伤的腿。门外生物仍活着，路没有清空。无线电传来急促呼吸：“你说它死了。”",
+      "subject": "One injured diving-suited survivor is back inside the doorway, supporting his hurt leg; one pale creature remains outside.",
+      "beats": [
+        "0–3 s: Begin after his retreat. Only show the survivor through the existing doorway opening.",
+        "3–7 s: Elias braces his injured leg with a gloved hand and keeps his weight off it. No fresh attack or injury event.",
+        "7–10 s: Hold the survivor and the still living creature on opposite sides of the doorway; never see through the wall."
+      ],
+      "endState": "Leg injury persists, creature alive, route not clear; no healing or rescue.",
+      "storyboard": "艾里亚斯已经退回门内，背抵内侧墙面，一只戴厚手套的手扶住受伤的腿，身体重量偏向另一侧。他穿暗色潜水服和赭色旧头盔，面罩遮住脸。镜头从门的现有开口看见他的姿态；门外水道里的苍白生物仍在活动。录像开始时伤情已经存在，不重演扑击，也不让他站起恢复正常行走。"
+    },
+    {
+      "observation": "camera",
+      "space": "Flooded industrial docking harbor, level 0. Broken bridge, structural supports, a cargo grille and an inner guardroom remain in their existing positions. Use the reference exposure image for geometry and occlusion; without one, this is only a text-to-video test layout.",
+      "camera": "Stationary submarine external camera, medium-wide view across the broken bridge.",
+      "light": "Weak existing orange emergency lamps and readable pale highlights; surrounding water remains dark. No glowing sonar rings or visible sound beams.",
+      "audio": "Muted underwater ambience only; do not invent speech or a visible source for off-screen sounds.",
+      "sources": [
+        "src/narrative-lab/campaign.ts",
+        "docs/video-prompts/generation-standard.md"
+      ],
+      "id": "NS-004",
+      "sceneId": "L0-01",
+      "choiceId": "isolate-cargo",
+      "profiles": [
+        "elias",
+        "harbor"
+      ],
+      "sourceResult": "货仓闸门已经完全闭合，生物在格栅后；艾里亚斯已沿内侧栏杆到达值班室，仍与潜艇隔着断桥。",
+      "subject": "One pale creature stays behind a fully closed cargo grille; one diving-suited survivor is already at the inner guardroom.",
+      "beats": [
+        "0–3 s: Begin with cargo grille fully lowered; creature remains visibly behind its bars.",
+        "3–7 s: Hold the closed grille. Show Elias at the guardroom only where an existing opening permits the same camera to see him.",
+        "7–10 s: Tiny breathing and silt motion only. The broken bridge still separates the survivor from the submarine."
+      ],
+      "endState": "Creature isolated and survivor safe on the inner side; no boarding or new door operation.",
+      "storyboard": "货仓格栅已经降到底，边框与地面之间没有供生物钻出的开口。苍白长肢生物留在格栅后，手指扶着内侧栏杆。断桥另一边的值班室入口处，艾里亚斯穿着原来的潜水服与旧头盔，已经沿内侧栏杆抵达；他与潜艇之间仍隔着断口。画面只展示已完成的隔离与人员位置，不补演走路、开门或登艇。"
+    },
+    {
+      "observation": "camera",
+      "space": "Flooded industrial docking harbor, level 0. Broken bridge, structural supports, a cargo grille and an inner guardroom remain in their existing positions. Use the reference exposure image for geometry and occlusion; without one, this is only a text-to-video test layout.",
+      "camera": "Stationary submarine external camera, medium-wide view across the broken bridge.",
+      "light": "Weak existing orange emergency lamps and readable pale highlights; surrounding water remains dark. No glowing sonar rings or visible sound beams.",
+      "audio": "Muted underwater ambience only; do not invent speech or a visible source for off-screen sounds.",
+      "sources": [
+        "src/narrative-lab/campaign.ts",
+        "docs/video-prompts/generation-standard.md"
+      ],
+      "id": "NS-005",
+      "sceneId": "L0-01",
+      "choiceId": "secure-injured",
+      "profiles": [
+        "elias",
+        "harbor"
+      ],
+      "sourceResult": "闸门后仍有生物。艾里亚斯坐在锁好的值班室里，腿伤没有消失。他留在上层等待后续救护。",
+      "subject": "One injured diving-suited survivor sits inside the locked guardroom; one pale creature remains behind the cargo grille.",
+      "beats": [
+        "0–3 s: Begin after the sheltering action; no reenactment of the injury.",
+        "3–7 s: Only through an existing optical opening show seated Elias protecting his injured leg; if occluded keep him off-screen.",
+        "7–10 s: The creature remains behind the grille. Hold stable positions and soft water movement."
+      ],
+      "endState": "Injury persists; survivor remains upstairs, not aboard the submarine. No healing.",
+      "storyboard": "格栅后的生物没有离开货仓。值班室现有观察开口中，艾里亚斯坐着，一只手护住伤腿；潜水服和旧头盔保持不变。他没有站起，也没有来到潜艇一侧。门维持锁闭后的静止状态。若当前机位被墙遮住值班室，则只拍到关闭的门，不透墙展示人。"
+    },
+    {
+      "observation": "camera",
+      "space": "Flooded industrial docking harbor, level 0. Broken bridge, structural supports, a cargo grille and an inner guardroom remain in their existing positions. Use the reference exposure image for geometry and occlusion; without one, this is only a text-to-video test layout.",
+      "camera": "Stationary submarine external camera, medium-wide view across the broken bridge.",
+      "light": "Weak existing orange emergency lamps and readable pale highlights; surrounding water remains dark. No glowing sonar rings or visible sound beams.",
+      "audio": "Muted underwater ambience only; do not invent speech or a visible source for off-screen sounds.",
+      "sources": [
+        "src/narrative-lab/campaign.ts",
+        "docs/video-prompts/generation-standard.md"
+      ],
+      "id": "NS-006",
+      "sceneId": "L0-01",
+      "choiceId": "recover-isolation",
+      "profiles": [
+        "elias",
+        "harbor"
+      ],
+      "sourceResult": "货仓已经锁闭，生物仍在格栅后。艾里亚斯这次等到确认后才走到内侧值班室。",
+      "subject": "One pale creature remains behind a locked cargo grille; one diving-suited survivor is already at the inner guardroom.",
+      "beats": [
+        "0–3 s: Start with the cargo grille locked, not moving.",
+        "3–7 s: Hold the creature behind the bars; show Elias only through an existing unobstructed opening.",
+        "7–10 s: Keep the final safe separation; do not replay his walk or an earlier failed lure."
+      ],
+      "endState": "Isolation holds; survivor at guardroom, still across the broken bridge. No boarding or erased prior events.",
+      "storyboard": "货仓格栅已经锁闭，苍白长肢生物仍留在栏杆内侧。艾里亚斯已到达内侧值班室，潜艇和他仍被断橋分开。镜头保持固定，记录门的闭合状态和实际能看见的人员位置；不重放前一次诱导、不重演行走，也不把值班室墙壁变透明。"
+    },
+    {
+      "id": "NS-000",
+      "sceneId": "L0-01",
+      "choiceId": "@scout",
+      "observation": "camera",
+      "profiles": [
+        "harbor"
+      ],
+      "sourceResult": "摄像头拍到惨白生物停在断桥下，通往内侧值班室的路经过它上方。艾里亚斯躲在遮住视线的门后。货仓门有独立配电和闸机；门未落下，不能算隔离。",
+      "subject": "One pale long-limbed humanoid crouches against a broken bridge support beneath the narrow inner walkway of a flooded industrial harbor. The cargo gate is raised and its opening is unobstructed.",
+      "space": "A single view across the flooded docking harbor. Lower middle: the broken bridge support and the creature clinging to it. Across the upper middle: the surviving inner walkway and railing lead to a closed opaque guardroom door on the right. Left of the support: an open cargo entrance with its vertical grille raised above it; beside the entrance are a closed metal electrical cabinet and a gate control box. Keep the creature outside the cargo entrance. The closed guardroom door completely hides the survivor. Nobody is visible behind it. No image of the submarine operator or control room.",
+      "camera": "Stationary submarine external camera, medium-wide view angled slightly downward at the bridge support.",
+      "light": "Weak rust-orange emergency fixtures rake across the railing, gate tracks and pale skin. Use readable grey midtones on the creature; beyond the structure the water is blue-black. The electrical cabinet is closed, so do not show internal wires or invent an energized indicator. No moving searchlight, visible sonar rings or luminous eyes.",
+      "beats": [
+        "0–3 s: establish the broken bridge support, the crouching creature, the raised cargo grille and the closed guardroom door together.",
+        "3–7 s: the creature slowly shifts one long hand against the support. Three fingers uncurl and settle; a small cloud of silt drifts down. Its head remains lowered, face slack and calm.",
+        "7–10 s: hold the same positions. The cargo opening remains open, the creature remains outside it, and the guardroom door stays shut. No lure, attack, survivor movement or gate operation occurs."
+      ],
+      "audio": "Subdued underwater rumble only. The survivor communication belongs to the separate radio scene; add no spoken explanation, unseen reply or caption to this recording.",
+      "endState": "Creature beneath the inner walkway, outside the open cargo entrance. Raised grille and closed guardroom door remain unchanged. The image cannot establish the cabinet power state or show the hidden survivor.",
+      "storyboard": "潜艇停在断桥外侧，镜头略向下，整段没有移动。画面中下方，断裂的桥基伸进黑水，一只苍白、无毛的长肢人形伏在桥基上：躯干低扭，头垂在胸前，背上是一列低矮的鳍状棘；灰色工装碎片贴着身体。它缓慢松开一只手的三根细长手指，又扣回钢梁，指尖附近扬起薄薄的淤泥。\n桥基上方，残存的内侧步道和栏杆通向画面右侧一扇关闭的值班室门。门板不透明，录像里看不到艾里亚斯。画面左侧是货仓入口，格栅收在入口上方；生物仍在仓外。入口旁能看见闭合的配电柜外壳和闸机控制盒，看不见柜内接线，也没有据此判断是否通电。\n弱橙色应急灯照到栏杆、格栅导轨和苍白的皮肤，其余水域沉在蓝黑阴影里。结尾位置不变：生物没有离开桥基，格栅没有下降，值班室门没有打开。",
+      "sources": [
+        "src/narrative-lab/campaign.ts",
+        "docs/video-prompts/generation-standard.md"
+      ]
+    }
+  ]
+}

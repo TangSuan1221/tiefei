@@ -40,7 +40,7 @@ interface Reel {
 /** 已经冲好的片子。键是 leg.id */
 const REELS = new Map<string, Reel>();
 /** 正在冲的航段，挡住重复请求 */
-const INFLIGHT = new Set<string>();
+const INFLIGHT = new Map<string,Promise<void>>();
 
 function loadIdMap(): Record<string, StoredReel> {
   try {
@@ -118,8 +118,9 @@ export function installFootageSink(run: PodRun): void {
     run.footageSink = null;
     return;
   }
+  run.videoStatus = 'MiniMax 视频接口已启用';
   run.footageSink = (req: FootageRequest) => {
-    run.videoStatus = '正在提交视频任务';
+    if(!req.prefetch)run.videoStatus = '正在提交视频任务';
     void handle(run, req);
   };
 }
@@ -146,20 +147,25 @@ export function readyPrompt(run: PodRun): string | null {
 
 async function handle(run: PodRun, req: FootageRequest): Promise<void> {
   const { legId, token, settle, cacheKey } = req;
+  if(req.allowed===false){settle(token,false,'附近没有怪物；保留机载录像，未提交视频生成。');return;}
+  const status=(text:string)=>{if(!req.prefetch&&run.shot.token===token)run.videoStatus=text;};
 
   // 1. 内存缓存。同一段第二次拍：不花钱，不花时间。
   const cached = REELS.get(cacheKey);
   if (cached) {
-    run.videoStatus = '生成视频 · 缓存回放';
+    status('生成视频 · 缓存回放');
     settle(token, true, undefined, cached.creatureMissing);
     return;
   }
 
   if (INFLIGHT.has(cacheKey)) {
-    settle(token, false, '冲洗槽里已经有一卷了。等它出来。');
+    await INFLIGHT.get(cacheKey);
+    const ready=REELS.get(cacheKey);
+    settle(token,!!ready,ready?undefined:'后台视频未能完成，保留机载录像。',ready?.creatureMissing);
     return;
   }
-  INFLIGHT.add(cacheKey);
+  let release!:()=>void;
+  INFLIGHT.set(cacheKey,new Promise<void>(resolve=>{release=resolve;}));
 
   try {
     // 2. sessionStorage 里有 id：只取片，不生成。取片不计费。
@@ -175,8 +181,8 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
         return;
       }
       result = await requestVideo(req.prompt, undefined, req.keyframe, status => {
-        if (run.shot.token === token) run.videoStatus = status;
-      });
+        if (!req.prefetch&&run.shot.token === token) run.videoStatus = status;
+      }, req.duration??5);
     }
 
     // 3b. 被内容审核拦了：拿不含怪物的那一版再试一次。
@@ -185,7 +191,7 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
     //     环境总比什么都没有好，而「那东西刚好没进这一卷」在世界观里成立。
     if (!result.ok && result.fail.kind === 'filtered' && req.fallbackPrompt !== req.prompt && !req.prompt.includes('Template: attack.')) {
       console.warn('[footage] 改用保留异常痕迹、不含身体的录像模板', result.fail.detail);
-      const retry = await requestVideo(req.fallbackPrompt, undefined, req.keyframe);
+      const retry = await requestVideo(req.fallbackPrompt, undefined, req.keyframe, undefined, req.duration??5);
       if (retry.ok) {
         result = retry;
         creatureMissing = true;
@@ -195,12 +201,13 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
     if (!result.ok) {
       // 技术细节只进 console，玩家看到的是世界观里的话。
       console.warn('[footage] 生成失败', result.fail);
-      settle(token, false, failureLine(result.fail));
+      const detail='detail' in result.fail?result.fail.detail.slice(0,240):'';
+      settle(token, false, `MiniMax ${result.fail.kind}${'status' in result.fail?' / HTTP '+result.fail.status:''}${detail?'：'+detail:'：'+failureLine(result.fail)}`);
       return;
     }
 
     // 4. 必须能解码才算成功。
-    run.videoStatus = '视频已下载 · 正在解码';
+    status('视频已下载 · 正在解码');
     const reel = await decodeReel(legId, result.blob, creatureMissing);
     if (!reel) {
       console.warn('[footage] 片子拿到了但浏览器解不开', result.videoId);
@@ -208,6 +215,12 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
       return;
     }
 
+    // Billing duration is selected in the request; encoded playback length is not a delivery gate.
+    if(!Number.isFinite(reel.video.duration)||reel.video.duration<=0){
+      reel.video.pause();reel.video.removeAttribute('src');reel.video.load();URL.revokeObjectURL(reel.url);
+      settle(token,false,'MiniMax 返回的视频没有有效播放时长，保留机载录像。');return;
+    }
+    if(req.prefetch)reel.video.pause();
     REELS.set(cacheKey, reel);
     saveId(cacheKey, result.videoId, creatureMissing);
     // State-dependent reels must not accumulate unbounded video/blob allocations.
@@ -218,13 +231,13 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
       URL.revokeObjectURL(old.url);
       REELS.delete(oldest);
     }
-    run.videoStatus = '生成视频 · 远端回放';
+    status('生成视频 · 远端回放');
     settle(token, true, undefined, creatureMissing);
   } catch (e) {
     console.warn('[footage] 冲洗回路异常', e);
     settle(token, false, '信号中断。冲洗槽那头没人接。');
   } finally {
-    INFLIGHT.delete(cacheKey);
+    INFLIGHT.delete(cacheKey);release();
   }
 }
 
@@ -236,6 +249,7 @@ export function readyReel(run: PodRun): HTMLVideoElement | null {
   if (!reel) return null;
   // 视频还没解到第一帧的话画出来是全黑，不如先让程序化画面顶着。
   if (reel.video.readyState < 2) return null;
+  if(reel.video.paused)void reel.video.play().catch(()=>{});
   return reel.video;
 }
 
@@ -250,8 +264,12 @@ export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:numbe
     ctx.fillText(detail,w*.05,h*.55,w*.9);return title;
   };
   if(!tape||!tape.ready)return notice('视频生成中 · 尚未收到录像',run.videoStatus);
+  // Local evidence can be ready before the remote job. Do not present its frame loop as the requested movie.
+  if(run.shot.phase==='developing' && tape.id===`tape.${run.shot.token}` && !run.shot.pendingResult && !isNoVideoMode() && VIDEO_ENABLED)
+    return notice('MiniMax 视频生成中',run.videoStatus);
   const reel=REELS.get(tape.cacheKey??tape.legId);
   if(reel&&reel.video.readyState>=2){
+    if(reel.video.paused)void reel.video.play().catch(()=>{});
     if(run.labVideoExpanded){
       const scale=Math.min(w/reel.video.videoWidth,h/reel.video.videoHeight);
       const vw=reel.video.videoWidth*scale,vh=reel.video.videoHeight*scale;
@@ -270,7 +288,7 @@ export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:numbe
     if(frame.complete&&frame.naturalWidth){
       const scale=Math.min(w/frame.naturalWidth,h/frame.naturalHeight),vw=frame.naturalWidth*scale,vh=frame.naturalHeight*scale;
       ctx.fillStyle='#020406';ctx.fillRect(0,0,w,h);ctx.drawImage(frame,(w-vw)/2,(h-vh)/2,vw,vh);
-      return `本地感光录像 · 非AI · ${localPlayback?.paused?'已暂停':'播放中／循环'} · ${(frames.length/2).toFixed(1)}秒 / 2fps · ${frameIndex+1}/${frames.length}`;
+      return `本地录像备份 · ${tape.videoError??'本卷未收到生成视频'} · ${localPlayback?.paused?'已暂停':'播放中'}`;
     }
     return notice('读取机载感光录像','真实曝光帧序列 · 非AI生成');
   }

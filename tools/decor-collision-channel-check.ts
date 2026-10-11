@@ -50,6 +50,7 @@ const producers=new Set([
  'src/pod/view/deepsea/expedition-world.ts','src/pod/view/deepsea/harbor-world.ts','src/pod/view/deepsea/harbor-room-identity.ts',
  'src/pod/view/deepsea/harbor-caisson-layout.ts','src/pod/view/deepsea/harbor-rescue-dressing.ts','src/pod/view/deepsea/harbor-rescue-world.ts','src/pod/view/deepsea/harbor-rescue-site.ts',
  'src/pod/view/deepsea/living-world.ts',
+ 'src/pod/view/deepsea/harbor-accident-dressing.ts',
 ]);
 const root=join(import.meta.dirname,'..'),offenders:string[]=[];
 (function walk(dir:string){for(const name of readdirSync(dir)){const p=join(dir,name);if(statSync(p).isDirectory()){walk(p);continue;}

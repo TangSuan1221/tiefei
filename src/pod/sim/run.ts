@@ -1,3 +1,5 @@
+import {videoPolicy,videoContextKey,type VideoContext} from '../content/video-policy';
+import {freshNarrative} from './narrative-memory';
 /**
  * 一次逃生的全部运行时状态。
  * ============================================================================
@@ -482,6 +484,9 @@ export interface ShotRuntime {
  * 的那条代码路径，顺带让 tools/pod-playthrough.ts 不依赖任何网络。
  */
 export interface FootageRequest {
+  duration?:5|10;
+  allowed?:boolean;
+  prefetch?:boolean;
   keyframe?: string;
   cacheKey: string;
   /** 缓存键。同一段不该重复生成 —— 每次调用都是真金白银 */
@@ -509,6 +514,8 @@ export interface FootageRequest {
 
 /** 冲好、进了片盒的一卷。分析台读的是这个，不是摄像头上正在放的那一帧 */
 export interface TapeRecord {
+  /** Transmitted copies do not imply receipt or narrative evidence. */
+  sentTo?: ('vance' | 'elias')[];
   testDescription?:string;
   simulationReport?:string[];
   /** Actual successive camera frames; UI plays these as a labelled local backup. */
@@ -579,6 +586,8 @@ export class PodRun {
   private pilotInputUntil=0;
   private pilotSoundAt=0;
   private pilotImpactUntil=0;
+  private movementWarnUntil=0;
+  get movementBlocked():boolean {return this.phase==='site'&&!!this.authoredSite&&this.clock<this.movementWarnUntil;}
   private continuousStep=false;
   holdPilot(thrust:number,yaw:number,pitch:number,brake=false):void {
     this.pilotInput={thrust:clamp(thrust,-1,1),yaw:clamp(yaw,-1,1),pitch:clamp(pitch,-1,1),brake};
@@ -591,11 +600,16 @@ export class PodRun {
     const motion=this.pilot.step(dt,input.thrust,input.yaw,input.pitch,input.brake,this.clock<this.heaveUntil?this.heaveInput:0);
     if(Math.abs(motion.vertical)>.00001){
       if(this.phase==='site'){
-        if(!this.authoredSite?.moveVertical?.(motion.vertical))this.pilot.verticalSpeed=0;
+        if(!this.authoredSite?.moveVertical?.(motion.vertical)){this.pilot.verticalSpeed=0;if(this.authoredSite)this.movementWarnUntil=this.clock+.7;}
       }else this.transitElevation=clamp(this.transitElevation+motion.vertical,-40,40);
       this.power=clamp01(this.power-Math.abs(motion.vertical)*.001);
     }
+    const previousHeading=this.heading;
     this.heading=this.authoredSite?.turn?.(motion.yaw)??(this.heading+motion.yaw+360)%360;
+    // A blocked turn must absorb angular momentum. Otherwise an exponentially
+    // decaying residual keeps requesting turn() after key-up, retriggering the
+    // harbor's automatic 0.3 m unwedging reverse indefinitely.
+    if(Math.abs(motion.yaw)>1e-9&&Math.abs(((this.heading-previousHeading+540)%360)-180)<1e-9){this.pilot.yawRate=0;if(this.authoredSite)this.movementWarnUntil=this.clock+.7;}
     this.pitch=clamp(this.pitch+motion.pitch,-65,65);
     if(Math.abs(motion.distance)<.00001)return;
     if(this.clock>=this.pilotSoundAt){this.onCue?.('hull.groan',.10+Math.abs(this.pilot.speed)*.12);this.pilotSoundAt=this.clock+2.5;}
@@ -616,6 +630,7 @@ export class PodRun {
   readonly campaign = new Campaign();
   openingReceived=false;
   openingScanned=false;
+  narrativeMemory=freshNarrative();
   storyCaption='';
   storyCaptionLeft=0;
   get openingGuide():string|null {
@@ -894,6 +909,31 @@ export class PodRun {
    * 都会废掉，而废掉是有完整回落的 —— 游戏照样通关。
    */
   footageSink: ((req: FootageRequest) => void) | null = null;
+  private shotVideoContext?:VideoContext;
+  private shotVideoKey?:string;
+  private videoWarmKey='';
+  private videoWarmTime=0;
+  private videoWarmPoll=0;
+  private videoWarmBusy=false;
+  private videoWarmAttempted=new Set<string>();
+  private videoPose(){const p=this.authoredSite?.position;return [p?.x,p?.y,p?.z,this.heading,this.pitch,this.camPan,this.camTilt,this.camZoom,this.lit];}
+  private videoKey(c:VideoContext){return 'authored-video-v3:'+videoContextKey(c,this.videoPose());}
+  private warmStoryVideo(dt:number){
+    this.videoWarmPoll+=dt;if(this.videoWarmPoll<.5)return;dt=this.videoWarmPoll;this.videoWarmPoll=0;
+    if(this.videoWarmBusy||!this.footageSink||!this.powered||this.throttle!==0||this.shot.phase==='exposing'||this.shot.phase==='developing')return;
+    const c=this.authoredSite?.videoContext?.();
+    if(!c?.story||!c.settled){this.videoWarmKey='';this.videoWarmTime=0;return;}
+    const key=this.videoKey(c);
+    if(key!==this.videoWarmKey){this.videoWarmKey=key;this.videoWarmTime=0;return;}
+    this.videoWarmTime+=dt;
+    // One speculative generation per committed branch, never per camera movement.
+    const branch=JSON.stringify([this.authoredSite?.index,c.prefetchKey??c.stateKey,c.outcome]);
+    if(this.videoWarmTime<2||this.videoWarmAttempted.has(branch))return;
+    let keyframe:string|undefined;try{keyframe=this.captureKeyframe?.();}catch{return;}if(!keyframe)return;
+    this.videoWarmAttempted.add(branch);this.videoWarmBusy=true;
+    const prompt=buildFootagePrompt({...this.captureFootage('identify'),videoContext:c});
+    this.footageSink({cacheKey:key,legId:this.leg.id,keyframe,prompt,fallbackPrompt:prompt,duration:10,allowed:true,prefetch:true,token:-1,settle:()=>{this.videoWarmBusy=false;}});
+  }
   videoStatus = '本地底片 · 未连接视频服务';
   /** View-owned synchronous shutter snapshot; no DOM dependency in simulation. */
   captureKeyframe: (() => string) | null = null;
@@ -1571,7 +1611,7 @@ export class PodRun {
     this.zoom = damp(this.zoom, this.at ? 1 : 0, 9, dt);
 
     // 噪音总是往底噪掉。底噪取决于你有没有在动
-    if(this.phase==='site')this.authoredSite?.tick?.(dt);
+    if(this.phase==='site'){this.authoredSite?.tick?.(dt);this.warmStoryVideo(dt);}
     this.checkSurvival();
     if(this.outcome.kind!=='alive')return;
     if(!this.powered || !this.activeSonarEnabled)this.stopSonarPulses();
@@ -2031,7 +2071,9 @@ export class PodRun {
 
   nudgeHeading(deg: number): void {
     if (this.driveBlock) return;
+    const previousHeading=this.heading;
     this.heading = this.authoredSite?.turn?.(deg) ?? (this.heading + deg + 360) % 360;
+    if(this.authoredSite&&Math.abs(deg)>1e-9&&Math.abs(((this.heading-previousHeading+540)%360)-180)<1e-9)this.movementWarnUntil=this.clock+.7;
     this.onCue?.('ui.hover', 0.3);
   }
 
@@ -2050,6 +2092,7 @@ export class PodRun {
       const distance=(pulseDistance??SITE_PULSE[this.throttle]??0)*direction;
       if(!distance)return;
       if(!this.authoredSite.move(distance)){
+        this.movementWarnUntil=this.clock+.7;
         // Contact stops forward motion, not the rudder or reverse controls.
         this.pilot.speed=0;this.navDriveEngaged=false;
         if(this.clock>=this.pilotImpactUntil){
@@ -2701,7 +2744,10 @@ export class PodRun {
     s.caught = false;
     s.viewing = false;
     s.cacheKey = undefined;
+    this.shotVideoContext=this.authoredSite?.videoContext?.();
+    this.shotVideoKey=this.shotVideoContext?.settled?this.videoKey(this.shotVideoContext):undefined;
     s.capture = this.captureFootage(purpose);
+    s.capture.videoContext=this.shotVideoContext;
 
     this.power = clamp01(this.power - SHOT_POWER);
     this.addNoise(0.12);
@@ -2982,7 +3028,7 @@ export class PodRun {
         frameHash=Math.imul(frameHash^char.charCodeAt(0),16777619);
         frameHash2=Math.imul(frameHash2,33)^char.charCodeAt(0);
       }
-      s.cacheKey = footageCacheKey(prompt, fallbackPrompt) + `:frame:${s.keyframe?.length??0}:${frameHash>>>0}:${frameHash2>>>0}`;
+      s.cacheKey = this.shotVideoKey ?? footageCacheKey(prompt, fallbackPrompt) + `:frame:${s.keyframe?.length??0}:${frameHash>>>0}:${frameHash2>>>0}`;
       if(s.siteEvidence===undefined)this.commitAnalysis(s.purpose);
       this.archiveTape(false);
       const tape = this.tapes.at(-1)!;
@@ -2994,7 +3040,9 @@ export class PodRun {
         this.settleShot(s.token, false, '视频服务未启用；本卷仅保存本地底片，未提交生成任务。');
         return;
       }
+      const policy=this.shotVideoContext?videoPolicy(this.shotVideoContext):{duration:5 as const,allowed:false};
       sink({
+        ...policy,
         keyframe: s.keyframe,
         cacheKey: s.cacheKey,
         legId: s.legId,
@@ -3035,7 +3083,7 @@ export class PodRun {
   private settleShot(token: number, ok: boolean, reason?: string, creatureMissing?: boolean, promptOnly?: boolean): void {
     const s = this.shot;
     if (token !== s.token || s.phase !== 'developing') return;
-    if(s.siteEvidence!==undefined && s.developed<12){
+    if(!ok&&s.siteEvidence!==undefined && s.developed<12){
       s.pendingResult={ok,reason,creatureMissing,promptOnly};return;
     }
     s.reason = reason ?? '';

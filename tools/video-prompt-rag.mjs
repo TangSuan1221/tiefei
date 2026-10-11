@@ -1,3 +1,4 @@
+import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -47,6 +48,16 @@ function sections() {
   const chunks = [];
   for (const doc of value.documents) {
     const lines = clean(fs.readFileSync(localPath(doc.path), 'utf8')).split('\n');
+    if (doc.kind === 'video-library') {
+      const library = JSON.parse(lines.join('\n'));
+      const entries = [...Object.entries(library.profiles).map(([name, profile], i) => ({id:`AP-${String(i+1).padStart(3,'0')}`,name,...profile})), ...library.shots];
+      for (const entry of entries) {
+        const marker = entry.name ? `"${entry.name}"` : `"${entry.id}"`;
+        const line = lines.findIndex(line=>line.includes(marker))+1;
+        chunks.push({id:entry.id,title:entry.id+' '+(entry.name ?? entry.sceneId+' '+entry.choiceId),status:'IMPLEMENTED / TEST',source:doc.path,line,endLine:line,content:JSON.stringify(entry,null,2),blocks:{}});
+      }
+      continue;
+    }
     const starts = lines.flatMap((line, i) => SECTION.test(line) ? [i] : []);
     if (!starts.length) throw new Error(`No VR/VP/PT sections in ${doc.path}`);
     for (let i = 0; i < starts.length; i++) {
@@ -169,9 +180,16 @@ function compose(byId, id, overrides, baseId) {
   return { template: id, base: baseId ?? null, slots: values, main, fallback, length: { main: main.length, fallback: fallback.length } };
 }
 
+function runBranch(args) {
+  const result = spawnSync(process.execPath, ['--experimental-transform-types', '--import', new URL('./window-locks-ts-loader.mjs', import.meta.url).href, path.join(root, 'tools/video-prompt-compose.ts'), ...args], {cwd:root, encoding:'utf8'});
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.status !== 0) throw new Error(result.stderr || result.error?.message || 'Branch validation failed');
+}
+
 try {
   const [command, ...args] = process.argv.slice(2);
   if (command === 'build') {
+    runBranch(['--check']);
     const index = buildIndex();
     // Composition must succeed for every template before the index is accepted.
     const byId = new Map(sections().chunks.map(c => [c.id, c]));
@@ -187,6 +205,10 @@ try {
     let composed = 0;
     for (const id of byId.keys()) if (id.startsWith('PT-') && id !== 'PT-011') { compose(byId, id, {}, id === 'PT-010' ? 'PT-003' : undefined); composed++; }
     console.log(`PASS: ${index.chunks.length} sections current; ${composed} templates compose within ${MAX_PROMPT} chars with no Chinese text.`);
+    runBranch(['--check']);
+  } else if (command === 'compose-branch') {
+    loadFresh();
+    runBranch(args);
   } else if (command === 'list') {
     for (const c of loadFresh().chunks) console.log(`${c.id}\t${c.status}\t${c.title.slice(c.id.length).trim()}`);
   } else if (command === 'query') {
@@ -200,7 +222,7 @@ try {
       else terms.push(args[i]);
     }
     if (!terms.length || !Number.isInteger(top) || top < 1 || top > 40) throw new Error('Supply a query and --top from 1 to 40.');
-    if (kind && !['VR', 'VP', 'PT'].includes(kind)) throw new Error('--kind must be VR, VP or PT');
+    if (kind && !['VR', 'VP', 'PT', 'AP', 'NS'].includes(kind)) throw new Error('--kind must be VR, VP, PT, AP or NS');
     const query = terms.join(' '), results = search(loadFresh(), query, top, kind);
     if (json) console.log(JSON.stringify({ query, mode: 'local-lexical-bm25', results }, null, 2));
     else if (!results.length) console.log('No matching section. Read docs/video-prompts/level-01-harbor-rescue.md; do not infer a missing shot.');

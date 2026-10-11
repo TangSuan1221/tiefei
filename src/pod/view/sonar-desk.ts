@@ -1,4 +1,5 @@
 import type { PodRun } from '../sim/run';
+import {isAudioMuted} from '../../audio/mute';
 import type { HitMap } from './chrome';
 import { drawDrivingSonarInstrument } from './stations';
 import { layoutCJK } from '@/ui/typography';
@@ -16,7 +17,7 @@ const desks=new WeakMap<PodRun,Desk>();
 const compactPages=new WeakMap<PodRun,'nav'|'radio'>();
 const radioPages=new WeakMap<PodRun,{list:number;text:number}>();
 /** Transient passive-CRT UI state; deliberately outside the saved desk snapshot. */
-type PassiveUi={tab:'main'|'log'|'help';choice:number|null;micSince:number|null;logPage:number;logSelected:number|null;textPage:number};
+type PassiveUi={tab:'main'|'log'|'help';choice:number|null;micSince:number|null;logPage:number;logSelected:number|null;textPage:number;draft?:string;spoken?:string;editing?:boolean};
 const passiveUis=new WeakMap<PodRun,PassiveUi>();
 export function passiveUi(run:PodRun):PassiveUi{
  let u=passiveUis.get(run);if(!u){u={tab:'main',choice:null,micSince:null,logPage:0,logSelected:null,textPage:0};passiveUis.set(run,u);}return u;
@@ -90,7 +91,7 @@ export function sonarAction(run:PodRun,id:string):boolean {
   if(receiver)return receiver.action('port.play');
   const recording=s.records[s.selected??s.records.length-1]?.recording;if(!recording)return false;
   run.storyCaption=recording;run.storyCaptionLeft=12;
-  if('speechSynthesis' in window){const voice=new SpeechSynthesisUtterance(recording);voice.lang='zh-CN';window.speechSynthesis.cancel();window.speechSynthesis.speak(voice);}return true;
+  if(!isAudioMuted()&&'speechSynthesis' in window){const voice=new SpeechSynthesisUtterance(recording);voice.lang='zh-CN';window.speechSynthesis.cancel();window.speechSynthesis.speak(voice);}return true;
  }
  if(id==='sonar.reply'){
   if(receiver){const ok=receiver.reply?.()??false;s.message=ok?'已发送固定回复':'请先播放录存，等待可应答的呼叫';return ok;}
@@ -111,7 +112,7 @@ export function drawSonarDesk(ctx:CanvasRenderingContext2D,run:PodRun,x:number,y
  screen(20,55,530,300);screen(568,55,436,300);
  text('01 主动声纳 / 地形 · 距离',36,76);
  ctx.save();ctx.beginPath();ctx.rect(28,94,514,249);ctx.clip();ctx.translate(28,94);
- if(run.activeSonarEnabled&&run.powered){if(r?.drawActive){r.drawActive(ctx,514,249);for(const m of r.markerHits??[])hits.add({id:'sonar.waypoint.'+m.index,x:x+(28+m.x-m.r)*w/1024,y:y+(94+m.y-m.r)*h/720,w:m.r*2*w/1024,h:m.r*2*h/720});}else drawDrivingSonarInstrument(ctx,run,514,249,time);}
+ if(run.powered&&(run.activeSonarEnabled||r?.drawActive)){if(r?.drawActive){r.drawActive(ctx,514,249);for(const m of r.markerHits??[])hits.add({id:'sonar.waypoint.'+m.index,x:x+(28+m.x-m.r)*w/1024,y:y+(94+m.y-m.r)*h/720,w:m.r*2*w/1024,h:m.r*2*h/720});}else drawDrivingSonarInstrument(ctx,run,514,249,time);}
  else{text('换能器断电',175,116,24);text('开启电源后显示地形和距离',122,153,17);}
  if(s.target&&!r?.drawActive){
   const pose=run.authoredSite?.snapshot() as {position?:number[]}|undefined;
@@ -182,7 +183,7 @@ function drawVoiceprint(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,
 /** Passive CRT, kept sparse: label–value rows, thin rules, one status line. Slider and microphone are physical models on the bezel. */
 export function drawCompactSonarDesk(ctx:CanvasRenderingContext2D,run:PodRun,hits:HitMap,_time:number,H=720){
  const s=sonarDeskState(run),r=run.authoredSite?.navigationConsole,ui=passiveUi(run);
- const choices=run.authoredSite?.managesNarrative?run.authoredSite.dialogueChoices??[]:[];
+ const choices:readonly string[]=[]; // Player speech area, never a dialogue-choice menu.
  const records=r?.radioRecords??[];
  const micTarget=run.authoredSite?.radioSay?run.authoredSite.micTarget??null:null;
  if(ui.choice!==null&&!choices[ui.choice])ui.choice=null;
@@ -230,10 +231,11 @@ export function drawCompactSonarDesk(ctx:CanvasRenderingContext2D,run:PodRun,hit
     lines.forEach((line,j)=>text(line,64,cy+20+j*30,24,active?BRIGHT:AMBER));hits.add({id:'sonar.choose.'+i,x:24,y:cy,w:844,h:bh});cy+=bh+4;
    });
   }else{
-   const scatter=r?.passiveContacts?.find(x=>x.kind==='scatter');
-   text(scatter?`载波散乱 · 向${scatter.bearing}接近`:r?.pendingRadioCount?'新载波 · 对准声带自动播放':'持续监听',28,ruleY+44,28,BRIGHT,840);
-   if(s.message)text(s.message,28,ruleY+88,22,DIM,840);
-   if(micTarget)text(`麦克风 · 可通话：${micTarget}`,28,ruleY+(s.message?124:88),22,AMBER,840);
+   text(ui.editing?'罗温 · 输入中（Enter 发送 / Esc 取消）':'罗温 · 麦克风',28,ruleY+30,22,DIM,840);
+   ctx.font='26px "Microsoft YaHei"';
+   const speech=ui.editing?(ui.draft||'请输入你想说的话…'):(ui.spoken||'按麦克风或 M，随时讲话');
+   const lines=layoutCJK(ctx,speech,830),count=Math.max(1,Math.floor((H-ruleY-62)/30));
+   lines.slice(-count).forEach((line,i)=>text(line,28,ruleY+65+i*30,26,BRIGHT,840));
   }
   return;
  }
@@ -270,7 +272,7 @@ export function drawCompactSonarDesk(ctx:CanvasRenderingContext2D,run:PodRun,hit
   ['调频','拖动屏幕下方实体滑块，竖线对准声带约半秒即锁定。'],
   ['声带','人声：断续竖线　???：低频宽带加横向刮擦\n喙鲸：斜向扫线　本艇脉冲：44 kHz 横条'],
   ['散乱','求救载波太远时呈散乱噪点，朝方位接近后才能锁定。'],
-  run.authoredSite?.radioSay?['回复','按住右下实体麦克风说话（或按 M），松开后可口述或输入原话，Enter 发送、Esc 取消；也可点快捷语。']:['回复','有选项先点选一句；按住右下实体麦克风说话，松开发送。'],
+  ['讲话','点击麦克风或按 M，自由输入；Enter 发送，Esc 取消。并非每句话都会影响剧情。'],
  ];
  let cy=48;
  help.forEach(([label,body])=>{text(label,28,cy,24,BRIGHT);ctx.font='24px "Microsoft YaHei"';for(const part of body.split('\n'))for(const line of layoutCJK(ctx,part,730)){text(line,124,cy,24);cy+=34;}cy+=20;rule(28,cy-18,868);});

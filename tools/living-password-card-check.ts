@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {LivingDeck} from '../src/pod/sim/living-deck';
+const d=new LivingDeck();
+assert(d.readPasswordCard()[0].includes('尚未取回'));
+d.step(.1,{pod:[167,-1,101],heading:0,lamp:true,pulse:false,speed:0});
+const film=d.capture('card-photo',{targets:['living.photo.code'],creatures:[],lensBlocked:false,lamp:true,gateOpen:false,alexVisible:false});
+d.commitCapture(film);d.analyze(film);assert.equal(d.state.codeVerified,false,'photography cannot reveal card contents');
+d.armCollected('living.photo.code');assert(d.state.collected.includes('living.photo.code'));assert.equal(d.state.codeVerified,false,'recovery alone does not read card');
+assert(d.readPasswordCard().join().includes('0917'));assert(d.state.codeVerified);
+assert.equal(d.armCollected('living.photo.code').events.length,0,'no duplicate pickup');
+const restored=new LivingDeck();assert(restored.restore(d.snapshot()),'recovered/read card survives restore');
+assert(restored.state.codeVerified);
+console.log('PASS password card: no photographic unlock, recovery then reading, duplicate pickup and save/restore');

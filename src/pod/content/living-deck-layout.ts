@@ -117,7 +117,7 @@ export const LIVING_ITEMS: readonly LivingItem[] = [
   { id: 'living.valve.heat',  kind: 'terminal', space: 'V',  name: '阀门 V-1 疗养区供热回路', position: [141.4, 0, -36], face: 270, required: false },
   { id: 'living.valve.feed',  kind: 'terminal', space: 'V',  name: '阀门 V-2 疗养区营养液管', position: [141.4, 0, -29], face: 270, required: true },
   { id: 'living.valve.cool',  kind: 'terminal', space: 'V',  name: '阀门 V-3 冷却水回流',     position: [141.4, 0, -22], face: 270, required: false },
-  { id: 'living.photo.code',  kind: 'photo',    space: 'R5', name: '管理员尸体 · 手写密码',   position: [167, -2.2, 104], face: 0, required: true },
+  { id: 'living.photo.code',  kind: 'box',    space: 'R5', name: '管理员遗体 · 搜索衣袋证件夹',   position: [167.15, -2.05, 104.6], face: 0, required: true },
   { id: 'living.photo.guide', kind: 'photo',    space: 'R5', name: '墙面应急开闸步骤图',     position: [173.4, 0, 96],   face: 270, required: true },
   { id: 'living.photo.delroy',kind: 'photo',    space: 'R5', name: '员工治疗申请单 · 坎贝尔', position: [150.6, 0, 92],  face: 90,  required: false },
   { id: 'living.uplink.gate', kind: 'uplink',   space: 'A',  name: '闸门 F 外侧观察窗',     position: [188, -1.2, 42.6], face: 180, required: true },

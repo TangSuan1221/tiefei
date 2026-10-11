@@ -2,6 +2,17 @@ import { Box3, Vector3 } from 'three';
 
 /** Conservative swept cabin envelope, not a camera-point collision test. Metres. */
 export const HARBOR_HULL = { width: 2.8, length: 5, height: 3 } as const;
+/** Small automatic retreat uses the same continuous clearance rule as driving.
+ * Never jump to a clear endpoint across a thin frame or leave an invalid start. */
+export function sweepHarborRetreat(position:Vector3,heading:number,distance:number,clear:(p:Vector3)=>boolean):Vector3 {
+  const safe=position.clone();if(!clear(safe)||distance<=0)return safe;
+  const h=heading*Math.PI/180,back=new Vector3(-Math.sin(h),0,Math.cos(h));
+  const steps=Math.max(1,Math.ceil(distance/.04)),step=distance/steps;
+  for(let i=0;i<steps;i++){
+    const next=safe.clone().addScaledVector(back,step);if(!clear(next))break;safe.copy(next);
+  }
+  return safe;
+}
 /** Sweep yaw as well as translation: a long hull must not rotate into a wall. */
 export function sweepHarborHeading(heading:number,delta:number,clear:(heading:number)=>boolean):number {
   let safe=heading;

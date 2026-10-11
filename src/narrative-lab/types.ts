@@ -6,11 +6,15 @@ export type ObservationMode='camera'|'mobile-camera'|'passive-sonar'|'active-son
 export interface NpcLine {speaker:CharacterId|'player';text:string;requires?:Condition}
 export interface Choice {
  id:string;label:string;condition?:Condition;instructions:Effect[];
+ /** Only explicit recovery may follow a committed action. */
+ recovery?:boolean;
  /** Facts visible in the stable result recording, granted only by analysis. */
  evidence:string[];resultText:string;npcLines:NpcLine[];consequence:string;
 }
 export interface Resolution {id:string;label:string;condition?:Condition;instructions:Effect[];text:string}
 export interface StoryScene {
+ branchAxes?:string[];
+ continuity?:{condition:Condition;entryText?:string;scoutText?:string;facts?:string[]}[];
  id:string;chapter:number;title:string;location:string;entryText:string;
  observation:ObservationMode;
  scoutFootage:string;scoutFacts:string[];choices:Choice[];resolveText:string;
@@ -22,6 +26,7 @@ export interface StoryScene {
 export interface StoryEnding {id:string;title:string;condition:Condition;summary:string;priority:number}
 export interface Chapter {id:number;title:string;depth:number;dramaticQuestion:string}
 export interface Campaign {
+ branchPolicy?:'causal-v1';
  id:string;version:number;title:string;chapters:Chapter[];scenes:StoryScene[];endings:StoryEnding[];
  premise:string;
  prologue:{title:string;location:string;text:string;stateChanges:string[]};
@@ -29,6 +34,8 @@ export interface Campaign {
 }
 export type Phase='scout'|'decision'|'result'|'resolve'|'next'|'ended';
 export interface Tape {
+ /** Presentation locked at exposure; never used to grant evidence. Missing in older saves. */
+ videoPrompt?: {prompt:string|null;note:string;storyboard:string|null};
  id:string;sceneId:string;kind:'scout'|'result';epoch:number;capturedAt:number;
  facts:string[];text:string;ready:boolean;analyzed:boolean;
  /** Locks evidence content at exposure time; no generated video in this lab. */

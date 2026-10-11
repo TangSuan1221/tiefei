@@ -9,6 +9,7 @@ interface Pose{yaw:number;back:number;door:number;crouch:number;torso:V;look:Loo
 const REST:Pose={yaw:0,back:0,door:0,crouch:.12,torso:[.03,0,0],look:'pod',head:[0,0,0],shrug:0,r:[-.14,.33,.26],l:null,rPole:[-.7,-.4,-.6],lPole:[.7,-.4,-.6],rBend:0,lBend:0,sway:1,heave:0,walk:0};
 const WALK:Partial<Pose>={walk:1,look:'travel',r:null,crouch:.05,torso:[.06,0,0]};
 const POSES:Record<string,Partial<Pose>>={
+ injured:{crouch:.95,torso:[.55,0,.18],look:'pod',r:[-.2,-.18,.22],l:[.45,.3,.12],heave:1,sway:0},
  frozen:{back:.3,crouch:.1,torso:[-.07,0,0],head:[.14,0,0],shrug:.04,r:[-.07,.88,.37],rPole:[-1,-.3,.3],l:[.34,-.02,-.16],sway:0},
  signals_pod:{torso:[-.04,0,-.05],head:[-.12,0,0],l:[.36,1.12,.24],lPole:[1,-.2,-.3]},
  guarded:{yaw:-.35,back:.28,crouch:.18,torso:[.08,-.5,0],look:'ahead',head:[.2,-1.05,0],shrug:.05,r:[.13,.32,.22],l:[-.12,.28,.25],rPole:[-.8,-.6,0],lPole:[.8,-.6,0],sway:.4},

@@ -1,3 +1,4 @@
+import {livingOpening,livingLine,type LivingStory} from './living-story';
 import {livingObjective,type LivingStage,type LivingState} from './living-deck';
 
 type Effect='radioCut'|'broadcast'|'radioRestore'|'reunion';
@@ -71,9 +72,8 @@ const GROUPS:readonly {id:string;stage?:LivingStage;when:(s:S)=>boolean;beats:Be
  ]},
  {id:'office',stage:'code',when:s=>s.stage==='code',beats:[
   {text:'罗温：管理处。桌边有人。'},
-  {text:'罗温：她手里攥着纸。一串数字……还有一句“对不起”。'},
-  {text:'罗温：闸门是从外面锁的。是她锁的？纸上写着“为了让里面的人安全”。'},
-  {text:'罗温：这只是她自己写的。没有锁的记录，也没有监控。先拍下来。'},
+  {text:'罗温：衣袋里有个证件夹。隔着舷窗看不清里面的东西。'},
+  {text:'罗温：把艇停稳。用机械臂取回来，再到分析台打开。'},
  ]},
  {id:'delroy',when:s=>s.delroyVerified,beats:[
   {text:'罗温：德尔罗伊·坎贝尔。申请对象，孙子。等待治疗资格。'},
@@ -110,6 +110,7 @@ const EFFECTS:readonly Effect[]=['radioCut','broadcast','radioRestore','reunion'
 /** One ordered, serializable channel. Objectives publish when a stage's lines end; facts stay owned by LivingDeck. */
 export class LivingDialogue {
  private published:LivingStage='descend';
+ story?:LivingStory;
  private objectiveText='';
  private pending:Beat[]=[];
  private active:Beat|null=null;
@@ -128,7 +129,11 @@ export class LivingDialogue {
   }
   if(!this.pending.length){
    const g=GROUPS.find(g=>!this.played.includes(g.id)&&g.when(s));
-   if(g){this.played.push(g.id);const beats=structuredClone(g.beats);if(g.stage)beats[beats.length-1]!.end=g.stage;this.pending.push(...beats);}
+   if(g){this.played.push(g.id);let beats=structuredClone(g.beats);if(this.story){
+    if(g.id==='descend')beats=livingOpening(this.story).map((text,i,a)=>({text,...(i===a.length-1?{effect:'radioCut' as const}:{})}));
+    else if(g.id==='met'&&this.story.partner==='keeper')beats=[{text:'周岑：门开了，线缆接回水声机了。',effect:'radioRestore'},{text:'罗温：上层还有人等着。'},{text:'周岑：我去找安全的上行路。这里的营养供应一直优先送给贵宾，你把记录带出去。'},{text:'罗温：我先去下行井，查清事故。',effect:'reunion'}];
+    else beats=beats.map(b=>({...b,text:livingLine(b.text,this.story)}));
+   }if(g.stage)beats[beats.length-1]!.end=g.stage;this.pending.push(...beats);}
   }
   if(!this.pending.some(b=>b.end))this.publish(s.stage,s);
   if(this.pending.length){this.active=this.pending.shift()!;this.remaining=this.active.seconds??Math.max(4,Math.min(32,this.active.text.length*.18));out.line=this.active.text;out.seconds=this.remaining;}

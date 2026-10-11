@@ -33,6 +33,7 @@
  */
 
 /** 默认走 vite dev proxy。它等价于上游的 /v1 */
+import {lockVideoCamera} from '../content/fixed-camera';
 const API_BASE = (import.meta.env.VITE_VIDEO_API_BASE as string | undefined) ?? '/api/video';
 /** 直连模式的 key。留空就不发 Authorization 头，由代理去补 */
 const API_KEY = (import.meta.env.VITE_VIDEO_KEY as string | undefined) ?? '';
@@ -50,8 +51,6 @@ export const VIDEO_ENABLED = /^(1|true|yes)$/i.test(
   (import.meta.env.VITE_VIDEO_ENABLED as string | undefined) ?? '',
 );
 
-/** 片长，秒。探测时用的 5，再长没意义 —— 屏幕上放不到两遍就该切走了 */
-const DURATION = 5;
 
 /** 首次轮询前先等这么久。生成实测约 9 秒，早问纯属浪费 */
 const FIRST_POLL_DELAY = 6000;
@@ -134,7 +133,8 @@ const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
  * 因为调用方（view/footage.ts）对每一种失败都有一句对应的游戏内台词，
  * 而 try/catch 里区分不出「key 不对」和「断网」。
  */
-export async function requestVideo(prompt: string, signal?: AbortSignal, keyframe?: string, progress?: (status: string) => void): Promise<VideoResult> {
+export async function requestVideo(prompt: string, signal?: AbortSignal, keyframe?: string, progress?: (status: string) => void, duration:5|10=5): Promise<VideoResult> {
+  prompt = lockVideoCamera(prompt);
   if (!VIDEO_ENABLED) return { ok: false, fail: { kind: 'disabled' } };
 
   const deadline = Date.now() + TOTAL_TIMEOUT;
@@ -145,13 +145,13 @@ export async function requestVideo(prompt: string, signal?: AbortSignal, keyfram
   // 降到游戏分辨率的活全在 view/footage.ts 里干。
   let job: VideoJob;
   try {
-    let body: BodyInit = JSON.stringify({ model: MODEL, prompt, duration: DURATION, size: '480p' });
+    let body: BodyInit = JSON.stringify({ model: MODEL, prompt, duration, size: '480p' });
     if (keyframe) {
       const match = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(keyframe);
       if (!match) throw new Error('Invalid shutter keyframe');
       body = JSON.stringify({ model: MODEL,
-        prompt: 'Use the attached image as the exact opening frame. Preserve its camera position, framing, architecture and lighting. Animate underwater particles and the described events without changing location. ' + prompt,
-        duration: DURATION, size: '480p', first_frame: keyframe });
+        prompt: (prompt.includes('ENVIRONMENT_ONLY_REFERENCE:')?'Use the attached image as an environment and camera reference, not an exact opening frame. Add only the described generated creatures; preserve the architecture, camera and lighting. ':'Use the attached image as the exact opening frame. Preserve its camera position, framing, architecture and lighting. Animate underwater particles and the described events without changing location. ') + prompt,
+        duration, size: '480p', first_frame: keyframe });
     }
     const res = await fetch(`${API_BASE}/videos`, {
       method: 'POST',

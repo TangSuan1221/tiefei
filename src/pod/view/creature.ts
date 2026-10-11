@@ -105,6 +105,10 @@ export function drawCameraFeed(
 
   const room = roomFeed(run, time, light, zoom);
   const pano = room ? null : sitePano(run);
+  // The harbor owns depth-tested sediment and beam scattering in its 3D scene.
+  // Legacy screen-space snow/wreck silhouettes would float over bulkheads and
+  // move independently of the boat; keep those effects for legacy feeds.
+  const harborOptics=run.phase==='site'&&!!run.authoredSite&&run.legIndex===0;
   if (run.phase==='site' && run.authoredSite) {
     run.authoredSite.draw(ctx,w,h,time,!!input.keyframe);
   } else if (room) {
@@ -125,7 +129,7 @@ export function drawCameraFeed(
   // 2. 探照灯锥。从镜头下方偏左打出去，像焊在舱外的那盏。
   //    全景里的光已经烘进去了，这里只补一层很淡的锥雾，免得把房间洗白。
   //    实景房间的光是逐面算的（litness），再叠一层锥雾会把它洗白，所以跳过。
-  if (light > 0.04 && !pano && !room) {
+  if (light > 0.04 && !pano && !room && !harborOptics) {
     const apexX = w * (0.50 + pan * 0.04);
     const apexY = h * (0.92 - tilt * 0.08);
     const cone = ctx.createRadialGradient(apexX, apexY, h * 0.02, apexX, apexY - h * 0.55, h * (1.1 / zoom));
@@ -139,11 +143,11 @@ export function drawCameraFeed(
 
   // 3. 海雪。悬浮物是深海镜头里最便宜也最有效的「这是水」。
   //    房间里也一样有 —— 那艘艇早就灌满了。
-  drawMarineSnow(ctx, w, h, time, light, zoom, pan, depthN);
+  if(!harborOptics)drawMarineSnow(ctx, w, h, time, light, zoom, pan, depthN);
 
   // 4/5. 远景地形和近处废墟。全景和实景房间都已经把「外面长什么样」定死了，
   //      再叠这两层只会互相打架 —— 舱在房间里，不该看见海床。
-  if (!pano && !room) {
+  if (!pano && !room && !harborOptics) {
     drawTerrainGhosts(ctx, w, h, run, light, time);
     const wreck = run.siteWreck();
     if (wreck && Math.abs(pan) < 0.7) {
@@ -894,94 +898,72 @@ function drawVideoNoise(
  * 方位刻度带：镜头实际朝向 = 艇首航向 + 云台偏转。转向时刻度滚动，
  * 中央指针下就是当前朝向；右侧给俯仰角。
  */
-function drawHeadingTape(ctx: CanvasRenderingContext2D, w: number, h: number, run: PodRun): void {
-  const mid = w / 2;
-  const left = w * 0.24, right = w * 0.76, base = h * 0.18;
-  const span = 90; // 刻度带覆盖的角度宽度
-  const pxPerDeg = (right - left) / span;
-  const heading = (((run.heading + (run.camPan * 180) / Math.PI) % 360) + 360) % 360;
-  const pitch = run.pitch + (run.camTilt * 180) / Math.PI;
-  const font = (k: number) => `${(h * k).toFixed(1)}px "JetBrains Mono", monospace`;
-  const cardinal: Record<number, string> = { 0: 'N', 90: 'E', 180: 'S', 270: 'W' };
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(left - h * 0.02, base - h * 0.05, right - left + h * 0.04, h * 0.08);
-  ctx.clip();
-  ctx.strokeStyle = rgba(PALETTE.ember, 0.45);
-  ctx.lineWidth = Math.max(1, h * 0.003);
-  ctx.beginPath();
-  ctx.moveTo(left, base);
-  ctx.lineTo(right, base);
-  ctx.stroke();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
-  const first = Math.ceil((heading - span / 2) / 5) * 5;
-  for (let d = first; d <= heading + span / 2; d += 5) {
-    const x = mid + (d - heading) * pxPerDeg;
-    const fade = 1 - Math.min(1, Math.abs(x - mid) / ((right - left) / 2)) * 0.7;
-    const norm = ((d % 360) + 360) % 360;
-    const major = norm % 15 === 0;
-    ctx.strokeStyle = rgba(PALETTE.ember, (major ? 0.8 : 0.45) * fade);
-    ctx.beginPath();
-    ctx.moveTo(x, base);
-    ctx.lineTo(x, base - h * (major ? 0.022 : 0.011));
-    ctx.stroke();
-    if (major) {
-      const label = cardinal[norm];
-      ctx.fillStyle = rgba(label ? PALETTE.bone : PALETTE.ember, (label ? 0.95 : 0.7) * fade);
-      ctx.font = font(label ? 0.034 : 0.024);
-      ctx.fillText(label ?? String(norm).padStart(3, '0'), x, base - h * 0.026);
-    }
+/** Small neutral backing is confined to instruments; the optical image is untouched elsewhere. */
+function instrumentBacking(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number):void {
+  ctx.save();ctx.shadowBlur=0;
+  const g=ctx.createLinearGradient(x,y,x+w,y);
+  g.addColorStop(0,'rgba(2,7,6,0)');g.addColorStop(.14,'rgba(2,7,6,.58)');
+  g.addColorStop(.86,'rgba(2,7,6,.58)');g.addColorStop(1,'rgba(2,7,6,0)');
+  ctx.fillStyle=g;
+  const rows=24;
+  for(let i=0;i<rows;i++){
+    const t=(i+.5)/rows;ctx.globalAlpha=Math.min(1,t/.16,(1-t)/.16);
+    ctx.fillRect(x,y+h*i/rows,w,h/rows+.2);
   }
   ctx.restore();
-
-  // 中央指针与读数
-  ctx.save();
-  ctx.fillStyle = rgba(PALETTE.ember, 0.9);
-  ctx.beginPath();
-  ctx.moveTo(mid, base + h * 0.004);
-  ctx.lineTo(mid - h * 0.014, base + h * 0.026);
-  ctx.lineTo(mid + h * 0.014, base + h * 0.026);
-  ctx.closePath();
-  ctx.fill();
-  const boxW = h * 0.12, boxH = h * 0.042, boxY = base + h * 0.032;
-  ctx.fillStyle = 'rgba(0,0,0,0.55)';
-  ctx.fillRect(mid - boxW / 2, boxY, boxW, boxH);
-  ctx.strokeStyle = rgba(PALETTE.ember, 0.7);
-  ctx.lineWidth = Math.max(1, h * 0.003);
-  ctx.strokeRect(mid - boxW / 2, boxY, boxW, boxH);
-  ctx.fillStyle = rgba(PALETTE.bone, 0.95);
-  ctx.font = font(0.032);
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(`${heading.toFixed(0).padStart(3, '0')}°`, mid, boxY + boxH / 2);
-  ctx.fillStyle = rgba(PALETTE.ember, 0.75);
-  ctx.font = font(0.024);
-  ctx.fillText(`俯仰 ${pitch >= 0 ? '+' : ''}${pitch.toFixed(0)}°`, mid, boxY + boxH + h * 0.022);
+}
+function instrumentText(ctx:CanvasRenderingContext2D,text:string,x:number,y:number):void {
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.95)';ctx.shadowBlur=2;ctx.shadowOffsetY=1;
+  ctx.fillText(text,x,y);ctx.restore();
+}
+function drawHeadingTape(ctx:CanvasRenderingContext2D,w:number,h:number,run:PodRun):void {
+  const mid=w*.5,left=w*.24,right=w*.76,base=h*.18,span=90;
+  const heading=((run.heading+run.camPan*180/Math.PI)%360+360)%360;
+  const pitch=run.pitch+run.camTilt*180/Math.PI;
+  const cardinal:Record<number,string>={0:'N',90:'E',180:'S',270:'W'};
+  ctx.save();ctx.shadowBlur=0;
+  instrumentBacking(ctx,left-h*.025,base-h*.09,right-left+h*.05,h*.15);
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  // One dominant reading; subdued scale labels avoid the former boxed double header.
+  ctx.font=`500 ${h*.038}px "Consolas",monospace`;ctx.fillStyle='#d3edbb';
+  instrumentText(ctx,`${String(Math.round(heading)%360).padStart(3,'0')}°`,mid,base-h*.043);
+  ctx.lineWidth=1;ctx.strokeStyle='rgba(170,208,145,.32)';
+  ctx.beginPath();ctx.moveTo(left,base);ctx.lineTo(right,base);ctx.stroke();
+  for(let d=Math.ceil((heading-span/2)/5)*5;d<=heading+span/2;d+=5){
+    const x=mid+(d-heading)*(right-left)/span,norm=(d%360+360)%360;
+    const major=norm%15===0,fade=1-Math.abs(x-mid)/((right-left)/2)*.75;
+    ctx.strokeStyle=`rgba(177,215,151,${fade*(major?.8:.42)})`;
+    ctx.beginPath();ctx.moveTo(x,base);ctx.lineTo(x,base-h*(major?.018:.009));ctx.stroke();
+    if(major&&Math.abs(x-mid)>h*.075){
+      ctx.font=`${h*(cardinal[norm]?.025:.018)}px "Consolas",monospace`;
+      ctx.fillStyle=`rgba(191,220,171,${fade})`;
+      instrumentText(ctx,cardinal[norm]??String(norm).padStart(3,'0'),x,base-h*.028);
+    }
+  }
+  ctx.strokeStyle='#c6e8aa';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(mid-h*.008,base+h*.015);ctx.lineTo(mid,base+h*.004);ctx.lineTo(mid+h*.008,base+h*.015);ctx.stroke();
+  ctx.font=`${h*.020}px "Consolas","Microsoft YaHei",monospace`;ctx.fillStyle='#9db78a';
+  instrumentText(ctx,`俯仰  ${pitch>=0?'+':''}${pitch.toFixed(0)}°`,mid,base+h*.047);
+  ctx.restore();
+}
+/** Compact left-edge telemetry, without a panel or background fill. */
+function drawPositionReadout(ctx:CanvasRenderingContext2D,w:number,h:number,run:PodRun):void {
+  const site=run.authoredSite,p=site?.position;if(!site||!p)return;
+  const c=displayCoords([p.x,p.y,p.z],site.coordinateDatum??run.depth+(site.elevation??0));
+  ctx.save();ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  ctx.font=`${h*.022}px "Consolas",monospace`;
+  const x=w*.215,y=h*.38;
+  const rows=[`X     ${c.x.toFixed(1)}`,`Y     ${c.y.toFixed(1)}`,`DEPTH ${c.depth.toFixed(1)} m`];
+  rows.forEach((text,i)=>{ctx.fillStyle=i===2?'#c3d6b3':'#a6b69b';instrumentText(ctx,text,x,y+i*h*.038);});
   ctx.restore();
 }
 
-/** 舷窗左侧的艇位读数：X / Y 为水平坐标，垂直方向直接给深度米数。 */
-function drawPositionReadout(ctx: CanvasRenderingContext2D, w: number, h: number, run: PodRun): void {
-  const site = run.authoredSite, p = site?.position;
-  if (!site || !p) return;
-  const datum = site.coordinateDatum ?? run.depth + (site.elevation ?? 0);
-  const c = displayCoords([p.x, p.y, p.z], datum);
-  const x = w * 0.27;
-  let y = h * 0.34;
-  ctx.save();
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  for (const [label, value] of [['X', c.x.toFixed(1)], ['Y', c.y.toFixed(1)], ['DEPTH', `${c.depth.toFixed(1)} m`]] as const) {
-    ctx.fillStyle = rgba(PALETTE.ember, 0.7);
-    ctx.font = `${(h * 0.026).toFixed(1)}px "JetBrains Mono", monospace`;
-    ctx.fillText(label, x, y);
-    ctx.fillStyle = rgba(PALETTE.bone, 0.92);
-    ctx.font = `${(h * 0.04).toFixed(1)}px "JetBrains Mono", monospace`;
-    ctx.fillText(value, x, y + h * 0.045);
-    y += h * 0.1;
-  }
+/** Live window instruments only; never colour or modify the exterior feed. */
+export function drawPortholeReadouts(ctx:CanvasRenderingContext2D,w:number,h:number,run:PodRun):void {
+  if(!run.powered || run.shot.viewing || !run.authoredSite?.diegeticGuidance)return;
+  ctx.save();ctx.shadowColor='#182a0d';ctx.shadowBlur=3;
+  drawHeadingTape(ctx,w,h,run);
+  drawPositionReadout(ctx,w,h,run);
   ctx.restore();
 }
 
@@ -993,7 +975,9 @@ function drawViewfinder(
   time: number,
   aim: number,
 ): void {
-  if (!run.powered) return;
+  // Live porthole instruments are drawn separately by drawPortholeReadouts.
+  // Avoid duplicating the camera recording viewfinder over those readouts.
+  if (!run.powered || run.authoredSite?.diegeticGuidance) return;
   ctx.save();
   const pad = h * 0.04;
   // 四角括号

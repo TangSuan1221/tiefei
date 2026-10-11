@@ -274,7 +274,7 @@ export class PodSession {
     this.applyHeld(dt);
     this.run.frame(dt);
     this.view.frame(dt, this.run);
-    if(this.tx.open&&(this.run.at!=='nav'||this.run.outcome.kind!=='alive'||!this.run.authoredSite?.radioSay))this.tx.close();
+    if(this.tx.open&&(this.run.at!=='nav'||this.run.outcome.kind!=='alive'))this.tx.close();
     if(now>=this.saveAt){this.saveAt=now+15000;this.saveCheckpoint();}
     if((this.run.at || this.run.outcome.kind!=='alive' || this.blurred || isGmConsoleOpen()) && document.pointerLockElement===this.canvas) {
       document.exitPointerLock();this.keys.clear();
@@ -378,7 +378,7 @@ export class PodSession {
     void this.view.unlockAudio();
     const key = interactKey?'e':facilityKey?'f':e.key.toLowerCase();
     if (isGmConsoleOpen()) return;
-    if((this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab')&&key==='m'&&this.run.authoredSite?.radioSay){e.preventDefault();if(this.run.at!=='nav')this.run.walkTo('nav');this.openTransmit(false);return;}
+    if((this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab')&&key==='m'){e.preventDefault();if(this.run.at!=='nav')this.run.walkTo('nav');this.openTransmit(false);return;}
     this.keys.add(key);
     // E activates one shared cockpit. Clicking a side screen must not disable F.
     if(this.run.at && ['camera','nav','lab'].includes(this.run.at) && key==='f'){e.preventDefault();this.run.authoredSite?.interact();return;}
@@ -479,10 +479,15 @@ export class PodSession {
       return;
     }
     const picked=this.view.pick(e.clientX,e.clientY);
-    if(this.view.cabin.deviceClick()){this.releaseStick();this.sonarDrag=false;return;}
+    if(this.view.cabin.deviceClick()){
+      // Device zoom changes the visible keyboard context as well as the eye.
+      // Without this, a focused lab still sends number keys to the nav desk.
+      const focused=this.view.cabin.zoomedDevice;if(focused)this.run.walkTo(focused);
+      this.releaseStick();this.sonarDrag=false;return;
+    }
     const id = this.deskAction(picked);
     if(id?.startsWith('sonar.tune.'))this.sonarDrag=true;
-    if(id==='sonar.mic'){this.micHeld=performControl(this.run,'sonar.mic.down');if(this.micHeld){this.view.audio.cue('radio.squelch',{gain:.25});if(this.run.authoredSite?.radioSay&&this.run.authoredSite.micTarget)this.ptt.start();}return;}
+    if(id==='sonar.mic'){if(this.run.at!=='nav')this.run.walkTo('nav');this.openTransmit(false);return;}
     if(id==='helm.stick'){this.stickDrag={x:e.clientX,y:e.clientY};return;}
     if(id==='helm.brake'){this.heldPilot='helm.brake';return;}
     if(id==='nav.thrust'){this.toggleNavDrive();return;}
@@ -547,20 +552,19 @@ export class PodSession {
   }
   /** Free-speech radio for sites that implement radioSay; returns whether the transmit panel opened. */
   private openTransmit(transcribing:boolean):boolean {
-    const site=this.run.authoredSite;if(!site?.radioSay)return false;
+    const site=this.run.authoredSite;
     if(this.tx.open)return true;
-    const target=site.micTarget??null;
-    if(!target){this.radioNotice('频道里只有底噪，没有人回答。',true);return false;}
-    if(site.micReady===false){this.radioNotice('对方还在说话……',false);return false;}
+    const target=site?.micTarget??'开放频道';
     if(document.pointerLockElement)document.exitPointerLock();
     this.keys.clear();this.releaseStick();this.heldPilot=null;
-    const ui=passiveUi(this.run),choices=[...(site.dialogueChoices??[])];
-    const prefill=ui.choice!==null?choices[ui.choice]:undefined;
-    const done=(ok:boolean)=>{this.ptt.abort();if(ok)ui.choice=null;sonarDeskState(this.run).message=ok?'已发送 · 等待回答':'';this.view.audio.cue(ok?'ui.select':'ui.error',{gain:.4});};
+    const ui=passiveUi(this.run),choices:string[]=[];
+    const prefill='';ui.tab='main';ui.editing=true;ui.draft='';
+    const done=(ok:boolean)=>{this.ptt.abort();if(ok)ui.choice=null;sonarDeskState(this.run).message=ok?'已发言':'';this.view.audio.cue(ok?'ui.select':'ui.error',{gain:.4});};
     this.tx.show({target,choices,prefill,transcribing,
-      onSend:text=>{const s=this.run.authoredSite;if(!s?.radioSay)return;const i=(s.dialogueChoices??[]).indexOf(text);done(i>=0&&s.chooseDialogue?s.chooseDialogue(i):s.radioSay(text));},
+      onDraft:text=>{ui.draft=text;},
+      onSend:text=>{ui.editing=false;ui.spoken=text;ui.draft='';this.run.pushLog('罗温：'+text,'system');const s=this.run.authoredSite;if(s?.radioSay&&s.micTarget&&s.micReady!==false)s.radioSay(text);done(true);},
       onChoose:i=>{const s=this.run.authoredSite;done(!!s?.chooseDialogue?.(i));},
-      onClose:()=>{this.ptt.abort();this.keys.clear();},
+      onClose:()=>{ui.editing=false;ui.draft='';this.ptt.abort();this.keys.clear();},
     });
     this.view.audio.cue('radio.squelch',{gain:.25});
     return true;
@@ -608,4 +612,3 @@ export class PodSession {
     document.getElementById('again')?.addEventListener('click', () => location.reload());
   }
 }
-

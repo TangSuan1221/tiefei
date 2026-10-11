@@ -139,7 +139,7 @@ export class LivingNavigation implements NavigationConsole {
   }
   drawActive(ctx: CanvasRenderingContext2D, w: number, h: number, panel = true) {
     this.markerHits = [];
-    if (!this.host.run.powered || !this.host.run.activeSonarEnabled) return;
+    if (!this.host.run.powered) return;
     ctx.save(); this.host.drawActive(ctx, w, h);
     const size = Math.min(w, h / .93), cx = size / 2, cy = size * .48, radius = size * .30;
     this.waypoints.forEach((v, index) => {

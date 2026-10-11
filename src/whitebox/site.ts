@@ -1,4 +1,5 @@
 import { sonarDeskState } from '../pod/view/sonar-desk';
+import {isAudioMuted} from '../audio/mute';
 import * as T from 'three';
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
@@ -22,7 +23,7 @@ export class WhiteboxSite implements AuthoredSite {
  startRadio(){this.radioStep=0;this.radioWait=0;}
  replayRadio(){this.startRadio();}
  replyRadio(){if(this.radioStep!==1)return false;this.radioStep=2;this.radioWait=8;this.radioLine('罗温：听见了。我是来调查事故的，正在驾驶潜艇。你受伤了吗？门外是什么？');return true;}
- private radioLine(text:string){this.speak(text);if('speechSynthesis' in window){const u=new SpeechSynthesisUtterance(text);u.lang='zh-CN';u.rate=.95;window.speechSynthesis.cancel();window.speechSynthesis.speak(u);}}
+ private radioLine(text:string){this.speak(text);if(!isAudioMuted()&&'speechSynthesis' in window){const u=new SpeechSynthesisUtterance(text);u.lang='zh-CN';u.rate=.95;window.speechSynthesis.cancel();window.speechSynthesis.speak(u);}}
  describeEvidence(value:unknown){const e=value as Evidence;if(!e?.visible)return '测试拍摄描述：画面是昏暗的港口设施，没有拍到需要确认的目标。';return '测试拍摄描述：'+({threat:'断桥对面有一名穿潜水服的人。隔间外伏着肢体反折的生物，挡住了门口。',lure:'生物已经完全进入东侧货仓，货箱停在里面，隔离门仍然敞开。',gate:e.monsterInside?'隔离门落到底，生物留在观察窗后。门外的通道空了。':'隔离门已关闭，生物却还在仓外。',departure:'艾里亚斯穿过内侧门，在门后向潜艇挥手。两条撤离路线被断桥分开。',empty:'镜头没有拍到可辨认的目标。'}[e.kind]);}
  readonly world=createWhiteboxWorld(); readonly position=new T.Vector3(0,2,18);
  recording=false; complete=false; identified=false; powered=false; lured=false; verified=false; rescued=false;

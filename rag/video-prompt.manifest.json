@@ -1,13 +1,33 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-video-prompts",
-  "revision": "2026-10-08-v1-level01",
-  "scope": "level-01-harbor-rescue",
+  "revision": "2026-10-11-v2-branch-library-scout-exposure-snapshot-structure-v2-mandatory-trigger-reference-abyssal-horror-species-diversity-20261012-fixed-camera",
+  "scope": "main-harbor-design-and-narrative-lab-test",
   "documents": [
     {
       "path": "docs/video-prompts/level-01-harbor-rescue.md",
       "kind": "video-prompts",
       "priority": 100
+    },
+    {
+      "path": "docs/video-prompts/generation-standard.md",
+      "kind": "video-prompts",
+      "priority": 110
+    },
+    {
+      "path": "src/narrative-lab/prompt-library.json",
+      "kind": "video-library",
+      "priority": 110
+    },
+    {
+      "path": "docs/video-prompts/structured-prompt-standard.md",
+      "kind": "video-prompts",
+      "priority": 110
+    },
+    {
+      "path": "docs/video-prompts/runtime-reference-contract.md",
+      "kind": "video-prompts",
+      "priority": 120
     }
   ],
   "evidenceFiles": [
@@ -25,6 +45,23 @@
     "docs/story-split-route-2026-09-30.md",
     "docs/video-api-probe.md",
     "docs/footage-state.md",
-    "qa/video-prompts/runtime-audit-2026-10-08.json"
+    "qa/video-prompts/runtime-audit-2026-10-08.json",
+    "src/narrative-lab/prompt-library.json",
+    "src/narrative-lab/prompt-composer.ts",
+    "src/narrative-lab/video-prompts.ts",
+    "src/narrative-lab/campaign.ts",
+    "tools/video-prompt-rag.mjs",
+    "tools/video-prompt-compose.ts",
+    "tools/window-locks-ts-loader.mjs",
+    "src/narrative-lab/engine.ts",
+    "src/narrative-lab/main.ts",
+    "src/narrative-lab/types.ts",
+    "tools/narrative-scout-prompt-check.ts",
+    "tools/narrative-video-prompts-browser-check.mjs",
+    "docs/video-prompts/runtime-reference-contract.md",
+    "src/pod/content/video-reference-policy.json",
+    "src/pod/net/video.ts",
+    "src/pod/content/fixed-camera.ts",
+    "tools/fixed-video-camera-check.mjs"
   ]
 }

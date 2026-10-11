@@ -1,3 +1,5 @@
+import {auditBranches} from './branch-audit';
+import {composeBranchPrompt,composeScoutPrompt} from './prompt-composer';
 import type { ActionResult, Campaign, Candidate, Choice, Condition, Effect, NpcLine, Resolution, StoryScene, StoryState, Tape } from './types';
 
 const copy = <T>(value:T):T => structuredClone(value);
@@ -16,6 +18,7 @@ export class StoryEngine {
   private data!:StoryState;
   constructor(campaign:Campaign) {
     this.campaign=copy(campaign);
+    const branchErrors=auditBranches(campaign);if(branchErrors.length)throw new Error(branchErrors.join("\n"));
     if(!campaign.scenes.length || new Set(campaign.scenes.map(s=>s.id)).size!==campaign.scenes.length)
       throw new Error('叙事场景为空或 ID 重复。');
     for(const scene of campaign.scenes){
@@ -28,7 +31,16 @@ export class StoryEngine {
   }
   get state():StoryState {return this.snapshot();}
   get scene():StoryScene {return copy(this.current);}
-  private get current():StoryScene {return this.campaign.scenes[this.data.sceneIndex];}
+  private sceneFor(index:number,state:StoryState):StoryScene {
+    const scene=copy(this.campaign.scenes[index]);
+    for(const continuation of scene.continuity??[])if(this.test(continuation.condition,state)){
+      if(continuation.entryText)scene.entryText+='\n'+continuation.entryText;
+      if(continuation.scoutText)scene.scoutFootage+='\n'+continuation.scoutText;
+      if(continuation.facts)scene.scoutFacts.push(...continuation.facts);
+    }
+    return scene;
+  }
+  private get current():StoryScene {return this.sceneFor(this.data.sceneIndex,this.data);}
   snapshot():StoryState {return copy(this.data);}
   reset():void {
     this.data={schemaVersion:1,campaignId:this.campaign.id,campaignVersion:this.campaign.version,
@@ -101,6 +113,8 @@ export class StoryEngine {
       if(!this.data.player.alive)reason='玩家无法行动。';
       else if(this.busy)reason='等待本卷曝光和显影完成。';
       else if(!['decision','resolve'].includes(this.data.phase))reason='先完成本阶段摄影核验。';
+      else if(this.campaign.branchPolicy&&this.data.phase==='resolve'&&!choice.recovery)reason='这个分支已经发生；只能选择明确的补救行动，不能换选项抹去结果。';
+      else if(this.campaign.branchPolicy&&this.data.phase==='decision'&&choice.recovery)reason='补救只在对应行动的结果核验之后开放。';
       else if(this.data.events.some(e=>e.sceneId===this.current.id&&e.type===`action:${choice.id}`))reason='此行动已经执行，不能重复领取效果。';
       else if(choice.condition&&!this.evaluate(choice.condition))reason='前置事实、报告或人物状态尚未满足。';
       else if(!this.planned(choice))reason='资源不足；返回维护点补给后重试。';
@@ -131,7 +145,8 @@ export class StoryEngine {
     if(this.data.phase==='result'&&!choice)return no('没有已执行的结果可供拍摄。');
     const tape:Tape={id:`tape.${this.data.tapes.length+1}`,sceneId:this.current.id,kind:this.data.phase,
       epoch:this.data.epoch,capturedAt:this.data.clock,facts:copy(this.data.phase==='scout'?this.current.scoutFacts:choice!.evidence),
-      text:this.data.phase==='scout'?this.current.scoutFootage:choice!.resultText,ready:false,analyzed:false,source:'authored-storyboard'};
+      text:this.data.phase==='scout'?this.current.scoutFootage:choice!.resultText,ready:false,analyzed:false,source:'authored-storyboard',
+      videoPrompt:this.data.phase==='scout'?composeScoutPrompt(this.current):composeBranchPrompt(this.current,choice!)};
     this.data.pod.power-=.06;this.data.tapes.push(tape);this.data.activeTapeId=tape.id;
     this.data.captureRemaining=5;this.data.developRemaining=12;
     const mode=this.current.observation;
@@ -172,6 +187,7 @@ export class StoryEngine {
   report():ActionResult {
     if(this.irreversible())return no('最后行动已经执行，不能补交报告改写撤离依据。');
     if(this.data.captureRemaining>0)return no('曝光期间不能离开摄像工位报告。');
+    if(this.campaign.branchPolicy&&this.data.world.vanceSignal!=='restored')return no('万斯当前失联；记录留在本地，不能写成他已经收到。');
     const added=this.data.knowledge.player.filter(f=>!this.data.knowledge.vance.includes(f));
     if(!added.length)return ok('没有尚未报告的新事实。');
     this.data.knowledge.vance.push(...added);this.event('report',`已向万斯报告：${added.join('、')}`);
@@ -179,8 +195,9 @@ export class StoryEngine {
   }
   private present(speaker:NpcLine['speaker']):boolean {
     if(speaker==='player')return this.data.player.alive;
-    if(speaker==='vance')return this.data.world.vanceAlive!==false;
+    if(speaker==='vance')return this.data.world.vanceAlive!==false&&(!this.campaign.branchPolicy||this.data.world.vanceSignal==='restored');
     const w=this.data.world;
+    if(this.campaign.branchPolicy&&speaker==='elias'&&(w.eliasStatus==='injured'||w.rescueAbandoned===true||w.companionRoute==='separated'||w.partner==='keeper'))return false;
     const status=w[`${speaker}Disposition`]??w[`${speaker}Status`];
     const unavailable=['dead','isolated','damaged','restrained','left','missing'];
     if([w[`${speaker}Disposition`],w[`${speaker}Status`]].some(s=>unavailable.includes(String(s)))||w[`${speaker}Alive`]===false)return false;
@@ -258,6 +275,7 @@ export class StoryEngine {
     for(const person of people)replay.relations[person]={trust:0,respect:0};
     replay.knowledge={player:[],vance:[],elias:[],vera:[],delroy:[]};
     const performed=new Set<string>();
+    const exposed=new Map<string,{text:string;facts:string[]}>();
     let entered=-1,replayedPhase:StoryState['phase']='scout',expectedEpoch=0,lastChoice:string|null=null,lastResolution:string|null=null;
     for(const event of s.events){
       if(event.type==='enter'){
@@ -265,10 +283,18 @@ export class StoryEngine {
         entered++;
         if(this.campaign.scenes[entered]?.id!==event.sceneId)fail('场景进入顺序不符');
         if(entered>0)expectedEpoch++;
-        replayedPhase='scout';lastChoice=null;lastResolution=null;continue;
+        replay.sceneIndex=entered;replayedPhase='scout';lastChoice=null;lastResolution=null;continue;
       }
       if(this.campaign.scenes[entered]?.id!==event.sceneId)fail('事件跨越了尚未进入的场景');
       if(entered===this.campaign.scenes.length-1&&['next','ended'].includes(replayedPhase)&&event.type!=='ending')fail('最后行动执行后仍有世界或知识变更');
+      if(event.type==='exposure'){
+        const tape=Array.isArray(s.tapes)?s.tapes.find(t=>event.detail.startsWith(t?.id+'：')):null;
+        if(!tape||!['scout','result'].includes(replayedPhase)||tape.epoch!==expectedEpoch||tape.sceneId!==event.sceneId)fail('曝光不属于当前现场');
+        const scene=this.sceneFor(entered,replay),choice=scene.choices.find(c=>c.id===lastChoice);
+        const expected=replayedPhase==='scout'?{text:scene.scoutFootage,facts:scene.scoutFacts}:choice?{text:choice.resultText,facts:choice.evidence}:null;
+        if(!expected||expected.text!==tape!.text||JSON.stringify(expected.facts)!==JSON.stringify(tape!.facts))fail('曝光内容与当时分支不符');
+        exposed.set(tape!.id,expected!);continue;
+      }
       if(event.type==='analysis'){
         const tape=Array.isArray(s.tapes)?s.tapes.find(t=>event.detail.startsWith(`${t?.id}：`)):null;
         if(!tape?.analyzed||tape.sceneId!==event.sceneId||tape.epoch!==expectedEpoch||tape.kind!==replayedPhase)fail('分析缺少当前现场录像');
@@ -277,7 +303,7 @@ export class StoryEngine {
         replay.knowledge.player=[...new Set([...replay.knowledge.player,...tape!.facts])];
         replayedPhase=tape!.kind==='scout'?'decision':'resolve';continue;
       }
-      if(event.type==='report'){replay.knowledge.vance=[...replay.knowledge.player];continue;}
+      if(event.type==='report'){if(this.campaign.branchPolicy&&replay.world.vanceSignal!=='restored')fail('失联期间伪造回执');replay.knowledge.vance=[...replay.knowledge.player];continue;}
       if(event.type==='ending'){
         if(replayedPhase!=='next'||entered!==this.campaign.scenes.length-1)fail('提前结局');
         replayedPhase='ended';continue;
@@ -290,6 +316,9 @@ export class StoryEngine {
       const key=`${event.sceneId}/${event.type}`;
       if(!operation||performed.has(key))fail('行动不存在或被重复执行');
       if(isAction?!['decision','resolve'].includes(replayedPhase):replayedPhase!=='resolve')fail('行动发生在未授权阶段');
+      if(operation!.condition&&!this.test(operation!.condition,replay))fail('行动发生时不满足其前置条件');
+      if(this.campaign.branchPolicy&&isAction&&replayedPhase==='resolve'&&!(operation as Choice).recovery)fail('已发生结果被另一主选项覆盖');
+      if(this.campaign.branchPolicy&&isAction&&replayedPhase==='decision'&&(operation as Choice).recovery)fail('补救行动早于原行动');
       performed.add(key);
       for(const effect of operation!.instructions)if(effect.path.startsWith('world.')||effect.path.startsWith('relations.'))this.apply(replay,effect);
       expectedEpoch++;replayedPhase=isAction?'result':'next';
@@ -300,12 +329,16 @@ export class StoryEngine {
     if(JSON.stringify(replay.knowledge)!==JSON.stringify(s.knowledge))fail('知识与分析、报告事件不符');
     if(!Array.isArray(s.tapes)||new Set(s.tapes.map(t=>t?.id)).size!==s.tapes.length)fail('片匣无效');
     for(const [index,t] of s.tapes.entries()){
+      if(t.videoPrompt!==undefined){
+        const p=t.videoPrompt;
+        if(!isObject(p)||(p.prompt!==null&&(typeof p.prompt!=='string'||p.prompt.length>6000))||typeof p.note!=='string'||p.note.length>6000||(p.storyboard!==null&&(typeof p.storyboard!=='string'||p.storyboard.length>6000)))fail('提示词快照格式无效');
+      }
       if(!isObject(t)||t.id!==`tape.${index+1}`||t.source!=='authored-storyboard'||!['scout','result'].includes(t.kind)||!Number.isInteger(t.epoch)||t.epoch<0||t.epoch>s.epoch||!finite(t.capturedAt)||t.capturedAt<0||t.capturedAt>s.clock||typeof t.ready!=='boolean'||typeof t.analyzed!=='boolean'||!strings(t.facts)||typeof t.text!=='string'||(t.analyzed&&!t.ready))fail('录像元数据无效');
       if(t.ready&&s.clock-t.capturedAt<17-1e-6)fail('录像提前显影');
       if(!t.ready&&s.activeTapeId!==t.id)fail('未完成录像丢失计时器');
       const scene=this.campaign.scenes.find(c=>c.id===t.sceneId)!;if(!scene)fail('录像场景无效');
-      const authored=t.kind==='scout'?[{text:scene.scoutFootage,facts:scene.scoutFacts}]:scene.choices.map(c=>({text:c.resultText,facts:c.evidence}));
-      if(!authored.some(a=>a.text===t.text&&JSON.stringify(a.facts)===JSON.stringify(t.facts)))fail('录像内容不是已登记的分镜');
+      const authored=exposed.get(t.id);
+      if(!authored||authored.text!==t.text||JSON.stringify(authored.facts)!==JSON.stringify(t.facts))fail('录像内容不是当时分支的曝光记录');
     }
     const known=new Set(s.tapes.filter(t=>t.analyzed).flatMap(t=>t.facts));
     if(s.knowledge.player.some(f=>!known.has(f))||[...known].some(f=>!s.knowledge.player.includes(f))||s.knowledge.vance.some(f=>!s.knowledge.player.includes(f))||['elias','vera','delroy'].some(p=>s.knowledge[p as 'elias'|'vera'|'delroy'].length>0))fail('知识缺少已分析取证来源');

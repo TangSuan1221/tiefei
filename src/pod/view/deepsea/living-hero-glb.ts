@@ -55,7 +55,7 @@ export const HERO_GLB_PARTS: readonly HeroPartSpec[] = [
   {hero: 'security-post', node: 'probe-case', role: 'item', id: 'living.box.probe'},
   {hero: 'laundry-row', node: 'battery-case', role: 'item', id: 'living.box.battery'},
   {hero: 'ballast-rack', node: 'ballast-crate', role: 'item', id: 'living.box.ballast'},
-  {hero: 'manager-office', node: 'code-note', role: 'photo', id: 'living.photo.code'},
+  // Password holder is the small opaque search target, not the imported readable clipboard.
   {hero: 'manager-office', node: 'guide-placard', role: 'photo', id: 'living.photo.guide'},
   {hero: 'manager-office', node: 'delroy-form', role: 'photo', id: 'living.photo.delroy'},
   {hero: 'gate-f', node: 'gate-leaf', role: 'leaf'},

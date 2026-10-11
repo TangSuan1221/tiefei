@@ -5,7 +5,7 @@ import {fbm, pixelTexture, smooth} from './living-actor-tex';
 import {dampFigureIbl, disposeGlbScene, loadActorGlb, trackLivingLoad} from './living-glb';
 
 export type AlexPose = 'idle' | 'swim' | 'gesture' | 'type' | 'film';
-export interface AlexVisualState {position: Vec3; heading: number; visible: boolean; pose: AlexPose}
+export interface AlexVisualState {identity?:'elias'|'keeper';position: Vec3; heading: number; visible: boolean; pose: AlexPose}
 
 type V = [number, number, number];
 const PI = Math.PI;
@@ -69,7 +69,7 @@ function rigPose(p: AlexPose, t: number): RigPose {
 }
 
 /** Procedural env (equirect) so the visor and metal fittings carry reflections: dark teal water + two soft lamps. */
-function visorEnv() {
+export function visorEnv() {
   const W = 256, H = 128;
   const t = pixelTexture(W, (x, y) => {
     const u = x / W, v = y / H;
@@ -111,7 +111,7 @@ interface Rig {
   pelvisY: number;
 }
 
-function setupRig(scene: T.Object3D, m: LivingMaterials, tex: Record<string, T.Texture>, env: T.Texture, owned: {dispose(): void}[]): Rig | null {
+export function setupRig(scene: T.Object3D, m: LivingMaterials | undefined, tex: Record<string, T.Texture>, env: T.Texture, owned: {dispose(): void}[]): Rig | null {
   scene.updateMatrixWorld(true);
   const bones = new Map<Bone, T.Bone>(), restWorld = new Map<Bone, T.Quaternion>();
   scene.traverse(o => { if ((o as T.Bone).isBone && (BONES as readonly string[]).includes(o.name)) bones.set(o.name as Bone, o as T.Bone); });
@@ -277,6 +277,8 @@ export function createAlex(m: LivingMaterials): AlexVisual {
   const target = new T.Object3D(); lights.add(spot, target); spot.target = target;
 
   let rig: Rig | null = null;
+  let identityApplied='',identityRig:Rig|null=null;
+  const identityColors=new Map<T.Material,T.Color>();
   const env = visorEnv();
   const loader = new T.TextureLoader();
   const ld = (f: string, srgb = false) => loader.loadAsync(`/assets/deepsea/living/src/${f}`).then(t => { t.wrapS = t.wrapT = T.RepeatWrapping; t.anisotropy = 8; t.colorSpace = srgb ? T.SRGBColorSpace : T.NoColorSpace; owned.push(t); return t; });
@@ -317,6 +319,8 @@ export function createAlex(m: LivingMaterials): AlexVisual {
     root, lights,
     update(s, time, dt) {
       root.visible = s.visible;
+      const identity=s.identity??'elias';
+      if(identityApplied!==identity||identityRig!==rig){root.userData.character=identity;root.traverse(o=>{const mesh=o as T.Mesh;if(!mesh.isMesh)return;for(const mat of Array.isArray(mesh.material)?mesh.material:[mesh.material]){const m=mat as T.MeshStandardMaterial;if(!m.color||!['living.alex.helmet','living.alex.suit'].includes(m.name))continue;if(!identityColors.has(m))identityColors.set(m,m.color.clone());m.color.copy(identityColors.get(m)!);if(identity==='keeper')m.color.set(m.name.endsWith('helmet')?'#dadaca':'#29494b');}});identityApplied=identity;identityRig=rig;}
       if (!s.visible) { spot.intensity = 0; fresh = true; return; }
       root.position.set(...s.position);
       root.rotation.y = faceYaw(s.heading);

@@ -1,4 +1,5 @@
 import type { NavigationConsole, PassiveContact, SoundRecord } from '../../sim/authored-site';
+import {isAudioMuted} from '../../../audio/mute';
 import type { PodRun } from '../../sim/run';
 import type { Control } from '../chrome';
 import { drawSonarOwnship, sonarHeading } from '../sonar-ownship';
@@ -113,7 +114,7 @@ export class HarborRescueNavigation implements NavigationConsole {
     this.playbackLeft=Math.max(7,Math.min(28,next.text.length*.16));
     this.isDelivering=true;
     try{if(next.initial&&!this.heard){this.captured=true;this.heard=true;this.host.onHeard();}else this.host.speak?.(next.text);}finally{this.isDelivering=false;}
-    if(!this.host.serialDialogue&&typeof window!=='undefined'&&'speechSynthesis' in window){const voice=new SpeechSynthesisUtterance(next.text);voice.lang='zh-CN';window.speechSynthesis.cancel();window.speechSynthesis.speak(voice);}
+    if(!isAudioMuted()&&!this.host.serialDialogue&&typeof window!=='undefined'&&'speechSynthesis' in window){const voice=new SpeechSynthesisUtterance(next.text);voice.lang='zh-CN';window.speechSynthesis.cancel();window.speechSynthesis.speak(voice);}
   }
   editing = false;
   frequency = 37.8;
@@ -242,7 +243,7 @@ export class HarborRescueNavigation implements NavigationConsole {
   /** Draws the sonar picture; `panel=false` lets a caller draw the info panel unscaled via `drawWaypointPanel`. */
   drawActive(ctx: CanvasRenderingContext2D, w: number, h: number, panel = true) {
     this.markerHits = [];
-    if (!this.host.run.powered || !this.host.run.activeSonarEnabled) return;
+    if (!this.host.run.powered) return;
     ctx.save();this.host.drawActive(ctx, w, h);
     // Match PodExpedition's dedicated head-up sonar layout and 24 m range.
     const size = Math.min(w, h / .93), cx = size / 2, cy = size * .48, radius = size * .30;

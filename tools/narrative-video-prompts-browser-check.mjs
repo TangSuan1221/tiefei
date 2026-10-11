@@ -1,0 +1,38 @@
+import {chromium} from '@playwright/test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+const browser=await chromium.launch({channel:'msedge',headless:true});
+try{
+ const context=await browser.newContext({permissions:['clipboard-read','clipboard-write'],viewport:{width:1440,height:1100}});
+ const page=await context.newPage();let calls=0;
+ await page.route('**/api/video/**',r=>{calls++;return r.abort();});
+ await page.goto('http://127.0.0.1:5176/narrative.html');
+ await page.locator('[data-action="shoot"]').click();
+ assert.equal(await page.locator('.inspector .video-prompt').count(),0);
+ await page.locator('summary').filter({hasText:'摄影测试工具'}).click();
+ await page.locator('[data-action="fast"]').click();
+ const first=await page.locator('.inspector .video-prompt').inputValue();
+ assert(first.includes('Nobody is visible behind it'));assert(first.includes('three long fingers'));
+ assert((await page.locator('.inspector .shot-storyboard').innerText()).includes('看不到艾里亚斯'));
+ assert((await page.locator('.message').innerText()).includes('已显影'));
+ await page.locator('.inspector [data-copy-prompt]').click();
+ assert.equal((await page.evaluate(()=>navigator.clipboard.readText())).replace(/\r\n/g,'\n'),first);
+ await fs.mkdir('qa/narrative-scout-prompt',{recursive:true});
+ await page.locator('.inspector .video-prompt').scrollIntoViewIfNeeded();
+ await page.screenshot({path:'qa/narrative-scout-prompt/first-scout.png'});
+ await page.locator('[data-action="analyze"]').click();
+ await page.locator('[data-choice="lure-noise"]').click();
+ await page.locator('[data-action="shoot"]').click();
+ await page.locator('[data-action="fast"]').click();
+ const result=await page.locator('.inspector .video-prompt').inputValue();
+ assert(result.includes('close beside the emitting submarine'));assert.notEqual(result,first);
+ await page.locator('.tab[data-tab="video-prompts"]').click();
+ const texts=await page.locator('.panel .video-prompt').evaluateAll(nodes=>nodes.map(n=>n.value));
+ assert.deepEqual(texts,[result,first]);
+ const before=await page.evaluate(()=>window.__narrativeLab.engine.serialize());
+ assert(await page.evaluate(raw=>window.__narrativeLab.engine.restore(raw).ok,before));
+ await page.locator('.tab[data-tab="video-prompts"]').click();
+ assert.deepEqual(await page.locator('.panel .video-prompt').evaluateAll(nodes=>nodes.map(n=>n.value)),texts);
+ assert.equal(calls,0);
+ console.log('PASS browser: first scout visible without action/tab, exact copy, result shot, unchanged first tape, restore, zero video calls');
+}finally{await browser.close();}

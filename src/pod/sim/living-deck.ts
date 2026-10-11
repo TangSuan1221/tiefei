@@ -1,3 +1,4 @@
+import {livingTapeLines,validLivingStory,type LivingStory} from './living-story';
 import {LIVING_EXIT_Y,LIVING_ITEMS,LIVING_LIGHTS,LIVING_SPACES,LIVING_SPAWN,LIVING_TRIM_FLOOR_Y,type CreatureType,type Vec3} from '../content/living-deck-layout';
 
 /** Deck-two facts. Spatial tests, rendering and film creation belong to the adapter; facts only come from analyzed film. */
@@ -13,6 +14,7 @@ type ResultKind='slimeCleared'|'slimeUnchanged'|'slimeWorse';
 /** `rejected`: targets in view whose framing would not be legible on film (too small, cropped, oblique), with the player-facing reason. */
 export interface LivingCaptureSeen {targets:string[];creatures:CreatureType[];lensBlocked:boolean;lamp:boolean;gateOpen:boolean;alexVisible:boolean;rejected?:{id:string;reason:string}[]}
 export interface LivingState {
+ story?:LivingStory;
  version:1;stage:LivingStage;epoch:number;pod:Vec3;space:string|null;leftShaft:boolean;visitedOffice:boolean;reachedExit:boolean;
  collected:string[];probe:'none'|'carried'|'launched'|'withAlex';valves:Record<ValveKey,boolean>;valveOps:number;slime:number;slimeCleared:boolean;pendingResult:ResultKind|null;
  timers:{alexTapeLeft:number;resultLeft:number;gateLeft:number};
@@ -62,10 +64,10 @@ const TAPE_SUMMARY:Record<RemoteTapeKind,string>={
  gateOpened:'结果录像已核验：闸门内侧锁轮已转开。',
 };
 const CREATURE_LINES:Record<CreatureType,string>={
- lumen:'录像核验：人形，面部始终朝向光源，皮下有淡青光点，下肢已分化成柔软组织。声纳标签：趋光者。它会向灯靠拢；关灯后它会停在最后见到光的地方。',
- shade:'录像核验：管状眼，半透明长体，在强光里收成一团。声纳标签：避光者。持续照射它会退开；黑暗里它会回到原处。',
- blind:'录像核验：没有眼睛，体侧一排侧线孔。声纳标签：盲猎者。它追声音：主动脉冲、高速推进、金属撞击。静止或慢速（＜0.45 m/s）的艇它找不到；撞过一次会退开一阵。',
- swarm:'录像核验：成群的玻璃鱼与端足虫。无害，但会扑灯、糊住镜头、盖住它们啃食的东西。',
+ lumen:'名称：趋光者 · 危险程度：高（贴附损伤艇壳） · 光敏感：趋光。录像核验：人形，面部始终朝向光源，皮下有淡青光点，下肢已分化成柔软组织。声纳标签：趋光者。它会向灯靠拢；关灯后它会停在最后见到光的地方。',
+ shade:'名称：避光者 · 危险程度：中（近距离咬击） · 光敏感：畏光。录像核验：管状眼，半透明长体，在强光里收成一团。声纳标签：避光者。持续照射它会退开；黑暗里它会回到原处。',
+ blind:'名称：盲猎者 · 危险程度：高（冲撞艇壳） · 声音敏感。录像核验：没有眼睛，体侧一排侧线孔。声纳标签：盲猎者。它追声音：主动脉冲、高速推进、金属撞击。静止或慢速（＜0.45 m/s）的艇它找不到；撞过一次会退开一阵。',
+ swarm:'名称：玻璃鱼与端足虫群 · 危险程度：低（遮挡镜头） · 光敏感：趋光。录像核验：成群的玻璃鱼与端足虫。无害，但会扑灯、糊住镜头、盖住它们啃食的东西。',
 };
 
 const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
@@ -78,7 +80,7 @@ const spaceAt=(p:Vec3,prefer:string|null)=>{
 };
 /** Practical emergency fixtures light a subject without the pod lamp. */
 export const livingPracticalLight=(p:Vec3)=>LIVING_LIGHTS.some(l=>dist(l.position,p)<=l.range);
-const canonicalTape=(kind:RemoteTapeKind,id:string):RemoteTape=>({id,kind,...structuredClone(TAPES[kind])});
+const canonicalTape=(kind:RemoteTapeKind,id:string,story?:LivingStory):RemoteTape=>{const t={id,kind,...structuredClone(TAPES[kind])};t.lines=livingTapeLines(kind,t.lines,story);if(story?.partner==='keeper')t.facts=t.facts.map(f=>f==='fact.alex-alive'?'fact.keeper-alive':f);if(kind==='slimeCleared'&&story?.records&&story.partner==='elias')t.shots=['pipe-bands','slime-floor'];return t;};
 const outcome=(v:Record<ValveKey,boolean>):ResultKind|null=>v.cool?'slimeWorse':v.feed?'slimeCleared':v.heat?'slimeUnchanged':null;
 const DELAY:Record<ResultKind,number>={slimeCleared:LIVING_TIMING.cleared,slimeUnchanged:LIVING_TIMING.unchanged,slimeWorse:LIVING_TIMING.worse};
 
@@ -96,7 +98,7 @@ export function livingObjective(s:Readonly<LivingState>):string{
   case 'valve':return '在V阀门间关闭污染源阀门，关阀后保持静默';
   case 'awaitResult':return s.pendingResult?'保持静默，等待艾里亚斯拍回结果录像':'在分析台核验结果录像';
   case 'atrium':return '经C5穿过中庭，前往R5住宿管理处';
-  case 'code':return '拍摄管理员手中的密码与墙上开闸步骤图，回分析台核验';
+  case 'code':return !s.collected.includes('living.photo.code')?'用机械臂搜索管理员遗体的衣袋，收回证件夹':!s.codeVerified?'到分析台读取收回的密码卡':!s.guideVerified?'密码已读取；拍摄墙上开闸步骤图，回分析台核验':'前往闸门F推送密码与步骤';
   case 'uplink':return '前往闸门F外侧观察窗，推送已核验的密码与步骤录像';
   case 'awaitGate':return s.gateOpen?'拍摄闸门开启与艾里亚斯游出，回分析台核验':'保持静默，等待艾里亚斯在内侧开闸';
   case 'met':return '会合后经中庭西侧C7前往下行井D，下潜至-2层';
@@ -107,6 +109,7 @@ export function livingObjective(s:Readonly<LivingState>):string{
 
 export class LivingDeck {
  private value=fresh();
+ configureStory(story:LivingStory){if(!this.value.tapes.length)this.value.story=structuredClone(story);}
  private pending=new Map<string,LivingEvidence>();
  get state():Readonly<LivingState>{return this.snapshot();}
  get objective(){return livingObjective(this.value);}
@@ -128,7 +131,7 @@ export class LivingDeck {
  }
  private sync(){this.value.stage=this.derive();}
  private deliver(kind:RemoteTapeKind,out:LivingResult){
-  const s=this.value,t=canonicalTape(kind,`tape.${kind}.${s.tapes.filter(x=>x.kind===kind).length+1}`);
+  const s=this.value,t=canonicalTape(kind,`tape.${kind}.${s.tapes.filter(x=>x.kind===kind).length+1}`,s.story);
   s.tapes.push(t);out.tapes.push(structuredClone(t));out.cues.push('tape.arrive');return t;
  }
  /** Alex films the slime only while he holds the probe at the corridor edge and the colony still lives. */
@@ -197,7 +200,7 @@ export class LivingDeck {
   const kinds:LivingEvidenceKind[]=[];
   if(shown.includes('living.box.probe'))kinds.push('probeCorpse');
   if(shown.some(t=>Object.values(VALVE_ITEM).includes(t)))kinds.push('valveLabel');
-  if(shown.includes('living.photo.code'))kinds.push('code');
+  // The password is inside the recovered card holder, never readable through photography.
   if(shown.includes('living.photo.guide'))kinds.push('guide');
   if(shown.includes('living.photo.delroy'))kinds.push('delroy');
   if(s.gateOpen&&seen?.gateOpen===true&&seen.alexVisible===true&&lit(ITEMS.get('living.uplink.gate')!.position))kinds.push('gateOpen');
@@ -216,6 +219,11 @@ export class LivingDeck {
   this.pending.delete(e.id);s.captures.push(structuredClone(e));
  }
  cancelCapture(id:string){this.pending.delete(id);}
+ readPasswordCard():string[]{
+  if(!this.value.collected.includes('living.photo.code'))return ['尚未取回密码卡。用机械臂搜索管理员遗体的衣袋，收妥后再读取。'];
+  this.value.codeVerified=true;this.grant(['fact.gate-code','fact.keeper-note']);this.sync();
+  return ['从收回的证件夹中取出密码卡。闸门 F 密码：0917。','卡片背面：“对不起。为了让里面的人安全。”这只是留言，不能据此确认谁锁了门。',this.value.guideVerified?'开闸步骤也已核验。前往闸门F外侧观察窗，向艾里亚斯推送密码与步骤。':'还需要拍摄墙面的开闸步骤图，并在分析台核验。'];
+ }
  analyze(e:LivingEvidence):string[]{
   const s=this.value,stored=s.captures.find(x=>x.id===e?.id);
   if(!stored||JSON.stringify(stored)!==JSON.stringify(e))return ['没有这份录像的存档。'];
@@ -263,6 +271,7 @@ export class LivingDeck {
    if(typeof b==='boolean'&&typeof v!=='boolean')return false;
    if(typeof b==='number'&&(!finite(v)||v<0))return false;
    if(Array.isArray(b)&&!Array.isArray(v))return false;}
+  if(s.story!==undefined&&!validLivingStory(s.story))return false;
   if(s.version!==1||!STAGES.includes(s.stage)||!Number.isInteger(s.epoch)||!Number.isInteger(s.valveOps)||!Number.isInteger(s.extraLumens)||s.extraLumens>1||s.slime>1)return false;
   if(!vec(s.pod)||(s.space!==null&&!LIVING_SPACES.some(x=>x.id===s.space&&x.pod)))return false;
   if(!['none','carried','launched','withAlex'].includes(s.probe)||!s.valves||typeof s.valves!=='object'||!(Object.keys(VALVE_ITEM) as ValveKey[]).every(k=>typeof s.valves[k]==='boolean'))return false;
@@ -271,10 +280,11 @@ export class LivingDeck {
   const strings=(a:unknown[])=>a.every(x=>typeof x==='string')&&new Set(a).size===a.length;
   if(!strings(s.collected)||!s.collected.every(id=>BOXES.includes(id))||!strings(s.facts)||!strings(s.tapesAnalyzed)||!strings(s.analyzed)||!strings(s.identified)||!s.identified.every(c=>CREATURES.includes(c)))return false;
   const tapeIds=new Set<string>();
-  for(const t of s.tapes){if(!t||typeof t.id!=='string'||tapeIds.has(t.id)||!(t.kind in TAPES)||JSON.stringify(t)!==JSON.stringify(canonicalTape(t.kind,t.id)))return false;tapeIds.add(t.id);}
+  for(const t of s.tapes){if(!t||typeof t.id!=='string'||tapeIds.has(t.id)||!(t.kind in TAPES)||JSON.stringify(t)!==JSON.stringify(canonicalTape(t.kind,t.id,s.story)))return false;tapeIds.add(t.id);}
   if(s.tapesAnalyzed.some(id=>!tapeIds.has(id)))return false;
-  const known=new Set([...Object.values(TAPES).flatMap(t=>t.facts),'fact.guard-corpse','fact.vip-label','fact.gate-code','fact.keeper-note','fact.gate-procedure','fact.delroy-application','fact.gate-open']);
+  const known=new Set([...Object.values(TAPES).flatMap(t=>t.facts),'fact.keeper-alive','fact.guard-corpse','fact.vip-label','fact.gate-code','fact.keeper-note','fact.gate-procedure','fact.delroy-application','fact.gate-open']);
   const granted=new Set(s.tapes.filter(t=>s.tapesAnalyzed.includes(t.id)).flatMap(t=>t.facts));
+  if(s.facts.includes('fact.keeper-alive')&&!granted.has('fact.keeper-alive'))return false;
   if(s.facts.some(f=>!known.has(f)||(f.startsWith('fact.')&&Object.values(TAPES).some(t=>t.facts.includes(f))&&!granted.has(f))))return false;
   const ids=new Set<string>();
   for(const e of s.captures){
@@ -291,7 +301,7 @@ export class LivingDeck {
   if(s.pendingResult&&(s.probe!=='withAlex'||s.slimeCleared))return false;
   if(s.slimeCleared!==s.tapes.some(t=>t.kind==='slimeCleared')||(has('fact.slime-cleared')&&!s.slimeCleared))return false;
   if((s.extraLumens>0)!==s.tapes.some(t=>t.kind==='slimeUnchanged'))return false;
-  if((s.codeVerified!==proved('code'))||(s.guideVerified!==proved('guide'))||(s.delroyVerified!==proved('delroy'))||(s.met!==(s.gateOpen&&proved('gateOpen'))))return false;
+  if((s.codeVerified!== (proved('code')||(s.collected.includes('living.photo.code')&&s.facts.includes('fact.gate-code'))))||(s.guideVerified!==proved('guide'))||(s.delroyVerified!==proved('delroy'))||(s.met!==(s.gateOpen&&proved('gateOpen'))))return false;
   if((s.uplinked&&(!s.codeVerified||!s.guideVerified||!has('fact.slime-cleared')))||(s.gateOpen&&!s.uplinked)||(s.reachedExit&&!s.met)||(s.complete&&(!s.met||!s.ballast))||(s.leftShaft===false&&s.probe!=='none'))return false;
   const before=this.value;this.value=structuredClone(s);
   if(this.derive()!==s.stage){this.value=before;return false;}

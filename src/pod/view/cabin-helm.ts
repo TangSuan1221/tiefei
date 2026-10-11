@@ -39,7 +39,6 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
   const metal = new THREE.MeshStandardMaterial({color: 0x687578, metalness: .42, roughness: .72, roughnessMap: noise});
   const dark = new THREE.MeshStandardMaterial({color: 0x101512, roughness: .96, bumpMap: noise, bumpScale: .00035});
   const recess = new THREE.MeshStandardMaterial({color: 0x080c0b, roughness: .88});
-  const ochre = painted(0x827044);
   const panel = new THREE.Group(); panel.position.set(0, .88, -1.42); panel.rotation.x = -Math.PI * .31; panel.scale.set(.65, .58, .65); scene.add(panel);
   // Shielded task light makes engraving and paint readable below the window.
   const taskLight = new THREE.PointLight(0xc7dbd4, .38, 1.65, 2);
@@ -112,37 +111,38 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
   plate(panel, '24 V DC   /   SEALED   /   No. 0831', .21, -.258, .075, .49, .017);
   for (let i = 0; i < 7; i++) box(panel, .073, .004, .002, -.68, -.095 + i * .011, .082, recess, .001);
 
-  box(panel,.12,.37,.009,-.57,0,.085,recess);
-  for(const x of [-.625,-.515])box(panel,.008,.35,.009,x,0,.092,metal);
+  // Move the complete mechanism up/right; thrust animation remains local to its mount.
+  const stickMount=new THREE.Group();stickMount.name='helm-stick-mount';stickMount.position.set(.09,.065,0);panel.add(stickMount);
+  box(stickMount,.12,.37,.009,-.57,0,.085,recess);
+  for(const x of [-.625,-.515])box(stickMount,.008,.35,.009,x,0,.092,metal);
   // Stationary mounting flange and boot. Only the shaft/grip pivot with input.
-  cylinder(panel, .091, .091, .009, -.57, 0, .087, metal);
-  cylinder(panel, .079, .079, .012, -.57, 0, .096, dark);
-  for (const x of [-1, 1]) for (const y of [-1, 1]) screw(panel, -.57 + x * .063, y * .063, .094);
+  cylinder(stickMount, .091, .091, .009, -.57, 0, .087, metal);
+  cylinder(stickMount, .079, .079, .012, -.57, 0, .096, dark);
+  for (const x of [-1, 1]) for (const y of [-1, 1]) screw(stickMount, -.57 + x * .063, y * .063, .094);
   for (let i = 0; i < 7; i++) {
     const r = .075 - i * .0067;
-    cylinder(panel, r - .009, r, .012, -.57, 0, .109 + i * .010, dark);
-    ring(panel, r - .005, .0045, -.57, 0, .107 + i * .010, dark);
+    cylinder(stickMount, r - .009, r, .012, -.57, 0, .109 + i * .010, dark);
+    ring(stickMount, r - .005, .0045, -.57, 0, .107 + i * .010, dark);
   }
-  stick.position.set(-.57, 0, .08); stick.userData.control = 'helm.stick'; panel.add(stick);
+  stick.position.set(-.57, 0, .08); stick.userData.control = 'helm.stick'; stickMount.add(stick);
   mesh(stick, new THREE.SphereGeometry(.031, 20, 12), metal, 0, 0, .082);
   cylinder(stick, .015, .018, .13, 0, 0, .148, metal);
   ring(stick, .020, .005, 0, 0, .197, metal);
   box(stick, .075, .066, .119, 0, 0, .24, dark, .023);
   for (let i = 0; i < 5; i++) box(stick, .073, .068, .003, 0, 0, .204 + i * .014, recess, .001);
   cylinder(stick, .022, .024, .005, 0, 0, .302, steel);
-  cable(panel, [[-.53, .05, .155], [-.43, .10, .12], [-.40, .17, .092], [-.43, .205, .085]], .006, dark);
-  box(panel, .033, .016, .014, -.43, .195, .09, metal);
+  cable(stickMount, [[-.53, .05, .155], [-.43, .10, .12], [-.40, .17, .092], [-.43, .205, .085]], .006, dark);
+  box(stickMount, .033, .016, .014, -.43, .195, .09, metal);
   // Flange is also a usable joystick target, without an invisible blocking hitbox.
-  for (const o of panel.children) if (o.position.x === -.57) o.userData.control = 'helm.stick';
+  for (const o of stickMount.children) if (o.position.x === -.57) o.userData.control = 'helm.stick';
 
   const buttons = [
-    ['camera.shoot', '曝光', 'EXPOSE'], ['camera.lamp', '照明', 'LAMP'],
-    ['camera.view', '前往分析台', 'ANALYSIS'], ['arm.extend', '机械臂操作', 'RETRIEVE'],
-    ['arm.retract', '收回机械臂', 'RETRACT'], ['helm.brake', '制动', 'BRAKE'],
-    ['drive.depart', '离港', 'DEPART'], ['back', '离开座位', 'RELEASE'],
+    ['camera.shoot', '曝光'], ['camera.lamp', '照明'],
+    ['arm.extend', '机械臂操作'], ['helm.brake', '制动'],
   ] as const;
   buttons.forEach(([id, title], i) => {
-    const x = -.20 + (i % 4) * .27, y = i < 4 ? .07 : -.16;
+    // Compact single row toward the window; labels and hit targets move together.
+    const x = -.20 + i * .23, y = .13;
     const control = new THREE.Group(); control.position.set(x, y, .081); control.userData.control = id; panel.add(control);
     cylinder(control, .044, .044, .002, 0, 0, .001, recess);
     cylinder(control, .039, .039, .004, 0, 0, .003, metal);
@@ -159,30 +159,22 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
         cylinder(control, .0014, .0014, .003, Math.cos(a) * .036, Math.sin(a) * .036, .007, dark, 6);
       }
       ring(control, .019, .0008, 0, 0, .0125, metal);
-    } else if (i === 1 || i === 2 || i === 4 || i === 7) {
-      // Raised paddle inserts: lamp, playback, centering and seat release.
-      const paddle = box(control, i === 7 ? .036 : .012, .043, .008, 0, 0, .015, i === 7 ? metal : dark);
-      paddle.rotation.z = i === 2 ? Math.PI / 2 : 0;
+    } else if (id === 'camera.lamp') {
+      // Raised lamp paddle insert.
+      box(control, .012, .043, .008, 0, 0, .015, dark);
       box(control, .003, .015, .001, 0, .009, .0195, metal, .0004);
     }
     // Small pilot lens; restrained amber, not a luminous keycap.
     box(control, .027, .010, .004, 0, .061, .001, recess, .002);
     box(control, .017, .0035, .003, 0, .061, .004, new THREE.MeshStandardMaterial({color: 0x88713b, emissive: 0xad782a, emissiveIntensity: .35, roughness: .35}), .001);
-    // Inboard offset keeps the seat-release legend inside the fixed camera frame.
-    plate(control, title, id === 'back' ? -.04 : 0, -.079, .003, id === 'back' ? .19 : .21, .055, true);
-    if (isBrake || id === 'drive.depart') {
+    plate(control, title, 0, -.079, .003, .21, .055, true);
+    if (isBrake) {
       for (const side of [-1, 1]) {
         box(control, .015, .088, .012, side * .058, .003, .008, steel);
-        cable(control, [[side * .058, -.025, .013], [side * .058, -.025, .041], [side * .058, .033, .041], [side * .058, .036, .013]], .005, isBrake ? metal : ochre);
+        cable(control, [[side * .058, -.025, .013], [side * .058, -.025, .041], [side * .058, .033, .041], [side * .058, .036, .013]], .005, metal);
         screw(control, side * .058, -.034, .016);
       }
     }
   });
-  for(const [i,id,title] of [[0,'weapon.decoy','7 声诱饵'],[1,'weapon.pulse','8 冲击弹']] as const){
-    const control=new THREE.Group();control.position.set(-.64+i*.18,-.19,.09);control.userData.control=id;panel.add(control);
-    cylinder(control,.031,.034,.012,0,0,0,metal);
-    const key=cylinder(control,.024,.024,.012,0,0,.012,ochre);key.userData.control=id;
-    plate(control,title,0,-.047,.003,.16,.035,true);
-  }
 }
 

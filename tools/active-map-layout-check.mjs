@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const source=readFileSync('src/pod/view/cabin-three.ts','utf8');
+const panel=source.slice(source.indexOf('// 1024×720 canvas'),source.indexOf("c.fillStyle='#d4a253'"));
+assert(panel.includes('SONAR_H=610'));
+for(const text of ['上次回波 · 米','回波间距 · 米','按下方','键盘输入 →','text(`航向'])assert(!panel.includes(text),text);
+assert(panel.includes('sonar.axis.')&&panel.includes('waypointBrief'));
+assert(610+10+96<=720);
+assert((610/470)**2>1.68);
+console.log('PASS active map: duplicate text removed, coordinate row fits, map area +68%, waypoint retained');

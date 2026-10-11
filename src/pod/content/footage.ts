@@ -1,3 +1,5 @@
+import {FIXED_CAMERA_CONTRACT} from './fixed-camera';
+import {slotPrompt,type VideoContext} from './video-policy';
 /**
  * 影片提示词。
  * ============================================================================
@@ -99,7 +101,7 @@ const PALETTE_CLAUSE =
   'no night-vision look, no green-screen glow, no sea-green water.';
 
 /** 这台摄像机的物理毛病。它比任何「恐怖」形容词都有用 */
-const CAMERA_CLAUSE =
+const CAMERA_CLAUSE = FIXED_CAMERA_CONTRACT + ' ' +
   'Shot on a battered 1980s analogue hull camera bolted beside a single narrow floodlight, ' +
   'Preserve dark surroundings but expose the subject with readable midtones, visible surface detail and restrained pale highlights. Never crush the subject into black. ' +
   'Low frame rate, subtle interlace and light video grain without obscuring the subject, ' +
@@ -115,6 +117,7 @@ const NEGATIVE_CLAUSE =
   'No isolated crashed wreck sitting alone on empty silt as the only subject.';
 
 export interface FootagePromptInput {
+  videoContext?:VideoContext;
   encounterObservation?:{appearance:string;combat?:CombatRecord};
   simulationReport?:string[];
   narrativeTrace?: string;
@@ -157,6 +160,7 @@ export interface FootagePromptInput {
  * 把主体放前面、风格约束放后面，出片才有东西可看。
  */
 export function buildFootagePrompt(input: FootagePromptInput): string {
+  if(input.videoContext)return slotPrompt(input.videoContext)+' '+CAMERA_CLAUSE+' '+PALETTE_CLAUSE;
   if(input.encounterObservation){const e=input.encounterObservation;return encounterVideoPrompt(e.combat?'combat':'analysis',e.appearance,input.interior??input.leg.scene?.subject??'Flooded industrial interior',input.lamp,e.combat);}
   const { leg, creature, fauna, depth, lamp, corruption, tells, san, story, stencil, interior } = input;
   const scene = leg.scene;
@@ -188,8 +192,7 @@ export function buildFootagePrompt(input: FootagePromptInput): string {
 
   // 3. 运镜
   if(attack) parts.push('Camera remains attached to the pod. The specified creature enters by second 1 and remains visibly identifiable through second 4, approaching the lens and contacting its housing once. End holding on the creature withdrawing, not an empty shot of falling debris. Preserve readable midtones on its anatomy. No orbit, cinematic cut or tour of other rooms.');
-  else if (scene && !interior) parts.push(scene.motion);
-  else parts.push('The camera holds almost still, drifting a few degrees on the pod mount.');
+  // Legacy scene.motion can prescribe drift or tracking; it is not a camera authority.
 
   // 4. 水里的东西。生成器抽中的每一只都要在画面里，否则雷达上的干扰点没有光学证据。
   const seen = new Set<string>();

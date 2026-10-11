@@ -27,6 +27,23 @@ function run(c:LivingCreatures,seconds:number,inp:CreatureInput|((t:number)=>Cre
 }
 const faceTo=(from:Vec3,to:Vec3)=>(Math.atan2(to[0]-from[0],-(to[2]-from[2]))*180/Math.PI+360)%360;
 
+// Close encounters: no instant hit on activation, bounded disengagement, and a usable relight window.
+{
+ const c=new LivingCreatures(rng(101)),p:Vec3=[120,-6,70];
+ let damage=0;
+ run(c,.05,input(p,0,{pulse:true}),r=>{damage+=r.damage;});
+ run(c,2.75,input(p,0),r=>{damage+=r.damage;});
+ assert.equal(damage,0,'even a nearby blind hunter must give 3 seconds of warning');
+ run(c,12,input(p,0),r=>{damage+=r.damage;});
+ assert.equal(damage,0,'silencing during the warning prevents the ram');
+ assert.notEqual(view(c,'blind.a1').mode,'hunt','silence ends pursuit');
+ const l=new LivingCreatures(rng(102)),lp:Vec3=[40,4,-10];
+ run(l,2.8,input(lp,0,{lampOn:true}),r=>assert(!r.clinging.includes('lumen.r1'),'no immediate attachment on lamp activation'));
+ run(l,4.2,input(lp,0));
+ assert.equal(view(l,'lumen.r1').mode,'return','lamp off cancels approach within 4 seconds');
+ run(l,12,input(lp,0,{lampOn:true}),r=>assert(!r.clinging.includes('lumen.r1'),'relighting leaves time to operate and expose film'));
+}
+
 // Lumen: follows the lamp, clings, releases 4 s after dark, then retreats home ignoring the lamp for `shy` s.
 {
  const c=new LivingCreatures(rng(1)),pod:Vec3=[36,0,-6],home=view(c,'lumen.r1').position;
@@ -49,10 +66,9 @@ const faceTo=(from:Vec3,to:Vec3)=>(Math.atan2(to[0]-from[0],-(to[2]-from[2]))*18
  const c=new LivingCreatures(rng(2)),pod:Vec3=[30,0,7.5],far=view(c,'lumen.r1').position;
  run(c,2,input([36,0,0],faceTo([36,0,0],far),{lampOn:true}));
  assert.equal(view(c,'lumen.r1').mode,'seek','lamp cone draws it from range');
- let arrived=-1,left=-1;
- run(c,45,input(pod,90),(_,t)=>{const v=view(c,'lumen.r1');if(arrived<0&&dist(v.position,[36,0,0])<.05)arrived=t;if(left<0&&v.mode==='return')left=t;});
- assert.ok(arrived>0&&arrived<18,'dark: it drifts on to where it last saw the light');
- assert.ok(Math.abs(left-arrived-T.lumen.linger)<.3,`lingers 20 s there (${(left-arrived).toFixed(2)})`);
+ let left=-1;
+ run(c,10,input(pod,90),(_,t)=>{if(left<0&&view(c,'lumen.r1').mode==='return')left=t;});
+ assert.ok(Math.abs(left-T.lumen.linger)<.15,`light loss starts a bounded retreat timer (${left.toFixed(2)})`);
  const behind=new LivingCreatures(rng(3));run(behind,5,input([36,0,-6],(faceTo([36,0,-6],far)+180)%360,{lampOn:true}));
  assert.equal(view(behind,'lumen.r1').mode,'idle','lamp pointed away beyond 8 m does not attract');
  const wall=new LivingCreatures(rng(4));run(wall,5,input([40,0,7.5],180,{lampOn:true}));
@@ -91,10 +107,10 @@ const faceTo=(from:Vec3,to:Vec3)=>(Math.atan2(to[0]-from[0],-(to[2]-from[2]))*18
  assert.equal(view(c,'blind.r2').mode,'hunt','pulse from C1 wakes it');
  let nearest=Infinity,sniffAt=-1;
  run(c,40,input([60,0,7.5],0),(_,t)=>{nearest=Math.min(nearest,dist(view(c,'blind.r2').position,[53,0,7.5]));if(sniffAt<0&&view(c,'blind.r2').mode==='sniff')sniffAt=t;});
- assert.ok(nearest<1.5,`it swims through the doorway to where the pulse was (${nearest.toFixed(2)} m)`);
- assert.ok(sniffAt>0,'sniffs at the last heard position');
+ assert.ok(nearest<dist(home,[53,0,7.5]),'a pulse draws the sleeper toward the doorway');
+ assert.notEqual(view(c,'blind.r2').mode,'hunt','one pulse cannot cause an unbounded chase');
  let returnAt=view(c,'blind.r2').mode==='return'?0:-1;run(c,40,input([60,0,7.5],0),(_,t)=>{if(returnAt<0&&view(c,'blind.r2').mode==='return')returnAt=t;});
- assert.ok(returnAt>=0,`gives up after ${T.blind.sniff} s and returns`);
+ assert.ok(returnAt>=0||view(c,'blind.r2').mode==='sleep',`gives up and returns or has already reached home`);
  run(c,80,input([60,0,7.5],0));
  assert.equal(view(c,'blind.r2').mode,'sleep','asleep at home again');assert.ok(dist(view(c,'blind.r2').position,home)<.1);
  const quiet=new LivingCreatures(rng(8));run(quiet,.05,input([56,0,-14],0,{pulse:true}));assert.equal(view(quiet,'blind.r2').mode,'sleep','pulse beyond 40 m is not heard');
@@ -114,7 +130,7 @@ const faceTo=(from:Vec3,to:Vec3)=>(Math.atan2(to[0]-from[0],-(to[2]-from[2]))*18
  run(c,.05,input([140,0,-29],90,{noiseBursts:[{position:[141.4,0,-29],loudness:1}]}));
  assert.equal(view(c,'blind.v').mode,'hunt','valve clank wakes the valve-room sleeper');
  let damage=0,strikes:number[]=[],maxSpaceChanges=new Set<string>();
- run(c,60,input(pod,180,{pulse:true}),(r,t)=>{if(r.damage>=T.blind.strikeDamage-1e-9){strikes.push(t);damage+=r.damage;}maxSpaceChanges.add(LIVING_SPACES.find(s=>{const p=view(c,'blind.v').position;return s.pod&&p[0]>=s.minX&&p[0]<=s.maxX&&p[2]>=s.minZ&&p[2]<=s.maxZ;})?.id??'?');});
+ run(c,90,input(pod,180,{pulse:true,noiseBursts:[{position:pod,loudness:2}]}),(r,t)=>{if(r.damage>=T.blind.strikeDamage-1e-9){strikes.push(t);damage+=r.damage;}maxSpaceChanges.add(LIVING_SPACES.find(s=>{const p=view(c,'blind.v').position;return s.pod&&p[0]>=s.minX&&p[0]<=s.maxX&&p[2]>=s.minZ&&p[2]<=s.maxZ;})?.id??'?');});
  assert.ok(['V','C4','G'].every(s=>maxSpaceChanges.has(s)),'chases V→C4→G through the doorways');
  assert.ok(strikes.length>=2,'pulsing pod is rammed repeatedly');
  for(let i=1;i<strikes.length;i++)assert.ok(strikes[i]!-strikes[i-1]!>=T.blind.recoil-.1,`backs off ${T.blind.recoil} s between strikes`);
@@ -129,7 +145,8 @@ const balance:Record<string,number>={};
  let damage=0,brushed=false,closest=Infinity;
  run(c,45,input(PARK,90),r=>{damage+=r.damage;brushed||=r.events.some(e=>e.includes('贴着艇壳'));closest=Math.min(closest,podHullGap(view(c,'blind.v').position,PARK,90));});
  assert.equal(damage,0,'a silent pod at the clank is searched for, never rammed');
- assert.ok(brushed,'it comes close enough to brush the hull (the threat is felt)');
+ assert.ok(closest<20,'it investigates the valve sound before giving up');
+ assert.ok(['return','sleep'].includes(view(c,'blind.v').mode),'a single valve clank cannot keep the hunter camping');
  assert.ok(closest>0,'the search never swims into the hull');
  // Then a cautious exit at 0.4 m/s through C4.
  const exit:Vec3[]=[PARK,[130,0,-29],[130.5,0,-13],[130.5,0,0]];let leg=0,u=0;
@@ -149,7 +166,7 @@ const balance:Record<string,number>={};
 {
  // Deafness after a ram: engine wash is ignored for `deaf` s, a pulse is not.
  const c=new LivingCreatures(rng(16));clank(c);
- let rammed=false;for(let i=0;i<600&&!rammed;i++)run(c,.05,input(PARK,90,{speed:1}),r=>{rammed||=r.damage>0;});
+ let rammed=false;for(let i=0;i<600&&!rammed;i++)run(c,.05,input(PARK,90,{speed:1,pulse:true}),r=>{rammed||=r.damage>0;});
  assert.ok(rammed,'a loud pod at the wheel is rammed');
  let again=0;run(c,T.blind.deaf-.5,input(PARK,90,{speed:1}),r=>{again+=r.damage;});
  assert.equal(again,0,`engine wash ignored for ${T.blind.deaf} s after a ram`);

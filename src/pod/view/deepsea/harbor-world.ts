@@ -8,6 +8,7 @@ import type { ExpeditionSurfaceMaps } from './expedition-surface-maps';
 import type { ExpeditionWorld } from './expedition-world';
 import { pressureDisk, pressureFlange, pressureGateHardware, salvageCaseHardware } from './harbor-hardware';
 import {passageEmergency} from './passage-emergency';
+import {harborCoating} from './harbor-coating';
 
 type V = [number, number, number];
 type Volume = { x0:number;x1:number;y0:number;y1:number;z0:number;z1:number };
@@ -33,6 +34,11 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
   const ceilingSkin=pigment(hull,'#414946');
   const amber=pigment(materials.yellow,'#b77c32'),pale=pigment(materials.hull,'#aaa99c');
   const equipmentPaint=pigment(materials.hull,'#555e5b'),equipmentBand=pigment(materials.yellow,'#776748');
+  // Wall coating, sealed enamel equipment and raw structural steel carry
+  // different wear, rather than sharing one uninterrupted rust scan.
+  harborCoating(hull);harborCoating(ceilingSkin);harborCoating(equipmentPaint,true);
+  hull.color.set('#87938b');equipmentPaint.color.set('#475958');
+  deck.color.multiplyScalar(.68);deck.roughness=.94;deck.metalness=.24;
   const lamp=new MeshStandardMaterial({color:'#e9ceb0',emissive:'#e7b879',emissiveIntensity:2,roughness:.48});owned.push(lamp);
   const lootStrip=new MeshStandardMaterial({color:'#ead391',emissive:'#ffe2a0',emissiveIntensity:3,roughness:.45,toneMapped:false});owned.push(lootStrip);
   function shape(g:BufferGeometry,m:MeshStandardMaterial,p:V,rot:V=[0,0,0],parent?:Group,physicalUV=false){
@@ -287,7 +293,7 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
         for(let j=0;j<4;j++){box([2.6,-2.2+j*.65,z+.43],[1.05,.46,.08],steel,false);box([2.3,-2.2+j*.65,z+.5],[.09,.12,.05],amber,false);}
       }
     }
-    if(i===2){for(let k=0;k<4;k++){box([left+1,r.floor+1.6,r.z-6+k*3],[1.5,3,2],steel);for(let n=0;n<3;n++)box([left+1.8,r.floor+1+n*.6,r.z-6+k*3],[.1,.22,1.4],amber);}ring([right-1,r.y,r.z],1.3,materials.rubber,[0,Math.PI/2,0]);}
+    if(i===2){for(let k=0;k<4;k++){box([left+1,r.floor+1.6,r.z-6+k*3],[1.5,3,2],steel);for(let n=0;n<3;n++)box([left+1.8,r.floor+1+n*.6,r.z-6+k*3],[.1,.22,1.4],amber);}}
     if(i===3){for(const x of [left+2,right-2]){box([x,r.floor+.35,r.z],[1.2,.6,r.depth-3],amber);rod([x,r.floor+1.3,r.z-6],[x,r.floor+1.3,r.z+6],.09,steel);}}
     if(i===4){for(let k=0;k<12;k++){const x=k%2?left+1:right-1,z=r.z-7+Math.floor(k/2)*2.5;box([x,r.floor+.35,z],[.85,.65,.6],k%3?materials.rubber:rust);box([x,r.floor+.73,z],[.45,.09,.12],steel);}}
     if(i===5){for(const x of [left+2,right-2])for(let k=0;k<4;k++){const z=r.z-7+k*4;for(const y of [r.floor+.3,r.floor+2.6,r.floor+5]){box([x,y,z],[3,.18,2.7],steel);box([x,y+.6,z],[1.5,1,1.3],rust);}for(const dz of [-1.3,1.3])rod([x-1.4,r.floor,z+dz],[x-1.4,r.floor+6,z+dz],.12,steel);}}
@@ -540,7 +546,32 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
       salvageCaseHardware(group,lid,shape,{steel,paint:equipmentPaint,rubber:materials.rubber,accent:equipmentBand},lootStrip);
       group.userData.interactionAnchor=[0,.15,.6];
     }
-    else{box([0,0,0],[1.2,1.3,.55],steel,false,group);box([0,.15,.3],[.86,.7,.08],materials.rubber,false,group);box([-.35,-.4,.32],[.18,.12,.06],lamp,false,group);group.userData.interactionAnchor=[0,0,.35];}
+    else{
+      if(item.id==='harbor.item.power'){
+        // This terminal is seen from its rear in the maintenance approach.
+        // Recess its shell to seat real service covers inside the old envelope;
+        // the +Z operating face and all interaction coordinates remain intact.
+        box([0,0,.02],[1.16,1.3,.51],steel,false,group);
+        box([0,0,-.246],[1.14,1.22,.016],materials.rubber,false,group);
+        box([0,0,-.263],[1.10,1.18,.016],equipmentPaint,false,group);
+        for(const x of [-.49,.49])for(const y of [-.52,.52]){
+          shape(new CylinderGeometry(.024,.024,.004,12),steel,[x,y,-.273],[Math.PI/2,0,0],group);
+          box([x,y,-.2745],[.023,.004,.001],materials.rubber,false,group);
+        }
+        for(const side of [-1,1]){
+          box([side*.582,0,.015],[.006,1.22,.46],materials.rubber,false,group);
+          box([side*.590,0,.015],[.012,1.17,.41],equipmentPaint,false,group);
+          for(const y of [-.51,.51])for(const z of [-.14,.17])
+            shape(new CylinderGeometry(.02,.02,.004,6),steel,[side*.598,y,z],[0,0,Math.PI/2],group);
+        }
+        // Blank sealed cable gland on the rear plate, not a new wire or control.
+        shape(new TorusGeometry(.071,.012,8,24),steel,[.25,-.34,-.26],[0,0,0],group);
+        shape(new CylinderGeometry(.058,.058,.008,16),materials.rubber,[.25,-.34,-.261],[Math.PI/2,0,0],group);
+        // Folded mounting returns below the removable cover stay flush.
+        for(const x of [-.43,.43])box([x,-.61,-.247],[.16,.075,.024],steel,false,group);
+      }else box([0,0,0],[1.2,1.3,.55],steel,false,group);
+      box([0,.15,.3],[.86,.7,.08],materials.rubber,false,group);box([-.35,-.4,.32],[.18,.12,.06],lamp,false,group);group.userData.interactionAnchor=[0,0,.35];
+    }
     // Bow remains 0.15m clear of the closed crate; target is inside 3.4m reach.
     // World-space QA positions, local interactionAnchor retained for the arm.
     const facing=group.position.z+5.7>r.z+r.depth/2-.2?-1:1;
@@ -549,6 +580,22 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
     group.updateMatrixWorld(true);
     group.userData.lookAt=group.localToWorld(new Vector3(...group.userData.interactionAnchor as V)).toArray();
     group.userData.approachYaw=facing<0?180:0;
+    if(item.id==='harbor.item.power'){
+      // Floor-mounted service pedestal is a sibling, never part of the dynamic
+      // interaction Box3. MET-042 keeps this support on the decor-only channel.
+      const support=new Group();support.name='harbor-power-pedestal';
+      support.position.set(group.position.x,0,group.position.z);root.add(support);
+      const bottom=r.floor,top=group.position.y-.65;
+      box([0,bottom+.035,0],[.48,.07,.34],steel,false,support);
+      box([0,top-.03,0],[.48,.06,.30],steel,false,support);
+      const postBottom=bottom+.07,postTop=top-.06;
+      box([0,(postBottom+postTop)/2,0],[.16,postTop-postBottom,.16],equipmentPaint,false,support);
+      for(const x of [-.17,.17])for(const z of [-.10,.10]){
+        shape(new CylinderGeometry(.022,.022,.018,6),steel,[x,bottom+.079,z],[0,0,0],support);
+        shape(new CylinderGeometry(.020,.020,.014,6),steel,[x,top-.067,z],[0,0,0],support);
+      }
+      support.updateMatrixWorld(true);decorColliders.push(new Box3().setFromObject(support));
+    }
     // Runtime owns item bounds and removes collected pickups from its solid list.
     items.push({id:item.id,kind:item.kind,group,lid,amount:0});
   }
@@ -579,6 +626,3 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
     dispose(){emergencyDoors.forEach(x=>x.dispose());root.clear();geometries.forEach(g=>g.dispose());owned.forEach(m=>m.dispose());colliders.length=decorColliders.length=walkable.length=0;interactables.clear();doors.clear();}
   };
 }
-
-
-

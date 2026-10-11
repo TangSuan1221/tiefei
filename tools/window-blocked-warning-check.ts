@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {PodRun} from '../src/pod/sim/run';
+import type {AuthoredSite} from '../src/pod/sim/authored-site';
+const r=new PodRun(20261011);r.phase='site';r.at='camera';r.power=1;
+let blocked=false;
+r.authoredSite={index:0,complete:false,evidenceReady:false,description:'',hint:'',turn(d:number){return blocked?r.heading:r.heading+d;},move(){return !blocked;},moveVertical(){return !blocked;},interact(){},draw(){},drawMap(){},snapshot(){return {};},dispose(){}} as unknown as AuthoredSite;
+const internal=r as unknown as {tickPilot(dt:number):void;moveInVolume(d:number,direction?:number):void};
+assert(!r.movementBlocked);internal.tickPilot(.05);assert(!r.movementBlocked,'idle is not stuck');
+internal.moveInVolume(.1);assert(!r.movementBlocked,'normal travel not warned');
+blocked=true;internal.moveInVolume(.1);assert(r.movementBlocked,'blocked translation warned');
+r.clock+=1;assert(!r.movementBlocked,'warning expires without renewed contact');
+r.holdPilot(0,1,0);internal.tickPilot(.05);assert(r.movementBlocked,'blocked turn warned');
+r.clock+=1;r.holdPilot(0,0,0);r.holdHeave(1);internal.tickPilot(.05);assert(r.movementBlocked,'blocked heave warned');
+r.clock+=1;blocked=false;r.holdHeave(0);r.pilot.stop();internal.tickPilot(.05);assert(!r.movementBlocked,'cleared contact no warning');
+r.clock+=1;blocked=true;r.cameraDrive('right');assert(r.movementBlocked,'discrete turn warned');
+console.log('PASS collision warning: idle, free motion, translation, yaw, heave, expiry');

@@ -1,11 +1,11 @@
 /** Formal harbor rescue facts. Spatial tests and actual film creation belong to the adapter. */
 export type RescueZone='none'|'observe'|'power'|'lure'|'rescue'|'exit';
 export type RescueEvidenceKind='threat'|'lure'|'gate'|'departure';
-export interface RescueEvidence {diagnostic?:string;version:1;id:string;kind:RescueEvidenceKind;epoch:number;visible:boolean;monsterInside:boolean;gateClosed:boolean;departed:boolean}
-export interface HarborRescueState {version:1;epoch:number;signal:boolean;heard:boolean;replied:boolean;identified:boolean;warned:boolean;powered:boolean;gateOpen:boolean;gateClosed:boolean;monsterInside:boolean;lureConfirmed:boolean;isolated:boolean;verified:boolean;departing:boolean;departed:boolean;departureConfirmed:boolean;complete:boolean;failed:boolean;lureSeconds:number;holdSeconds:number;noiseSeconds:number;noiseStrikes:number;damageTotal:number;departureSeconds:number;captures:RescueEvidence[];analyzed:string[]}
+export interface RescueEvidence {diagnostic?:string;version:1;id:string;kind:RescueEvidenceKind;epoch:number;visible:boolean;monsterInside:boolean;gateClosed:boolean;departed:boolean;injured?:boolean;capturedAt?:number;creatureVisible?:boolean}
+export interface HarborRescueState {injured:boolean;voluntary:boolean;version:1;epoch:number;signal:boolean;heard:boolean;replied:boolean;identified:boolean;warned:boolean;powered:boolean;gateOpen:boolean;gateClosed:boolean;monsterInside:boolean;lureConfirmed:boolean;isolated:boolean;verified:boolean;departing:boolean;departed:boolean;departureConfirmed:boolean;complete:boolean;failed:boolean;lureSeconds:number;holdSeconds:number;noiseSeconds:number;noiseStrikes:number;damageTotal:number;departureSeconds:number;captures:RescueEvidence[];analyzed:string[]}
 export interface RescueResult {events:string[];damage:number}
 export const RESCUE_TIMING=Object.freeze({lure:9,hold:180,noiseGrace:10,noiseStrike:6,damage:.10,departure:10,lureSafe:25,strikeRange:6});
-const fresh=():HarborRescueState=>({version:1,epoch:0,signal:false,heard:false,replied:false,identified:false,warned:false,powered:false,gateOpen:false,gateClosed:false,monsterInside:false,lureConfirmed:false,isolated:false,verified:false,departing:false,departed:false,departureConfirmed:false,complete:false,failed:false,lureSeconds:0,holdSeconds:0,noiseSeconds:0,noiseStrikes:0,damageTotal:0,departureSeconds:0,captures:[],analyzed:[]});
+const fresh=():HarborRescueState=>({injured:false,voluntary:false,version:1,epoch:0,signal:false,heard:false,replied:false,identified:false,warned:false,powered:false,gateOpen:false,gateClosed:false,monsterInside:false,lureConfirmed:false,isolated:false,verified:false,departing:false,departed:false,departureConfirmed:false,complete:false,failed:false,lureSeconds:0,holdSeconds:0,noiseSeconds:0,noiseStrikes:0,damageTotal:0,departureSeconds:0,captures:[],analyzed:[]});
 const result=(...events:string[]):RescueResult=>({events,damage:0});
 export class HarborRescue {
  private value=fresh();
@@ -15,7 +15,10 @@ export class HarborRescue {
  private resetCycle(){const s=this.value;s.epoch++;s.lureSeconds=0;s.holdSeconds=0;s.monsterInside=false;s.lureConfirmed=false;}
  listen():RescueResult{const s=this.value;if(!s.signal||s.heard||s.failed)return result();s.heard=true;return result('艾里亚斯：（录音。每隔九十秒，残余蓄电池让一台泵空转三秒，录音就卡在这三秒里）……泵站七，艾里亚斯，修泵的。一个人，断桥对面。……听见请回。小声。');}
  reply():RescueResult{const s=this.value;if(!s.heard||s.replied||s.failed)return result();s.replied=true;return result('罗温：听见了。我是事故调查员罗温，正在驾驶潜艇。你受伤了吗？','艾里亚斯：暂时没有。桥断了，你过不来。我把观察位坐标发给你，朝维修隔间拍一张，读片后告诉我外面有什么。');}
- step(dt:number,input:{nearB:boolean;zone:RescueZone;activeSonar:boolean;monsterInside?:boolean;monsterDistance?:number}):RescueResult{
+ /** Knowledge can authorize an unsafe action; it cannot make that action safe. */
+ requestDeparture(){const s=this.value;if(!s.replied||!s.powered||s.failed||s.departed)return false;s.departing=true;s.voluntary=true;return true;}
+ stopDeparture(){const s=this.value;if(!s.departed){s.departing=false;s.departureSeconds=0;s.voluntary=false;}}
+ step(dt:number,input:{nearB:boolean;zone:RescueZone;activeSonar:boolean;monsterInside?:boolean;monsterDistance?:number;npcThreat?:boolean}):RescueResult{
   const s=this.value,out=result();if(!Number.isFinite(dt)||dt<=0||s.failed||s.complete)return out;
   if(input.nearB&&!s.signal){s.signal=true;out.events.push('被动接收机捕捉到断续的人声载波。');}
   // Integrate in bounded slices so large elapsed times cannot bypass the danger window.
@@ -33,15 +36,21 @@ export class HarborRescue {
    // While the lured creature waits inside for its entry photograph the pulse is the intended action;
    // the strike clock only starts once that photograph is confirmed.
    const awaitingEntryPhoto=s.monsterInside&&!s.lureConfirmed;
-   // Strikes damage the hull only; the rescue fails solely by not isolating the creature.
+   // Hull strikes and NPC encounters are separate physical outcomes.
    if(s.warned&&!s.isolated&&input.activeSonar&&!safeLure&&!awaitingEntryPhoto){s.noiseSeconds+=d;const strikes=Math.max(0,Math.floor((s.noiseSeconds-RESCUE_TIMING.noiseGrace)/RESCUE_TIMING.noiseStrike)+1);if(strikes>s.noiseStrikes){const damage=(strikes-s.noiseStrikes)*RESCUE_TIMING.damage;s.noiseStrikes=strikes;s.damageTotal+=damage;out.damage+=damage;out.events.push('怪物追着主动声纳撞击艇壳！立即停止脉冲，屏幕可保持通电。');}}
    else {s.noiseSeconds=0;s.noiseStrikes=0;}
-   if(s.departing&&!s.departed){s.departureSeconds+=d;if(s.departureSeconds>=RESCUE_TIMING.departure){s.departed=true;out.events.push('艾里亚斯：我已经到内侧门后了。拍下门后的情况，我们分别往下走。');}}
+   if(s.departing&&!s.departed){
+    s.departureSeconds+=d;
+    if(!s.isolated&&!s.injured&&s.departureSeconds>=1.5&&input.npcThreat){
+     s.injured=true;s.departing=false;s.departureSeconds=0;s.voluntary=false;
+     out.events.push('（水听器：栏杆猛响，呼吸声被一声闷喊打断。）','艾里亚斯：它还活着！我退回门边了……腿动不了。先把它隔开！');
+    }else if(s.departureSeconds>=(s.injured?20:RESCUE_TIMING.departure)){s.departed=true;out.events.push(s.injured?'艾里亚斯：我挪进值班室了，门已经锁住。我留在这里，去不了生活区。':'艾里亚斯：我已经到内侧门后了。拍下门后的情况，我们分别往下走。');}
+   }
   }return out;
  }
  interact(zone:RescueZone,activeSonar=false):RescueResult{
   const s=this.value;if(s.failed||s.complete)return result();
-  if(zone==='power'){if(!s.identified)return result('先核验断桥另一侧的摄影记录。');if(!s.powered){s.powered=true;return result('02配电箱恢复供电。艾里亚斯：回01打开货仓闸机，再去03开启脉冲把它引过去。');}return result('配电箱已供电。');}
+  if(zone==='power'){if(!s.powered){s.powered=true;return result('02配电箱恢复供电。艾里亚斯：回01打开货仓闸机，再去03开启脉冲把它引过去。');}return result('配电箱已供电。');}
   if(zone==='observe'&&s.powered&&!s.isolated){
    if(!s.gateOpen){this.resetCycle();s.gateOpen=true;s.gateClosed=false;return result('01闸机已开启。去03开启脉冲，拍下怪物完全入仓，再停止脉冲返回这里。');}
    if(activeSonar)return result('先停止脉冲，再落闸。');
@@ -51,13 +60,13 @@ export class HarborRescue {
   }
   if(zone==='observe')return result(s.powered?'货仓闸机已落下锁定。':'01闸机面板没有电，需先恢复02配电箱供电。');
   if(zone==='rescue'){if(!s.verified)return result('尚未核验怪物隔离结果，不能让艾里亚斯离开。');if(!s.departing){s.departing=true;return result('内侧逃生门接通。艾里亚斯：我沿里面的路走，你留在艇里。');}return result();}
-  if(zone==='exit'){if(!s.departureConfirmed)return result('需要核验艾里亚斯撤离的结果片。');s.complete=true;return result('艾里亚斯已真实脱困，双方沿各自通道继续前进。');}
+  if(zone==='exit'){if(!s.departureConfirmed)return result('需要核验艾里亚斯撤离的结果片。');s.complete=true;return result(s.injured?'艾里亚斯留在锁好的值班室休息，罗温继续前往生活区。':'艾里亚斯已真实脱困，双方沿各自通道继续前进。');}
   return result();
  }
- capture(id:string,kind:RescueEvidenceKind,visible:boolean,diagnostic?:string):RescueEvidence{
+ capture(id:string,kind:RescueEvidenceKind,visible:boolean,diagnostic?:string,capturedAt?:number,creatureVisible?:boolean):RescueEvidence{
   const s=this.value,old=s.captures.find(e=>e.id===id)??this.pending.get(id);if(old)return structuredClone(old);
   const allowed=kind==='threat'?s.replied:kind==='lure'?s.monsterInside&&s.gateOpen:kind==='gate'?s.isolated: s.departed;
-  const e:RescueEvidence={diagnostic,version:1,id,kind,epoch:s.epoch,visible:visible&&allowed&&!s.failed,monsterInside:s.monsterInside,gateClosed:s.gateClosed,departed:s.departed};
+  const e:RescueEvidence={diagnostic,...(creatureVisible!==undefined?{creatureVisible}:{}),...(capturedAt!==undefined?{capturedAt}:{}),version:1,id,kind,epoch:s.epoch,visible:visible&&allowed&&!s.failed,monsterInside:s.monsterInside,gateClosed:s.gateClosed,departed:s.departed,injured:s.injured};
   this.pending.set(id,e);return structuredClone(e);
  }
  /** Commit only after the uninterrupted exposure finishes; facts remain those at shutter-open. */
@@ -77,16 +86,19 @@ export class HarborRescue {
  analyze(e:RescueEvidence):RescueResult{
   const s=this.value,stored=s.captures.find(x=>x.id===e.id);if(s.failed||!stored||JSON.stringify(stored)!==JSON.stringify(e)||!e.visible||e.epoch!==s.epoch)return result('该片未覆盖当前目标，或现场已经改变；需要重新曝光。');
   if(s.analyzed.includes(e.id))return result('这份录像已经核验。');s.analyzed.push(e.id);
+  if(e.kind==='threat'&&e.creatureVisible===false)return result('本卷记录了人物与场景，未拍到可确认的生物；不能据此判断怪物已经离开或死亡。');
   if(e.kind==='threat'&&s.replied&&!s.identified){s.identified=true;s.warned=true;return result('现场录像已核验：艾里亚斯附近存在只能在摄影记录中看见的生物。');}
   if(e.kind==='gate'&&e.gateClosed&&e.monsterInside&&s.isolated){s.verified=true;return result('录像确认闸机闭合，怪物隔离在仓内，外侧通路清空。可以接通内侧逃生门。');}
   if(e.kind==='departure'&&e.departed&&s.departed){s.departureConfirmed=true;return result('结果片确认艾里亚斯已经走到内侧门后；断桥依然分隔两条路线。');}
   return result(e.kind==='lure'?'曝光确认怪物完全进入03货仓。':'录像已归档。');
  }
  restore(value:unknown):boolean{
-  if(!value||typeof value!=='object')return false;const s=value as HarborRescueState,base=fresh();
+  if(!value||typeof value!=='object')return false;const s={injured:false,voluntary:false,...value} as HarborRescueState,base=fresh();
   for(const k of Object.keys(base) as (keyof HarborRescueState)[]){const v=s[k];if(typeof base[k]==='boolean'&&typeof v!=='boolean')return false;if(typeof base[k]==='number'&&(typeof v!=='number'||!Number.isFinite(v)||v<0))return false;}
   if(s.version!==1||!Number.isInteger(s.epoch)||!Number.isInteger(s.noiseStrikes)||!Array.isArray(s.captures)||!Array.isArray(s.analyzed))return false;
-  if((s.heard&&!s.signal)||(s.replied&&!s.heard)||(s.identified&&!s.replied)||s.warned!==s.identified||(s.powered&&!s.identified)||(s.gateOpen&&s.gateClosed)||((s.gateOpen||s.gateClosed)&&!s.powered)||(s.monsterInside&&!s.powered)||(s.isolated&&(!s.gateClosed||!s.monsterInside))||(s.verified&&!s.isolated)||(s.departing&&!s.verified)||(s.departed&&!s.departing)||(s.departureConfirmed&&!s.departed)||(s.complete&&!s.departureConfirmed))return false;
+  if((s.injured&&!s.powered)||(s.voluntary&&(!s.powered||!s.departing)))return false;
+  if(s.captures.some(e=>!e||(e.creatureVisible!==undefined&&typeof e.creatureVisible!=='boolean')||(e.injured!==undefined&&typeof e.injured!=='boolean')||(e.capturedAt!==undefined&&(!Number.isFinite(e.capturedAt)||e.capturedAt<0))))return false;
+  if((s.heard&&!s.signal)||(s.replied&&!s.heard)||(s.identified&&!s.replied)||s.warned!==s.identified||(s.gateOpen&&s.gateClosed)||((s.gateOpen||s.gateClosed)&&!s.powered)||(s.monsterInside&&!s.powered)||(s.isolated&&(!s.gateClosed||!s.monsterInside))||(s.verified&&!s.isolated)||(s.departing&&!s.verified&&!s.voluntary)||(s.departed&&!s.departing)||(s.departureConfirmed&&!s.departed)||(s.complete&&!s.departureConfirmed))return false;
   const ids=new Set<string>();for(const e of s.captures){if(!e||e.version!==1||typeof e.id!=='string'||!e.id||ids.has(e.id)||!['threat','lure','gate','departure'].includes(e.kind)||!Number.isInteger(e.epoch)||e.epoch<0||e.epoch>s.epoch||['visible','monsterInside','gateClosed','departed'].some(k=>typeof e[k as keyof RescueEvidence]!=='boolean'))return false;ids.add(e.id);}
   if(s.analyzed.some(id=>typeof id!=='string'||!ids.has(id))||new Set(s.analyzed).size!==s.analyzed.length)return false;
   if(s.lureConfirmed&&!s.captures.some(e=>e.kind==='lure'&&e.visible&&(e.epoch===s.epoch||s.isolated&&e.epoch===s.epoch-1)))return false;

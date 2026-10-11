@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "status": "REQUIRED",
+  "referenceRequiredForEveryGeneration": true,
+  "allowTextOnlyFallback": false,
+  "captureMoment": "trigger-snapshot",
+  "mimeType": "image/png",
+  "providerImageField": "first_frame",
+  "routes": {
+    "player-capture": {"anchor": "player", "camera": "active-player-camera", "allowPlayerCameraFallback": false},
+    "player-action": {"anchor": "player", "camera": "active-player-camera", "allowPlayerCameraFallback": false},
+    "elias-story": {"anchor": "elias", "camera": "authored-elias-scene-camera", "allowPlayerCameraFallback": false}
+  },
+  "requiredSnapshotFields": ["triggerId", "sceneId", "epoch", "capturedAt", "videoType", "anchorEntityId", "anchorPosition", "cameraPosition", "cameraQuaternion", "verticalFov", "aspectRatio", "lightingState", "imageHash"],
+  "rejectWhen": ["unknown-video-type", "missing-anchor", "missing-authored-camera", "missing-image", "capture-failed", "snapshot-mismatch", "invalid-image", "provider-image-input-unsupported"],
+  "retryReference": "same-locked-image",
+  "cacheIdentityFields": ["videoType", "triggerId", "sceneId", "epoch", "anchorEntityId", "anchorPosition", "cameraPosition", "cameraQuaternion", "verticalFov", "aspectRatio", "lightingState", "imageHash", "prompt", "duration"]
+}

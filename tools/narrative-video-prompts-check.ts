@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {campaign} from '../src/narrative-lab/campaign';
+import {StoryEngine} from '../src/narrative-lab/engine';
+import {branchVideoPrompts} from '../src/narrative-lab/video-prompts';
+const e=new StoryEngine(campaign);assert.equal(branchVideoPrompts(campaign,e.snapshot()).length,0);
+assert.equal(e.act('invalid').ok,false);assert.equal(branchVideoPrompts(campaign,e.snapshot()).length,0);
+e.shoot();e.tick(17);e.analyze();const first=e.getChoices().find(c=>c.allowed)!;assert(e.act(first.id).ok);
+const cards=branchVideoPrompts(campaign,e.snapshot());assert.equal(cards.length,1);assert(cards[0].prompt?.includes('10 seconds'));assert(cards[0].prompt?.includes('three long fingers'));assert(!cards[0].prompt?.includes('dark glass visor'));assert(!cards[0].prompt?.includes(first.choice.resultText));
+assert(!cards[0].prompt?.includes('initialWorld'));const restored=new StoryEngine(campaign);assert(restored.restore(e.serialize()).ok);assert.deepEqual(branchVideoPrompts(campaign,restored.snapshot()),cards);
+const sonar={...campaign.scenes[0],id:'test-sonar',observation:'passive-sonar' as const};const state=e.snapshot();state.events.push({id:999,at:1,sceneId:sonar.id,type:'action:'+sonar.choices[0].id,detail:''});assert.equal(branchVideoPrompts({...campaign,scenes:[...campaign.scenes,sonar]},state).at(-1)?.prompt,null);
+console.log('PASS branch prompts: committed actions only, authoritative result, 10s slots, save/restore, non-optical exclusion');

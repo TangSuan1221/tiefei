@@ -10,7 +10,7 @@ export interface CreatureResult {damage:number;events:string[];lensBlocked:boole
 export interface PassiveContact {id:string;type:CreatureType;bearing:number;intensity:number;identified:boolean;frequency:number}
 
 export const LIVING_CREATURE_TUNING=Object.freeze({
- lumen:{cone:26,near:8,speed:1.1,returnSpeed:.6,patrol:.35,linger:20,cling:3.5,clingTick:5,clingDamage:.02,release:4,above:1.9,
+ lumen:{cone:26,near:4,speed:1.1,returnSpeed:1.1,patrol:.35,linger:4,notice:3,cling:1,clingTick:5,clingDamage:.02,release:4,above:1.9,
   /** After letting go it ignores the lamp this long (s) while it swims home, so the player gets a lit window. */
   shy:25},
  shade:{range:14,glare:3,dark:25,bite:4,biteDamage:.06,biteCooldown:3,push:1.5,speed:1.6,returnSpeed:1},
@@ -19,7 +19,7 @@ export const LIVING_CREATURE_TUNING=Object.freeze({
   * reaching a silent pod it only brushes past (`brush` m, once per `brushCooldown` s). After a ram it backs off `recoil` s
   * and ignores engine wash for `deaf` s (pulses and clanks still carry).
   */
- blind:{pulse:40,wash:10,washSpeed:.45,noise:30,speed:1.7,patrol:.8,sniff:20,sniffRadius:4,sniffSpeed:.7,strike:2.6,strikeDamage:.05,recoil:8,recoilSpeed:1.2,deaf:14,lock:2,podBurst:5,brush:1.6,brushCooldown:10},
+ blind:{pulse:24,wash:10,washSpeed:.45,noise:30,speed:1.7,patrol:.8,sniff:6,memory:8,notice:3,rest:12,sniffRadius:4,sniffSpeed:.7,strike:1,strikeDamage:.05,recoil:8,recoilSpeed:1.2,deaf:14,lock:2,podBurst:5,brush:1.6,brushCooldown:10},
  swarm:{range:10,speed:.9,dark:12,hover:1.2,lens:2.5,cover:2.5},
  hearing:90,
 });
@@ -187,11 +187,13 @@ export class LivingCreatures {
   if(m.cooldown<=0&&this.lit(m,input,Math.min(T.cone,input.lampRange),T.near)){
    if(m.mode!=='seek')this.say(out,'舷窗外有什么转向了灯光，正慢慢靠过来。','creature.skitter');
    m.mode='seek';m.last=[...pod];m.lastSpace=livingSpaceAt(pod,m.space);
+   m.glare+=dt;if(m.glare<T.notice)return;
    if(podHullGap(m.pos,pod,input.heading)<=T.cling){m.mode='cling';m.clock=0;m.dark=0;m.leg=[];m.legSpace=null;this.say(out,'有东西贴上了舷窗——镜头被遮住，机械臂伸不出去。','creature.breath-sync');return;}
    this.go(m,[pod[0],pod[1]+1,pod[2]],m.lastSpace,T.speed,dt);if(!m.leg.length)this.face(m,pod);return;
   }
+  m.glare=0;
   if(m.mode==='seek'){m.mode='drift';m.timer=T.linger;}
-  if(m.mode==='drift'){if(!m.last){m.mode='return';return;}if(this.go(m,m.last,m.lastSpace,T.speed,dt)){m.timer-=dt;if(m.timer<=0)m.mode='return';}return;}
+  if(m.mode==='drift'){m.timer-=dt;if(m.timer<=0||!m.last){m.mode='return';m.cooldown=T.shy;return;}this.go(m,m.last,m.lastSpace,T.patrol,dt);return;}
   if(m.mode==='return'){if(this.go(m,m.spawn.home,m.spawn.space,T.returnSpeed,dt)){m.mode='idle';m.next=0;m.pause=2;}return;}
   this.patrol(m,T.patrol,dt);
  }
@@ -213,31 +215,36 @@ export class LivingCreatures {
   const T=LIVING_CREATURE_TUNING.blind,pod=input.pod;
   m.dark+=dt;m.clock=Math.max(0,m.clock-dt);
   let heard:V|null=null,space:string|null=null,fromPod=false;
-  if(m.mode!=='recoil'){
+  if(m.mode!=='recoil'&&!(m.mode==='return'&&m.cooldown>0)){
    const d=dist(m.pos,pod);
-   if((input.pulse&&d<=T.pulse)||(m.mode!=='sleep'&&m.cooldown<=0&&input.speed>T.washSpeed&&d<=T.wash)){heard=[...pod];space=livingSpaceAt(pod,m.space);fromPod=true;}
+   if((first&&input.pulse&&d<=T.pulse)||(m.mode!=='sleep'&&m.cooldown<=0&&input.speed>T.washSpeed&&d<=T.wash)){heard=[...pod];space=livingSpaceAt(pod,m.space);fromPod=true;}
    if(!heard&&first)for(const b of input.noiseBursts??[]){if(!vec(b?.position)||!finite(b.loudness))continue;const s=livingSpaceAt(b.position);
     if(s&&dist(m.pos,b.position)<=b.loudness*T.noise&&(!heard||dist(m.pos,b.position)<dist(m.pos,heard))){heard=[...b.position];space=s;fromPod=dist(b.position,pod)<=T.podBurst;}}
   }
   if(heard&&space){
    if(m.mode!=='hunt')this.say(out,m.mode==='sleep'?'被动声纳：一个原本静止的声源醒了，正朝声音的方向游来。':'被动声纳：一个声源突然转向，朝声音的方向来了。','listener.call');
-   m.mode='hunt';m.last=heard;m.lastSpace=space;if(fromPod)m.dark=0;
+   if(m.mode!=='hunt')m.glare=0;
+   m.mode='hunt';m.timer=T.memory;m.last=heard;m.lastSpace=space;if(fromPod)m.dark=0;
   }
   const gap=podHullGap(m.pos,pod,input.heading);
   if(m.mode==='hunt'){
+   m.glare+=dt;
+   m.timer-=dt;
+   if(!heard&&m.timer<=0){m.mode='return';m.cooldown=T.rest;m.goal=null;return;}
+   if(m.glare<T.notice)return;
    if(gap<=T.strike&&m.dark<=T.lock){
     out.damage+=T.strikeDamage;out.shake=Math.max(out.shake,1);this.say(out,'撞击！有东西从黑暗里狠狠撞上艇壳。','hull.crack');
     const dx=m.pos[0]-pod[0],dz=m.pos[2]-pod[2],d=Math.hypot(dx,dz)||1;
     m.mode='recoil';m.timer=T.recoil;m.cooldown=T.deaf;m.goal=inset(SPACES.get(m.space)!,[m.pos[0]+dx/d*6,m.pos[1],m.pos[2]+dz/d*6]);m.goalSpace=m.space;return;
    }
-   if(gap<=T.brush){this.brush(m,out);m.mode='sniff';m.timer=T.sniff;m.goal=null;return;}
+   if(gap<=T.brush&&m.dark>T.lock){this.brush(m,out);m.mode='sniff';m.timer=T.sniff;m.goal=null;return;}
    if(this.go(m,m.last!,m.lastSpace,T.speed,dt)&&!heard){m.mode='sniff';m.timer=T.sniff;m.goal=null;this.say(out,'追来的声源停在附近，来回搜索。');}
    return;
   }
   if(m.mode==='sniff'&&gap<=T.brush)this.brush(m,out);
   if(m.mode==='recoil'){m.timer-=dt;if(m.goal)this.go(m,m.goal,m.goalSpace,T.recoilSpeed,dt);if(m.timer<=0){m.mode='sniff';m.timer=T.sniff;m.goal=null;}return;}
   if(m.mode==='sniff'){
-   m.timer-=dt;if(m.timer<=0){m.mode='return';m.goal=null;this.say(out,'那个声源慢慢游远了。');return;}
+   m.timer-=dt;if(m.timer<=0){m.mode='return';m.cooldown=T.rest;m.goal=null;this.say(out,'那个声源慢慢游远了。');return;}
    if(m.pause>0){m.pause-=dt;return;}
    const c=m.last??m.pos,cs=m.lastSpace??m.space;
    if(!m.goal){

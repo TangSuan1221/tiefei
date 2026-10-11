@@ -62,13 +62,15 @@ export const LIVING_RENDER_PROFILES: Record<LivingOpticsMode, LivingRenderProfil
   // The live lamp falls off more slowly (pushed sensor, longer throw) so structure 15–30 m down the beam stays
   // legible in the hall; near-field level matches the old ×6 / decay 1.5 at ~4 m. Lenses are pushed ×2.2 so
   // the emergency fixtures read as navigation points on the crushed exposure.
-  live: {exposure: 2.8 * .13 * 1.15, lampGain: 6, lampDecay: 1.05, practicalGain: .08, envIntensity: .5 * .035 / .13, scatter: .8, grain: .045, vignette: .5, aberration: .0032, bloom: .3, halo: 4.2, fogTint: 3, lensGain: 2.2},
+  live: {exposure: 2.8 * .13 * 1.15, lampGain: 6, lampDecay: 1.05, practicalGain: .08, envIntensity: .5 * .035 / .13, scatter: .8, grain: .045, vignette: 0, aberration: .0032, bloom: .3, halo: 4.2, fogTint: 3, lensGain: 2.2},
 };
 /** Exposed-HDR luminance where bloom starts (soft knee 0.9 above it). */
 const BLOOM_THRESHOLD = 1.3;
 /** Candela per rated unit for a space mood key (layout fixtures use 6). */
 const MOOD_KEY_GAIN = 11;
-export const LIVING_LAMP = {color: '#f2e2c4', intensity: 58, distance: 48, angle: .72, penumbra: .55, decay: 1.5};
+// Broad reflector covers the window's field of view. Darkness comes from world
+// distance/occlusion, not a narrow circular pool projected onto the window.
+export const LIVING_LAMP = {color: '#f2e2c4', intensity: 58, distance: 48, angle: 1.15, penumbra: .35, decay: 1.5};
 
 export interface LivingPractical {
   position: readonly number[]; color: string; intensity: number; range: number; space?: string; dir?: readonly number[];
@@ -235,7 +237,7 @@ const SCATTER_FS = `
   precision highp float;
   varying vec2 vUv;
   uniform sampler2D tDepth; uniform mat4 invProj, camWorld; uniform vec3 eye; uniform float time, sigma, density, frame;
-  uniform vec3 lampPos, lampDir, lampColor; uniform vec2 lampCone; uniform float lampPower, lampShadowOn; uniform highp sampler2DShadow lampShadow; uniform mat4 lampShadowMat;
+  uniform vec3 lampPos, lampDir, lampColor; uniform vec2 lampCone; uniform float lampPower, lampRange, lampShadowOn; uniform highp sampler2DShadow lampShadow; uniform mat4 lampShadowMat;
   uniform vec3 keyPos[2], keyDir[2], keyColor[2]; uniform vec2 keyCone[2]; uniform float keyPower[2]; uniform vec2 keyShadowOn;
   uniform highp sampler2DShadow keyShadow0, keyShadow1; uniform mat4 keyShadowMat[2];
   uniform vec3 ptPos[${LIVING_PT_COUNT}], ptColor[${LIVING_PT_COUNT}]; uniform float ptPower[${LIVING_PT_COUNT}], ptRange[${LIVING_PT_COUNT}];
@@ -285,7 +287,8 @@ const SCATTER_FS = `
         float cone = smoothstep(lampCone.x, lampCone.y, dot(ln, lampDir));
         if (cone > 0.) {
           float vis = lampShadowOn > .5 ? shadowAt(lampShadow, lampShadowMat, p) : 1.;
-          L += lampColor * lampPower * cone * vis * pow(max(d, .35), -1.5) * exp(-sigma * d) * phase(dot(ln, -ray));
+          float rangeFade = pow(clamp(1. - pow(d / lampRange, 4.), 0., 1.), 2.);
+          L += lampColor * lampPower * cone * vis * rangeFade * pow(max(d, .35), -1.5) * exp(-sigma * d) * phase(dot(ln, -ray));
         }
       }
       for (int k = 0; k < 2; k++) {
@@ -435,7 +438,7 @@ class LivingVolumetricPass extends Pass {
       uniforms: {
         tDepth: {value: null}, invProj: {value: new T.Matrix4()}, camWorld: {value: new T.Matrix4()}, eye: {value: new T.Vector3()},
         time: {value: 0}, sigma: {value: .06}, density: {value: .05}, frame: {value: 0},
-        lampPos: {value: new T.Vector3()}, lampDir: {value: new T.Vector3()}, lampColor: {value: new T.Color()}, lampCone: {value: new T.Vector2()}, lampPower: {value: 0},
+        lampPos: {value: new T.Vector3()}, lampDir: {value: new T.Vector3()}, lampColor: {value: new T.Color()}, lampCone: {value: new T.Vector2()}, lampPower: {value: 0}, lampRange: {value: 48},
         lampShadowOn: {value: 0}, lampShadow: {value: shadowStub}, lampShadowMat: {value: new T.Matrix4()},
         keyPos: {value: v3(2)}, keyDir: {value: v3(2)}, keyColor: {value: [new T.Color(), new T.Color()]}, keyCone: {value: [new T.Vector2(), new T.Vector2()]}, keyPower: {value: [0, 0]},
         keyShadowOn: {value: new T.Vector2()}, keyShadow0: {value: shadowStub}, keyShadow1: {value: shadowStub}, keyShadowMat: {value: [new T.Matrix4(), new T.Matrix4()]},
@@ -656,7 +659,7 @@ export function createLivingRender(o: LivingRenderOptions): LivingRender {
       const right = tmpR.crossVectors(dir, UP).normalize();
       // Lamp mounted below-right of the lens: shadows read beside objects instead of hiding behind them.
       const on = f.lampOn && !f.probe;
-      lamp.position.copy(eye).addScaledVector(UP, -.2).addScaledVector(right, .16);
+      lamp.position.copy(eye).addScaledVector(UP, -.32).addScaledVector(right, .42);
       lamp.target.position.copy(eye).addScaledVector(dir, 12); lamp.target.updateMatrixWorld();
       // A point-source spot is ×(1/d^1.5) at the lens; a real reflector lamp is not. Dim it against a surface inches away.
       const upV = tmpU.crossVectors(right, dir);
@@ -758,7 +761,7 @@ export function createLivingRender(o: LivingRenderOptions): LivingRender {
       const u = volume.scatterMat.uniforms;
       u.invProj.value.copy(camera.projectionMatrixInverse); u.camWorld.value.copy(camera.matrixWorld); u.eye.value.copy(eye);
       u.time.value = f.time; u.sigma.value = sigma; u.density.value = .0032 * P.scatter * T.MathUtils.clamp(fog.density / .062, .5, 1.2);
-      u.lampPos.value.copy(beam.position); u.lampDir.value.copy(optics.uLampDir.value); u.lampColor.value.copy(beam.color); u.lampCone.value.copy(optics.uLampCone.value); u.lampPower.value = beam.intensity;
+      u.lampPos.value.copy(beam.position); u.lampDir.value.copy(optics.uLampDir.value); u.lampColor.value.copy(beam.color); u.lampCone.value.copy(optics.uLampCone.value); u.lampPower.value = beam.intensity; u.lampRange.value = beam.distance > 0 ? beam.distance : 48;
       const lampDepth = beam.shadow.map?.depthTexture;
       u.lampShadowOn.value = lampDepth && beam.intensity > 0 ? 1 : 0; if (lampDepth) u.lampShadow.value = lampDepth;
       u.lampShadowMat.value.copy(beam.shadow.matrix);

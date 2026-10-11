@@ -8,6 +8,8 @@ import type {ReferenceMaterials} from './reference-materials';
 import {createHarborRescueDressing} from './harbor-rescue-dressing';
 import {createHarborFractureArt} from './harbor-fracture-art';
 import {createEliasPoser,type EliasRig} from './harbor-elias-pose';
+import {createHarborEliasSkin} from './harbor-elias-skin';
+import {createHarborCreatureSkin} from './harbor-creature-skin';
 type V=[number,number,number];
 export const HARBOR_RESCUE_LAYOUT={observe:[60,0,27] as V,power:[42,0,28] as V,lure:[77,1,7] as V,elias:[57,-1.2,11] as V,monster:[64,-1.2,9] as V,cargo:[77,-1.2,9] as V,gate:[77,0,16] as V};
 export interface HarborRescueVisualState {powered:boolean;gateOpen:boolean;bridgeExtended:boolean;monsterPosition?:V;eliasPosition?:V;monsterVisible?:boolean;rescued?:boolean;walking?:boolean;/** Story performance key for the survivor's acting; '' keeps the default idle. */eliasBeat?:string}
@@ -148,6 +150,7 @@ export function createHarborRescueWorld(world:ExpeditionWorld,m:ReferenceMateria
   return {root:g,upper,head,arms,legs};
  }
  const eliasRig=human(),elias=eliasRig.root;elias.position.set(...HARBOR_RESCUE_LAYOUT.elias);
+ const eliasSkin=createHarborEliasSkin(eliasRig);
  const eliasPose=createEliasPoser(eliasRig,{pod:HARBOR_RESCUE_LAYOUT.observe,door:HARBOR_RESCUE_LAYOUT.monster,gate:HARBOR_RESCUE_LAYOUT.gate});
  const monster=new T.Group();monster.name='rescue-acoustic-creature';root.add(monster);monster.position.set(...HARBOR_RESCUE_LAYOUT.monster);
  // Uneven amphibious anatomy; limbs fold through actual joints rather than
@@ -166,6 +169,7 @@ export function createHarborRescueWorld(world:ExpeditionWorld,m:ReferenceMateria
  for(let i=0;i<8;i++){const z=-.85+i*.23,y=1.55+Math.sin(i/7*Math.PI)*.09;ellipsoid([.025,y,z],[.075,.15+Math.sin(i)*.025,.13],crest,monster);}
  for(const side of [-1,1])for(let i=0;i<5;i++){const z=-.6+i*.23;rod([side*.38,1.41,z],[side*.49,1.14,z+.10],.027,crest,monster);}
  rod([0,.72,-.95],[.11,.38,-1.50],.12,skin,monster);rod([.11,.38,-1.50],[.40,.08,-1.9],.06,skin,monster);
+ const creatureSkin=createHarborCreatureSkin(monster);
  // A service alcove frames the survivor without identity-revealing decoration.
  for(const x of [55,59])box([x,.2,10.8],[.14,3.0,.25],paint);
  box([57,1.7,10.8],[4.15,.15,.3],paint);label('04 / 维修接驳','EMERGENCY TRANSFER',[57,1.2,10.97],2.6);
@@ -188,32 +192,13 @@ export function createHarborRescueWorld(world:ExpeditionWorld,m:ReferenceMateria
  // the dark bulkhead. The animal remains hidden from live observation.
  const recordRim=new T.PointLight('#9fae9d',0,5.5,2);root.add(recordRim);
  let disposed=false,lastVisualTime:number|undefined;
- function update(state:HarborRescueVisualState,time:number){const dt=lastVisualTime===undefined?1.2:Math.max(0,time-lastVisualTime);lastVisualTime=time;const approach=(current:number,target:number,speed:number)=>current+Math.sign(target-current)*Math.min(Math.abs(target-current),speed*dt);gateMesh.position.y=approach(gateMesh.position.y,state.gateOpen?5.7:0,5.7/1.2);innerLeaf.position.x=approach(innerLeaf.position.x,state.bridgeExtended?-1.55:0,1.55/1.2);escapeLight.intensity=state.bridgeExtended?7:0;bridge.visible=state.bridgeExtended;monster.visible=state.monsterVisible??true;monster.position.set(...(state.monsterPosition??HARBOR_RESCUE_LAYOUT.monster));recordRim.position.copy(monster.position).add(new T.Vector3(-1.8,2.0,-.3));recordRim.intensity=state.monsterVisible?5.5:0;elias.visible=!state.rescued;eliasPose.update(state.eliasPosition??HARBOR_RESCUE_LAYOUT.elias,!!state.walking,state.eliasBeat??'',time,dt);torso.rotation.z=Math.sin(time*1.8)*.025;head.rotation.y=Math.sin(time*.65)*.09;for(const i of indicators)i.scale.x=state.powered?1:.4;lightMat.emissiveIntensity=state.powered?1.2:.3;}
+ function update(state:HarborRescueVisualState,time:number){const dt=lastVisualTime===undefined?1.2:Math.max(0,time-lastVisualTime);lastVisualTime=time;const approach=(current:number,target:number,speed:number)=>current+Math.sign(target-current)*Math.min(Math.abs(target-current),speed*dt);gateMesh.position.y=approach(gateMesh.position.y,state.gateOpen?5.7:0,5.7/1.2);innerLeaf.position.x=approach(innerLeaf.position.x,state.bridgeExtended?-1.55:0,1.55/1.2);escapeLight.intensity=state.bridgeExtended?7:0;bridge.visible=state.bridgeExtended;monster.visible=state.monsterVisible===true;monster.position.set(...(state.monsterPosition??HARBOR_RESCUE_LAYOUT.monster));recordRim.position.copy(monster.position).add(new T.Vector3(-1.8,2.0,-.3));recordRim.intensity=state.monsterVisible?5.5:0;elias.visible=!state.rescued;eliasPose.update(state.eliasPosition??HARBOR_RESCUE_LAYOUT.elias,!!state.walking,state.eliasBeat??'',time,dt);eliasSkin.update();creatureSkin.update(time);torso.rotation.z=Math.sin(time*1.8)*.025;head.rotation.y=Math.sin(time*.65)*.09;for(const i of indicators)i.scale.x=state.powered?1:.4;lightMat.emissiveIntensity=state.powered?1.2:.3;}
  // Batch immobile root meshes only; articulated characters, doors, signs and
  // interaction groups retain their identity and raycast behaviour.
  const staticBatches=new Map<T.Material,T.BufferGeometry[]>();
  for(const o of [...root.children]){if(!(o instanceof T.Mesh)||Array.isArray(o.material))continue;o.updateMatrix();const g=o.geometry.clone().applyMatrix4(o.matrix);const flat=g.index?g.toNonIndexed():g;if(flat!==g)g.dispose();flat.clearGroups();const list=staticBatches.get(o.material)??[];list.push(flat);staticBatches.set(o.material,list);root.remove(o);}
  for(const [material,parts]of staticBatches){const g=mergeGeometries(parts);for(const part of parts)part.dispose();if(!g)continue;geometries.push(g);const o=new T.Mesh(g,material);o.castShadow=o.receiveShadow=true;root.add(o);}
  update({powered:false,gateOpen:false,bridgeExtended:false},0);
- function dispose(){if(disposed)return;disposed=true;dressing.dispose();fractureArt.dispose();for(const sign of signs)sign.dispose();root.removeFromParent();for(const g of geometries)g.dispose();for(const mm of owned)mm.dispose();for(const tx of textures)tx.dispose();for(const l of addedLights){const index=world.practicalLights.indexOf(l);if(index>=0)world.practicalLights.splice(index,1);}}
+ function dispose(){if(disposed)return;disposed=true;creatureSkin.dispose();eliasSkin.dispose();dressing.dispose();fractureArt.dispose();for(const sign of signs)sign.dispose();root.removeFromParent();for(const g of geometries)g.dispose();for(const mm of owned)mm.dispose();for(const tx of textures)tx.dispose();for(const l of addedLights){const index=world.practicalLights.indexOf(l);if(index>=0)world.practicalLights.splice(index,1);}}
  return{root,solids,decor,anchors,panels,gate,monster,elias,bridge,innerDoor,update,dispose};
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

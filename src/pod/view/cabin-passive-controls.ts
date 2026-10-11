@@ -18,10 +18,10 @@ export function buildPassiveControls(group:THREE.Group,w:number,h:number){
   };
   const label=(text:string,width:number,height:number,x:number,y:number)=>{
     const c=document.createElement('canvas');c.width=512;c.height=64;const ctx=c.getContext('2d')!;
-    ctx.fillStyle='#d8c08a';ctx.font='bold 40px "Microsoft YaHei",monospace';ctx.textBaseline='middle';
+    ctx.fillStyle='#a5a28c';ctx.font='400 25px "Microsoft YaHei",monospace';ctx.textBaseline='middle';
     ctx.textAlign='left';ctx.fillText('35',4,32);ctx.textAlign='right';ctx.fillText('45 kHz',508,32);ctx.textAlign='center';ctx.fillText(text,256,32);
     const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;textures.push(t);
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,toneMapped:false}));
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshStandardMaterial({map:t,transparent:true,depthWrite:false,roughness:.95}));
     m.position.set(x,y,.0605);m.raycast=()=>{};group.add(m);
   };
 

@@ -20,6 +20,7 @@
  */
 
 import type { AudioSystem, Rng } from '../core/contract';
+import {isAudioMuted,onAudioMute} from './mute';
 import { Xoshiro } from '../core/rng';
 import { clamp, clamp01, lerp } from '../core/util';
 import type { BreathClock } from './breath';
@@ -69,6 +70,8 @@ export class AudioEngine implements AudioSystem {
   private rng: Rng = new Xoshiro(0xa17b3, 'audio');
 
   private master!: GainNode;
+  private masterVolume=0.85;
+  private detachMute:(()=>void)|null=null;
   private comp!: DynamicsCompressorNode;
   private globalLP!: BiquadFilterNode;
   private dryBus!: GainNode;
@@ -130,7 +133,8 @@ export class AudioEngine implements AudioSystem {
     const ctx = new Ctor({ latencyHint: 'interactive' });
     this.ctx = ctx;
 
-    this.master = gainNode(ctx, 0.85);
+    this.master = gainNode(ctx, isAudioMuted()?0:this.masterVolume);
+    this.detachMute=onAudioMute(()=>this.setMasterGain(this.masterVolume));
     this.comp = ctx.createDynamicsCompressor();
     // 慢启动、慢释放：不要把心跳压扁，只拦住内爆那种峰值
     this.comp.threshold.value = -16;
@@ -225,6 +229,7 @@ export class AudioEngine implements AudioSystem {
   }
 
   dispose(): void {
+    this.detachMute?.();this.detachMute=null;
     if (this.schedTimer !== null) clearInterval(this.schedTimer);
     this.schedTimer = null;
     this.detachBreath?.();
@@ -437,8 +442,9 @@ export class AudioEngine implements AudioSystem {
   }
 
   setMasterGain(g: number): void {
+    this.masterVolume=clamp01(g);
     if (!this.ctx) return;
-    ramp(this.master.gain, this.ctx.currentTime, this.master.gain.value, clamp01(g), 0.12, false);
+    ramp(this.master.gain, this.ctx.currentTime, this.master.gain.value, isAudioMuted()?0:this.masterVolume, 0.12, false);
   }
 
   /** 低理智：耳鸣抬起、混响变长、音床开始跑调 */
