@@ -7,7 +7,7 @@ const engine=new StoryEngine(campaign);
 assert(engine.shoot().ok);
 const captured=engine.snapshot().tapes[0];
 assert(!captured.ready);assert.equal(engine.snapshot().knowledge.player.length,0);
-assert(captured.videoPrompt?.prompt?.includes('three long fingers'));
+assert(captured.videoPrompt?.prompt?.includes('three long webbed fingers'));assert(captured.videoPrompt?.prompt?.includes('abyssal Lovecraftian deep-sea organism'));assert(captured.videoPrompt?.prompt?.includes('never stands, walks or crawls'));
 assert(captured.videoPrompt?.prompt?.includes('Nobody is visible behind it'));
 assert(!captured.videoPrompt?.prompt?.includes('dark glass visor'));
 assert(captured.videoPrompt?.storyboard?.includes('看不到艾里亚斯'));

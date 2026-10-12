@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-level-metrics",
-  "revision": "2026-10-11-v73-recovered-password-card-visual-r4-porthole-readouts-instrument-layout-edge-readouts-left-compact-keyboard-tilt-near-focus-warn-lab-desk-tabs-tactical-diagnostics-harbor-blind-pass-causal-narrative-video-policy-branch-prompts-prompt-rag-causal-branches-scout-exposure-snapshot-prompt-structure-v2-sonar-hardware-helm-clearance-keyboard-monitor-alignment-near-water-clarity-refined-focus-range-mandatory-trigger-reference-radio-input-visible-abyssal-horror-minimax-live-verified-species-diversity-20261012-fixed-camera-cargo-video-diagnostics-live-hide-harbor-generated-monsters-only-duration-request-cost-only",
+  "revision": "2026-10-11-v73-recovered-password-card-visual-r4-porthole-readouts-instrument-layout-edge-readouts-left-compact-keyboard-tilt-near-focus-warn-lab-desk-tabs-tactical-diagnostics-harbor-blind-pass-causal-narrative-video-policy-branch-prompts-prompt-rag-causal-branches-scout-exposure-snapshot-prompt-structure-v2-sonar-hardware-helm-clearance-keyboard-monitor-alignment-near-water-clarity-refined-focus-range-mandatory-trigger-reference-radio-input-visible-abyssal-horror-minimax-live-verified-species-diversity-20261012-fixed-camera-cargo-video-diagnostics-live-hide-harbor-generated-monsters-only-duration-request-cost-only-abyssal-text-creature-profiles",
   "defaultRuntimeProfile": "main-authored",
   "documents": [
     {
@@ -128,6 +128,7 @@
     "tools/harbor-narrative-browser-check.mjs",
     "docs/video-policy-2026-10-11.md",
     "src/pod/content/video-policy.ts",
+    "src/pod/content/video-creatures.ts",
     "src/pod/content/footage.ts",
     "src/pod/net/video.ts",
     "src/pod/view/footage.ts",

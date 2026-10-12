@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-video-prompts",
-  "revision": "2026-10-11-v2-branch-library-scout-exposure-snapshot-structure-v2-mandatory-trigger-reference-abyssal-horror-species-diversity-20261012-fixed-camera",
+  "revision": "2026-10-11-v2-branch-library-scout-exposure-snapshot-structure-v2-mandatory-trigger-reference-abyssal-horror-species-diversity-20261012-fixed-camera-20261012-generated-abyssal-creatures",
   "scope": "main-harbor-design-and-narrative-lab-test",
   "documents": [
     {
@@ -62,6 +62,10 @@
     "src/pod/content/video-reference-policy.json",
     "src/pod/net/video.ts",
     "src/pod/content/fixed-camera.ts",
-    "tools/fixed-video-camera-check.mjs"
+    "tools/fixed-video-camera-check.mjs",
+    "src/pod/content/video-creatures.ts",
+    "src/pod/content/video-policy.ts",
+    "src/pod/view/deepsea/living-deck-site.ts",
+    "tools/video-policy-check.ts"
   ]
 }

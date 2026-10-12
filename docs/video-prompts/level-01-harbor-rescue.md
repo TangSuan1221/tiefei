@@ -38,7 +38,7 @@ Battered 1980s analogue hull camera beside one narrow floodlight; low frame rate
 
 - 艾里亚斯在首关是真实获救的人：穿潜水服的单人幸存者，人形完整。不得显示袖口破损、皮下组织或任何"他已改变"的迹象（第三章后才揭示）。
 - 首关尸体是艾里亚斯的兄弟。正文要求第一卷断桥下有一具脸朝下、被栏杆挡住的尸体；只能作为背景中的脸朝下的人形，不得出现面部、证件、姓名、伤口特写，不得暗示死亡责任。当前场景没有尸体模型（GAP），在场景补齐前槽位 `corpse` 默认 `none`，模板不得自行添加。
-- 怪物外观取正文第一章：很长的手、扭曲的躯干、向下垂的脸、工装陷进皮肉，神情不狰狞、近似安抚。当前模型为四肢爬行的苍白人形，背部有一列鳍状棘、三指长爪。描述只写外形，不解释来源，不出现 Panacea、病毒、实验、医疗等字样。
+- 怪物外观取正文第一章：很长的手、扭曲的躯干、向下垂的脸、工装陷进皮肉，神情不狰狞、近似安抚。怪物由视频生成、不使用3D模型；外形按VR-110深海克系档案：半透明受压骨白皮肤、三根带鳍膜的长蹼指、脊背破碎鳍条、鳃裂、无腿拖曳下身，悬浮滑行或攀附钢结构，不站、不走、不爬。描述只写外形，不解释来源，不出现 Panacea、病毒、实验、医疗等字样。
 - 不写万斯、公司阴谋、邪教、五层结构或后续关卡人物。旧七关文本（`src/pod/content/campaign-story.ts` 的 film 字段，如"倒悬救生舱"）不得进入首关提示词。
 - 不演出未发生的结局：受击片不得出现破舱、死亡；隔离片不得出现怪物逃出；撤离片不得出现艾里亚斯与潜艇会合。
 
@@ -79,7 +79,7 @@ Battered 1980s analogue hull camera beside one narrow floodlight; low frame rate
     "moving": "The heavy cargo gate is still sliding down its rails, shedding rust flakes.",
     "unpowered": "The cargo gate is shut and dark, its panel unlit."
   },
-  "creature": "a pale, hairless, long-limbed figure crawling on all fours, with a low row of fin-like spines along its back, three long fingers on each hand and scraps of grey work overalls grown into its skin; its drooping face is calm, almost consoling, never snarling",
+  "creature": "an abyssal deep-sea creature with translucent bone-pale skin, very long arms ending in three webbed fingers, gill slits, no legs but a soft trailing lower body, and grey overall scraps sunk into its flesh; it glides or clings, never crawls; its drooping face is calm, never snarling",
   "monster": {
     "absent": "No creature is in frame.",
     "unseen": "Something unseen displaces the silt at the edge of the light; no body is visible.",

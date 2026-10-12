@@ -1,10 +1,18 @@
 import assert from 'node:assert/strict';
 import {videoPolicy,slotPrompt,videoContextKey,type VideoContext} from '../src/pod/content/video-policy';
 import {PodRun} from '../src/pod/sim/run';
+import {VIDEO_CREATURES,videoCreatureSubject} from '../src/pod/content/video-creatures';
 const c:VideoContext={story:false,settled:false,stateKey:'gate-1',nearestMonster:31,scene:'harbor',actors:['Elias'],monsters:['pale limbed harbor creature'],outcome:'already isolated'};
 assert.deepEqual(videoPolicy(c),{duration:5,allowed:false});assert.equal(videoPolicy({...c,nearestMonster:30}).allowed,true);
 assert.deepEqual(videoPolicy({...c,story:true}),{duration:10,allowed:true});
-assert(slotPrompt({...c,story:true}).includes('DURATION_SECONDS: 10'));assert(slotPrompt(c).includes('Never substitute sharks'));
+assert(slotPrompt({...c,story:true}).includes('DURATION_SECONDS: 10'));assert(slotPrompt(c).includes('abyssal Lovecraftian deep-sea organism'));assert(slotPrompt(c).includes('never stands, walks, runs or crawls'));assert(slotPrompt(c).includes('Never render a land animal'));
+for(const [kind,text] of Object.entries(VIDEO_CREATURES)){
+ assert(/deep-sea/.test(text),`${kind} profile lacks deep-sea framing`);
+ if(kind!=='swarm')assert(/abyssal/.test(text),`${kind} profile lacks abyssal framing`);
+ assert(!/crawling limbs|on all fours|four-limbed|low elongated body/i.test(text),`${kind} profile reads as a land animal`);
+ assert(!/supplied image|reference model|preserve this exact/i.test(text),`${kind} profile defers to a rendered model`);
+}
+assert(videoCreatureSubject('harbor','x').includes('absent from the reference image'));
 assert.notEqual(videoContextKey(c,[0]),videoContextKey(c,[1]));assert.notEqual(videoContextKey(c,[0]),videoContextKey({...c,stateKey:'changed'},[0]));
 const run=new PodRun(314),r=run as any,requests:any[]=[];
 r.power=1;r.blackout=false;r.throttle=0;r.captureKeyframe=()=> 'data:image/png;base64,AA==';r.footageSink=(x:any)=>{requests.push(x);x.settle(-1,true);};

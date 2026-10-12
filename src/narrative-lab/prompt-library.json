@@ -13,7 +13,7 @@
       ]
     },
     "harbor": {
-      "description": "The harbor creature is a terrifying abyssal Lovecraftian humanoid: pale hairless skin, a twisted low torso, disproportionately long arms, three long fingers on each hand and a low row of fin-like dorsal spines. Grey workwear scraps cling to its damp body. Its head droops; its slack, eerily calm face clashes with the distorted anatomy, never cute or friendly. Slow limb strokes and unsettling pauses keep it close to structures. Preserve the four-limbed reference silhouette: no shark, dolphin, added tentacles, glowing eyes or costume-monster look.",
+      "description": "The harbor creature is a terrifying abyssal Lovecraftian deep-sea organism of roughly human size: translucent, pressure-softened bone-pale skin over dark veins, a twisted narrow torso, disproportionately long arms ending in three long webbed fingers, ragged translucent fin rays along its spine and gill slits that slowly open and close. Grey workwear scraps are sunk into its flesh. It has no legs; its lower body tapers into a soft, fin-fringed trailing mass. Its drooping, slack, eerily calm face with small clouded eyes clashes with the distorted anatomy, never cute or friendly. It glides or pulls itself along steel with its hands; it never stands, walks or crawls. No land animal, reptile, shark or costume-monster look.",
       "sources": [
         "docs/video-prompts/level-01-harbor-rescue.md",
         "docs/story-split-route-2026-09-30.md",
@@ -191,12 +191,12 @@
         "harbor"
       ],
       "sourceResult": "摄像头拍到惨白生物停在断桥下，通往内侧值班室的路经过它上方。艾里亚斯躲在遮住视线的门后。货仓门有独立配电和闸机；门未落下，不能算隔离。",
-      "subject": "One pale long-limbed humanoid crouches against a broken bridge support beneath the narrow inner walkway of a flooded industrial harbor. The cargo gate is raised and its opening is unobstructed.",
+      "subject": "One pale abyssal deep-sea creature clings to a broken bridge support beneath the narrow inner walkway of a flooded industrial harbor. The cargo gate is raised and its opening is unobstructed.",
       "space": "A single view across the flooded docking harbor. Lower middle: the broken bridge support and the creature clinging to it. Across the upper middle: the surviving inner walkway and railing lead to a closed opaque guardroom door on the right. Left of the support: an open cargo entrance with its vertical grille raised above it; beside the entrance are a closed metal electrical cabinet and a gate control box. Keep the creature outside the cargo entrance. The closed guardroom door completely hides the survivor. Nobody is visible behind it. No image of the submarine operator or control room.",
       "camera": "Stationary submarine external camera, medium-wide view angled slightly downward at the bridge support.",
-      "light": "Weak rust-orange emergency fixtures rake across the railing, gate tracks and pale skin. Use readable grey midtones on the creature; beyond the structure the water is blue-black. The electrical cabinet is closed, so do not show internal wires or invent an energized indicator. No moving searchlight, visible sonar rings or luminous eyes.",
+      "light": "Weak rust-orange emergency fixtures rake across the railing, gate tracks and pale skin. Readable grey midtones on the creature; blue-black water beyond. The closed electrical cabinet shows no internal wires or energized indicator. No moving searchlight or sonar rings.",
       "beats": [
-        "0–3 s: establish the broken bridge support, the crouching creature, the raised cargo grille and the closed guardroom door together.",
+        "0–3 s: establish the broken bridge support, the clinging creature, the raised cargo grille and the closed guardroom door together.",
         "3–7 s: the creature slowly shifts one long hand against the support. Three fingers uncurl and settle; a small cloud of silt drifts down. Its head remains lowered, face slack and calm.",
         "7–10 s: hold the same positions. The cargo opening remains open, the creature remains outside it, and the guardroom door stays shut. No lure, attack, survivor movement or gate operation occurs."
       ],

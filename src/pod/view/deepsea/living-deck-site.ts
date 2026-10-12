@@ -24,6 +24,7 @@ import {drawSonarOwnship,sonarHeading} from '../sonar-ownship';
 import {sonarDeskState} from '../sonar-desk';
 import {layoutCJK} from '@/ui/typography';
 import {formatCoords} from '../../sim/site-coords';
+import {videoCreatureSubject} from '../../content/video-creatures';
 
 /** Surface depth of deck −1 world y=0. GAP: provisional, not yet fixed in level-metrics. */
 export const LIVING_DATUM_DEPTH=1040;
@@ -576,11 +577,11 @@ export class LivingDeckSite implements AuthoredSite {
  }
  videoContext(){
   const seen=this.computeSeen(),story=seen.alexVisible||seen.gateOpen||seen.targets.some(id=>id!=='living.box.probe');
-  return {story,settled:story&&seen.gateOpen&&seen.alexVisible&&!this.s.met,prefetchKey:JSON.stringify([seen.gateOpen,this.s.met,this.run.narrativeMemory]),stateKey:JSON.stringify([seen.targets,seen.gateOpen,this.s.met,this.run.narrativeMemory,seen.creatureIds.map(id=>this.creatures.views.find(c=>c.id===id)),seen.alexVisible?this.alexPose():null]),
+  return {generatedMonsters:true,story,settled:story&&seen.gateOpen&&seen.alexVisible&&!this.s.met,prefetchKey:JSON.stringify([seen.gateOpen,this.s.met,this.run.narrativeMemory]),stateKey:JSON.stringify([seen.targets,seen.gateOpen,this.s.met,this.run.narrativeMemory,seen.creatureIds.map(id=>this.creatures.views.find(c=>c.id===id)),seen.alexVisible?this.alexPose():null]),
    nearestMonster:this.creatures.views.reduce((d,c)=>Math.min(d,this.position.distanceTo(v3(c.position))),Infinity),
-   scene:'Flooded living deck, exactly the room and framing shown in the first frame.',
+   scene:'Fully submerged deep-sea living deck in dark water, exactly the room and framing shown in the first frame.',
    actors:seen.alexVisible?[partnerName(this.s.story)+': adult human in the work diving gear visible in the first frame, alive.']:[],
-   monsters:seen.creatureIds.map(id=>{const c=this.creatures.views.find(c=>c.id===id)!;return c.type+' ['+id+']: preserve this exact visible creature anatomy, silhouette, appendages and scale from the supplied image; no replacement species';}),
+   monsters:seen.creatureIds.map(id=>videoCreatureSubject(this.creatures.views.find(c=>c.id===id)!.type,'One individual ['+id+']')),
    outcome:seen.gateOpen?'The password gate is already open. Preserve this completed result.':'Record current visible objects only; do not reveal hidden documents or future actions.'};
  }
  captureEvidence(){
@@ -826,7 +827,7 @@ export class LivingDeckSite implements AuthoredSite {
   let alex=this.alexPose();
   if(this.probeView)alex=this.probeView.alexInFrame?{position:[this.probeView.target.x,this.probeView.target.y,this.probeView.target.z],heading:90,visible:true,pose:'film'}:{...alex,visible:false};
   return {time:this.elapsed,recording,lamp:this.lit()&&!this.probeView,collected:s.collected,probe:s.probe,valves:{...s.valves},valveTurn:{...this.valveTurn},slime,gateOpen:this.gateLift,alex:{...alex,identity:this.s.story?.partner},
-   creatures:this.creatures.views.map(c=>({id:c.id,type:c.type,position:c.position,heading:c.heading,mode:c.mode}))};
+   creatures:recording&&!this.probeView?[]:this.creatures.views.map(c=>({id:c.id,type:c.type,position:c.position,heading:c.heading,mode:c.mode}))};
  }
  private syncVisuals(state:LivingWorldState,dt:number){
   try{this.world.update(state,dt);}catch(err){console.warn('[living] world.update failed',err);}
@@ -844,7 +845,7 @@ export class LivingDeckSite implements AuthoredSite {
    let m=this.fallbackCreatures.get(c.id);
    if(!m){m=this.creatureMesh(c.type);m.name=`${c.id}.fallback`;this.fallbackCreatures.set(c.id,m);this.fallback.add(m);}
    m.position.set(...c.position);m.rotation.y=-T.MathUtils.degToRad(c.heading);
-   // A, B and C only resolve on exposed film; ordinary fauna is visible live.
+   // A, B and C never draw live; shutter keyframes omit all creatures (footage generates them from text), probe tapes keep them.
    m.visible=c.type==='swarm'||state.recording;
    if(c.type==='swarm')m.rotation.y+=state.time*.3;
   }
