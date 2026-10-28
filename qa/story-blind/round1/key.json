@@ -1,6 +1,6 @@
 {
- "D": "old",
- "C": "new-cautious",
- "B": "new-liar",
- "A": "new-curious"
+ "A": "old",
+ "B": "new-cautious",
+ "D": "new-liar",
+ "C": "new-curious"
 }

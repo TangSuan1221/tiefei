@@ -1,0 +1,200 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/video/videos",
+    "status": 200,
+    "body": {
+      "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "object": "video",
+      "status": "queued",
+      "created_at": 1793076486,
+      "completed_at": null,
+      "expires_at": null,
+      "error": null,
+      "progress": null,
+      "remixed_from_video_id": null,
+      "seconds": "10",
+      "size": "adaptive",
+      "model": "minimax-h3-max",
+      "last_frame_url": null,
+      "usage": {
+        "duration_seconds": 10,
+        "video_resolution": "768p"
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+    "status": 200,
+    "body": {
+      "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "object": "video",
+      "status": "in_progress",
+      "created_at": 1793076486,
+      "completed_at": null,
+      "expires_at": null,
+      "error": null,
+      "progress": null,
+      "remixed_from_video_id": null,
+      "seconds": "10",
+      "size": "adaptive",
+      "model": "MiniMax-H3-Max",
+      "last_frame_url": null,
+      "usage": {
+        "video_resolution": "768p"
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+    "status": 200,
+    "body": {
+      "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "object": "video",
+      "status": "in_progress",
+      "created_at": 1793076486,
+      "completed_at": null,
+      "expires_at": null,
+      "error": null,
+      "progress": null,
+      "remixed_from_video_id": null,
+      "seconds": "10",
+      "size": "adaptive",
+      "model": "MiniMax-H3-Max",
+      "last_frame_url": null,
+      "usage": {
+        "video_resolution": "768p"
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+    "status": 200,
+    "body": {
+      "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "object": "video",
+      "status": "in_progress",
+      "created_at": 1793076486,
+      "completed_at": null,
+      "expires_at": null,
+      "error": null,
+      "progress": null,
+      "remixed_from_video_id": null,
+      "seconds": "10",
+      "size": "adaptive",
+      "model": "MiniMax-H3-Max",
+      "last_frame_url": null,
+      "usage": {
+        "video_resolution": "768p"
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+    "status": 200,
+    "body": {
+      "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "object": "video",
+      "status": "in_progress",
+      "created_at": 1793076486,
+      "completed_at": null,
+      "expires_at": null,
+      "error": null,
+      "progress": null,
+      "remixed_from_video_id": null,
+      "seconds": "10",
+      "size": "adaptive",
+      "model": "MiniMax-H3-Max",
+      "last_frame_url": null,
+      "usage": {
+        "video_resolution": "768p"
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+    "status": 200,
+    "body": {
+      "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "object": "video",
+      "status": "in_progress",
+      "created_at": 1793076486,
+      "completed_at": null,
+      "expires_at": null,
+      "error": null,
+      "progress": null,
+      "remixed_from_video_id": null,
+      "seconds": "10",
+      "size": "adaptive",
+      "model": "MiniMax-H3-Max",
+      "last_frame_url": null,
+      "usage": {
+        "video_resolution": "768p"
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+    "status": 200,
+    "body": {
+      "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "object": "video",
+      "status": "in_progress",
+      "created_at": 1793076486,
+      "completed_at": null,
+      "expires_at": null,
+      "error": null,
+      "progress": null,
+      "remixed_from_video_id": null,
+      "seconds": "10",
+      "size": "adaptive",
+      "model": "MiniMax-H3-Max",
+      "last_frame_url": null,
+      "usage": {
+        "video_resolution": "768p"
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+    "status": 200,
+    "body": {
+      "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "object": "video",
+      "status": "completed",
+      "created_at": 1793076486,
+      "completed_at": 1793076513,
+      "expires_at": null,
+      "error": null,
+      "progress": null,
+      "remixed_from_video_id": null,
+      "seconds": "10",
+      "size": "adaptive",
+      "model": "MiniMax-H3-Max",
+      "last_frame_url": null,
+      "usage": {
+        "total_seconds": 10,
+        "input_seconds": 0,
+        "output_seconds": 10,
+        "input_image_count": 1,
+        "total_tokens": 358039,
+        "prompt_tokens": 32549,
+        "completion_tokens": 325490,
+        "video_resolution": "768p"
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw/content",
+    "status": 200,
+    "bytes": 13287268
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "sources": {
+    "1": {
+      "A": "current",
+      "B": "BioShock™ Remastered",
+      "local": "atrium",
+      "mode": "live",
+      "reference": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/409710/ss_002c690e40603e3bccec0d84256f99a5b03fdbec.1920x1080.jpg?t=1740443728",
+      "source": "https://store.steampowered.com/app/409710/"
+    },
+    "2": {
+      "A": "current",
+      "B": "SOMA",
+      "local": "entry",
+      "mode": "live",
+      "reference": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/282140/ss_d2fa7284b9610be9655700c6fa60bf44f7affce8.1920x1080.jpg?t=1786607913",
+      "source": "https://store.steampowered.com/app/282140/"
+    },
+    "3": {
+      "A": "current",
+      "B": "SOMA",
+      "local": "repair-link",
+      "mode": "live",
+      "reference": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/282140/ss_5ee5231b847ec7397554af8b2efe25caeef5d7c5.1920x1080.jpg?t=1786607913",
+      "source": "https://store.steampowered.com/app/282140/"
+    }
+  },
+  "method": "Original complete reference panels from saved pair right halves; no scene crop, stretch, exposure/color adjustment, or new download. Both sides 960x720 with aspect-preserving letterbox. Current source 1024x720. Reference content 960x540 from old pairs. Identity known; not blinded."
+}

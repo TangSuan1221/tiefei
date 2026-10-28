@@ -1,0 +1,1784 @@
+{
+  "pass": true,
+  "cases": 122,
+  "objectiveOrders": 2,
+  "method": "Reachable public FSM transitions; synthetic capture fixtures; normal/restored states; repeated-input trust idempotence. No browser/media validation.",
+  "rows": [
+    {
+      "stage": "pickup",
+      "text": "摄像仪坏了",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：摄像仪坏了\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "摄像仪坏了",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：摄像仪坏了\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "摄像仪留给我",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：摄像仪留给我\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "摄像仪留给我",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：摄像仪留给我\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "我把电池给你",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：我把电池给你\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "我把电池给你",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：我把电池给你\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "公司传递了消息",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：公司传递了消息\n艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "公司传递了消息",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：公司传递了消息\n艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "不传递移动摄像仪",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：不传递移动摄像仪\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "不传递移动摄像仪",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：不传递移动摄像仪\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "传递摄像仪吗？",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：传递摄像仪吗？\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "传递摄像仪吗？",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：传递摄像仪吗？\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "你让我把摄像仪给你？",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：你让我把摄像仪给你？\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "你让我把摄像仪给你？",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：你让我把摄像仪给你？\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "稍后把摄像仪给你",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：稍后把摄像仪给你\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "稍后把摄像仪给你",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：稍后把摄像仪给你\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "给你摄像仪之前先等等",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：给你摄像仪之前先等等\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "给你摄像仪之前先等等",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：给你摄像仪之前先等等\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "确认交接",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：确认交接\n艾里亚斯：传递口已接收移动摄像仪，人员侧回执确认交接。艇载摄影系统保持可用。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "确认交接",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：确认交接\n艾里亚斯：传递口已接收移动摄像仪，人员侧回执确认交接。艇载摄影系统保持可用。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "确认交接",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：确认交接\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "确认交接",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：确认交接\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "传递移动摄像仪",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：传递移动摄像仪\n艾里亚斯：传递口已接收移动摄像仪，人员侧回执确认交接。艇载摄影系统保持可用。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "传递移动摄像仪",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：传递移动摄像仪\n艾里亚斯：传递口已接收移动摄像仪，人员侧回执确认交接。艇载摄影系统保持可用。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "传递移动摄像仪",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：传递移动摄像仪\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "传递移动摄像仪",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：传递移动摄像仪\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "把摄像仪交给你",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：把摄像仪交给你\n艾里亚斯：传递口已接收移动摄像仪，人员侧回执确认交接。艇载摄影系统保持可用。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "把摄像仪交给你",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：把摄像仪交给你\n艾里亚斯：传递口已接收移动摄像仪，人员侧回执确认交接。艇载摄影系统保持可用。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "把摄像仪交给你",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：把摄像仪交给你\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "把摄像仪交给你",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：把摄像仪交给你\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "给你",
+      "restored": false,
+      "nearTransfer": true,
+      "reply": "罗温：给你\n艾里亚斯：传递口已接收移动摄像仪，人员侧回执确认交接。艇载摄影系统保持可用。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "给你",
+      "restored": true,
+      "nearTransfer": true,
+      "reply": "罗温：给你\n艾里亚斯：传递口已接收移动摄像仪，人员侧回执确认交接。艇载摄影系统保持可用。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "给你",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：给你\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "pickup",
+      "text": "给你",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：给你\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "我去看看电池",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：我去看看电池\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "我去看看电池",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：我去看看电池\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "我要关闭主动声纳",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：我要关闭主动声纳\n艾里亚斯：被动声纳只能听大概方位。主动声纳要通电，能测地形和距离，也一直发声。听到东西靠近，先找安全机位，再停稳拍；别为了拍照硬挨撞。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "我要关闭主动声纳",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：我要关闭主动声纳\n艾里亚斯：被动声纳只能听大概方位。主动声纳要通电，能测地形和距离，也一直发声。听到东西靠近，先找安全机位，再停稳拍；别为了拍照硬挨撞。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "我已经关闭主动声纳",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：我已经关闭主动声纳\n艾里亚斯：被动声纳只能听大概方位。主动声纳要通电，能测地形和距离，也一直发声。听到东西靠近，先找安全机位，再停稳拍；别为了拍照硬挨撞。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "我已经关闭主动声纳",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：我已经关闭主动声纳\n艾里亚斯：被动声纳只能听大概方位。主动声纳要通电，能测地形和距离，也一直发声。听到东西靠近，先找安全机位，再停稳拍；别为了拍照硬挨撞。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "摄影完成了",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：摄影完成了\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "摄影完成了",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：摄影完成了\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "调查搞定了",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：调查搞定了\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "调查搞定了",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：调查搞定了\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "我拍完阀门了",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：我拍完阀门了\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "我拍完阀门了",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：我拍完阀门了\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "准备关闭含硫支路",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：准备关闭含硫支路\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "准备关闭含硫支路",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：准备关闭含硫支路\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "关好了以后再告诉你",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：关好了以后再告诉你\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "关好了以后再告诉你",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：关好了以后再告诉你\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "关好阀门之前先看看电池",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：关好阀门之前先看看电池\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "关好阀门之前先看看电池",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：关好阀门之前先看看电池\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "别怕，我还没关好含硫阀门",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：别怕，我还没关好含硫阀门\n艾里亚斯：好。你看仪表，我摸着墙。谁有动静都出个声。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "support"
+        ]
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "别怕，我还没关好含硫阀门",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：别怕，我还没关好含硫阀门\n艾里亚斯：好。你看仪表，我摸着墙。谁有动静都出个声。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "support"
+        ]
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "关好了，不过我不确定",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：关好了，不过我不确定\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "关好了，不过我不确定",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：关好了，不过我不确定\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "别怕，我已经关好含硫阀门了",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：别怕，我已经关好含硫阀门了\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "别怕，我已经关好含硫阀门了",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：别怕，我已经关好含硫阀门了\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "别怕，我已经关好含硫阀门了",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：别怕，我已经关好含硫阀门了\n艾里亚斯：我这边还是一片糊。你说的是哪根？核对含硫支路S（V-2），再报给我。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "别怕，我已经关好含硫阀门了",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：别怕，我已经关好含硫阀门了\n艾里亚斯：我这边还是一片糊。你说的是哪根？核对含硫支路S（V-2），再报给我。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "含硫阀门已经关好，别怕",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：含硫阀门已经关好，别怕\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "含硫阀门已经关好，别怕",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：含硫阀门已经关好，别怕\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "含硫阀门已经关好，别怕",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：含硫阀门已经关好，别怕\n艾里亚斯：我这边还是一片糊。你说的是哪根？核对含硫支路S（V-2），再报给我。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "含硫阀门已经关好，别怕",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：含硫阀门已经关好，别怕\n艾里亚斯：我这边还是一片糊。你说的是哪根？核对含硫支路S（V-2），再报给我。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "关好了，公司到底想干什么？",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：关好了，公司到底想干什么？\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。公司的事，我也没底。先让我看清这条路，我们再想怎么出去。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "关好了，公司到底想干什么？",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：关好了，公司到底想干什么？\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。公司的事，我也没底。先让我看清这条路，我们再想怎么出去。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "关好了，公司到底想干什么？",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：关好了，公司到底想干什么？\n艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "关好了，公司到底想干什么？",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：关好了，公司到底想干什么？\n艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "含硫支路已关闭，密码呢？",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：含硫支路已关闭，密码呢？\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。门锁的事我记着，等面罩清了，我去看值班终端。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "含硫支路已关闭，密码呢？",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：含硫支路已关闭，密码呢？\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。门锁的事我记着，等面罩清了，我去看值班终端。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "含硫支路已关闭，密码呢？",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：含硫支路已关闭，密码呢？\n艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "含硫支路已关闭，密码呢？",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：含硫支路已关闭，密码呢？\n艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "搞定了",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：搞定了\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "搞定了",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：搞定了\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "搞定了",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：搞定了\n艾里亚斯：我这边还是一片糊。你说的是哪根？核对含硫支路S（V-2），再报给我。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "搞定了",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：搞定了\n艾里亚斯：我这边还是一片糊。你说的是哪根？核对含硫支路S（V-2），再报给我。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "你试试",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：你试试\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "closed",
+      "text": "你试试",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：你试试\n艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "你试试",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：你试试\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "replied",
+      "text": "你试试",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：你试试\n艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "door",
+      "text": "公司这道门的密码是什么",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：公司这道门的密码是什么\n艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "公司这道门的密码是什么",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：公司这道门的密码是什么\n艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "救命，我打不开这道门",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：救命，我打不开这道门\n艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "救命，我打不开这道门",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：救命，我打不开这道门\n艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "不用密码",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：不用密码\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "不用密码",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：不用密码\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "不想求助",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：不想求助\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "不想求助",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：不想求助\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "公司这道门不用密码",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：公司这道门不用密码\n艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "公司这道门不用密码",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：公司这道门不用密码\n艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "别怕，我会帮你",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：别怕，我会帮你\n艾里亚斯：好。你看仪表，我摸着墙。谁有动静都出个声。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "support"
+        ]
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "别怕，我会帮你",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：别怕，我会帮你\n艾里亚斯：好。你看仪表，我摸着墙。谁有动静都出个声。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "support"
+        ]
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我相信你不会骗我",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：我相信你不会骗我\n艾里亚斯：好。你看仪表，我摸着墙。谁有动静都出个声。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "support"
+        ]
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我相信你不会骗我",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：我相信你不会骗我\n艾里亚斯：好。你看仪表，我摸着墙。谁有动静都出个声。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "support"
+        ]
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我不相信你",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：我不相信你\n艾里亚斯：你可以怀疑我。能核对的就核对，我不知道的不会替你下结论；先把眼前的情况说清楚。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我不相信你",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：我不相信你\n艾里亚斯：你可以怀疑我。能核对的就核对，我不知道的不会替你下结论；先把眼前的情况说清楚。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "你别骗我",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：你别骗我\n艾里亚斯：你可以怀疑我。能核对的就核对，我不知道的不会替你下结论；先把眼前的情况说清楚。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "你别骗我",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：你别骗我\n艾里亚斯：你可以怀疑我。能核对的就核对，我不知道的不会替你下结论；先把眼前的情况说清楚。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "你在骗我",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：你在骗我\n艾里亚斯：你可以怀疑我。能核对的就核对，我不知道的不会替你下结论；先把眼前的情况说清楚。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "你在骗我",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：你在骗我\n艾里亚斯：你可以怀疑我。能核对的就核对，我不知道的不会替你下结论；先把眼前的情况说清楚。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我不害怕",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：我不害怕\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我不害怕",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：我不害怕\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我没有说谎",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：我没有说谎\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我没有说谎",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：我没有说谎\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我不想和你一起走",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：我不想和你一起走\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我不想和你一起走",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：我不想和你一起走\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "你害怕吗",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：你害怕吗\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "你害怕吗",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：你害怕吗\n艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "对不起，我骗了你",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：对不起，我骗了你\n艾里亚斯：听到了。往后没确认就说没确认，我宁愿多等一会儿。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "apology"
+        ]
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "对不起，我骗了你",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：对不起，我骗了你\n艾里亚斯：听到了。往后没确认就说没确认，我宁愿多等一会儿。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "apology"
+        ]
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我害怕，我想撤退",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：我害怕，我想撤退\n艾里亚斯：我也想回去。先停稳，别拿艇壳试路。可以沿来路退到入口缓一缓；有修补板就先修艇。电池和工具在机修间的补给箱里，入口没有。任务坐标都留着，等你准备好再走。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "honest"
+        ]
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "我害怕，我想撤退",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：我害怕，我想撤退\n艾里亚斯：我也想回去。先停稳，别拿艇壳试路。可以沿来路退到入口缓一缓；有修补板就先修艇。电池和工具在机修间的补给箱里，入口没有。任务坐标都留着，等你准备好再走。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "honest"
+        ]
+      }
+    },
+    {
+      "stage": "help",
+      "text": "救命，我被撞了，我要撤退",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：救命，我被撞了，我要撤退\n艾里亚斯：先顾好你那边。停稳，必要时沿来路撤退；我靠着墙，不往前走。等你安全了再处理供水。这东西聚在温热、含硫的水里。我怀疑实验供水串进了通道。供水检修点在X138、Y13.5、深度1040米，那里有操作说明。别猜哪根管；关掉含硫热水，再叫我试。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "honest"
+        ]
+      }
+    },
+    {
+      "stage": "help",
+      "text": "救命，我被撞了，我要撤退",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：救命，我被撞了，我要撤退\n艾里亚斯：先顾好你那边。停稳，必要时沿来路撤退；我靠着墙，不往前走。等你安全了再处理供水。这东西聚在温热、含硫的水里。我怀疑实验供水串进了通道。供水检修点在X138、Y13.5、深度1040米，那里有操作说明。别猜哪根管；关掉含硫热水，再叫我试。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "honest"
+        ]
+      }
+    },
+    {
+      "stage": "help",
+      "text": "我不相信你",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：我不相信你\n艾里亚斯：你可以先核对，不必只信我的判断。这东西聚在温热、含硫的水里。我怀疑实验供水串进了通道。供水检修点在X138、Y13.5、深度1040米，那里有操作说明。别猜哪根管；关掉含硫热水，再叫我试。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "help",
+      "text": "我不相信你",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：我不相信你\n艾里亚斯：你可以先核对，不必只信我的判断。这东西聚在温热、含硫的水里。我怀疑实验供水串进了通道。供水检修点在X138、Y13.5、深度1040米，那里有操作说明。别猜哪根管；关掉含硫热水，再叫我试。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "help",
+      "text": "随便一句",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：随便一句\n艾里亚斯：收到，你还在就好。这东西聚在温热、含硫的水里。我怀疑实验供水串进了通道。供水检修点在X138、Y13.5、深度1040米，那里有操作说明。别猜哪根管；关掉含硫热水，再叫我试。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "help",
+      "text": "随便一句",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：随便一句\n艾里亚斯：收到，你还在就好。这东西聚在温热、含硫的水里。我怀疑实验供水串进了通道。供水检修点在X138、Y13.5、深度1040米，那里有操作说明。别猜哪根管；关掉含硫热水，再叫我试。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "entry",
+      "text": "公司到底想干什么",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：公司到底想干什么\n艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "entry",
+      "text": "公司到底想干什么",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：公司到底想干什么\n艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。",
+      "state": {
+        "shared": false,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "关闭主动声纳",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：关闭主动声纳\n艾里亚斯：被动声纳只能听大概方位。主动声纳要通电，能测地形和距离，也一直发声。听到东西靠近，先找安全机位，再停稳拍；别为了拍照硬挨撞。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    },
+    {
+      "stage": "brief",
+      "text": "关闭主动声纳",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：关闭主动声纳\n艾里亚斯：被动声纳只能听大概方位。主动声纳要通电，能测地形和距离，也一直发声。听到东西靠近，先找安全机位，再停稳拍；别为了拍照硬挨撞。",
+      "state": {
+        "shared": true,
+        "reported": false,
+        "askedCode": false,
+        "trust": 0,
+        "rewarded": []
+      }
+    }
+  ]
+}

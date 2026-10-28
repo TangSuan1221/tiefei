@@ -1,0 +1,44 @@
+{
+  "method": "Real keyboard M/text/Enter/Esc/2/6 in level two; state read for assertions only; APIs blocked",
+  "pass": true,
+  "rows": [
+    {
+      "name": "seated at camera",
+      "at": "camera",
+      "active": false
+    },
+    {
+      "name": "radio open borrows nav",
+      "at": "nav",
+      "active": false
+    },
+    {
+      "name": "after send returns to camera",
+      "at": "camera",
+      "active": false
+    },
+    {
+      "name": "habitual 2 keeps sonar off",
+      "at": "camera",
+      "active": false
+    },
+    {
+      "name": "after Esc close returns to camera",
+      "at": "camera",
+      "active": false
+    },
+    {
+      "name": "radio from nav stays at nav",
+      "at": "nav",
+      "active": false
+    },
+    {
+      "name": "explicit 2 at nav still toggles sonar",
+      "at": "nav",
+      "active": true
+    }
+  ],
+  "errors": [
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
+}

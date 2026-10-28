@@ -1,0 +1,68 @@
+{
+  "oldBounds": {
+    "min": [
+      28.69999998807907,
+      -0.8199999988079071,
+      -20.75499999523163
+    ],
+    "max": [
+      29.30000001192093,
+      -0.3026794850826263,
+      -20.24500000476837
+    ]
+  },
+  "candidate": {
+    "position": [
+      56,
+      -0.6,
+      30.5
+    ],
+    "min": [
+      55.69999998807907,
+      -0.8199999988079071,
+      30.24500000476837
+    ],
+    "max": [
+      56.30000001192093,
+      -0.3026794850826263,
+      30.75499999523163
+    ]
+  },
+  "rows": [
+    {
+      "p": [
+        56,
+        0,
+        27
+      ],
+      "heading": 180,
+      "clear": true,
+      "candidateSurfaceDistance": 3.259085746284779,
+      "toolsDistance": 4.236763807786329
+    },
+    {
+      "p": [
+        56,
+        0,
+        27.5
+      ],
+      "heading": 180,
+      "clear": true,
+      "candidateSurfaceDistance": 2.761637176905801,
+      "toolsDistance": 3.8878229839620357
+    },
+    {
+      "p": [
+        53,
+        0,
+        24
+      ],
+      "heading": 180,
+      "clear": true,
+      "candidateSurfaceDistance": 6.810406732778435,
+      "toolsDistance": 8.477037658874996
+    }
+  ],
+  "pathFailure": null,
+  "method": "Proposed relocation only: translated actual battery bounds added to current full collider set; full-hull candidate poses/path segment sweep. No production asset move and no claim of actual relocated aim/pickup."
+}

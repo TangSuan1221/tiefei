@@ -1,0 +1,96 @@
+{
+  "result": {
+    "setup": {
+      "sources": [],
+      "rejecting": [
+        {
+          "i": 22,
+          "min": [
+            106.4,
+            -3.4,
+            24.2
+          ],
+          "max": [
+            113.6,
+            1.4,
+            27.8
+          ]
+        }
+      ],
+      "shellClear": true,
+      "rows": [
+        {
+          "name": "start full site clear",
+          "pass": true
+        },
+        {
+          "name": "south west-lane segment",
+          "pass": true
+        },
+        {
+          "name": "west corner real turn",
+          "pass": true
+        },
+        {
+          "name": "east approach to box",
+          "pass": true
+        },
+        {
+          "name": "actual ballast aimed",
+          "pass": true,
+          "aim": {
+            "id": "living.box.ballast",
+            "distance": 2.526069090482423
+          }
+        }
+      ],
+      "pos": [
+        112.50000000000205,
+        0,
+        32.49999999999986
+      ]
+    },
+    "end": {
+      "rows": [
+        {
+          "name": "real timed arm retrieved ballast",
+          "pass": true,
+          "arm": "stowed"
+        },
+        {
+          "name": "reverse with retained heading",
+          "pass": true
+        },
+        {
+          "name": "west corner north turn",
+          "pass": true
+        },
+        {
+          "name": "west lane north exit",
+          "pass": true
+        },
+        {
+          "name": "north corner east turn",
+          "pass": true
+        },
+        {
+          "name": "R4 through actual doorway to G",
+          "pass": true
+        }
+      ],
+      "pos": [
+        128.50000000000472,
+        0,
+        17.000000000000036
+      ],
+      "heading": 90
+    },
+    "pass": true,
+    "method": "Full site solids incl shell, uncollected boxes and creatures; continuous move/turn API sweeps from one validated starting teleport; real timed interact arm cycle; no force-position between connected legs. GM no-video. Not human driving."
+  },
+  "blocked": [
+    "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Noto+Serif+SC:wght@300;400;600&display=swap",
+    "http://127.0.0.1:5180/api/video/videos"
+  ],
+  "errors": []
+}

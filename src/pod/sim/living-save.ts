@@ -46,6 +46,7 @@ export function isLivingSave(v:unknown):v is LivingSave {
   if(!Number.isInteger(v.seed)||v.seed<0||v.seed>0xffffffff||!Number.isFinite(v.savedAt))return false;
   const s=v.site,r=v.run,c=v.campaign;
   if(!object(s)||s.adapter!=='living-deck'||s.adapterVersion!==1||s.index!==1||s.levelId!=='living.2')return false;
+  if(s.routeVersion!==2||s.debugNoVideo!==false||!object(s.survey)||s.survey.version!==1||!Array.isArray(s.cargo))return false;
   if(!object(s.deck)||!object(s.creatures)||!object(s.dialogue)||!object(s.navigation)||!object(s.sonarDesk))return false;
   if(!Array.isArray(s.position)||s.position.length!==3||!s.position.every(Number.isFinite))return false;
   if(!object(r)||!object(c)||!Array.isArray(c.journal)||!Array.isArray(c.seen)||!Array.isArray(c.queue))return false;
@@ -62,6 +63,8 @@ export function readLivingSave(storage:SaveStorage):LivingSave|null {
   const pointer=JSON.parse(raw);
   if(!object(pointer)||pointer.version!==1||typeof pointer.slot!=='string'||!/^ironlung\.living\.v1\.\d+$/.test(pointer.slot))throw new Error('第二关存档指针损坏；原存档未修改。');
   const payload=JSON.parse(storage.getItem(pointer.slot)??'null');
+  if(object(payload)&&object(payload.site)&&payload.site.routeVersion!==2)throw new Error('这是旧版第二关路线存档，不能载入新版调查流程。原存档保留，请开始新的事故调查。');
+  if(object(payload)&&object(payload.site)&&payload.site.debugNoVideo===true)throw new Error('GM诊断进度不能作为正式存档继续。原记录保留，请开始新的事故调查。');
   if(!isLivingSave(payload))throw new Error('第二关存档损坏或版本不兼容；原存档未修改。');
   if(pointer.slot!==`${LIVING_SAVE_KEY}.${payload.seed}`)throw new Error('存档槽与种子不匹配。');
   return payload;
@@ -80,6 +83,9 @@ export function captureLivingSave(run:PodRun):LivingSave|null {
   if(!live||live.index!==1||live.saveSafe!==true)return null;
   const site=live.snapshot();
   if(!object(site)||site.adapter!=='living-deck')return null;
+  // Preserve the previous checkpoint once all known power recovery sources are exhausted.
+  // This guards confirmed blackout dead ends, not the budget for every remaining task.
+  if(run.power<=.02&&run.count('sup.cell')===0&&site.reserveUsed===true)return null;
   const r:Obj={};const runtime=run as unknown as Obj;
   for(const k of [...numbers,...booleans])r[k]=runtime[k];
   for(const k of maps)r[k]=Array.from(run[k] as Map<string,unknown>);

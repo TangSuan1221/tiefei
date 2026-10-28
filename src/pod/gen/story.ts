@@ -4,7 +4,7 @@
  * 七关 runtime 长什么样，由这里收束，不由「这一关要像克苏鲁」收束。
  * 地形、生物、回波仍然是抽的；抽完必须还能回答：这一关的通话气温变了没有。
  *
- * 对照 docs/review-story-skeleton.md。`StoryFn` 定义在 acts.ts。
+ * `StoryFn` 定义在 acts.ts。
  * 每关一条卡关钩：`STORY_HOOKS` + `requireHook`。万斯要的实物必须生成出来。
  */
 

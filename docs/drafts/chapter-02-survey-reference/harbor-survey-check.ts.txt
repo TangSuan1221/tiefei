@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {HarborSurvey,type SurveyCapture} from '../src/pod/sim/harbor-survey';
+import {harborTaskPrompt} from '../src/pod/content/harbor-task-videos';
+const photo=(s:HarborSurvey,target:SurveyCapture['target'],valid=true,lit=true)=>{const e=s.issue({survey:true,id:'film-'+s.captures.length,target,valid,lit});s.commit(e);return s.analyze(e);};
+for(const order of [[0,1],[1,0]]){
+ const s=new HarborSurvey();assert.equal(s.pending,'L1-S01');assert.ok(s.tick(26).includes('摄像仪匣'));assert.equal(s.tick(26),'');
+ s.say('传递移动摄像机');assert.equal(s.shared,false);s.accept('L1-S01');s.operate('body');s.say('传递移动摄像机');assert.ok(s.shared);s.accept('L1-S02');
+ assert.equal(photo(s,0,false),false);assert.equal(photo(s,0,true,false),false);assert.equal(s.photos.length,0);
+ for(const n of order)assert.ok(photo(s,n));assert.equal(s.pending,'L1-S03');s.accept('L1-S03');s.say('你个笨蛋');assert.ok(s.helpReplied);
+ s.operate('valve-s');assert.equal(s.valve,false);photo(s,'manual');s.operate('valve-c');assert.equal(s.valve,false);s.say('已经关好了');assert.equal(s.reported,false);
+ s.operate('valve-s');s.say('没关好，等一下');assert.equal(s.reported,false);s.tick(61);assert.equal(s.pending,'L1-S04');s.accept('L1-S04');assert.equal(s.pending,null);
+ s.say('含硫支路关好了，你试试看');assert.ok(s.reported);s.accept('L1-S05');s.say('密码是什么');assert.equal(s.askedCode,false);s.operate('door');s.say('门锁住了，密码是什么');assert.equal(s.pending,'L1-S06');
+ assert.equal(s.enterCode(s.code,true),false);s.accept('L1-S06');assert.equal(s.enterCode(s.code,false),false);assert.equal(s.enterCode('wrong',true),false);assert.ok(s.enterCode(s.code,true));photo(s,2);s.operate('exit');assert.ok(s.complete);
+ const saved=s.snapshot(),restored=new HarborSurvey();assert.ok(restored.restore(saved));assert.deepEqual(restored.snapshot(),saved);const before=restored.snapshot();assert.equal(restored.restore({...saved,photos:[0,0,2]}),false);assert.deepEqual(restored.snapshot(),before);
+ const prompt=harborTaskPrompt('L1-S06',false,s.code);assert.ok(prompt.includes(s.code));assert.equal(prompt.includes('{code}'),false);
+ const trust=s.trust;for(let i=0;i<10;i++)s.say('谢谢');assert.ok(s.trust<=trust+1);
+}
+const forged=new HarborSurvey();forged.commit({survey:true,id:'fake',target:0,valid:true,lit:true});assert.equal(forged.captures.length,0);
+assert.equal(forged.restore({...forged.snapshot(),complete:true}),false);
+console.log('PASS survey: both orders, dark/invalid films, physical facts vs claims, wrong valve recovery, one-shot reminder, password timing/proximity, replay prompt, atomic save and trust idempotence. No generated media or driving claim.');

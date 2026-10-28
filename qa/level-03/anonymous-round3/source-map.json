@@ -1,0 +1,14 @@
+{
+  "revealedAfterJudgment": true,
+  "A": {
+    "source": "Epic Games developer spotlight: Still Wakes the Deep in UE5",
+    "page": "https://www.unrealengine.com/spotlights/making-waves-developing-realistic-water-mechanics-for-still-wakes-the-deep-in-ue5",
+    "use": "Comparison reference only; not a game asset. Does not establish AAA budget."
+  },
+  "B": {
+    "source": "Third visual iteration: Three.js diagnostic production-plant camera",
+    "original": "qa/level-03/visual/plant.png at comparison capture time",
+    "preserved": "B.png"
+  },
+  "method": "Fresh context-free agent, hidden source, original screenshots also displayed side by side with equal widths and no cropping. Single-agent static preference, not human double-blind testing."
+}

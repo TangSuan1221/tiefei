@@ -1,0 +1,20 @@
+{
+  "before": {
+    "clear": true,
+    "near": null,
+    "far": {
+      "id": "abyss.box.med2",
+      "distance": 6.077077000410825
+    },
+    "labels": [
+      "6.1 m"
+    ]
+  },
+  "after": {
+    "phase": "stowed",
+    "selected": null,
+    "cargo": null,
+    "sedatives": 0
+  },
+  "errors": []
+}

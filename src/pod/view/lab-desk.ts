@@ -1,4 +1,6 @@
+import {isHarborOpening,harborOpeningOpened,openHarborCall} from '../sim/harbor-opening';
 import type { PodRun } from '../sim/run';
+import {isLocalNoVideoMode} from '../net/no-video-mode';
 import { SUPPLIES, type SupplyId } from '../content/supplies';
 import { creature, ATTRACTOR_CN, DANGER_CN } from '../content/creatures';
 import { cjk, mono, layoutCJK } from '@/ui/typography';
@@ -20,6 +22,16 @@ export function labAlarm(run: PodRun): string {
 }
 export function labDeskAction(run: PodRun, id: string): boolean {
   const s = labDeskState(run);
+  if(id==='lab.answerCall'){
+    const index=run.tapes.findIndex(t=>isHarborOpening(t)&&t.ready!==false&&!t.analyzed);
+    if(index<0||run.at!=='lab'||!run.powered)return false;
+    run.tapeCursor=index;openHarborCall(run.tapes[index]);s.tab='tapes';run.labVideoExpanded=true;return true;
+  }
+  if(id==='lab.diagnosticPhoto'){
+    if(run.at!=='lab'||!run.powered||!isLocalNoVideoMode()||![0,1].includes(run.authoredSite?.index??-1))return false;
+    run.authoredSite?.radioSay?.('诊断分析底片');return true;
+  }
+  if(id==='lab.retryTask'&&run.legIndex===1){run.authoredSite?.radioSay?.('重试录像');return true;}
   if (id === 'lab.breaker') {
     run.stopSonarPulses(); run.toggleBlackout(); return true;
   }
@@ -91,7 +103,7 @@ export function drawLabDesk(ctx: CanvasRenderingContext2D, run: PodRun, x: numbe
     ctx.beginPath(); ctx.arc(530, 75, 6, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
-  button('back','返回总控',837,61,159,48);
+  button('back',run.authoredSite?.index===1?'Esc 返回驾驶台':'返回总控',837,61,159,48);
   const alarm = labAlarm(run);
   if (!alarm) s.acknowledged = '';
   text(alarm ? `! ${alarm}` : '系统监测正常', 28, 133, 21, alarm ? amber : dim);
@@ -118,7 +130,16 @@ export function drawLabDesk(ctx: CanvasRenderingContext2D, run: PodRun, x: numbe
         button(`lab.select:${start+i}`,`${String(start+i+1).padStart(2,'0')}  ${item.siteName}`,28,209+i*51,295,46,run.tapeCursor===start+i);
       });
       button('lab.prev','← 上一卷',28,523,140,44,false,run.tapes.length<2);button('lab.next','下一卷 →',181,523,142,44,false,run.tapes.length<2);
-      if(!tape)text('暂无录像 · 曝光并显影后入档',351,320,25,dim,620);
+      if(!tape){
+        const receiving=run.legIndex===1&&!!run.videoStatus&&!isLocalNoVideoMode();
+        text(isLocalNoVideoMode()?'无视频测试 · 剧情任务自动推进；怪物底片拍摄后在此诊断':'暂无录像 · 曝光并显影后入档',351,receiving?260:320,25,dim,620);
+        if(receiving){
+          const lines=run.videoStatus.match(/.{1,26}/gu)??[];
+          lines.slice(0,4).forEach((line,i)=>text(line,351,310+i*30,21,amber,620));
+          button('lab.retryTask','重试接收任务录像',351,445,300,44,false,!run.powered);
+          text('也可按 M 输入“重试录像”',351,509,21,dim,620);
+        }
+      }
     }
     if(tape){
       const px=expanded?28:350,pw=expanded?968:646,ph=expanded?369:207;
@@ -127,7 +148,10 @@ export function drawLabDesk(ctx: CanvasRenderingContext2D, run: PodRun, x: numbe
       if(run.powered&&tape.ready!==false)playbackStatus=render.playback(ctx,pw,ph);
       else {ctx.fillStyle='#020805';ctx.fillRect(0,0,pw,ph);text(run.powered?'显影中 · 请稍候':'供电中断 · 恢复后播放',20,ph/2,24,amber,pw-40);}
       ctx.restore();
-      if(expanded&&playbackStatus)text(playbackStatus,28,560,19,amber,968);
+      if(expanded&&run.authoredSite?.index===1){
+        const accepted=run.authoredSite.evidenceStatus?.(tape.siteEvidence)?.accepted;
+        text(`第 ${run.tapeCursor+1} 卷 · ${tape.siteName} · ${accepted?'证据已登记':tape.analyzed?'未通过 · 请查看报告':'待核验'} · Esc 返回驾驶台`,28,560,19,accepted?green:amber,968);
+      }else if(expanded&&playbackStatus)text(playbackStatus,28,560,19,amber,968);
       if(!expanded){
         const verdict=tape.legId===run.leg.id?run.authoredSite?.evidenceStatus?.(tape.siteEvidence):undefined;
         const status=tape.ready===false?'显影中':!tape.analyzed?'○ 待分析':verdict?(verdict.accepted?'● 证据通过':'! 未通过 · 需重拍'):'● 已分析';
@@ -152,11 +176,19 @@ export function drawLabDesk(ctx: CanvasRenderingContext2D, run: PodRun, x: numbe
     ctx.fillStyle='#11271d';ctx.fillRect(28,170,968,410);ctx.font=cjk(25,500);
     render.document.flatMap(v=>layoutCJK(ctx,v,900)).slice(0,11).forEach((v,i)=>text(v,48,205+i*32,25));
   }
+  const call=run.tapes.find(t=>isHarborOpening(t)&&t.ready!==false&&!t.analyzed&&!harborOpeningOpened(t));
+  if(call){
+    hits?.clear();ctx.fillStyle='#102c23';ctx.fillRect(214,244,596,220);
+    ctx.strokeStyle=green;ctx.strokeRect(214,244,596,220);
+    text('有呼叫 / 接驳岗',240,284,30,green,542);
+    text('收到一段视频通信',240,337,24,green,542);
+    button('lab.answerCall','接听并播放',240,400,542,44,false,!run.powered);
+  }
   if(alarm&&s.acknowledged!==alarm){
     hits?.clear();
     ctx.fillStyle='#241c10';ctx.fillRect(214,244,596,220);ctx.strokeStyle=amber;ctx.lineWidth=2;ctx.strokeRect(214,244,596,220);
     text('! 应急告警 / ATTENTION',240,278,28,amber,542);text(alarm,240,324,27,amber,542);
-    text('检查供电与艇壳，前往维护工位处理。',240,365,22,green,542);
+    text(run.authoredSite?.index===1?'停车后 Esc 回舱内，按 1 到生命维持台修补。':'检查供电与艇壳，前往维护工位处理。',240,365,22,green,542);
     button('lab.ack','确认告警',240,400,542,44);
   }
   ctx.fillStyle='rgba(0,0,0,.09)';for(let py=0;py<720;py+=4)ctx.fillRect(0,py,1024,1);

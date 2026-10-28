@@ -60,6 +60,7 @@ function localPlaybackFor(run:PodRun){
   const id=run.selectedTape?.id??'';
   let state=localPlaybackStates.get(run);
   if(!state||state.id!==id){state={id,time:0,last:run.clock,paused:false};localPlaybackStates.set(run,state);}
+  if(run.labPlaybackPauseRequested){state.paused=true;run.labPlaybackPauseRequested=false;}
   if(!state.paused)state.time+=Math.min(.25,Math.max(0,run.clock-state.last));
   state.last=run.clock;return state;
 }
@@ -1825,12 +1826,12 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
         run.authoredSite?.recoveredDocument?{id:'lab.document',key:'7',label:'读取密码卡',hint:'机械臂收回的实物 · 无需摄影'}:null,
         { id: 'lab.next', key: '2', label: '下一卷', hint: '', state: run.tapes.length > 1 || evidenceReadouts.has(run) ? 'normal' : 'disabled' },
         run.authoredSite?.managesNarrative ? null : { id: 'lab.evidence', key: '7', label: '核验实物', hint: '已持有记录 · 交叉核验', state: run.powered && run.authoredSite?.analyzeEvidence ? 'normal' : 'disabled' },
-        { id: 'lab.localPlayback', key: '5', label: localPlaybackStates.get(run)?.paused?'继续播放':'暂停播放', hint:'本地感光序列 · 非AI', state: tape?.ready && (tape.sensorFrames?.length??0)>=3 && tape.videoResult!=='video'?'normal':'disabled' },
+        { id: 'lab.localPlayback', key: '5', label: localPlaybackFor(run).paused?'继续播放':'暂停播放', hint:run.authoredSite?.index===1?'录像播放':'本地感光序列 · 非AI', state: tape?.ready && ((tape.sensorFrames?.length??0)>=3 && tape.videoResult!=='video'||run.authoredSite?.index===1&&tape.videoResult==='video')?'normal':'disabled' },
         { id: 'lab.expand', key: '4', label: run.labVideoExpanded?'缩回录像':'放大录像', hint:'分析台全屏查看', state:tape?.ready?'active':'disabled' },
         {
-          id: 'lab.analyze',
+          id: isNoVideoMode()&&[0,1].includes(run.authoredSite?.index??-1)?'lab.diagnosticPhoto':'lab.analyze',
           key: '3',
-          label: repairReport ? '重新核验' : tape?.analyzed ? '已分析' : '分析 / 核验',
+          label: isNoVideoMode()&&[0,1].includes(run.authoredSite?.index??-1)?'诊断底片':repairReport ? '重新核验' : tape?.analyzed ? '已分析' : '分析 / 核验',
           hint: tape ? (tape.ready === false ? '等待显影完成' : repairReport ? '读取本地摄影证据' : tape.analyzed ? '报告在屏上' : '6口气 · 扣电') : '片盒空',
           state:
             !tape || tape.ready === false ? 'disabled'

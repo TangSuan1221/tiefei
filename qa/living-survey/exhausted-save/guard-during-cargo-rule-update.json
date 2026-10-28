@@ -1,0 +1,83 @@
+{
+  "rows": [
+    {
+      "power": 0.019,
+      "cells": 0,
+      "reserve": true,
+      "collected": true,
+      "allowed": false,
+      "expected": false,
+      "pass": true,
+      "oldStoreUnchanged": true
+    },
+    {
+      "power": 0.02,
+      "cells": 0,
+      "reserve": true,
+      "collected": true,
+      "allowed": false,
+      "expected": false,
+      "pass": true,
+      "oldStoreUnchanged": true
+    },
+    {
+      "power": 0.0201,
+      "cells": 0,
+      "reserve": true,
+      "collected": true,
+      "allowed": true,
+      "expected": true,
+      "pass": true,
+      "oldStoreUnchanged": true
+    },
+    {
+      "power": 0.02,
+      "cells": 1,
+      "reserve": true,
+      "collected": true,
+      "allowed": true,
+      "expected": true,
+      "pass": true,
+      "oldStoreUnchanged": true
+    },
+    {
+      "power": 0.02,
+      "cells": 0,
+      "reserve": false,
+      "collected": true,
+      "allowed": true,
+      "expected": true,
+      "pass": true,
+      "oldStoreUnchanged": true
+    },
+    {
+      "power": 0.02,
+      "cells": 0,
+      "reserve": true,
+      "collected": false,
+      "allowed": false,
+      "expected": true,
+      "pass": false,
+      "oldStoreUnchanged": true
+    }
+  ],
+  "warnings": [
+    {
+      "reserveInitially": false,
+      "power": 0.3,
+      "reserveAfter": true,
+      "feedback": "主电池见底，应急储备电池自动并入（一次性）。省着用。",
+      "hasExhaustedWarning": false
+    },
+    {
+      "reserveInitially": true,
+      "power": 0.019,
+      "reserveAfter": true,
+      "feedback": "电池和应急储备已耗尽，设备无法供电。当前耗尽状态不会覆盖检查点；若有可用航行记录，可刷新后选择“继续下潜”恢复。",
+      "hasExhaustedWarning": true
+    }
+  ],
+  "allPass": false,
+  "oldPointer": "{\"version\":1,\"slot\":\"ironlung.living.v1.3796925963\"}",
+  "method": "Independent boundary fixtures; capture refusal preserves in-memory last-good store. watchPower called directly for warning ordering. Does not validate real autosave UI/timing or budget safety above .02."
+}

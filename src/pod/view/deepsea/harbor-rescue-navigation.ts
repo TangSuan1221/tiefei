@@ -21,6 +21,7 @@ export interface HarborRescueNavigationHost {
   speak?(text: string): void;
   photoGuidance?(): {ready:boolean;text:string;detail:string};
   distressText?: string;
+  entrySource?:string;
   readonly canReply?:boolean;
   readonly photoCoordinatesReleased?:boolean;
   readonly serialDialogue?:boolean;
@@ -130,7 +131,7 @@ export class HarborRescueNavigation implements NavigationConsole {
   constructor(private readonly host: HarborRescueNavigationHost) {}
   private coordinates(v: readonly number[]) { return formatCoords(v); }
   get receivedCoordinates() {
-    return `万斯 · 接驳港 ${this.coordinates(this.host.entryCoordinates)}` +
+    return `${this.host.entrySource??'万斯'} · 接驳港 ${this.coordinates(this.host.entryCoordinates)}` +
       ((this.host.photoCoordinatesReleased??this.replied) ? `   艾里亚斯 · 拍摄点 ${this.coordinates(this.host.photoCoordinates)}` : '');
   }
   private get recording() {

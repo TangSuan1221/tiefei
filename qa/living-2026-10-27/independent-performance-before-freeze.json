@@ -1,0 +1,171 @@
+{
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "Intel(R) Core(TM) Ultra 9 285K",
+    "logicalCpus": 24,
+    "totalMemoryGB": 63.619136810302734
+  },
+  "launch": "Headless Microsoft Edge; --use-angle=d3d11 --enable-unsafe-swiftshader; 1600x900; isolated profile; not user visible-app FPS",
+  "scenes": [
+    {
+      "name": "entry",
+      "valid": true,
+      "samples": 354,
+      "rafMs": {
+        "p50": 16.69999999999709,
+        "p95": 16.80000000000291,
+        "p99": 33.30000000000291,
+        "max": 33.5
+      },
+      "livingRenderSamples": 413,
+      "calls": {
+        "p50": 541,
+        "p95": 573
+      },
+      "triangles": {
+        "p50": 1280522,
+        "p95": 1437698
+      },
+      "cpuSubmissionMs": {
+        "p50": 3.3999999910593033,
+        "p95": 5.5
+      },
+      "memory": {
+        "geometries": 186,
+        "textures": 104
+      },
+      "position": [
+        7,
+        0,
+        7
+      ]
+    },
+    {
+      "name": "machine",
+      "valid": true,
+      "samples": 351,
+      "rafMs": {
+        "p50": 16.69999999999709,
+        "p95": 16.80000000000291,
+        "p99": 33.400000000001455,
+        "max": 33.5
+      },
+      "livingRenderSamples": 410,
+      "calls": {
+        "p50": 544,
+        "p95": 570
+      },
+      "triangles": {
+        "p50": 1179988,
+        "p95": 1338284
+      },
+      "cpuSubmissionMs": {
+        "p50": 3.4000000059604645,
+        "p95": 5.5999999940395355
+      },
+      "memory": {
+        "geometries": 288,
+        "textures": 114
+      },
+      "position": [
+        53,
+        0,
+        24
+      ]
+    },
+    {
+      "name": "manual",
+      "valid": true,
+      "samples": 332,
+      "rafMs": {
+        "p50": 16.69999999999709,
+        "p95": 33.30000000000291,
+        "p99": 33.400000000001455,
+        "max": 33.40000000000873
+      },
+      "livingRenderSamples": 387,
+      "calls": {
+        "p50": 637,
+        "p95": 665
+      },
+      "triangles": {
+        "p50": 2368880,
+        "p95": 2419180
+      },
+      "cpuSubmissionMs": {
+        "p50": 4.200000002980232,
+        "p95": 6.600000008940697
+      },
+      "memory": {
+        "geometries": 442,
+        "textures": 153
+      },
+      "position": [
+        137.8,
+        0,
+        13.5
+      ]
+    },
+    {
+      "name": "atrium",
+      "valid": true,
+      "samples": 348,
+      "rafMs": {
+        "p50": 16.69999999999709,
+        "p95": 16.89999999999418,
+        "p99": 33.39999999999418,
+        "max": 33.5
+      },
+      "livingRenderSamples": 406,
+      "calls": {
+        "p50": 537,
+        "p95": 547
+      },
+      "triangles": {
+        "p50": 1829996,
+        "p95": 1864132
+      },
+      "cpuSubmissionMs": {
+        "p50": 3.7999999970197678,
+        "p95": 5.5
+      },
+      "memory": {
+        "geometries": 519,
+        "textures": 156
+      },
+      "position": [
+        166,
+        0,
+        60
+      ]
+    }
+  ],
+  "environment": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+    "dpr": 1,
+    "hardwareConcurrency": 24,
+    "vendor": "Google Inc. (NVIDIA)",
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5080 (0x00002C02) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "webgl": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "personnelGroups": [
+      {
+        "id": "L",
+        "exists": false
+      },
+      {
+        "id": "M",
+        "exists": false
+      },
+      {
+        "id": "N",
+        "exists": false
+      }
+    ],
+    "personnelNamedObjects": [],
+    "worldMeshCount": 1328
+  },
+  "errors": [
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
+}

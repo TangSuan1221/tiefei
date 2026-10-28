@@ -6,11 +6,11 @@ import {isAudioMuted} from '../../../audio/mute';
 import type {PodRun} from '../../sim/run';
 import type {AuthoredSite} from '../../sim/authored-site';
 import {LivingDeck,type LivingEvidence,type LivingResult,type LivingState,type RemoteTape,type ValveKey} from '../../sim/living-deck';
-import {LivingCreatures,LIVING_CREATURE_TUNING,livingDoorRoute,livingSpaceAt,type CreatureResult} from '../../sim/living-creatures';
+import {LivingCreatures,livingDoorRoute,livingSpaceAt,type CreatureResult} from '../../sim/living-creatures';
 import {LivingDialogue} from '../../sim/living-dialogue';
-import {ALEX_MARKS,LIVING_EXIT_Y,LIVING_ITEMS,LIVING_LIGHTS,LIVING_SPACES,LIVING_SPAWN,type CreatureType,type LivingItem,type Vec3} from '../../content/living-deck-layout';
+import {ALEX_MARKS,LIVING_SURVEY_EXIT_Y,LIVING_ITEMS,LIVING_LIGHTS,LIVING_SPACES,LIVING_SPAWN,type CreatureType,type LivingItem,type Vec3} from '../../content/living-deck-layout';
 import {createLivingWorld,type LivingWorld,type LivingWorldState} from './living-world';
-import {LivingNavigation,LIVING_TYPE_CN} from './living-navigation';
+import {LivingNavigation} from './living-navigation';
 import {sharedExpeditionRenderer} from './pod-expedition';
 import {createLivingRender,type LivingRender} from './living-render';
 import {createSalvageArm} from './salvage-arm';
@@ -24,12 +24,17 @@ import {drawSonarOwnship,sonarHeading} from '../sonar-ownship';
 import {sonarDeskState} from '../sonar-desk';
 import {layoutCJK} from '@/ui/typography';
 import {formatCoords} from '../../sim/site-coords';
+import {LivingSurvey,type SurveyCapture} from '../../sim/living-survey';
+import {LivingTaskPlayer} from './living-task-player';
+import {LIVING_TASKS,livingTaskLine,type LivingTaskId} from '../../content/living-task-videos';
+import {isNoVideoMode} from '../gm';
+import {hasRemotePlaylist} from '../footage';
 
 /** Surface depth of deck −1 world y=0. GAP: provisional, not yet fixed in level-metrics. */
 export const LIVING_DATUM_DEPTH=1040;
 const LOCAL_TAPE_NAME='-1层生活区 · 本机摄像';
 const LAMP_RANGE=26,LAMP_HALF_ANGLE=.72,REACH=3.4,UPLINK_REACH=14;
-const END_TEXT='第二关完成 · 向-2层下潜（第三关制作中）';
+const END_TEXT='第二章完成 · 操作台按 B 进入-2层研究所';
 const ITEMS=new Map(LIVING_ITEMS.map(i=>[i.id,i]));
 const WAYPOINT={security:[72,0,-52],glass:[137.5,0,17],valve:[130,0,-29],office:[162,0,96],gate:[188,-1.2,52],shaft:[98,0,68],ballast:[112,0,32.5]} satisfies Record<string,Vec3>;
 const STAGE_WAYPOINT:Partial<Record<LivingState['stage'],Vec3>>={explore:WAYPOINT.security,glass:WAYPOINT.glass,valve:WAYPOINT.valve,atrium:WAYPOINT.office,code:WAYPOINT.office,uplink:WAYPOINT.gate,met:WAYPOINT.shaft,exit:WAYPOINT.shaft};
@@ -91,6 +96,7 @@ const RESULT_SHOTS:Partial<Record<RemoteTape['kind'],string[]>>={slimeCleared:['
  */
 const TAPE_SLIME:Record<RemoteTape['kind'],number>={alexIntro:.75,securityLog:.5,slimeCleared:0,slimeUnchanged:.75,slimeWorse:1,gateOpened:0};
 type Snapshot={narrative?:NarrativeMemory;adapter:'living-deck';adapterVersion:1;index:1;levelId:'living.2';position:[number,number,number];heading:number;pitch:number;elapsed:number;sequence:number;ended:boolean;
+ routeVersion:2;survey:ReturnType<LivingSurvey['snapshot']>;cargo:string[];debugNoVideo:boolean;surveyGateLift:number;reserveUsed:boolean;
  deck:LivingState;creatures:unknown;dialogue:unknown;navigation:unknown;sonarDesk:unknown;alexFollow:[number,number,number]|null;gateLift:number};
 
 const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
@@ -108,7 +114,12 @@ export class LivingDeckSite implements AuthoredSite {
  readonly navigationConsole:LivingNavigation;
  readonly position=v3(LIVING_SPAWN.position);
  readonly deck=new LivingDeck();
- readonly creatures=new LivingCreatures();
+ readonly creatures=new LivingCreatures(Math.random,'survey');
+ readonly survey=new LivingSurvey();
+ private taskPlayer:LivingTaskPlayer;
+ private cargo=new Set<string>();
+ private debugNoVideo=false;
+ private surveyGateLift=0;
  readonly dialogue=new LivingDialogue();
  private world:LivingWorld;
  private scene=new T.Scene();
@@ -120,8 +131,6 @@ export class LivingDeckSite implements AuthoredSite {
  private fallbackItems=new Map<string,T.Object3D>();
  private fallbackCreatures=new Map<string,T.Object3D>();
  private fallbackGate:T.Mesh|null=null;
- private alexRoot=new T.Group();
- private alexLamp=new T.SpotLight(0xf3e6c8,7,11,.5,.6,1.5);
  private width=0;private height=0;
  private s:LivingState;
  private elapsed=0;
@@ -152,13 +161,13 @@ export class LivingDeckSite implements AuthoredSite {
  private powerWarned=0;
  private turnBlockedAt=-99;
  private reserveUsed=false;
- private huntWarned=false;
  private disposed=false;
  /** Film metering carried across one exposure's frames; `at` < 0 forces a fresh measurement. */
  private meter={gain:1,at:-99};
  private lastFraming:Framing[]=[];
  readonly presentation={sensorFrame:SENSOR,labLargeFrame:true} as const;
  constructor(private run:PodRun){
+  this.taskPlayer=new LivingTaskPlayer(run);
   this.deck.configureStory(livingStory(run.narrativeMemory));this.s=this.deck.snapshot();this.dialogue.story=this.s.story;
   const {renderer}=sharedExpeditionRenderer();
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFShadowMap;
@@ -167,42 +176,58 @@ export class LivingDeckSite implements AuthoredSite {
   this.run.heading=LIVING_SPAWN.heading;this.run.pitch=0;
   // Film is this deck's main view of the level: the lab opens on full-CRT playback (4 returns to the list and report).
   this.run.labVideoExpanded=true;
-  this.scene.add(this.world.root,this.fallback,this.alexRoot);
+  this.scene.add(this.world.root,this.fallback);
   this.camera.add(this.salvageArm.root);this.scene.add(this.camera);
   // The pipeline owns headlamp, probe lamp, practical keys, fog, background and environment.
-  this.view=createLivingRender({renderer,scene:this.scene,camera:this.camera,world:this.world,width:1024,height:720});
-  this.buildAlex();this.buildFallbackItems();
+  this.view=createLivingRender({renderer,scene:this.scene,camera:this.camera,world:this.world,width:1024,height:720,profiles:{live:{lampNearFull:9,lampGain:1.8,lampDecay:.9,practicalGain:2.2,envIntensity:.065,scatter:.4,fogTint:1.2,bloom:.22}}});
+  this.buildFallbackItems();
   this.navigationConsole=new LivingNavigation({
    run,position:this.position,datum:LIVING_DATUM_DEPTH,
    contacts:()=>this.creatures.passiveContacts(this.vec(),this.run.heading),
    drawActive:(ctx,w,h)=>this.drawDrivingSonar(ctx,w,h,this.elapsed,true),
    waypointCatalog:[
-    {position:[72,0,-52],name:'R3 安保值班室',detail:'摄像探头箱 · 安保员遗体'},
-    {position:[137.5,0,17],name:'G 观察廊 · 传递管道',detail:'探头发射口'},
-    {position:[130,0,-29],name:'V 阀门间',detail:'疗养区三路阀门'},
-    {position:[162,0,96],name:'R5 住宿管理处',detail:'密码与开闸步骤'},
-    {position:[188,-1.2,52],name:'闸门 F 外侧',detail:'观察窗 · 水声链路'},
-    {position:[98,0,68],name:'D 下行井',detail:'-2层入口 · 需配重'},
+    {position:[7,0,8],name:'S 入口停靠区',detail:'摄像仪匣与传递口'},
+    {position:[53,0,24],name:'01 机修间',detail:'第一处生物 · 修补材料 · 东门通往02'},
+    {position:[108,0,26],name:'02 压载库',detail:'第二处生物 · 下潜配重'},
+    {position:[137.8,0,13.5],name:'G 供水检修站',detail:'开灯拍说明牌 · 现场操作阀门'},
+    {position:[128.5,0,36],name:'03 南廊隔离门',detail:'人员侧下发一次性授权，门旁确认'},
+    {position:[166,0,60],name:'03 中庭调查区',detail:'第三处生物'},
+    {position:[188,0,52],name:'F 会合闸门',detail:'调查收件与会合确认'},
+    {position:[208,0,68],name:'E 东侧下潜井',detail:'-2层入口 · 需要配重与会合确认'},
    ],
   });
-  if(run.sonarPulseEnabled){run.stopSonarPulses();run.pushLog('进入-1层：周期脉冲已停发——这一层有循声而来的东西。主动声纳保持通电，需要测距时再手动发射。','system');}
+  if(run.sonarPulseEnabled){run.stopSonarPulses();run.pushLog('进入-1层：周期脉冲已停发——这一层有循声而来的东西。主动声纳通电就会持续发声；需要地形和距离才开启，平时可关闭，被动监听始终工作。','system');}
   this.world.setFocus(this.vec());
   void this.world.ready.catch(()=>{});
   if(import.meta.env?.DEV&&typeof window!=='undefined')(window as unknown as {__living?:unknown}).__living=this;
  }
 
  // ------------------------------------------------------------------ status
- get complete(){return this.s.complete;}
- get micTarget(){return this.s.met?partnerName(this.s.story):null;}
- get micReady(){return !!this.micTarget;}
+ get complete(){return (!this.debugNoVideo||isNoVideoMode())&&this.survey.complete;}
+ get micTarget(){return '艾里亚斯';}
+ get micReady(){return true;}
+ private get activeNoise(){return this.run.powered&&this.run.activeSonarEnabled;}
+ private nearItem(id:string,range=REACH){const item=ITEMS.get(id);return !!item&&this.boxBounds(id).distanceToPoint(this.position)<=range&&this.segmentClear(this.position,v3(item.position),this.boxBounds(id));}
+ private diagnosticSay(text:string){
+  // M opens the radio from any of the three shared cockpit screens and switches to nav.
+  if(!isNoVideoMode()||!['lab','nav','camera'].includes(this.run.at??'')){this.feedback('诊断需要显式开启GM无视频模式，并在驾驶台操作；不授予正式录像证据。');return true;}
+  if(text==='诊断核验任务'){this.feedback('剧情任务视频无需核验：无视频模式下到达阶段即自动推进。');return true;}
+  const tape=this.run.selectedTape,e=tape?.siteEvidence as SurveyCapture|undefined;
+  if(tape?.legId!==this.run.leg.id||tape?.ready===false||['exposing','developing'].includes(this.run.shot.phase)||!e?.survey){this.feedback('需选择本关实际完成曝光的底片；未就绪的录像请先等待。');return true;}
+  if(this.survey.analyzed.includes(e.id)){this.feedback('这卷底片已经核验：'+this.describeEvidence(e)+'。需要查看另一卷时，在分析台按 2 切换下一卷。');return true;}
+  if(!this.survey.analyze(e)){this.feedback('【GM诊断 · 未确认】'+this.evidenceFailure(e));return true;}
+  this.debugNoVideo=true;this.run.gmLevelSession=true;tape!.analyzed=true;tape!.report=['GM诊断 · 非真实录像 · 禁写正式存档',this.survey.objective];this.refresh();this.feedback('【GM诊断】底片核验完成。'+this.survey.objective);return true;
+ }
  radioSay(text:string){
-  if(!this.micTarget)return false;
-  this.dialogue.enqueue('罗温：'+text);
-  const name=partnerName(this.s.story);
-  if(/艾里亚斯|上层|伤/.test(text)&&this.s.story?.partner==='keeper')this.dialogue.enqueue('周岑：他留在上层值班室。我得先确认上行通路，不能说已经接到人了。');
-  else if(/记录|事故|申请/.test(text))this.dialogue.enqueue(name+'：把拿到的原件留好。没看到的部分，我们先别下结论。');
-  else this.dialogue.enqueue(name+'：我在闸门口，线缆还接着。下面的情况要等你确认。');
-  return true;
+  const t=text.trim();if(/^诊断(?:核验任务|分析底片)$/.test(t))return this.diagnosticSay(t);
+  if(this.debugNoVideo&&!isNoVideoMode()){this.feedback('含诊断进度：恢复GM无视频模式或新开正式游戏。');return false;}
+  if(/重试.*录像|重试.*视频/.test(t)){this.feedback(this.taskPlayer.retry());return true;}
+  for(const line of this.survey.say(t,{nearTransfer:this.nearItem('living.pipe.intake')})){
+   const hint=line.includes('靠近入口的设备传递口')?this.stageTargetHint():null;
+   const spoken=hint?line+'\n罗温：'+hint:line;
+   this.navigationConsole.recordDialogue(spoken);this.feedback(spoken);
+  }
+  this.refresh();return true;
  }
  receiveTape(recipient:'vance'|'elias',id:string){
   if(recipient!=='elias'||!this.s.met||this.s.story?.partner==='keeper')return false;
@@ -212,23 +237,34 @@ export class LivingDeckSite implements AuthoredSite {
   if(lines.length)paySeed(m,'false-clear',2);
   this.dialogue.enqueue('艾里亚斯：上层那卷录像收到了。');for(const line of lines)this.dialogue.enqueue(line);return true;
  }
- get evidenceReady(){return this.s.met;}
+ get evidenceReady(){return (!this.debugNoVideo||isNoVideoMode())&&this.survey.reunion&&this.survey.photos.length===3;}
  get elevation(){return this.position.y;}
- get description(){return '-1层生活区：宿舍、观察廊、阀门间、中庭与住宿管理处。'+partnerName(this.s.story)+'在玻璃防爆门另一侧。';}
+ get description(){return '-1层生活区：机修水道、压载库、供水检修廊与中庭。艾里亚斯从独立人员通路回传视频。';}
  get hint(){return this.objective;}
  get objective(){
+  if(this.debugNoVideo&&!isNoVideoMode())return '诊断进度暂停：恢复GM无视频模式或新开正式游戏';
   if(this.ended)return END_TEXT;
-  const text=this.s.stage==='code'?this.deck.objective:this.dialogue.objective||this.deck.objective,at=this.destination();
-  if(!text||!at)return livingLine(text,this.s.story);
-  const leg=this.nextDoor(at);
-  const guide=this.needsGuidePhoto?'\n拍摄东墙步骤图：朝向 090°，俯仰归零，镜头回正；变焦 3.2×，停船开灯拍摄后到分析台核验。':'';
-  return `${livingLine(text,this.s.story)}\n领航台输入坐标 ${formatCoords(at,LIVING_DATUM_DEPTH)}${leg?`\n下一段：经门口进入${leg.name}（${formatCoords(leg.position,LIVING_DATUM_DEPTH)}）`:''}${guide}`;
+  if(this.position.y>2&&livingSpaceAt(this.vec())==='S')return '抵达生活区入口井 · 先坐到驾驶台（W靠近，E就坐）\n按住 PageDown 下降至深度1040m；PageUp上升，Shift制动\n井底右前方黄色仪器匣：开探照灯，对准后靠近按 F 伸臂、再次 F 夹取，再 F 收回';
+  const at=this.destination(),leg=at?this.nextDoor(at):null;
+  const task=this.localBallastStop()?'离开压载库前 · 机械臂收妥下潜配重，免得下潜前再折返':this.survey.objective;
+  return (isNoVideoMode()?'【GM无视频】剧情自动推进；怪物底片在分析台按 3 诊断\n':'')+task+(at?'\n导航坐标 '+formatCoords(at,LIVING_DATUM_DEPTH):'')+(leg?'\n下一段：'+leg.name:'');
  }
+ private localBallastStop(){return !this.survey.pending&&(!this.survey.helpSeen||this.survey.helpReplied)&&!this.survey.ballast&&this.survey.photos.includes(1)&&livingSpaceAt(this.vec())==='R4';}
  private get needsGuidePhoto(){return this.s.stage==='code'&&this.s.codeVerified&&!this.s.guideVerified;}
  private destination():Vec3|undefined{
-  if(this.needsGuidePhoto)return [164,0,96];
-  const stage=this.dialogue.objective?this.dialogue.stage:this.s.stage;
-  return stage==='exit'&&!this.s.ballast?WAYPOINT.ballast:stage?STAGE_WAYPOINT[stage]:undefined;
+  const f=this.survey;
+  if(!f.camera)return [7,0,8];
+  if(!f.shared)return [12,0,9];
+  if(f.pending)return undefined;
+  if(this.localBallastStop())return ITEMS.get('living.box.ballast')!.position;
+  if(!f.photos.includes(0))return [53,0,24];
+  if(!f.photos.includes(1))return [108,0,26];
+  if(!f.clearSeen)return [137.8,0,13.5];
+  if(!f.unlocked)return [128.5,0,36];
+  if(!f.photos.includes(2))return [166,0,60];
+  if(!f.reunion)return [188,0,52];
+  if(!f.ballast)return ITEMS.get('living.box.ballast')!.position;
+  return [208,LIVING_SURVEY_EXIT_Y-2,68];
  }
  /** First doorway on the open-door route from the pod's space toward `goal`; null once in the goal's space. */
  private nextDoor(goal:Vec3):{position:Vec3;name:string}|null{
@@ -249,7 +285,10 @@ export class LivingDeckSite implements AuthoredSite {
  }
  get noiseFloor(){return 0;}
  private vec():Vec3{return [this.position.x,this.position.y,this.position.z];}
- private refresh(){this.s=this.deck.snapshot();}
+ private refresh(){
+  this.s=this.deck.snapshot();const f=this.survey;
+  Object.assign(this.s,{collected:[...this.cargo],pod:this.vec(),probe:f.shared?'withAlex':f.camera?'carried':'none',ballast:f.ballast,complete:f.complete,met:f.reunion,gateOpen:f.reunion,slimeCleared:f.clearSeen,slime:f.clearSeen?0:.75,valves:{heat:false,feed:f.valve,cool:false},stage:f.complete?'complete':f.reunion?'exit':!f.camera?'explore':!f.shared?'glass':!f.clearSeen?'valve':!f.unlocked?'code':'atrium'});
+ }
  private lit(){return this.run.lit&&this.run.powered;}
 
  // ------------------------------------------------------------------ feedback
@@ -257,7 +296,6 @@ export class LivingDeckSite implements AuthoredSite {
   if(!text)return;
   this.feedbackText=text;this.feedbackUntil=this.elapsed+Math.max(4,Math.min(10,text.length*.12));
   text=livingLine(text,this.s.story);this.run.pushLog(text,'system');
-  if(this.dialogue.busy)return;
   this.run.storyCaption=text;this.run.storyCaptionLeft=Math.max(4,Math.min(12,text.length*.13));
  }
  private event(text:string,cooldown=8){
@@ -279,6 +317,11 @@ export class LivingDeckSite implements AuthoredSite {
  }
  private hurt(amount:number,shake:number){
   this.run.hull=Math.max(0,this.run.hull-amount);this.deck.noteDamage(amount);
+  if(this.run.shot.viewing||this.run.at==='lab'){
+   this.run.labPlaybackPauseRequested=true;
+   this.run.shot.viewing=false;this.run.labVideoExpanded=false;this.run.walkTo('camera');
+   this.feedback('船体受击，读片已中断。先退到安全处；底片和报告仍保留在分析台。');
+  }
   this.run.onShake?.(Math.max(.3,shake));this.run.onCue?.('hull.crack',.8);
  }
 
@@ -299,21 +342,41 @@ export class LivingDeckSite implements AuthoredSite {
   for(const i of LIVING_ITEMS)if(i.kind==='box'&&!this.s.collected.includes(i.id))keep(this.boxBounds(i.id));
   if(includeCreatures)for(const b of this.creatures.blockers())keep(box3(b));
   if(this.gateLift<.95)keep(this.world.gate.bounds);
+  if(this.surveyGateLift<.95)keep(this.world.surveyGate.bounds);
   return out;
  }
- private clear(p:T.Vector3,heading=this.run.heading,solids=this.solids(p)){return harborHullClear(p,heading,this.world.walkable,solids);}
+ private clear(p:T.Vector3,heading=this.run.heading,solids=this.solids(p)){return (p.y>=-8||livingSpaceAt([p.x,p.y,p.z])==='E'&&this.survey.ballast&&this.survey.reunion)&&harborHullClear(p,heading,this.world.walkable,solids);}
+ private turnRecoveryHint(degrees:number,solids:T.Box3[]){
+  const heading=this.run.heading,sign=Math.sign(degrees),h=T.MathUtils.degToRad(heading),pitch=T.MathUtils.degToRad(this.run.pitch);
+  const forward=new T.Vector3(Math.sin(h)*Math.cos(pitch),-Math.sin(pitch),-Math.cos(h)*Math.cos(pitch));
+  const allowance=(p:T.Vector3)=>Math.abs(((sweepHarborHeading(heading,sign*20,a=>this.clear(p,a,solids))-heading)%360+540)%360-180);
+  const baseline=allowance(this.position);
+  let best:{direction:number;distance:number;gain:number}|undefined;
+  if(this.clear(this.position,heading,solids))for(const direction of [1,-1]){
+   const p=this.position.clone();
+   for(let step=1;step<=25;step++){
+    const next=p.clone().addScaledVector(forward,direction*.04);
+    if(!this.clear(next,heading,solids))break;
+    p.copy(next);if(step!==15&&step!==25)continue;
+    const gain=allowance(p)-baseline;
+    if(gain>=2&&(!best||gain>best.gain+.01))best={direction,distance:step*.04,gain};
+   }
+  }
+  if(!best)return '艇身转向净空不足。先按 Shift 制动，检查门框和艇身位置，再调整航向。';
+  return `艇身转向净空不足。先轻按 ${best.direction>0?'Space 前进':'N 倒车'}约 ${best.distance.toFixed(1)} 米，按 Shift 制动后再向${sign<0?'左':'右'}转。`;
+ }
  turn(degrees:number){
   const solids=this.solids(this.position);
   const next=sweepHarborHeading(this.run.heading,degrees,h=>this.clear(this.position,h,solids));
-  if(Math.abs(degrees)>1e-4&&Math.abs(((next-this.run.heading)%360+540)%360-180)<1e-4&&this.elapsed-this.turnBlockedAt>3){this.turnBlockedAt=this.elapsed;this.feedback('艇身贴着墙，转不过来。先按住 N 倒车离墙一两米，再转船头。');}
+  if(Math.abs(degrees)>1e-4&&Math.abs(((next-this.run.heading)%360+540)%360-180)<1e-4&&this.elapsed-this.turnBlockedAt>3){this.turnBlockedAt=this.elapsed;this.feedback(this.turnRecoveryHint(degrees,solids));}
   return next;
  }
  moveVertical(distance:number){
   const solids=this.solids(this.position,10),steps=Math.max(1,Math.ceil(Math.abs(distance)/.04));
   for(let i=0;i<steps;i++){
    const next=this.position.clone();next.y+=distance/steps;
-   if(distance<0&&!this.deck.exitAllowed(next.y)){
-    if(this.elapsed-this.trimWarnedAt>6){this.trimWarnedAt=this.elapsed;this.feedback('配平舱压不下去了：没有配重，艇身浮在-8米。去R4压载库取配重块。');}
+   if(distance<0&&next.y<-8&&(!this.survey.ballast||!this.survey.reunion||this.position.x<200)){
+    if(this.elapsed-this.trimWarnedAt>6){this.trimWarnedAt=this.elapsed;this.feedback(!this.survey.ballast?'没有配重无法下潜：取回压载库沿途的配重箱。':!this.survey.reunion?'先完成公司影像收件与艾里亚斯会合，再进入下一层。':'本局下潜通道在中庭东侧 E 井。');}
     return false;
    }
    if(!this.clear(next,this.run.heading,solids))return false;
@@ -421,7 +484,7 @@ export class LivingDeckSite implements AuthoredSite {
   * playback size, text faced within ~70°, a person ≥20% of frame height. Pure read of the current pose.
   */
  framing(id:string):Framing{
-  const spec=SUBJECTS[id]??{name:ITEMS.get(id)?.name??id},b=this.subjectBox(id),centre=b.getCenter(new T.Vector3());
+  const spec:Subject=id==='living.photo.sulfur'?{name:'含硫供水操作说明',text:{at:ITEMS.get(id)!.position,height:.18,normal:[-1,0,0]}}:SUBJECTS[id]??{name:ITEMS.get(id)?.name??id},b=this.subjectBox(id),centre=b.getCenter(new T.Vector3());
   const distance=b.distanceToPoint(this.position),rect=this.projectBox(b)??[0,0,0,0];
   const fill=(rect[2]-rect[0])*(rect[3]-rect[1])/4,H=SENSOR.height;
   let textPx:number|null=null,facing=1,figure:number|null=null;
@@ -453,7 +516,7 @@ export class LivingDeckSite implements AuthoredSite {
    if(p.distanceTo(eye)>limit||!this.inFrame(p))continue;
    if(!this.segmentClear(eye,p,this.boxBounds(item.id)))continue;
    if(!this.illuminated(p))continue;
-   if(SUBJECTS[item.id]&&item.id!=='living.uplink.gate'){
+   if((SUBJECTS[item.id]||item.id==='living.photo.sulfur')&&item.id!=='living.uplink.gate'){
     const f=this.framing(item.id);out.framing.push(f);
     if(!f.ok){out.rejected.push({id:item.id,reason:f.reason});continue;}
    }
@@ -461,7 +524,14 @@ export class LivingDeckSite implements AuthoredSite {
   }
   for(const c of this.creatures.views){
    const p=v3(c.position);
-   if(p.distanceTo(eye)>LAMP_RANGE||!this.inFrame(p,1)||!this.segmentClear(eye,p)||!this.illuminated(p))continue;
+   let reason='';
+   if(p.distanceTo(eye)>LAMP_RANGE)reason='声源尚不在摄影有效范围内；按被动声纳的大致方位谨慎接近，再取景。';
+   else if(!this.inFrame(p,1))reason='声源方向没有收入镜头；被动方位以艇首为准，先回正云台，再按最新方位选择摄影方向。';
+   else if(!this.segmentClear(eye,p))reason='当前摄影方向有结构遮挡；调整真实机位后再拍，镜头不能透过墙体。';
+   else if(!this.illuminated(p))reason='当前方向的照明不足；将探照灯与摄影方向对齐后再拍。';
+   if(reason){out.rejected.push({id:c.id,reason});continue;}
+   const silhouette=this.projectBox(new T.Box3(p.clone().add(new T.Vector3(-1.2,-.75,-1.5)),p.clone().add(new T.Vector3(1.2,.75,1.5))));
+   if(!silhouette||(silhouette[2]-silhouette[0])*(silhouette[3]-silhouette[1])/4<.025||(silhouette[3]-silhouette[1])*SENSOR.height/2*LAB_DISPLAY_SCALE<24){out.rejected.push({id:c.id,reason:'当前取景中的调查对象太小，无法辨认；沿被动声源方位取景后适当变焦，或谨慎接近再拍。'});continue;}
    out.creatureIds.push(c.id);if(!out.creatures.includes(c.type))out.creatures.push(c.type);
   }
   const gate=v3(ITEMS.get('living.uplink.gate')!.position);
@@ -474,19 +544,7 @@ export class LivingDeckSite implements AuthoredSite {
   }
   return out;
  }
- private alexPose():AlexPose{
-  const s=this.s,h=(a:Vec3,b:Vec3)=>((Math.atan2(b[0]-a[0],-(b[2]-a[2]))*180/Math.PI)+360)%360;
-  if(s.met||s.gateOpen){
-   // How Alex reaches deck −2 is undecided (GAP): he holds the gate threshold on the N side, facing the pod, and talks over the probe link.
-   const t=Math.min(1,this.gateLift*1.4),a=ALEX_MARKS.gateInner;
-   const p=[a[0]+(GATE_POST[0]-a[0])*t,a[1]+(GATE_POST[1]-a[1])*t,a[2]+(GATE_POST[2]-a[2])*t] as Vec3;
-   return {position:p,heading:t<1?0:h(p,this.vec()),visible:true,pose:t<1?'swim':s.met?'idle':'gesture'};
-  }
-  if(s.uplinked)return {position:ALEX_MARKS.gateInner,heading:180,visible:true,pose:'type'};
-  if(s.slimeCleared)return {position:ALEX_MARKS.gateInner,heading:180,visible:true,pose:'idle'};
-  if(s.probe==='launched'||s.probe==='withAlex')return {position:ALEX_MARKS.slimeEdge,heading:90,visible:true,pose:'film'};
-  return {position:ALEX_MARKS.glass,heading:270,visible:true,pose:'gesture'};
- }
+ private alexPose():AlexPose{return {position:ALEX_MARKS.gateInner,heading:180,visible:false,pose:'idle'};}
 
  // ------------------------------------------------------------------ interaction
  private aimed():{item:LivingItem;distance:number}|null{
@@ -495,11 +553,12 @@ export class LivingDeckSite implements AuthoredSite {
   let best:{item:LivingItem;distance:number;score:number}|null=null;
   for(const item of LIVING_ITEMS){
    if(item.kind==='box'&&this.s.collected.includes(item.id))continue;
+   if(['living.photo.code','living.photo.guide','living.photo.delroy'].includes(item.id))continue;
    if(item.kind==='pipe'&&this.s.probe!=='carried')continue;
    const bounds=this.boxBounds(item.id),pick=bounds.clone().expandByScalar(.25),c=v3(item.position);
    const limit=item.kind==='uplink'?UPLINK_REACH+1:item.kind==='box'?16:REACH+4;
    let distance:number|null=null,score=0;
-   if(ray.intersectBox(pick,hit))distance=hit.distanceTo(this.position);
+   if(ray.intersectBox(pick,hit))distance=bounds.distanceToPoint(this.position);
    else{const to=c.clone().sub(this.position),a=to.clone().normalize().angleTo(dir);if(a<=(item.kind==='box'?.32:.2)){distance=Math.max(0,bounds.distanceToPoint(this.position));score=a;}}
    if(distance===null||distance>limit)continue;
    if(!this.segmentClear(this.position,c,bounds))continue;
@@ -508,6 +567,7 @@ export class LivingDeckSite implements AuthoredSite {
   return best?{item:best.item,distance:best.distance}:null;
  }
  interact(){
+  if(this.debugNoVideo&&!isNoVideoMode()){this.feedback('恢复GM无视频模式或新开正式游戏。');return;}
   if(this.ended){this.feedback(END_TEXT);return;}
   const arm=this.run.arm;
   if(arm.phase==='aiming'&&this.pendingCargo){this.run.retractArm();this.feedback('箱体已夹紧 · 正在回收，收臂完成后才入库');return;}
@@ -521,7 +581,7 @@ export class LivingDeckSite implements AuthoredSite {
   if(item.kind==='photo'){this.feedback(`${item.name}：这需要拍下来，回分析台核验。`);return;}
   if(item.kind==='uplink'){
    if(distance>UPLINK_REACH){this.feedback('离观察窗太远，水声链路接不上。');return;}
-   this.apply(this.deck.uplink());return;
+   this.feedback(this.survey.operate('reunion',true));this.refresh();return;
   }
   if(distance>REACH){this.feedback(`${item.name} · ${distance.toFixed(1)} 米 · 再靠近到 3.4 米内`);return;}
   if(item.kind==='box'){
@@ -546,18 +606,20 @@ export class LivingDeckSite implements AuthoredSite {
    }
    return;
   }
-  this.apply(this.deck.interact(item.id,{lamp:this.run.lit,powered:this.run.powered,armStowed:arm.phase==='stowed',pulse:this.run.sonarEmitting}));
+  if(arm.phase!=='stowed'||!this.run.powered){this.feedback('收回机械臂并恢复设备供电后再操作终端。');return;}
+  const action=item.id==='living.pipe.intake'?'transfer':item.id==='living.survey.lock'?'door':item.id==='living.valve.feed'?'valve-s':'valve-c';
+  this.feedback(this.survey.operate(action,true));this.refresh();
   if(item.kind==='terminal')this.run.onShake?.(.35);
  }
  armEvent(kind:'grip'|'stowed',id?:string){
   if(kind==='grip'&&id&&id===this.armObject){this.pendingCargo=id;this.feedback('已夹持 · 按 F 收回机械臂，收妥后入库');return true;}
   if(kind==='stowed'){
    const id=this.pendingCargo;
-   if(id){
-    const r=this.deck.armCollected(id);this.apply(r);
+   if(id&&!this.cargo.has(id)){
+    this.cargo.add(id);if(id==='living.box.probe')this.feedback(this.survey.operate('body',true));if(id==='living.box.ballast')this.survey.operate('ballast',true);this.refresh();
     if(this.s.collected.includes(id)){
-     if(id==='living.box.tools'){this.run.hull=Math.min(1,this.run.hull+.25);this.feedback('液压维修工具：补上了两处渗漏，艇壳完整度回升。');}
-     if(id==='living.box.battery'){this.run.stock.set('sup.cell',this.run.stowedCount('sup.cell')+1);this.run.power=Math.min(1,this.run.power+.6);this.feedback('备用蓄电池组并入主母线，电量回升。');}
+     if(id==='living.box.tools'){this.run.receiveAuthoredSupplies([['sup.plate',2],['sup.o2candle',1]]);this.feedback('取回两份修舱钢板和一支氧烛。到生命维持台按需使用；满血时不必浪费。');}
+     if(id==='living.box.battery'){this.run.receiveAuthoredSupplies([['sup.cell',3]]);this.feedback('取回三组备用电池。到生命维持台按需接入，别在满电时浪费。');}
     }
    }
    this.pendingCargo=null;this.armObject=null;this.armAnchor=null;return true;
@@ -566,8 +628,26 @@ export class LivingDeckSite implements AuthoredSite {
  }
 
  // ------------------------------------------------------------------ film
+ private captureDiagnostic(seen:Seen){
+  if(this.lastCreature?.lensBlocked)return '镜头被遮住；先解除遮挡再曝光。';
+  if(!this.lit())return '探照灯未开启或未通电；正式调查底片需要开灯。';
+  if(Math.abs(this.run.pilot.speed)>=.18||Math.abs(this.run.pilot.yawRate)>=2)return '艇仍在移动或转向；先制动并等艇稳定，再曝光。';
+  if(seen.targets.includes('living.photo.sulfur'))return '';
+  const ids=['blind.r2','shade.r4','blind.a2'];
+  if(ids.some(id=>seen.creatureIds.includes(id)))return '';
+  const local=this.creatures.views.filter(c=>ids.includes(c.id)&&livingSpaceAt(c.position)===livingSpaceAt(this.vec()));
+  const candidate=local.sort((a,b)=>v3(a.position).distanceToSquared(this.position)-v3(b.position).distanceToSquared(this.position))[0];
+  return (candidate&&seen.rejected.find(r=>r.id===candidate.id)?.reason)||seen.rejected.find(r=>r.id==='living.photo.sulfur')?.reason||'本次未取得可核验的调查对象；设施编号不是生物目标。依据最新被动声源方位选择摄影方向，生物形态只能在延迟录像中辨认。';
+ }
+ private evidenceFailure(capture:unknown){
+  const c=capture as SurveyCapture&{diagnostic?:string};
+  return typeof c?.diagnostic==='string'&&c.diagnostic?c.diagnostic:'目标未能核验；依据最新被动声源方位重新选择摄影方向，并检查照明、停船和遮挡。';
+ }
  prepareCapture(){
+  if(this.debugNoVideo&&!isNoVideoMode())return {ok:false,message:'恢复GM无视频模式或新开正式游戏。'};
   this.meter.at=-99;
+  const diagnostic=this.captureDiagnostic(this.computeSeen());
+  if(diagnostic)return {ok:true,message:`曝光中 · ${diagnostic}`};
   if(this.lastCreature?.lensBlocked)return {ok:true,message:'镜头被贴住了——这一卷大概只会拍到贴在镜头上的东西。'};
   const f=this.viewfinder();
   if(f&&!f.ok)return {ok:true,message:`曝光中 · 取景不足：${f.reason}`};
@@ -575,25 +655,28 @@ export class LivingDeckSite implements AuthoredSite {
   return {ok:true,message:'曝光中 · 保持停船。画面是否有效要到分析台核验。'};
  }
  videoContext(){
-  const seen=this.computeSeen(),story=seen.alexVisible||seen.gateOpen||seen.targets.some(id=>id!=='living.box.probe');
-  return {story,settled:story&&seen.gateOpen&&seen.alexVisible&&!this.s.met,prefetchKey:JSON.stringify([seen.gateOpen,this.s.met,this.run.narrativeMemory]),stateKey:JSON.stringify([seen.targets,seen.gateOpen,this.s.met,this.run.narrativeMemory,seen.creatureIds.map(id=>this.creatures.views.find(c=>c.id===id)),seen.alexVisible?this.alexPose():null]),
+  const seen=this.computeSeen();
+  const anatomy:Record<string,string>={blind:'Native eyeless deep-sea hunter with a broad armored head and lateral sensory pits, 3 metres long',shade:'Pale translucent native deep-sea eel with a narrow jaw, 3.5 metres long',lumen:'Nonaggressive Panacea-adapted human silhouette, drifts without attacking',swarm:'Small ordinary glass fish'};
+  return {story:seen.targets.includes('living.photo.sulfur'),settled:false,generatedMonsters:true,
+   prefetchKey:JSON.stringify([this.survey.unlocked,this.survey.valve]),stateKey:JSON.stringify([seen.creatureIds,this.vec(),this.run.heading,this.run.camPan,this.survey.valve]),
    nearestMonster:this.creatures.views.reduce((d,c)=>Math.min(d,this.position.distanceTo(v3(c.position))),Infinity),
-   scene:'Flooded living deck, exactly the room and framing shown in the first frame.',
-   actors:seen.alexVisible?[partnerName(this.s.story)+': adult human in the work diving gear visible in the first frame, alive.']:[],
-   monsters:seen.creatureIds.map(id=>{const c=this.creatures.views.find(c=>c.id===id)!;return c.type+' ['+id+']: preserve this exact visible creature anatomy, silhouette, appendages and scale from the supplied image; no replacement species';}),
-   outcome:seen.gateOpen?'The password gate is already open. Preserve this completed result.':'Record current visible objects only; do not reveal hidden documents or future actions.'};
+   scene:'Flooded living deck. Preserve the supplied image architecture, camera and lights. Only the described evidence animal may be added in its stated position.',actors:[],
+   monsters:seen.creatureIds.map(id=>{const c=this.creatures.views.find(c=>c.id===id)!;const q=v3(c.position).project(this.camera);return anatomy[c.type]+'. Target '+id+' at image '+Math.round((q.x+1)*50)+'% from left, '+Math.round((1-q.y)*50)+'% from top, '+this.position.distanceTo(v3(c.position)).toFixed(1)+' metres from camera. Preserve actual current behavior '+c.mode+'.';}),
+   outcome:'Record the present state only. Do not open doors, reveal Elias, fabricate documents, or predict attacks.'};
  }
  captureEvidence(){
-  if(this.pendingCaptureId)this.deck.cancelCapture(this.pendingCaptureId);
-  const id=`living.shot.${++this.sequence}`,seen=this.computeSeen();
-  this.pendingCaptureId=id;this.lastFraming=seen.framing;
-  return this.deck.capture(id,{targets:seen.targets,creatures:seen.creatures,lensBlocked:!!this.lastCreature?.lensBlocked,lamp:this.lit(),gateOpen:seen.gateOpen,alexVisible:seen.alexVisible,rejected:seen.rejected});
+  const id=`living.shot.${++this.sequence}`,seen=this.computeSeen();this.pendingCaptureId=id;this.lastFraming=seen.framing;
+  const ids=['blind.r2','shade.r4','blind.a2'];
+  const target=ids.findIndex(x=>seen.creatureIds.includes(x));
+  const manual=seen.targets.includes('living.photo.sulfur');
+  const e:SurveyCapture&{diagnostic:string}={survey:true,id,target:manual?'manual':target>=0?target:0,valid:(manual||target>=0)&&!this.lastCreature?.lensBlocked&&Math.abs(this.run.pilot.speed)<.18&&Math.abs(this.run.pilot.yawRate)<2,lit:this.lit(),diagnostic:this.captureDiagnostic(seen)};
+  return this.survey.issue(e)??{...e,valid:false};
  }
  /** The evidence subject the lens is pointed at (nearest to frame centre within film range), with its framing. */
  private viewfinder():Framing|null{
   this.pose();
   let best:{f:Framing;score:number}|null=null;
-  for(const id of Object.keys(SUBJECTS)){
+  for(const id of ['living.photo.sulfur']){
    if(id===VALVE_ITEM.heat||id===VALVE_ITEM.cool)continue;
    if(id==='living.box.probe'&&this.s.collected.includes(id))continue;
    if(id==='living.uplink.gate'&&!(this.gateLift>.5))continue;
@@ -606,44 +689,50 @@ export class LivingDeckSite implements AuthoredSite {
   }
   return best?.f??null;
  }
- commitEvidence(capture:unknown){
-  const e=capture as LivingEvidence;if(!e||typeof e.id!=='string')return;
-  this.deck.commitCapture(e);if(this.pendingCaptureId===e.id)this.pendingCaptureId=null;this.refresh();
- }
+ commitEvidence(capture:unknown){const e=capture as SurveyCapture;if(!e?.survey)return;this.survey.commit(e);if(this.pendingCaptureId===e.id)this.pendingCaptureId=null;}
  finishCapture(){}
- evidenceStatus(capture:unknown){
-  const c=capture as {remote?:boolean}&Partial<LivingEvidence>;
-  if(c?.remote)return {accepted:true,next:'远端录像 · 在分析台播放并核验'};
-  return {accepted:!!c?.valid,next:c?.valid?'到分析台核验':(c?.diagnostic??'画面无法核验，需要重新拍摄')};
- }
- describeEvidence(capture:unknown){
-  const c=capture as {remote?:boolean;tapeId?:string}&Partial<LivingEvidence>;
-  if(c?.remote)return c.tapeId?.startsWith('tape.securityLog')?'安保员遗留的探头录像':partnerName(this.s.story)+'的探头录像';
-  const names:Record<string,string>={creature:'生物',probeCorpse:'安保员遗体',code:'手写密码',guide:'开闸步骤图',delroy:'治疗申请单',gateOpen:'闸门开启',valveLabel:'阀门标签',none:'无可核验目标'};
-  return (c?.kinds??['none']).map(k=>names[k]??k).join(' / ');
- }
+ evidenceStatus(capture:unknown){const e=capture as SurveyCapture&{livingTask?:LivingTaskId;generated?:boolean;code?:string};return {accepted:e?.livingTask?e.generated===true&&this.survey.accepted.includes(e.livingTask)&&(e.livingTask!=='L2-S06'||e.code===this.survey.code):!!e?.survey&&this.survey.analyzed.includes(e.id),next:this.objective};}
+ isEvidenceMediaReady(mediaId:string){const tape=this.run.tapes.find(t=>t.id===mediaId);return !!tape&&tape.videoResult==='video'&&!!tape.cacheKey&&hasRemotePlaylist(tape.cacheKey);}
+ describeEvidence(capture:unknown){const c=capture as SurveyCapture&{livingTask?:LivingTaskId};return c?.livingTask?'艾里亚斯 · '+LIVING_TASKS[c.livingTask].title:c?.survey?!c.valid||!c.lit?'未确认底片 · '+this.evidenceFailure(c):c.target==='manual'?'供水操作说明':`生物调查 ${Number(c.target)+1}`:'未核验的录像';}
  get cargoManifest(){return [
-  ...(this.s.probe==='carried'?[{name:'摄像探头箱',quantity:1}]:[]),
-  ...(this.s.ballast?[{name:'下潜配重（已安装）',quantity:1}]:[]),
-  ...(this.s.collected.includes('living.box.tools')?[{name:'液压维修工具',quantity:1}]:[]),
-  ...(this.s.collected.includes('living.photo.code')?[{name:'封闭证件夹 / 密码卡',quantity:1}]:[])
+  ...(this.survey.camera&&!this.survey.shared?[{name:'移动摄像仪（待交接）',quantity:1}]:[]),
+  ...(this.survey.ballast?[{name:'下潜配重（已安装）',quantity:1}]:[])
  ];}
- get recoveredDocument(){return this.s.collected.includes('living.photo.code');}
- readRecoveredDocument(){const lines=this.deck.readPasswordCard();this.refresh();return lines.map(l=>livingLine(l,this.s.story));}
- analyzeEvidence(snapshot:unknown):string[]{
-  const capture=(snapshot as {capture?:unknown}|undefined)?.capture as ({remote?:boolean;tapeId?:string}&Partial<LivingEvidence>)|undefined;
-  if(!capture)return ['分析台需要一卷已冲洗的录像。'];
-  if(capture.remote&&typeof capture.tapeId==='string'){
-   const first=!this.s.tapesAnalyzed.includes(capture.tapeId);
-   const lines=this.deck.analyzeTape(capture.tapeId);this.refresh();
-   const tape=this.s.tapes.find(t=>t.id===capture.tapeId);
-   if(tape&&(first||!this.dialogue.busy))for(const l of tape.lines)this.dialogue.enqueue(l);
-   if(first&&tape&&this.s.story?.partner==='elias'){if(tape.kind==='alexIntro')paySeed(this.run.narrativeMemory,'promise',2);if(tape.kind==='slimeCleared')paySeed(this.run.narrativeMemory,'records',2);}
-   return (tape?[...tape.lines,...lines]:lines).map(l=>livingLine(l,this.s.story));
+ get recoveredDocument(){return false;}
+ readRecoveredDocument(){return ['旧证件夹不用于本局通行。南廊门码由艾里亚斯的当前回片提供。'];}
+ /** Story videos carry no evidence: receiving the current task video advances it without lab analysis. */
+ private advanceStoryTask(){
+  const id=this.survey.pending;if(!id)return;
+  if(isNoVideoMode()){
+   if(!this.survey.acceptVideo(id))return;
+   this.debugNoVideo=true;this.run.gmLevelSession=true;
+   const line='艾里亚斯：'+livingTaskLine(id,this.survey.code);this.navigationConsole.recordDialogue(line);this.feedback('【GM无视频 · 非真实录像 · 禁写正式存档】'+line);
+   this.refresh();if(this.evidenceReady)this.run.campaign.record(this.index,'film');return;
   }
-  const lines=this.deck.analyze(capture as LivingEvidence);this.refresh();
-  for(const t of this.s.identified)this.creatures.markIdentified(t);
-  return lines;
+  const tape=this.run.tapes.find(t=>t.id==='living.task.'+id),e=tape?.siteEvidence as {livingTask?:LivingTaskId;generated?:boolean;code?:string}|undefined;
+  if(!tape||tape.ready===false||tape.videoResult!=='video'||e?.livingTask!==id||!e?.generated||!tape.cacheKey?.startsWith('living-task:'+id+':')||!hasRemotePlaylist(tape.cacheKey)||id==='L2-S06'&&e?.code!==this.survey.code||!this.survey.acceptVideo(id))return;
+  const line='艾里亚斯：'+livingTaskLine(id,this.survey.code);tape.analyzed=true;tape.report=['剧情任务录像 · 无需核验',line];
+  this.navigationConsole.recordDialogue(line);this.feedback(line);this.refresh();
+  if(this.evidenceReady)this.run.campaign.record(this.index,'film');
+ }
+ analyzeEvidence(snapshot:unknown):string[]{
+  if(this.debugNoVideo&&!isNoVideoMode())return ['诊断进度暂停，不能变成正式录像证据。'];
+  const v=snapshot as {capture:SurveyCapture&{livingTask?:LivingTaskId;generated?:boolean;code?:string};media:{playable:boolean;source?:string;mediaId?:string}};
+  if(!v?.capture||!v.media?.playable||v.media.source!=='generated-video')return ['需要生成并可播放的真实录像；本地感光帧不会授予正式进度。'];
+  const id=v.capture.livingTask;
+  if(id){
+   if(this.survey.accepted.includes(id))return ['剧情任务录像无需核验；收到后已自动登记。','艾里亚斯：'+livingTaskLine(id,this.survey.code)];
+   if(!this.survey.accepted.includes(id)&&this.survey.pending!==id)return ['这卷是艾里亚斯较早的回传，现场进展已经越过它要求的事，不再作为任务核验。等待他按当前情况发来的新录像。',this.survey.objective];
+   const tape=this.run.tapes.find(t=>t.id===v.media.mediaId);
+   if(!v.capture.generated||!tape||tape.videoResult!=='video'||JSON.stringify(tape.siteEvidence)!==JSON.stringify(v.capture)||!tape.cacheKey?.startsWith('living-task:'+id+':')||!hasRemotePlaylist(tape.cacheKey)||tape.id!=='living.task.'+id||id==='L2-S06'&&v.capture.code!==this.survey.code||!this.survey.acceptVideo(id))return ['此卷任务录像已核验、不可播放或不属于本局当前任务。'];
+   const line='艾里亚斯：'+livingTaskLine(id,this.survey.code);this.navigationConsole.recordDialogue(line);this.feedback(line);this.refresh();return [line,this.survey.objective];
+  }
+  const film=this.run.tapes.find(t=>t.id===v.media.mediaId);
+  if(!film||film.legId!==this.run.leg.id||film.videoResult!=='video'||JSON.stringify(film.siteEvidence)!==JSON.stringify(v.capture)||!film.cacheKey||!hasRemotePlaylist(film.cacheKey))return ['本卷底片尚无对应的可播放生成录像，请等待下载或重试。'];
+  const accepted=this.survey.analyze(v.capture);this.refresh();
+  if(!accepted)return ['未确认底片：'+this.evidenceFailure(v.capture)];
+  if(v.capture.target!=='manual')this.creatures.markIdentified(v.capture.target===1?'shade':'blind');
+  return [v.capture.target==='manual'?'说明牌核验：S支路向实验回流管输送含硫温水。关闭S阀；C为冷却回流，不要动它。':'公司收件回执：生物调查'+(Number(v.capture.target)+1)+'已登记。保留艇内原片。',this.survey.objective];
  }
 
  // ------------------------------------------------------------------ tick
@@ -652,11 +741,14 @@ export class LivingDeckSite implements AuthoredSite {
   dt=Math.min(dt,.25);this.elapsed+=dt;
   const pod=this.vec();
   if(!this.ended){
-   this.apply(this.deck.step(dt,{pod,heading:this.run.heading,lamp:this.lit(),pulse:this.run.sonarEmitting,speed:Math.abs(this.run.pilot.speed)}));
-   const cr=this.creatures.tick(dt,{pod,heading:this.run.heading,lampOn:this.lit(),lampRange:LAMP_RANGE,lampHalfAngle:LAMP_HALF_ANGLE,pulse:this.pendingPulse,
+   if(this.debugNoVideo&&!isNoVideoMode())return;
+   this.feedback(this.survey.tick(dt));this.refresh();
+   this.taskPlayer.tick(this.survey.pending,this.survey.code,this.run.narrativeMemory.elias==='injured');
+   this.advanceStoryTask();
+   if(livingSpaceAt(pod)==='E'&&pod[1]<LIVING_SURVEY_EXIT_Y){this.feedback(this.survey.operate('exit',true));this.refresh();}
+   const cr=this.creatures.tick(dt,{pod,heading:this.run.heading,lampOn:this.lit(),lampRange:LAMP_RANGE,lampHalfAngle:LAMP_HALF_ANGLE,pulse:this.pendingPulse,activePowered:this.activeNoise,
     speed:Math.abs(this.run.pilot.speed),noiseBursts:this.bursts.splice(0),armOut:armOut(this.run.arm),gateOpen:this.s.gateOpen,extraLumens:this.s.extraLumens});
    this.pendingPulse=false;this.lastCreature=cr;
-   if(!this.huntWarned&&this.hunter()){this.huntWarned=true;this.dialogue.enqueue('罗温：它是冲着声音来的……松开推进，慢下来。别发脉冲。');}
    for(const e of cr.events)this.event(e);
    for(const c of cr.cues)this.run.onCue?.(c,.6);
    if(cr.damage>0)this.hurt(cr.damage,cr.shake||.6);else if(cr.shake>0)this.run.onShake?.(cr.shake);
@@ -673,7 +765,8 @@ export class LivingDeckSite implements AuthoredSite {
   const target={heat:+this.s.valves.heat,feed:+this.s.valves.feed,cool:+this.s.valves.cool};
   for(const k of ['heat','feed','cool'] as ValveKey[])this.valveTurn[k]+=Math.sign(target[k]-this.valveTurn[k])*Math.min(Math.abs(target[k]-this.valveTurn[k]),dt*.8);
   this.gateLift=this.s.gateOpen?Math.min(1,this.gateLift+dt/6):0;
-  const beat=this.dialogue.tick(dt,this.s);
+  this.surveyGateLift=this.survey.unlocked?Math.min(1,this.surveyGateLift+dt/3):0;
+  const beat:{line:string|null;seconds:number;effects:string[]}={line:null,seconds:0,effects:[]};
   if(beat.line){this.run.storyCaption=beat.line;this.run.storyCaptionLeft=beat.seconds??6;this.run.pushLog(beat.line,'neutral');this.navigationConsole.recordDialogue(beat.line);this.speak(beat.line);}
   for(const e of beat.effects){if(e==='radioCut'){this.run.onCue?.('radio.squelch',.8);this.run.onShake?.(.15);}else if(e==='reunion')this.run.onCue?.('knowledge.gain',.7);else this.run.onCue?.('radio.squelch',.4);}
   this.navigationConsole.tick(dt);
@@ -683,7 +776,7 @@ export class LivingDeckSite implements AuthoredSite {
  }
  private threatBeep(dt:number){
   this.retainedThreatContacts();
-  if(!this.run.sonarEmitting)return;
+  if(!this.activeNoise)return;
   const near=this.threatContacts().reduce((m,c)=>Math.min(m,c.distance),Infinity);
   if(!Number.isFinite(near))return;
   this.threatBeepLeft-=dt;
@@ -703,14 +796,18 @@ export class LivingDeckSite implements AuthoredSite {
   const nearby=this.creatures.views.filter(c=>c.type!=='swarm').map(c=>({c,distance:v3(c.position).distanceTo(this.position)})).filter(x=>x.distance<=SONAR_RANGE);
   const ids=new Set(nearby.map(x=>x.c.id));
   for(const id of this.trackedThreats)if(!ids.has(id))this.trackedThreats.delete(id);
-  if(this.run.sonarEmitting)for(const {c} of this.threatContacts())this.trackedThreats.add(c.id);
+  if(this.activeNoise)for(const {c} of this.threatContacts())this.trackedThreats.add(c.id);
   return nearby.filter(x=>this.trackedThreats.has(x.c.id));
  }
 
  // ------------------------------------------------------------------ remote tapes
  private nameLocalTapes(){
   // The run labels local film with the legacy leg table's site name; this level has its own.
-  for(const tape of this.run.tapes)if(String((tape.siteEvidence as {id?:unknown}|undefined)?.id??'').startsWith('living.shot.')&&tape.siteName!==LOCAL_TAPE_NAME)tape.siteName=LOCAL_TAPE_NAME;
+  for(const tape of this.run.tapes){
+   const e=tape.siteEvidence as SurveyCapture|undefined;
+   if(!String(e?.id??'').startsWith('living.shot.'))continue;
+   tape.siteName=LOCAL_TAPE_NAME+' · '+(e?.valid&&e.lit?this.describeEvidence(e):'未确认目标');
+  }
  }
  private flushTapes(){
   while(this.pendingTapes.length){
@@ -752,15 +849,6 @@ export class LivingDeckSite implements AuthoredSite {
 
  // ------------------------------------------------------------------ visuals
  private material(color:string,extra:Partial<T.MeshStandardMaterialParameters>={}){return new T.MeshStandardMaterial({color,roughness:.7,metalness:.1,...extra});}
- private buildAlex(){
-  const suit=this.material('#c96a22',{roughness:.62}),brass=this.material('#9a7a3e',{metalness:.85,roughness:.35}),glass=this.material('#1a2a2c',{metalness:.2,roughness:.08});
-  const body=new T.Mesh(new T.CapsuleGeometry(.32,1.0,6,12),suit);body.position.y=-.2;
-  const helmet=new T.Mesh(new T.SphereGeometry(.3,18,14),brass);helmet.position.set(0,.62,0);
-  const visor=new T.Mesh(new T.CircleGeometry(.17,16),glass);visor.position.set(0,.64,-.29);visor.rotation.y=Math.PI;
-  const tank=new T.Mesh(new T.CylinderGeometry(.13,.13,.7,10),this.material('#5b6466',{metalness:.7,roughness:.4}));tank.position.set(0,.05,.33);
-  this.alexLamp.position.set(.18,.82,-.1);this.alexLamp.target.position.set(.18,.6,-6);
-  this.alexRoot.add(body,helmet,visor,tank,this.alexLamp,this.alexLamp.target);this.alexRoot.name='living.alex.fallback';
- }
  private buildFallbackItems(){
   const has=(id:string)=>this.world.interactables.has(id)||this.world.photoTargets.has(id)||!!this.world.root.getObjectByName(id);
   for(const item of LIVING_ITEMS){
@@ -826,7 +914,7 @@ export class LivingDeckSite implements AuthoredSite {
   let alex=this.alexPose();
   if(this.probeView)alex=this.probeView.alexInFrame?{position:[this.probeView.target.x,this.probeView.target.y,this.probeView.target.z],heading:90,visible:true,pose:'film'}:{...alex,visible:false};
   return {time:this.elapsed,recording,lamp:this.lit()&&!this.probeView,collected:s.collected,probe:s.probe,valves:{...s.valves},valveTurn:{...this.valveTurn},slime,gateOpen:this.gateLift,alex:{...alex,identity:this.s.story?.partner},
-   creatures:this.creatures.views.map(c=>({id:c.id,type:c.type,position:c.position,heading:c.heading,mode:c.mode}))};
+   survey:{doorOpen:this.surveyGateLift},creatures:[]};
  }
  private syncVisuals(state:LivingWorldState,dt:number){
   try{this.world.update(state,dt);}catch(err){console.warn('[living] world.update failed',err);}
@@ -837,22 +925,6 @@ export class LivingDeckSite implements AuthoredSite {
    if(valve){const w=obj.getObjectByName('wheel');if(w)w.rotation.z=this.valveTurn[valve]*Math.PI*1.5;}
   }
   if(this.fallbackGate){const b=this.world.gate.bounds,h=b.max.y-b.min.y;this.fallbackGate.position.y=(b.min.y+b.max.y)/2+this.gateLift*h*.95;}
-  const seen=new Set<string>();
-  for(const c of state.creatures){
-   seen.add(c.id);
-   if(this.world.root.getObjectByName(c.id)){this.fallbackCreatures.get(c.id)?.removeFromParent();continue;}
-   let m=this.fallbackCreatures.get(c.id);
-   if(!m){m=this.creatureMesh(c.type);m.name=`${c.id}.fallback`;this.fallbackCreatures.set(c.id,m);this.fallback.add(m);}
-   m.position.set(...c.position);m.rotation.y=-T.MathUtils.degToRad(c.heading);
-   // A, B and C only resolve on exposed film; ordinary fauna is visible live.
-   m.visible=c.type==='swarm'||state.recording;
-   if(c.type==='swarm')m.rotation.y+=state.time*.3;
-  }
-  for(const [id,m] of this.fallbackCreatures)if(!seen.has(id)){m.removeFromParent();this.fallbackCreatures.delete(id);}
-  const authoredAlex=this.world.root.getObjectByName('living.alex')??this.world.root.getObjectByName('living-alex');
-  this.alexRoot.visible=!authoredAlex&&state.alex.visible;
-  this.alexRoot.position.set(...state.alex.position);this.alexRoot.rotation.y=-T.MathUtils.degToRad(state.alex.heading);
-  this.alexLamp.intensity=this.alexRoot.visible?7:0;
  }
  private renderView(ctx:CanvasRenderingContext2D,w:number,h:number,recording:boolean){
   const {renderer}=sharedExpeditionRenderer();
@@ -931,22 +1003,6 @@ export class LivingDeckSite implements AuthoredSite {
  }
 
  // ------------------------------------------------------------------ HUD
- /** Nearest eyeless hunter that is chasing or searching within earshot of the pod. */
- private hunter(){
-  return this.creatures.views.filter(c=>c.type==='blind'&&(c.mode==='hunt'||c.mode==='sniff'))
-   .map(c=>({c,d:v3(c.position).distanceTo(this.position)})).filter(x=>x.d<=32).sort((a,b)=>a.d-b.d)[0]?.c;
- }
- /** Cause and counter for the hunter, from what the pod is doing right now; bearing only, as the passive array reports it. */
- private huntAdvice(){
-  const c=this.hunter();if(!c)return '';
-  const label=c.identified?LIVING_TYPE_CN.blind:'未知声源',bearing=this.navigationConsole.passiveContacts.find(k=>k.id===c.id)?.bearing??'方位不明';
-  const speed=Math.abs(this.run.pilot.speed),fast=speed>LIVING_CREATURE_TUNING.blind.washSpeed,pulse=this.run.sonarEmitting;
-  // Short explicit lines: the shared CJK wrapper can start a line with punctuation.
-  const fix=[pulse?'停发主动脉冲。':'',...(fast?[`航速 ${speed.toFixed(2)} m/s 太快，慢速须＜0.45 m/s。`,'松开推进，或按 Shift 制动。']:['保持慢速（＜0.45 m/s），别撞墙。'])].filter(Boolean);
-  if(c.mode==='sniff')return [`${label}在附近来回搜索（被动声纳：${bearing}，无距离）`,'它只靠声音找东西，静音的艇它撞不到。',...fix].join('\n');
-  const cause=pulse?'你的主动脉冲':fast?'推进器的高速水流声':'刚才的金属撞击声';
-  return [`${label}正循声游来（被动声纳：${bearing}，只有方位）`,`它追的是${cause}。`,...fix].join('\n');
- }
  private interactionHint(){
   // Match the first chapter: only the aimed physical interaction belongs on the glass.
   // Dialogue and event feedback already use the shared bottom subtitle channel.
@@ -969,19 +1025,23 @@ export class LivingDeckSite implements AuthoredSite {
  /** GAP (provisional): low-power warnings and a one-time emergency reserve so an empty battery cannot soft-lock the arm. */
  private watchPower(){
   const p=this.run.power,battery=!this.s.collected.includes('living.box.battery');
-  const where=battery?`R1 洗衣储物间有应急电池箱（领航台坐标 ${formatCoords([29,0,-16],LIVING_DATUM_DEPTH)}）。`:'';
+  const where=battery?`R2 机修间货架上有应急电池箱（领航台坐标 ${formatCoords(ITEMS.get('living.box.battery')!.position,LIVING_DATUM_DEPTH)}）。`:'';
   const cells=this.run.count('sup.cell');
   if(p>.4)this.powerWarned=0;
-  if(p<=.35&&this.powerWarned<1){this.powerWarned=1;this.event(`电量 ${Math.round(p*100)}%。探照灯和主动声纳一直在耗电，不用时关掉。${cells?`还有 ${cells} 组备用电池，可在生命维持台接入。`:''}${where}`,8);}
-  if(p<=.15&&this.powerWarned<2){this.powerWarned=2;this.event(`电量只剩 ${Math.round(p*100)}%。${cells?'去生命维持台接入备用电池。':where||'关掉探照灯和主动声纳，省着用。'}`,8);}
+  if(p<=.35&&this.powerWarned<1){this.powerWarned=1;this.event(`电量 ${Math.round(p*100)}%。推进、声纳发射和摄影分析都要用电，先确认方向，少走回头路。${cells?`还有 ${cells} 组备用电池，可在生命维持台接入。`:''}${where}`,8);}
+  if(p<=.15&&this.powerWarned<2){this.powerWarned=2;this.event(`电量只剩 ${Math.round(p*100)}%。${cells?'去生命维持台接入备用电池。':where||'停止不必要的声纳发射；停稳确认取景，再曝光。'}`,8);}
   if(p<=.03&&!cells&&!this.reserveUsed){
    this.reserveUsed=true;this.run.power=Math.max(this.run.power,.3);
    this.event(`主电池见底，应急储备电池自动并入（一次性）。${where||'省着用。'}`,10);
   }
+  if(this.run.power<=.02&&!cells&&this.reserveUsed&&this.powerWarned<3){
+   this.powerWarned=3;
+   this.event(this.debugNoVideo?'电池和应急储备已耗尽。当前为GM诊断局，不写正式存档；需重新开始测试。':'电池和应急储备已耗尽，设备无法供电。当前耗尽状态不会覆盖检查点；若有可用航行记录，可刷新后选择“继续下潜”恢复。',14);
+  }
  }
  /** Close to the current stage's physical target but not aimed at it: name its side relative to the bow and the turn key. */
  private stageTargetHint(){
-  const s=this.s,id=this.run.power<=.35&&!s.collected.includes('living.box.battery')&&ITEMS.get('living.box.battery')&&v3(ITEMS.get('living.box.battery')!.position).distanceTo(this.position)<=14?'living.box.battery':s.stage==='explore'?'living.box.probe':s.stage==='glass'?'living.pipe.intake':s.stage==='uplink'?'living.uplink.gate':s.stage==='exit'&&!s.ballast?'living.box.ballast':null;
+  const s=this.s,f=this.survey,id=!f.camera?'living.box.probe':!f.shared?'living.pipe.intake':f.helpReplied&&!f.valve?'living.valve.feed':f.clearSeen&&!f.unlocked?'living.survey.lock':f.photos.length===3&&!f.reunion?'living.uplink.gate':f.reunion&&!f.ballast?'living.box.ballast':null;
   const item=id?ITEMS.get(id):undefined;if(!item||(item.kind==='box'&&s.collected.includes(item.id)))return null;
   const c=item.kind==='box'?this.boxBounds(item.id).getCenter(new T.Vector3()):v3(item.position),dx=c.x-this.position.x,dz=c.z-this.position.z,d=Math.hypot(dx,dz);
   if(d>(livingSpaceAt(this.vec())===item.space?30:14))return null;
@@ -999,8 +1059,8 @@ export class LivingDeckSite implements AuthoredSite {
  drawInteraction(ctx:CanvasRenderingContext2D,w:number,h:number){
   const text=this.interactionHint();if(text===this.objective)return;
   ctx.save();ctx.font=`${Math.max(13,h*.034)}px Microsoft YaHei`;ctx.textAlign='left';ctx.textBaseline='top';
-  const lines=layoutCJK(ctx,text,w*.9);ctx.fillStyle='rgba(3,10,5,.66)';ctx.fillRect(0,0,w,Math.min(h,lines.length*h*.16+8));
-  ctx.shadowColor='#659d43';ctx.shadowBlur=2;ctx.fillStyle='#b6e889';lines.slice(0,5).forEach((line,i)=>ctx.fillText(line,w*.035,4+i*h*.16));ctx.restore();
+  const lines=layoutCJK(ctx,text,w*.9),y=h*.83,lineHeight=h*.045;ctx.fillStyle='rgba(3,10,5,.66)';ctx.fillRect(0,y,w,Math.min(h-y,lines.length*lineHeight+8));
+  ctx.shadowColor='#659d43';ctx.shadowBlur=2;ctx.fillStyle='#b6e889';lines.slice(0,3).forEach((line,i)=>ctx.fillText(line,w*.035,y+4+i*lineHeight));ctx.restore();
  }
  private windowLocks=new WindowLocks();
  resetWindowFocus(){this.windowLocks.reset();}
@@ -1038,6 +1098,7 @@ export class LivingDeckSite implements AuthoredSite {
   const heading=this.run.heading*Math.PI/180;
   for(const item of LIVING_ITEMS){
    if(item.kind==='box'&&this.s.collected.includes(item.id))continue;
+   if(['living.photo.code','living.photo.guide','living.photo.delroy'].includes(item.id))continue;
    const dx=item.position[0]-this.position.x,dz=item.position[2]-this.position.z,dist=Math.hypot(dx,dz);
    if(dist>SONAR_RANGE*Math.SQRT2||dist<.01||Math.abs(item.position[1]-this.position.y)>3)continue;
    const side=dx*Math.cos(heading)+dz*Math.sin(heading),front=dx*Math.sin(heading)-dz*Math.cos(heading);
@@ -1063,7 +1124,7 @@ export class LivingDeckSite implements AuthoredSite {
   if(!this.sonarEcho||this.sonarEcho.width!==w||this.sonarEcho.height!==h){this.sonarEcho=document.createElement('canvas');this.sonarEcho.width=w;this.sonarEcho.height=h;this.echoSweep=-1;}
   if(this.run.sweepPower>0&&this.run.sweepId!==this.echoSweep){this.echoSweep=this.run.sweepId;const c=this.sonarEcho.getContext('2d')!;c.clearRect(0,0,w,h);this.drawSonarBase(c,w,h,time,dedicated);}
   ctx.drawImage(this.sonarEcho,0,0);this.drawThreats(ctx,w,h,time,dedicated);
-  ctx.save();ctx.fillStyle='#dfc98d';ctx.font='12px sans-serif';ctx.fillText(this.echoSweep<0?'开启脉冲获取回波':this.run.sonarEmitting?'脉冲测距中 · 噪声外泄':'历史回波 · 停发静默',8,h-8);ctx.restore();
+  ctx.save();ctx.fillStyle='#dfc98d';ctx.font='12px sans-serif';ctx.fillText(this.echoSweep<0?'开启脉冲获取回波':this.activeNoise?'主动声纳通电 · 持续发声':'历史回波 · 主动声纳断电',8,h-8);ctx.restore();
  }
  drawMap(ctx:CanvasRenderingContext2D,w:number,h:number){this.navigationConsole.draw(ctx,w,h);}
 
@@ -1075,7 +1136,7 @@ export class LivingDeckSite implements AuthoredSite {
   return !this.creatures.views.some(c=>c.mode==='cling'||c.mode==='hunt');
  }
  snapshot():Snapshot{
-  return {adapter:'living-deck',adapterVersion:1,index:1,levelId:'living.2',position:[this.position.x,this.position.y,this.position.z],heading:this.run.heading,pitch:this.run.pitch,
+  return {routeVersion:2,survey:this.survey.snapshot(),cargo:[...this.cargo],debugNoVideo:this.debugNoVideo,surveyGateLift:this.surveyGateLift,reserveUsed:this.reserveUsed,adapter:'living-deck',adapterVersion:1,index:1,levelId:'living.2',position:[this.position.x,this.position.y,this.position.z],heading:this.run.heading,pitch:this.run.pitch,
    elapsed:this.elapsed,sequence:this.sequence,ended:this.ended,deck:this.deck.snapshot(),creatures:this.creatures.snapshot(),dialogue:this.dialogue.snapshot(),
    navigation:this.navigationConsole.snapshot(),sonarDesk:structuredClone(sonarDeskState(this.run)),
    narrative:structuredClone(this.run.narrativeMemory),alexFollow:null,gateLift:this.gateLift};
@@ -1087,30 +1148,34 @@ export class LivingDeckSite implements AuthoredSite {
   if(!Array.isArray(s.position)||s.position.length!==3||!s.position.every(finite)||!finite(s.heading)||!finite(s.pitch)||!finite(s.elapsed)||s.elapsed<0)return false;
   if(!Number.isInteger(s.sequence)||s.sequence<0||typeof s.ended!=='boolean'||!finite(s.gateLift)||s.gateLift<0||s.gateLift>1)return false;
   if(s.alexFollow!==null&&(!Array.isArray(s.alexFollow)||s.alexFollow.length!==3||!s.alexFollow.every(finite)))return false;
+  if(s.routeVersion!==2||typeof s.debugNoVideo!=='boolean'||typeof s.reserveUsed!=='boolean'||!finite(s.surveyGateLift)||s.surveyGateLift<0||s.surveyGateLift>1||!new LivingSurvey().restore(s.survey))return false;
+  if(!Array.isArray(s.cargo)||new Set(s.cargo).size!==s.cargo.length||s.cargo.some(id=>!LIVING_ITEMS.some(i=>i.id===id&&i.kind==='box')))return false;
+  if(s.survey.camera!==s.cargo.includes('living.box.probe')||s.survey.ballast!==s.cargo.includes('living.box.ballast')||s.ended!==s.survey.complete||!s.survey.unlocked&&s.surveyGateLift!==0)return false;
   if(!new LivingDeck().restore(structuredClone(s.deck)))return false;
   if(s.narrative&&s.deck.story&&s.narrative.partner!==s.deck.story.partner)return false;
-  if(!new LivingCreatures().restore(structuredClone(s.creatures)))return false;
+  if(!new LivingCreatures(Math.random,'survey').restore(structuredClone(s.creatures)))return false;
   if(!new LivingDialogue().restore(structuredClone(s.dialogue)))return false;
   return LivingNavigation.validateSnapshot(s.navigation);
  }
  restore(value:unknown):boolean{
-  if(!LivingDeckSite.validate(value))return false;
+  if(!LivingDeckSite.validate(value)||value.debugNoVideo&&!isNoVideoMode())return false;
   const s=structuredClone(value);
-  const deck=new LivingDeck(),creatures=new LivingCreatures();deck.restore(s.deck);creatures.restore(s.creatures);
+  const deck=new LivingDeck(),creatures=new LivingCreatures(Math.random,'survey');deck.restore(s.deck);creatures.restore(s.creatures);
   const position=new T.Vector3(...s.position);
   const prevS=this.s;this.s=deck.snapshot();
-  const solids=this.solidsFor(deck.snapshot(),creatures);
+  const solids=[...this.world.colliders,...LIVING_ITEMS.filter(i=>i.kind==='box'&&!s.cargo.includes(i.id)).map(i=>this.boxBounds(i.id)),...creatures.blockers().map(box3),...(!s.survey.reunion?[this.world.gate.bounds]:[]),...(s.surveyGateLift<.95?[this.world.surveyGate.bounds]:[])];
   const ok=harborHullClear(position,s.heading,this.world.walkable,solids);
   this.s=prevS;
-  if(!ok)return false;
+  if(!ok||position.y<-8&&(!s.survey.ballast||!s.survey.reunion||livingSpaceAt(s.position)!=='E'))return false;
   const desk=s.sonarDesk as Record<string,unknown>|null;
   if(!desk||typeof desk!=='object'||!Array.isArray(desk.fields)||desk.fields.length!==3||!Array.isArray(desk.records)||!finite(desk.frequency))return false;
+  this.survey.restore(s.survey);this.cargo=new Set(s.cargo);this.debugNoVideo=s.debugNoVideo;this.surveyGateLift=s.surveyGateLift;this.reserveUsed=s.reserveUsed;if(s.debugNoVideo)this.run.gmLevelSession=true;
   this.deck.restore(s.deck);this.creatures.restore(s.creatures);this.dialogue.restore(s.dialogue);this.navigationConsole.restore(s.navigation);
   Object.assign(sonarDeskState(this.run),structuredClone(desk));
   this.run.narrativeMemory=s.narrative?structuredClone(s.narrative):freshNarrative();this.refresh();this.dialogue.story=this.s.story;for(const t of this.s.identified)this.creatures.markIdentified(t);
   this.position.copy(position);this.run.heading=s.heading;this.run.pitch=s.pitch;
   this.elapsed=s.elapsed;this.sequence=Math.max(s.sequence,this.s.captures.length);this.ended=s.ended||this.s.complete;
-  this.gateLift=s.deck.gateOpen?1:s.gateLift;
+  this.gateLift=s.survey.reunion?1:s.gateLift;
   this.valveTurn={heat:+this.s.valves.heat,feed:+this.s.valves.feed,cool:+this.s.valves.cool};
   this.pendingTapes=[];this.pendingCaptureId=null;this.pendingCargo=null;this.armObject=null;this.armAnchor=null;this.lastCreature=null;this.bursts=[];
   this.echoSweep=-1;this.sonarReturns=[];this.pendingPulse=false;
@@ -1132,7 +1197,7 @@ export class LivingDeckSite implements AuthoredSite {
    const p=new T.Vector3(x,y,z);if(!this.clear(p,heading))return false;
    this.position.copy(p);this.run.heading=heading;this.run.pilot.stop();this.world.setFocus(this.vec());return true;
   },
-  state:()=>({stage:this.s.stage,objective:this.objective,pos:this.vec(),heading:this.run.heading,collected:[...this.s.collected],probe:this.s.probe,valves:{...this.s.valves},
+  state:()=>({survey:this.survey.snapshot(),routeVersion:2,stage:this.s.stage,objective:this.objective,pos:this.vec(),heading:this.run.heading,collected:[...this.s.collected],probe:this.s.probe,valves:{...this.s.valves},
    slime:this.s.slime,tapes:this.s.tapes.map(t=>t.id),tapesAnalyzed:[...this.s.tapesAnalyzed],identified:[...this.s.identified],codeVerified:this.s.codeVerified,guideVerified:this.s.guideVerified,
    uplinked:this.s.uplinked,gateOpen:this.s.gateOpen,met:this.s.met,ballast:this.s.ballast,complete:this.s.complete,ended:this.ended,lens:!!this.lastCreature?.lensBlocked,
    creatures:this.creatures.views.map(c=>({id:c.id,mode:c.mode,pos:c.position})),pendingTapes:this.pendingTapes.length,saveSafe:this.saveSafe,
@@ -1157,11 +1222,10 @@ export class LivingDeckSite implements AuthoredSite {
   },
  };
  dispose(){
-  this.disposed=true;
+  this.disposed=true;this.taskPlayer.dispose();
   if(typeof window!=='undefined'&&'speechSynthesis'in window)window.speechSynthesis.cancel();
   if(import.meta.env?.DEV&&typeof window!=='undefined'&&(window as unknown as {__living?:unknown}).__living===this)delete (window as unknown as {__living?:unknown}).__living;
   this.salvageArm.dispose();this.view.dispose();this.world.dispose();
   this.fallback.traverse(o=>{if(o instanceof T.Mesh||o instanceof T.Points){o.geometry.dispose();(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());}});
-  this.alexRoot.traverse(o=>{if(o instanceof T.Mesh){o.geometry.dispose();(o.material as T.Material).dispose();}});
  }
 }

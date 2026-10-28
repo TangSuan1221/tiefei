@@ -8,7 +8,7 @@ export type SignStyle = 'enamel' | 'exit' | 'warn' | 'red' | 'room' | 'stencil' 
 const CELL_W = 512, CELL_H = 128, SIZE = 2048, SIZE_H = 2048;
 
 /** Bilingual space names used by door signage. */
-export const LIVING_EN: Record<string, string> = {
+export const LIVING_EN: Record<string, string> = { C8:'MAINTENANCE LINK', E:'EAST DESCENT',
   S: 'DROP SHAFT', C1: 'DORMITORY GALLERY', R1: 'LAUNDRY / LINEN STORE', R2: 'MAINTENANCE SHOP', J1: 'JUNCTION HALL',
   C2: 'NORTH CORRIDOR', R3: 'SECURITY OFFICE', C3: 'EAST CORRIDOR', R4: 'BALLAST STORES', G: 'OBSERVATION GALLERY',
   C4: 'VALVE ACCESS', V: 'VALVE ROOM', C5: 'SOUTH CORRIDOR', A: 'RESIDENTS\u2019 ATRIUM', C6: 'OFFICE ACCESS',

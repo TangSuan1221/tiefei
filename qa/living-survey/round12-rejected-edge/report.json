@@ -1,0 +1,102 @@
+[
+  {
+    "candidate": "before",
+    "dir": [
+      0.6848300870011594,
+      -0.6848300870011594,
+      0.24902912254587614
+    ],
+    "lights": 44,
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  },
+  {
+    "candidate": "edge",
+    "dir": [
+      0.9776474334756887,
+      -0.1710883008582455,
+      0.12220592918446109
+    ],
+    "lights": 44,
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  },
+  {
+    "candidate": "before",
+    "dir": [
+      0.6848300870011594,
+      -0.6848300870011594,
+      0.24902912254587614
+    ],
+    "lights": 44,
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  },
+  {
+    "candidate": "edge",
+    "dir": [
+      0.9776474334756887,
+      -0.1710883008582455,
+      0.12220592918446109
+    ],
+    "lights": 44,
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  }
+]

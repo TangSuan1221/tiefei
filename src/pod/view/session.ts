@@ -1,3 +1,4 @@
+import {captureAbyssalSave,readAbyssalSave,restoreAbyssalSave,writeAbyssalSave} from '../sim/abyssal-save';
 /**
  * 逃生舱会话 —— 从标题画面接手之后，这就是整场游戏。
  * ============================================================================
@@ -33,6 +34,7 @@ const DEATH_TITLE: Record<string, string> = {
 };
 
 export async function startPodSession(resume: boolean): Promise<void> {
+  let abyssal:ReturnType<typeof readAbyssalSave>=null;
   let saved:ReturnType<typeof readHarborSave>=null;
   let living:ReturnType<typeof readLivingSave>=null;
   try {
@@ -42,13 +44,15 @@ export async function startPodSession(resume: boolean): Promise<void> {
       try{saved=readHarborSave(localStorage);}catch(error){harborError=error;}
       try{living=readLivingSave(localStorage);}catch(error){livingError=error;}
       if(saved&&living){if(living.savedAt>=saved.savedAt)saved=null;else living=null;}
-      if(!saved&&!living)throw (livingError??harborError??new Error('没有可恢复的存档。'));
+      try{abyssal=readAbyssalSave(localStorage);}catch(error){livingError=error;}
+      if(abyssal){const latest=Math.max(saved?.savedAt??0,living?.savedAt??0);if(abyssal.savedAt>=latest){saved=null;living=null;}else abyssal=null;}
+      if(!saved&&!living&&!abyssal)throw (livingError??harborError??new Error('没有可恢复的存档。'));
     }
   }
-  catch(error){window.alert(`无法继续：${error instanceof Error?error.message:String(error)}`);return;}
+  catch(error){throw new Error(`无法继续：${error instanceof Error?error.message:String(error)}`);}
   const override = sessionStorage.getItem('ironlung.seedOverride');
   sessionStorage.removeItem('ironlung.seedOverride');
-  let seed = saved?.seed ?? living?.seed ?? (override ? Number(override) >>> 0 : (Date.now() ^ 0x9e3779b9) >>> 0);
+  let seed = saved?.seed ?? living?.seed ?? abyssal?.seed ?? (override ? Number(override) >>> 0 : (Date.now() ^ 0x9e3779b9) >>> 0);
   // An explicit new game must never reuse another run's slot, including seed overrides.
   if(!resume)try{while(localStorage.getItem(`ironlung.harbor.v1.${seed}`)!==null||livingSlotTaken(localStorage,seed))seed=(seed+1)>>>0;}catch{/* Save reports unavailable storage in-game. */}
 
@@ -64,7 +68,8 @@ export async function startPodSession(resume: boolean): Promise<void> {
   const run = new PodRun(seed);
   const view = new PodView(run, outCanvas);
   const startLevel=new URLSearchParams(location.search).get('level');
-  if(!saved&&!living){if(startLevel==='2')run.beginLivingDeck();else run.beginHarborApproach();run.power=1;run.hull=1;run.activeSonarEnabled=true;run.sonarPulseEnabled=startLevel!=='2';}
+  if(!saved&&!living&&!abyssal){if(startLevel==='3')run.beginAbyssalLab();else if(startLevel==='2')run.beginLivingDeck();else run.beginHarborApproach();run.power=1;run.hull=1;run.activeSonarEnabled=startLevel!=='2';run.sonarPulseEnabled=startLevel!=='2'&&startLevel!=='3';}
+  if(abyssal){if(!restoreAbyssalSave(run,abyssal)){window.alert('第三关存档恢复失败，原文件保留。');return;}run.pushLog('−2层研究所进度已恢复。','system');}
   if(living){
     try{if(!restoreLivingSave(run,living))throw new Error('第二关恢复接口未就绪或存档与当前关卡版本不匹配。');}
     catch(error){
@@ -128,6 +133,7 @@ export class PodSession {
   private saveError='';
   private saveCheckpoint=():void=>{
     try{
+      if(this.run.legIndex===2){const save=captureAbyssalSave(this.run);if(!save)return;writeAbyssalSave(localStorage,save);this.saveError='';return;}
       if(this.run.legIndex===1){
         const save=captureLivingSave(this.run);if(!save)return;
         writeLivingSave(localStorage,save);
@@ -201,6 +207,7 @@ export class PodSession {
     id=this.deskAction(id);
     if(!id) return;
     if(!this.run.at&&['station:camera','station:nav','station:lab'].includes(id))return;
+    if(id==='back'&&this.run.authoredSite?.index===1){this.view.cabin.closeDeviceZoom();this.run.labPlaybackPauseRequested=true;this.run.shot.viewing=false;this.run.labVideoExpanded=false;this.run.pilot.stop();}
     if(id==='back' && (this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab'))id='station:camera';
     if(id==='back'){this.view.cabin.releaseToAisle();this.walkedInCabin=false;}
     if(id==='site.interact'){this.run.authoredSite?.interact();return;}
@@ -378,12 +385,15 @@ export class PodSession {
     void this.view.unlockAudio();
     const key = interactKey?'e':facilityKey?'f':e.key.toLowerCase();
     if (isGmConsoleOpen()) return;
-    if((this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab')&&key==='m'){e.preventDefault();if(this.run.at!=='nav')this.run.walkTo('nav');this.openTransmit(false);return;}
+    if((this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab')&&key==='m'){e.preventDefault();const back=this.run.at;if(this.run.at!=='nav')this.run.walkTo('nav');this.openTransmit(false,back);return;}
     this.keys.add(key);
     // E activates one shared cockpit. Clicking a side screen must not disable F.
     if(this.run.at && ['camera','nav','lab'].includes(this.run.at) && key==='f'){e.preventDefault();this.run.authoredSite?.interact();return;}
     if(this.run.at==='nav'&&key==='4'){e.preventDefault();this.toggleNavDrive();return;}
     if((this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab') && [' ','n','j','l','i','k','pageup','pagedown','shift'].includes(key)) {
+      if(this.run.authoredSite?.index===1&&(this.view.cabin.zoomedDevice||this.run.shot.viewing||this.run.labVideoExpanded)){
+        this.view.cabin.closeDeviceZoom();this.run.labPlaybackPauseRequested=true;this.run.shot.viewing=false;this.run.labVideoExpanded=false;this.run.walkTo('camera');
+      }
       e.preventDefault();return;
     }
 
@@ -395,6 +405,10 @@ export class PodSession {
       this.heldPilot=null;
       if (closePromptPanel() || closeGmConsole()) return;
       this.keys.clear();
+      if(this.run.authoredSite?.index===1&&(this.view.cabin.zoomedDevice||this.run.labVideoExpanded||this.run.shot.viewing)){
+        this.view.cabin.closeDeviceZoom();this.run.labPlaybackPauseRequested=true;this.run.shot.viewing=false;this.run.labVideoExpanded=false;
+        this.run.walkTo('camera');this.run.pilot.stop();return;
+      }
       if (this.run.at) {this.view.cabin.releaseToAisle();this.run.leaveStation();this.walkedInCabin=false;}
       if(document.pointerLockElement===this.canvas) document.exitPointerLock();
       return;
@@ -551,20 +565,23 @@ export class PodSession {
     this.view.audio.cue('ui.error',{gain:.4});
   }
   /** Free-speech radio for sites that implement radioSay; returns whether the transmit panel opened. */
-  private openTransmit(transcribing:boolean):boolean {
+  private openTransmit(transcribing:boolean,back?:StationId):boolean {
     const site=this.run.authoredSite;
     if(this.tx.open)return true;
+    // Deck two: M borrows the nav seat only for the call. Staying there after it would make the
+    // habitual "2" (camera from the aisle) power the active sonar, a continuous noise source.
+    const restore=()=>{if(site?.index===1&&back&&back!=='nav'&&this.run.at==='nav'&&this.run.outcome.kind==='alive')this.run.walkTo(back);};
     const target=site?.micTarget??'开放频道';
     if(document.pointerLockElement)document.exitPointerLock();
     this.keys.clear();this.releaseStick();this.heldPilot=null;
-    const ui=passiveUi(this.run),choices:string[]=[];
+    const ui=passiveUi(this.run),choices:string[]=site?.index===2?[...(site.dialogueChoices??[])]:[];
     const prefill='';ui.tab='main';ui.editing=true;ui.draft='';
     const done=(ok:boolean)=>{this.ptt.abort();if(ok)ui.choice=null;sonarDeskState(this.run).message=ok?'已发言':'';this.view.audio.cue(ok?'ui.select':'ui.error',{gain:.4});};
     this.tx.show({target,choices,prefill,transcribing,
       onDraft:text=>{ui.draft=text;},
-      onSend:text=>{ui.editing=false;ui.spoken=text;ui.draft='';this.run.pushLog('罗温：'+text,'system');const s=this.run.authoredSite;if(s?.radioSay&&s.micTarget&&s.micReady!==false)s.radioSay(text);done(true);},
+      onSend:text=>{ui.editing=false;ui.spoken=text;ui.draft='';this.run.pushLog('罗温：'+text,'system');const s=this.run.authoredSite;if(s?.radioSay&&s.micTarget&&s.micReady!==false)s.radioSay(text);done(true);restore();},
       onChoose:i=>{const s=this.run.authoredSite;done(!!s?.chooseDialogue?.(i));},
-      onClose:()=>{ui.editing=false;ui.draft='';this.ptt.abort();this.keys.clear();},
+      onClose:()=>{ui.editing=false;ui.draft='';this.ptt.abort();this.keys.clear();restore();},
     });
     this.view.audio.cue('radio.squelch',{gain:.25});
     return true;
@@ -603,12 +620,15 @@ export class PodSession {
         <h2>${title}</h2>
         <p>${body}</p>
         <ul>
-          <li>${run.breaths} 口气</li>
-          <li>最深 ${run.depth.toFixed(0)} 米</li>
-          <li>${run.leg.name}</li>
+          <li>${run.authoredSite?.index===1?Math.floor(run.breaths):run.breaths} 口气</li>
+          <li>${run.authoredSite?.index===1?'终止深度':'最深'} ${run.depth.toFixed(0)} 米</li>
+          <li>${run.authoredSite?.index===1?'-1层生活区 · 第二章':run.leg.name}</li>
         </ul>
         <button id="again">再进一次舱</button>
       </div>`;
     document.getElementById('again')?.addEventListener('click', () => location.reload());
   }
 }
+
+
+

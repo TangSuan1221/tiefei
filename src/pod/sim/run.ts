@@ -1,3 +1,4 @@
+import {isHarborOpening,harborOpeningFinished} from './harbor-opening';
 import {videoPolicy,videoContextKey,type VideoContext} from '../content/video-policy';
 import {freshNarrative} from './narrative-memory';
 /**
@@ -781,6 +782,7 @@ export class PodRun {
   readonly tapes: TapeRecord[] = [];
   tapeCursor = 0;
   labVideoExpanded = false;
+  labPlaybackPauseRequested = false;
   /** 分析台上拆过的造物。再碰到同一张脸，报告会写「档案里有过」 */
   readonly filed = new Set<CreatureId>();
 
@@ -959,7 +961,7 @@ export class PodRun {
     this.chart.push(first.volume);
     this.volumeAt = entryNode(first.volume).id;
 
-    this.pushLog('公司调查艇三号 · 正在接近坠落接驳港。内部电池供电，调度员万斯正在呼叫。', 'system');
+    this.pushLog('公司调查艇三号 · 正在接近接驳港。内部电池供电，接收机正在等待接驳岗回传。', 'system');
     this.pushLog('事故区域结构不稳。碰撞、失电和艇体破损都可能致命；低速进港，优先恢复岸电。', 'bad');
     this.pushLog('接听万斯，沿声呐回波抵港，再跟随岸电缆寻找维修湾。现场底片须完成曝光、显影后送到分析台核验。', 'system');
     this.beginLeg(0);
@@ -1135,6 +1137,7 @@ export class PodRun {
   }
 
   get depth(): number {
+    if(this.phase==='site'&&this.authoredSite?.index===1&&this.authoredSite.coordinateDatum!==undefined)return this.authoredSite.coordinateDatum-(this.authoredSite.elevation??0);
     const l = this.leg;
     const prev = this.legIndex > 0 ? legAt(this.legIndex - 1).depth : 900;
     const along = lerp(prev, l.depth, clamp01(this.traveled / l.length));
@@ -1315,6 +1318,10 @@ export class PodRun {
    * 把一批战利品记进账，顺手把「有几件没地方放」这件事说清楚。
    * 返回写进日志的那一段清单。
    */
+  receiveAuthoredSupplies(batch: readonly (readonly [SupplyId, number])[]): string {
+    return this.takeLoot(batch);
+  }
+
   private takeLoot(batch: readonly (readonly [SupplyId, number])[]): string {
     const names: string[] = [];
     let spilled = 0;
@@ -1803,7 +1810,7 @@ export class PodRun {
     if (this.activeSonarEnabled) {
       this.power = clamp01(this.power - 0.006);
 
-      this.pushLog('声纳已通电。开启脉冲才会发声并更新回波；停止脉冲保持静默。', 'bad');
+      this.pushLog('主动声纳已通电，持续发声，可能吸引生物。脉冲更新地形和距离；需要静默时关闭声纳电源，被动监听仍可用。', 'bad');
     } else {
       this.stopSonarPulses();
       this.pushLog('主动声纳已断电。被动阵列仍在监听。', 'system');
@@ -2394,6 +2401,14 @@ export class PodRun {
    */
   beginHarborApproach():void {if(this.legIndex===0&&this.phase==='transit')this.arrive();}
 
+  /** Third authored deck continues directly from the living-deck drainage shaft. */
+  beginAbyssalLab():void {
+    if(this.legIndex===2&&this.phase==='site'&&this.authoredSite)return;
+    this.authoredSite?.dispose();this.authoredSite=null;this.authoredSiteError='';
+    this.legIndex=2;this.navDriveEngaged=false;this.phase='site';this.traveled=this.leg.length;this.throttle=0;
+    this.siteBreaths=0;this.siteIdleSec=0;this.hookNudged.clear();this.resetArm();this.resetShot();this.siteShadow=[];this.threat=null;
+    this.contacts=[];this.campaign.record(2,'arrival');this.ensureAuthoredSite();
+  }
   /** Level two is an authored site entered straight from the harbor's lower door; it has no transit leg. */
   beginLivingDeck():void {
     if(this.legIndex===1&&this.phase==='site'&&this.authoredSite)return;
@@ -2407,9 +2422,9 @@ export class PodRun {
    * A recording made by someone else's camera (e.g. the probe in Elias's hands), delivered over the
    * link. It is already developed; frames must be real renders and it still needs lab analysis.
    */
-  receiveRemoteTape(t:{id:string;siteName:string;frames:string[];siteEvidence:unknown;note?:string}):boolean {
+  receiveRemoteTape(t:{id:string;siteName:string;frames:string[];siteEvidence:unknown;note?:string;videoResult?:'video'|'prompt';cacheKey?:string}):boolean {
     if(this.phase!=='site'||t.frames.length<3||this.tapes.some(x=>x.id===t.id))return false;
-    this.tapes.push({sensorFrames:t.frames.slice(),siteEvidence:structuredClone(t.siteEvidence),sensorEvidence:true,keyframe:t.frames[0],ready:true,videoResult:'failed',
+    this.tapes.push({sensorFrames:t.frames.slice(),siteEvidence:structuredClone(t.siteEvidence),sensorEvidence:true,keyframe:t.frames[0],ready:true,videoResult:t.videoResult??'failed',cacheKey:t.cacheKey,
       id:t.id,legId:this.leg.id,siteName:t.siteName,purpose:'identify',atBreath:this.breaths,fauna:[],caughtThreat:null,creatureMissing:false,analyzed:false,report:[]});
     this.tapeCursor=this.tapes.length-1;
     this.pushLog(t.note??`收到远端录像：${t.siteName}。到分析台播放。`,'system');this.onCue?.('radio.squelch',.4);
@@ -2481,12 +2496,6 @@ export class PodRun {
     }
     // 台面上还摊着东西就起步：它们会在第一次推进里滚进舱底的水。
     // 这一条必须说出来 —— 玩家是在被告知之后才失去它们的。
-    // Level three is not built: completing deck −1 must not fall into the legacy transit legs.
-    if(this.legIndex===1&&this.authoredSite?.index===1){
-      this.pushLog('第二关完成 · 向-2层下潜（第三关制作中）。','system');
-      this.storyCaption='第二关完成 · 向-2层下潜（第三关制作中）';this.storyCaptionLeft=10;
-      return;
-    }
     if(this.legIndex===6 && !this.campaign.choice) {
       this.pushLog('井口已就绪。先去无线电台选择：转发载波、切断载波，或封存证据。','system');
       return;
@@ -2501,6 +2510,7 @@ export class PodRun {
     }
     if (this.bench.length) this.lashDown();
     this.campaign.record(this.legIndex,'departure');
+    const authoredLivingDeparture=this.legIndex===1&&this.authoredSite?.index===1;
     this.authoredSite?.dispose();this.authoredSite=null;
     if (this.legIndex >= ACT_COUNT - 1) {
       for (const line of this.leg.clear) this.queueRadio('beacon', line);
@@ -2511,7 +2521,7 @@ export class PodRun {
       this.escape();
       return;
     }
-    for (const line of this.leg.clear) this.queueRadio('beacon', line);
+    if(!authoredLivingDeparture)for (const line of this.leg.clear) this.queueRadio('beacon', line);
     this.legIndex++;
     this.firedBeats.clear();
     this.phase = 'transit';
@@ -2529,8 +2539,10 @@ export class PodRun {
     this.volumeAt = '';
     this.siteShadow = [];
     this.contacts = this.buildContacts(this.sweepPower as 0 | 1 | 2);
+    if(authoredLivingDeparture){this.beginAbyssalLab();this.pushLog('离开生活区下行井，进入-2层研究所。','good');return;}
     this.beginLeg(this.legIndex);
     if(this.legIndex===1){this.beginLivingDeck();return;}
+    if(this.legIndex===2){this.beginAbyssalLab();return;}
     this.onCue?.('knowledge.gain', 0.55);
     this.pushLog(`离开近场。声呐上只有下一处未知废墟。`, 'good');
   }
@@ -2800,6 +2812,7 @@ export class PodRun {
       visible: !!active && this.cameraCanSee(), aim: active ? this.cameraOnTarget() : 0,
       lamp: this.lit, noise: this.noise, motion: this.throttle, hull: this.hull,
     });
+    if(this.authoredSite?.index===2){return {leg:{...leg,name:this.authoredSite.description,siteName:this.authoredSite.description,brief:[],clear:[],arrival:[],wrecks:[],threats:[],pano:undefined,scene:undefined},direction:{...direction,state:'calm',fauna:[],identified:null,evidence:false,intensity:0,trace:'',traceCN:'第三关现场环境记录；未经真实媒体核验不认定生物。'},depth:this.depth,lamp:this.lit,corruption:0,san:this.vitals.vitals.san,interior:this.authoredSite.description,creature:null,fauna:[],tells:[],simulationReport:['第三关现场环境记录；不从旧关卡物种表推断生物或行为。']};}
     const node = vol?.nodes.find(n => n.id === this.volumeAt) ?? (vol ? entryNode(vol) : null);
     return {
       simulationReport: active ? [
@@ -3132,7 +3145,7 @@ export class PodRun {
     const idx = s.purpose === 'survey' ? Math.min(this.legIndex + 1, ACT_COUNT - 1) : this.legIndex;
     const vol = this.chart[idx] ?? this.volume;
     const fauna = s.capture?.direction?.fauna ?? [];
-    const siteName =
+    const siteName = this.authoredSite?.index===2?this.authoredSite.description:
       s.purpose === 'survey' ? actAt(Math.min(this.legIndex + 1, ACT_COUNT - 1)).leg.siteName : this.leg.siteName;
     this.tapes.push({
       testDescription:this.gmLevelSession&&this.authoredSite?.descriptionOnly?this.authoredSite.describeEvidence?.(s.siteEvidence):undefined,
@@ -3177,11 +3190,13 @@ export class PodRun {
    */
   analyzeTape(): void {
     const tape = this.selectedTape;
+    if(isHarborOpening(tape)&&!tape.analyzed&&!harborOpeningFinished(tape)){this.pushLog('请接听呼叫并完整播放录像。','system');return;}
     if (!tape) {
       this.pushLog(`片盒是空的。先在${stationRef('camera')}拍一卷，等它冲出来。`, 'system');
       this.onCue?.('ui.error', 0.5);
       return;
     }
+    if(this.authoredSite?.index===2&&tape.legId===this.leg.id&&tape.siteEvidence===undefined){tape.siteName=this.authoredSite.description;tape.fauna=[];tape.report=['此卷缺少第三关曝光快照，不能作为研究所证据。请在当前设施重新曝光。'];tape.analyzed=true;return;}
     const localSiteRecording=tape.siteEvidence!==undefined&&(tape.sensorFrames?.length??0)>=3;
     const misroutedLocalReport=localSiteRecording&&tape.report[0]?.startsWith('GM 模拟分析');
     if(tape.videoResult==='prompt'&&!localSiteRecording&&!tape.testDescription&&tape.ready!==false&&this.at==='lab'&&this.powered){
@@ -3189,7 +3204,9 @@ export class PodRun {
       tape.analyzed=true;this.onCue?.('knowledge.gain',.6);
       for(const line of tape.report)this.pushLog(line,'system');return;
     }
-    if (tape.analyzed && !misroutedLocalReport) {
+    // Older second-chapter saves may contain a rejected download marked analyzed.
+    const retryLivingEvidence=this.authoredSite?.index===1&&tape.legId===this.leg.id&&tape.siteEvidence!==undefined&&this.authoredSite.evidenceStatus?.(tape.siteEvidence)?.accepted===false;
+    if (tape.analyzed && !misroutedLocalReport && !retryLivingEvidence) {
       this.pushLog('这一卷已经拆过。报告还在屏上。', 'system');
       return;
     }
@@ -3207,6 +3224,11 @@ export class PodRun {
       if(tape.legId!==this.leg.id || !this.authoredSite?.analyzeEvidence){
         this.pushLog('本卷调查底片不属于当前设施。','system');return;
       }
+      if(this.authoredSite.isEvidenceMediaReady?.(tape.id)===false){
+        tape.analyzed=false;
+        tape.report=['录像尚未下载到可播放状态。请等待回片后再次核验；本次未扣除分析电量。'];
+        this.pushLog(tape.report[0],'system');return;
+      }
       const generated=tape.videoResult==='video';
       const descriptionTest=this.gmLevelSession&&this.authoredSite.descriptionOnly&&!!tape.testDescription;
       const playable=generated || descriptionTest || (tape.sensorFrames?.length??0)>=3;
@@ -3215,7 +3237,7 @@ export class PodRun {
         playable,mediaId:tape.id,source:descriptionTest?'geometry-description-test':generated?'generated-video':'controlled-video'
       }});
       this.power = clamp01(this.power - ANALYZE_POWER);
-      tape.report=[descriptionTest?'无视频测试 · 曝光快照描述核验':generated?'远端生成录像 · 调查核验':'本地感光录像备份 · 非AI，逐帧传感记录',...lines];
+      tape.report=[(tape.siteEvidence as {debugNoVideo?:boolean})?.debugNoVideo?'GM 合成调试证据 · 非真实录像':descriptionTest?'无视频测试 · 曝光快照描述核验':generated?'远端生成录像 · 调查核验':'本地感光录像备份 · 非AI，逐帧传感记录',...lines];
       tape.analyzed=true;
       const evidenceReady=this.authoredSite.evidenceReady;
       if(evidenceReady===true || (this.legIndex!==0 && evidenceReady===undefined && lines.length>0))
@@ -4405,8 +4427,8 @@ export class PodRun {
       if (eff.scrubber) this.scrubber = clamp01(this.scrubber + eff.scrubber);
       if (eff.leak) this.leak = Math.max(0, this.leak + eff.leak);
       // 生理三项走 vitals 的 0..100 刻度。restore 是加算，负值就是往下压
-      if (eff.fear || eff.co2 || eff.fatigue) {
-        this.vitals.restore({ fear: eff.fear ?? 0, co2: eff.co2 ?? 0, fatigue: eff.fatigue ?? 0 });
+      if (eff.oxygen || eff.fear || eff.co2 || eff.fatigue) {
+        this.vitals.restore({ oxygen: eff.oxygen ?? 0, fear: eff.fear ?? 0, co2: eff.co2 ?? 0, fatigue: eff.fatigue ?? 0 });
       }
       // 负的 noiseBurst 是「这一下反而把噪音压下去了」（润滑脂）
       if (eff.noiseBurst) {
@@ -5045,4 +5067,6 @@ const DEATH_WORDS: Record<DeathCause, string> = {
   drowning: '水先漫过面罩，然后是眼睛。',
   self: '你自己做的决定。',
 };
+
+
 

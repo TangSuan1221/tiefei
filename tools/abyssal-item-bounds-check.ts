@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';
+import * as T from 'three';
+import {createAbyssalWorld} from '../src/pod/view/deepsea/abyssal-world';
+import {ABYSS_ITEMS} from '../src/pod/content/abyssal-lab-layout';
+const context=new Proxy({measureText:(s:string)=>({width:s.length*20}),createLinearGradient:()=>({addColorStop(){}}),createRadialGradient:()=>({addColorStop(){}}),getImageData:()=>({data:new Uint8ClampedArray(512*512*4)}),createImageData:(w:number,h:number)=>({data:new Uint8ClampedArray(w*h*4)}),createPattern:()=>({setTransform(){}})},{get:(o,k)=>k in o?o[k as keyof typeof o]:()=>{}});
+Object.defineProperty(globalThis,'document',{configurable:true,value:{createElement:()=>({width:0,height:0,style:{},getContext:()=>context}),createElementNS:()=>({style:{},addEventListener(){},removeEventListener(){}}),fonts:{load:async()=>[],ready:Promise.resolve()}}});
+const world=createAbyssalWorld();let worst=0;
+for(const item of ABYSS_ITEMS){const old=new T.Group();old.position.set(...item.position);old.rotation.y=item.face*Math.PI/180;old.add(new T.Mesh(new T.BoxGeometry(.96,.85,.96)));const mark=new T.Mesh(new T.BoxGeometry(.5,.13,.025));mark.position.z=.49;old.add(mark);if(!item.supplies){const vertical=mark.clone();vertical.rotation.z=Math.PI/2;old.add(vertical);}else{const battery=new T.Mesh(new T.BoxGeometry(.35,.3,.025));battery.position.z=.49;old.add(battery);}old.updateMatrixWorld(true);const expected=new T.Box3().setFromObject(old),actual=world.itemBounds.get(item.id)!;const error=Math.max(expected.min.distanceTo(actual.min),expected.max.distanceTo(actual.max));worst=Math.max(worst,error);assert(error<1e-6,`${item.id}: bounds changed ${error}`);old.traverse(o=>{if(o instanceof T.Mesh)o.geometry.dispose();});}
+console.log(`PASS ${ABYSS_ITEMS.length} original item bounds; maximum corner delta ${worst} m`);world.dispose();

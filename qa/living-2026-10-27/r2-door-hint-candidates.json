@@ -1,0 +1,118 @@
+{
+  "result": {
+    "blockedTurn": {
+      "pos": [
+        49.9,
+        0,
+        5.9
+      ],
+      "h": 175.1031479896776,
+      "clear": false,
+      "reject": [
+        {
+          "min": [
+            40,
+            -3,
+            2.7
+          ],
+          "max": [
+            64,
+            3,
+            3.3
+          ]
+        }
+      ],
+      "outside": []
+    },
+    "candidateRows": [
+      {
+        "direction": "forward",
+        "distance": 1.0000000000000002,
+        "end": [
+          49.97666424715644,
+          0,
+          6.897056965879062
+        ],
+        "left": 85.60314798967761,
+        "right": 265.6031479896776
+      },
+      {
+        "direction": "reverse",
+        "distance": 0,
+        "end": [
+          49.9,
+          0,
+          5.9
+        ],
+        "left": 175.6031479896776,
+        "right": 184.1031479896776,
+        "blocked": {
+          "pos": [
+            49.89693343011374,
+            0,
+            5.860117721364838
+          ],
+          "h": 175.6031479896776,
+          "clear": false,
+          "reject": [
+            {
+              "min": [
+                40,
+                -3,
+                2.7
+              ],
+              "max": [
+                64,
+                3,
+                3.3
+              ]
+            }
+          ],
+          "outside": []
+        }
+      }
+    ],
+    "doorForward": {
+      "pos": [
+        50.1052335956243,
+        0,
+        9.199862953475456
+      ],
+      "h": 177,
+      "clear": false,
+      "reject": [
+        {
+          "min": [
+            14,
+            -3,
+            11.7
+          ],
+          "max": [
+            49,
+            3,
+            12.3
+          ]
+        },
+        {
+          "min": [
+            44,
+            -3,
+            11.7
+          ],
+          "max": [
+            49,
+            5,
+            12.3
+          ]
+        }
+      ],
+      "outside": []
+    },
+    "method": "Full actual site solids; +/-1m candidate translations swept at .04m; heading sweeps .5deg. Pure read-only position probes, no state relocation."
+  },
+  "blocked": [
+    "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Noto+Serif+SC:wght@300;400;600&display=swap",
+    "http://127.0.0.1:5180/api/video/videos"
+  ],
+  "errors": []
+}

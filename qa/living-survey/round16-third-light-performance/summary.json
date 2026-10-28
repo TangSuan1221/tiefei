@@ -1,0 +1,187 @@
+{
+  "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5080 (0x00002C02) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "gpuTimer": true,
+  "contention": "Low-battery browser finished; independent blind-play browser remains active. Not isolated GPU benchmark.",
+  "rows": [
+    {
+      "round": 0,
+      "enabled": false,
+      "samples": 350,
+      "cpu": {
+        "p50": 7.5,
+        "p95": 9.099999994039536
+      },
+      "delta": {
+        "p50": 16.400000005960464,
+        "p95": 24.200000002980232
+      },
+      "gpuMs": {
+        "p50": 3.47376,
+        "p95": 5.196224
+      },
+      "calls": {
+        "p50": 791,
+        "p95": 845
+      },
+      "triangles": {
+        "p50": 3184706,
+        "p95": 3428468
+      },
+      "memory": {
+        "geometries": 365,
+        "textures": 140
+      },
+      "programs": 115
+    },
+    {
+      "round": 0,
+      "enabled": true,
+      "samples": 350,
+      "cpu": {
+        "p50": 7.700000002980232,
+        "p95": 9.300000011920929
+      },
+      "delta": {
+        "p50": 17,
+        "p95": 24.700000002980232
+      },
+      "gpuMs": {
+        "p50": 3.691648,
+        "p95": 5.212992
+      },
+      "calls": {
+        "p50": 845,
+        "p95": 899
+      },
+      "triangles": {
+        "p50": 3581018,
+        "p95": 3824780
+      },
+      "memory": {
+        "geometries": 365,
+        "textures": 140
+      },
+      "programs": 115
+    },
+    {
+      "round": 1,
+      "enabled": true,
+      "samples": 350,
+      "cpu": {
+        "p50": 7.5999999940395355,
+        "p95": 9.099999994039536
+      },
+      "delta": {
+        "p50": 17.099999994039536,
+        "p95": 24.5
+      },
+      "gpuMs": {
+        "p50": 3.708448,
+        "p95": 5.43104
+      },
+      "calls": {
+        "p50": 845,
+        "p95": 899
+      },
+      "triangles": {
+        "p50": 3581018,
+        "p95": 3824780
+      },
+      "memory": {
+        "geometries": 365,
+        "textures": 140
+      },
+      "programs": 115
+    },
+    {
+      "round": 1,
+      "enabled": false,
+      "samples": 350,
+      "cpu": {
+        "p50": 7.199999988079071,
+        "p95": 8.5
+      },
+      "delta": {
+        "p50": 17,
+        "p95": 24.200000002980232
+      },
+      "gpuMs": {
+        "p50": 3.445376,
+        "p95": 5.579648
+      },
+      "calls": {
+        "p50": 791,
+        "p95": 845
+      },
+      "triangles": {
+        "p50": 3184706,
+        "p95": 3428468
+      },
+      "memory": {
+        "geometries": 365,
+        "textures": 140
+      },
+      "programs": 115
+    },
+    {
+      "round": 2,
+      "enabled": false,
+      "samples": 350,
+      "cpu": {
+        "p50": 7.299999997019768,
+        "p95": 8.700000002980232
+      },
+      "delta": {
+        "p50": 16.899999991059303,
+        "p95": 24.69999998807907
+      },
+      "gpuMs": {
+        "p50": 3.499968,
+        "p95": 5.268864
+      },
+      "calls": {
+        "p50": 791,
+        "p95": 845
+      },
+      "triangles": {
+        "p50": 3184706,
+        "p95": 3428468
+      },
+      "memory": {
+        "geometries": 365,
+        "textures": 140
+      },
+      "programs": 115
+    },
+    {
+      "round": 2,
+      "enabled": true,
+      "samples": 350,
+      "cpu": {
+        "p50": 7.9000000059604645,
+        "p95": 9.700000002980232
+      },
+      "delta": {
+        "p50": 17.5,
+        "p95": 24.600000008940697
+      },
+      "gpuMs": {
+        "p50": 3.731616,
+        "p95": 5.582368
+      },
+      "calls": {
+        "p50": 845,
+        "p95": 899
+      },
+      "triangles": {
+        "p50": 3581018,
+        "p95": 3824780
+      },
+      "memory": {
+        "geometries": 365,
+        "textures": 140
+      },
+      "programs": 115
+    }
+  ]
+}

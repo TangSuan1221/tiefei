@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {LIVING_MAIN_ROUTE,LIVING_SPACES,livingSolids,type Vec3} from '../src/pod/content/living-deck-layout';
+import {LIVING_MAIN_ROUTE,LIVING_ITEMS,LIVING_SPACES,livingSolids,type Vec3} from '../src/pod/content/living-deck-layout';
 import {LivingCreatures,LIVING_CREATURE_TUNING as T,SHADE_RETREAT,livingLineOfSight,podHullGap,type CreatureInput,type CreatureResult} from '../src/pod/sim/living-creatures';
 
 function rng(seed:number){return ()=>{seed=(seed*1664525+1013904223)>>>0;return seed/2**32;};}
@@ -176,7 +176,8 @@ const balance:Record<string,number>={};
 // Swarm: covers the probe box, lured by the lamp at 0.9 m/s, scatters in the dark and returns after 12 s.
 {
  const c=new LivingCreatures(rng(11)),station:Vec3=[72,0,-52];
- assert.deepEqual(c.tick(0,input(station,160)).itemsBlocked,['living.box.probe'],'amphipods cover the corpse and probe box');
+ const covered=LIVING_ITEMS.filter(i=>i.kind==='box'&&dist(i.position,view(c,'swarm.r3').position)<=3).map(i=>i.id);
+ assert.deepEqual(c.tick(0,input(station,160)).itemsBlocked,covered,'swarm covers only boxes physically at its home, not the relocated entrance instrument');
  let freed=-1,maxSpeed=0,prev=view(c,'swarm.r3').position;
  run(c,10,input(station,160,{lampOn:true}),(r,t)=>{const p=view(c,'swarm.r3').position;maxSpeed=Math.max(maxSpeed,dist(p,prev)/.05);prev=p;if(freed<0&&!r.itemsBlocked.includes('living.box.probe'))freed=t;});
  assert.ok(freed>=0&&freed<4,'lamp lures the swarm off the box');assert.ok(maxSpeed<=T.swarm.speed+1e-6,'swarm speed 0.9 m/s');
@@ -186,8 +187,8 @@ const balance:Record<string,number>={};
  const spot=view(c,'swarm.r3').position;
  run(c,11.5,input([72.5,0,-20],0),()=>assert.ok(dist(view(c,'swarm.r3').position,spot)<.2,'scatters and holds in the dark'));
  run(c,1,input([72.5,0,-20],0));assert.equal(view(c,'swarm.r3').mode,'return','returns after 12 s darkness');
- let back=-1;run(c,90,input([72.5,0,-20],0),(r,t)=>{if(back<0&&r.itemsBlocked.includes('living.box.probe'))back=t;});
- assert.ok(back>0,'covers the probe box again');
+ let back=-1;run(c,90,input([72.5,0,-20],0),(r,t)=>{if(back<0&&view(c,'swarm.r3').mode==='idle')back=t;});
+ assert.ok(back>0,'returns to its habitat; relocated entrance box remains clear');
  const relure=c.tick(0,input(station,160));void relure;
  let again=-1;run(c,10,input(station,160,{lampOn:true}),(r,t)=>{if(again<0&&!r.itemsBlocked.includes('living.box.probe'))again=t;});assert.ok(again>=0,'always lurable again (no softlock)');
 }

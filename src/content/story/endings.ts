@@ -1,7 +1,7 @@
 /**
  * 八个结局 —— 定义 + 落幕场景。
  *
- * GDD §7.3 的条件表在 ENDINGS 里逐条对应。两条需要说明（已写入 docs/narrative-bible.md）：
+ * ENDINGS 条件表有两条特殊说明：
  *
  *  1. end.silence 的"stigma.silence 最高"无法在 Condition DSL 里表达"互相比较"，
  *     故拆成：silence ≥ 6 且 listening/drowned/iron 各 ≤ 2。语义等价于"沉默是主导圣痕"。

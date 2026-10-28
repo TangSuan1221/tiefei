@@ -1,0 +1,151 @@
+{
+  "base": {
+    "horizontal": 304.33005428137926,
+    "vertical": 12,
+    "total": 316.33005428137926,
+    "steadyForward": 1.2586002855416796,
+    "verticalSteady": 0.5,
+    "powerPerHorizontalM": 0.0010444444444444444,
+    "powerPerVerticalM": 0.001,
+    "shot": 0.0635,
+    "analysis": 0.045,
+    "authoredArm": 0.0114,
+    "cellNet": 0.4158,
+    "pulseEvery3s": 0.00321,
+    "reserveMaxGain": 0.27,
+    "initial": {
+      "directLevel2Power": 1,
+      "cell": 1,
+      "oxygen": 1450,
+      "scrubber": 0.52
+    },
+    "taskVideos": {
+      "required": 6,
+      "includingOptionalS04": 7
+    }
+  },
+  "scenarios": [
+    {
+      "name": "smooth_conservative_7_tasks",
+      "distanceMultiplier": 1,
+      "shots": 4,
+      "taskVideos": 7,
+      "armPickups": 3,
+      "activePulseSeconds": 120,
+      "videoWaitEach": 30,
+      "readEach": 15,
+      "radioSeconds": 90,
+      "turnAndApproach": 120,
+      "seconds": 1014.2004014280045,
+      "minutes": 16.903340023800077,
+      "drive": 265.80040142800453,
+      "wait": 330,
+      "read": 165,
+      "arm": 23.4,
+      "expose": 20,
+      "energy": {
+        "drive": 0.3298558344716628,
+        "shot": 0.254,
+        "analysis": 0.495,
+        "arm": 0.0342,
+        "pulse": 0.12840000000000001,
+        "total": 1.2414558344716629
+      },
+      "remainingWithStartingCell": 0.1743441655283371,
+      "remainingWithCellAndMaxReserve": 0.4443441655283371,
+      "oxygenUsedBound": [
+        111.62890095141762,
+        153.48973880819923
+      ],
+      "scrubberRemaining": 0.3413937584777318
+    },
+    {
+      "name": "novice_slow_7_tasks",
+      "distanceMultiplier": 1.6,
+      "shots": 6,
+      "taskVideos": 7,
+      "armPickups": 3,
+      "activePulseSeconds": 600,
+      "videoWaitEach": 120,
+      "readEach": 30,
+      "radioSeconds": 180,
+      "turnAndApproach": 360,
+      "seconds": 3263.0115526431528,
+      "minutes": 54.38352587738588,
+      "drive": 719.6115526431527,
+      "wait": 1560,
+      "read": 390,
+      "arm": 23.4,
+      "expose": 30,
+      "energy": {
+        "drive": 0.5205693351546605,
+        "shot": 0.381,
+        "analysis": 0.585,
+        "arm": 0.0342,
+        "pulse": 0.642,
+        "total": 2.1627693351546604
+      },
+      "remainingWithStartingCell": -0.7469693351546605,
+      "remainingWithCellAndMaxReserve": -0.47696933515466045,
+      "oxygenUsedBound": [
+        210.2062415222682,
+        289.03358209311875
+      ],
+      "scrubberRemaining": 0.1836700135643709
+    }
+  ],
+  "currentR2Revision": {
+    "batteryRewardCells": 3,
+    "immediatePower": 0,
+    "toolsOxygenCandle": 1,
+    "oxygenAdded": 600,
+    "extraBatteryArm": 0.0114,
+    "scenarios": [
+      {
+        "name": "smooth_conservative_7_tasks",
+        "energyWithBatteryArm": 1.252855834471663,
+        "directStartRemaining": 1.6803441655283369,
+        "lowInherited018NoCellRemaining": 0.44454416552833714,
+        "lowInheritedRequired6TasksRemaining": 0.4895441655283371,
+        "lowInherited6TasksOneRetryAndOxygenUse": 0.38034416552833716
+      },
+      {
+        "name": "novice_slow_7_tasks",
+        "energyWithBatteryArm": 2.1741693351546605,
+        "directStartRemaining": 0.7590306648453394,
+        "lowInherited018NoCellRemaining": -0.4767693351546604,
+        "lowInheritedRequired6TasksRemaining": -0.4317693351546604,
+        "lowInherited6TasksOneRetryAndOxygenUse": -0.5409693351546605
+      }
+    ]
+  },
+  "continuousPulseDuringWait": [
+    {
+      "name": "smooth_conservative_7_tasks",
+      "waitSeconds": 330,
+      "waitPulsePower": 0.3531,
+      "totalReplacingPulseAssumption": 1.4661558344716628
+    },
+    {
+      "name": "novice_slow_7_tasks",
+      "waitSeconds": 1560,
+      "waitPulsePower": 1.6692,
+      "totalReplacingPulseAssumption": 3.1899693351546605
+    }
+  ],
+  "batteryDetour": {
+    "status": "Historical R1 detour removed from current estimate; battery now in R2 on the main route.",
+    "physicalApproachValidated": "Known-route continuous driving and timed normal arm interaction; not blind play",
+    "lowInheritedContinuousRunValidated": "18% zero-cell start to R2 battery and one normal use only; not full chapter",
+    "evidence": "qa/living-survey/low-inheritance/trace.json"
+  },
+  "warnings": [
+    "Formula estimates, not blind play or proof of safe continuous driving.",
+    "No calm idle lamp/active-power drain exists; periodic pulses consume power.",
+    "Costs omit station switching/cabin walking/manual pings/failed collisions/damage/repairs; budgets are optimistic.",
+    "Initial power and supplies carry from chapter 1; direct ?level=2 starts full and has default cell.",
+    "Fixed minutes are assumptions for wait/read; video provider latency has no proven bound.",
+    "Reserve maximum .27 assumes trigger at .03; clipping and timing reduce usable supply.",
+    "A known-route low-power start-to-battery continuous diagnostic passed; full chapter and novice recovery budgets remain unverified."
+  ]
+}

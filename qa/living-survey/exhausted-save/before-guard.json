@@ -1,0 +1,43 @@
+{
+  "captured": true,
+  "replacedGood": true,
+  "restored": true,
+  "before": {
+    "power": 0.019,
+    "cells": 0,
+    "reserve": true,
+    "collected": [
+      "living.box.battery"
+    ],
+    "powered": false
+  },
+  "after": {
+    "power": 0.019,
+    "cells": 0,
+    "powered": false,
+    "reserve": true
+  },
+  "use": false,
+  "chargeChanged": false,
+  "navControls": [
+    {
+      "id": "nav.active"
+    },
+    {
+      "id": "nav.ping1"
+    },
+    {
+      "id": "sonar.analyze"
+    },
+    {
+      "id": "sonar.play"
+    },
+    {
+      "id": "sonar.reply"
+    },
+    {
+      "id": "sonar.home"
+    }
+  ],
+  "method": "Independent exhausted-resource fixture; memory SaveStorage replacement/restore and 10s accelerated frames, not continuous resource exhaustion or real autosave timing"
+}

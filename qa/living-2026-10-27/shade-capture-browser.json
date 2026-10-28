@@ -1,0 +1,290 @@
+{
+  "method": "Legal diagnostic initialization; one synchronous evaluate, no elapsed simulation between cases; not blind play",
+  "blocked": [
+    "https://fonts.googleapis.com/css2",
+    "http://127.0.0.1:5180/api/video/videos"
+  ],
+  "errors": [],
+  "result": {
+    "rows": [
+      {
+        "name": "lamp-off",
+        "legal": true,
+        "pose": [
+          100,
+          0,
+          26
+        ],
+        "heading": 90,
+        "zoom": 1,
+        "lamp": false,
+        "creature": {
+          "id": "shade.r4",
+          "type": "shade",
+          "position": [
+            110,
+            -1,
+            26
+          ],
+          "heading": 0,
+          "mode": "idle",
+          "identified": false
+        },
+        "checks": {
+          "distance": 10.04987562112089,
+          "range": true,
+          "inFrame": true,
+          "lineOfSight": true,
+          "illuminated": false,
+          "rect": [
+            -0.15344116578163453,
+            -0.3182483438433908,
+            0.15344116578163525,
+            -0.03572175288038058
+          ],
+          "fill": 0.021675604740837698,
+          "fillPass": false,
+          "heightPx": 70.06659455882652,
+          "heightPass": true,
+          "speed": 0,
+          "yawRate": 0,
+          "seen": false,
+          "rejected": {
+            "id": "shade.r4",
+            "reason": "当前方向的照明不足；将探照灯与摄影方向对齐后再拍。"
+          }
+        },
+        "diagnostic": "探照灯未开启或未通电；正式调查底片需要开灯。",
+        "evidence": {
+          "survey": true,
+          "id": "living.shot.1",
+          "target": 0,
+          "valid": false,
+          "lit": false,
+          "diagnostic": "探照灯未开启或未通电；正式调查底片需要开灯。"
+        },
+        "title": "未确认底片 · 探照灯未开启或未通电；正式调查底片需要开灯。"
+      },
+      {
+        "name": "reverse",
+        "legal": true,
+        "pose": [
+          100,
+          0,
+          26
+        ],
+        "heading": 270,
+        "zoom": 1,
+        "lamp": true,
+        "creature": {
+          "id": "shade.r4",
+          "type": "shade",
+          "position": [
+            110,
+            -1,
+            26
+          ],
+          "heading": 0,
+          "mode": "idle",
+          "identified": false
+        },
+        "checks": {
+          "distance": 10.04987562112089,
+          "range": true,
+          "inFrame": false,
+          "lineOfSight": true,
+          "illuminated": false,
+          "rect": null,
+          "fill": 0,
+          "fillPass": false,
+          "heightPx": 0,
+          "heightPass": false,
+          "speed": 0,
+          "yawRate": 0,
+          "seen": false,
+          "rejected": {
+            "id": "shade.r4",
+            "reason": "声源方向没有收入镜头；被动方位以艇首为准，先回正云台，再按最新方位选择摄影方向。"
+          }
+        },
+        "diagnostic": "声源方向没有收入镜头；被动方位以艇首为准，先回正云台，再按最新方位选择摄影方向。",
+        "evidence": {
+          "survey": true,
+          "id": "living.shot.2",
+          "target": 0,
+          "valid": false,
+          "lit": true,
+          "diagnostic": "声源方向没有收入镜头；被动方位以艇首为准，先回正云台，再按最新方位选择摄影方向。"
+        },
+        "title": "未确认底片 · 声源方向没有收入镜头；被动方位以艇首为准，先回正云台，再按最新方位选择摄影方向。"
+      },
+      {
+        "name": "small",
+        "legal": true,
+        "pose": [
+          100,
+          0,
+          26
+        ],
+        "heading": 90,
+        "zoom": 1,
+        "lamp": true,
+        "creature": {
+          "id": "shade.r4",
+          "type": "shade",
+          "position": [
+            110,
+            -1,
+            26
+          ],
+          "heading": 0,
+          "mode": "idle",
+          "identified": false
+        },
+        "checks": {
+          "distance": 10.04987562112089,
+          "range": true,
+          "inFrame": true,
+          "lineOfSight": true,
+          "illuminated": true,
+          "rect": [
+            -0.15344116578163453,
+            -0.3182483438433908,
+            0.15344116578163525,
+            -0.03572175288038058
+          ],
+          "fill": 0.021675604740837698,
+          "fillPass": false,
+          "heightPx": 70.06659455882652,
+          "heightPass": true,
+          "speed": 0,
+          "yawRate": 0,
+          "seen": false,
+          "rejected": {
+            "id": "shade.r4",
+            "reason": "当前取景中的调查对象太小，无法辨认；沿被动声源方位取景后适当变焦，或谨慎接近再拍。"
+          }
+        },
+        "diagnostic": "当前取景中的调查对象太小，无法辨认；沿被动声源方位取景后适当变焦，或谨慎接近再拍。",
+        "evidence": {
+          "survey": true,
+          "id": "living.shot.3",
+          "target": 0,
+          "valid": false,
+          "lit": true,
+          "diagnostic": "当前取景中的调查对象太小，无法辨认；沿被动声源方位取景后适当变焦，或谨慎接近再拍。"
+        },
+        "title": "未确认底片 · 当前取景中的调查对象太小，无法辨认；沿被动声源方位取景后适当变焦，或谨慎接近再拍。"
+      },
+      {
+        "name": "zoom",
+        "legal": true,
+        "pose": [
+          100,
+          0,
+          26
+        ],
+        "heading": 90,
+        "zoom": 2,
+        "lamp": true,
+        "creature": {
+          "id": "shade.r4",
+          "type": "shade",
+          "position": [
+            110,
+            -1,
+            26
+          ],
+          "heading": 0,
+          "mode": "idle",
+          "identified": false
+        },
+        "checks": {
+          "distance": 10.04987562112089,
+          "range": true,
+          "inFrame": true,
+          "lineOfSight": true,
+          "illuminated": true,
+          "rect": [
+            -0.334375674658041,
+            -0.6935199178092719,
+            0.33437567465804263,
+            -0.07784407240716312
+          ],
+          "fill": 0.10293351308849519,
+          "fillPass": true,
+          "heightPx": 152.68760965972297,
+          "heightPass": true,
+          "speed": 0,
+          "yawRate": 0,
+          "seen": true
+        },
+        "diagnostic": "",
+        "evidence": {
+          "survey": true,
+          "id": "living.shot.4",
+          "target": 1,
+          "valid": true,
+          "lit": true,
+          "diagnostic": ""
+        },
+        "title": "生物调查 2"
+      },
+      {
+        "name": "near",
+        "legal": true,
+        "pose": [
+          103,
+          0,
+          26
+        ],
+        "heading": 90,
+        "zoom": 1,
+        "lamp": true,
+        "creature": {
+          "id": "shade.r4",
+          "type": "shade",
+          "position": [
+            110,
+            -1,
+            26
+          ],
+          "heading": 0,
+          "mode": "idle",
+          "identified": false
+        },
+        "checks": {
+          "distance": 7.0710678118654755,
+          "range": true,
+          "inFrame": true,
+          "lineOfSight": true,
+          "illuminated": true,
+          "rect": [
+            -0.2328072860135145,
+            -0.48285955617617926,
+            0.2328072860135156,
+            -0.04879068686100762
+          ],
+          "fill": 0.05052719770411013,
+          "fillPass": true,
+          "heightPx": 107.64907959016257,
+          "heightPass": true,
+          "speed": 0,
+          "yawRate": 0,
+          "seen": true
+        },
+        "diagnostic": "",
+        "evidence": {
+          "survey": true,
+          "id": "living.shot.5",
+          "target": 1,
+          "valid": true,
+          "lit": true,
+          "diagnostic": ""
+        },
+        "title": "生物调查 2"
+      }
+    ],
+    "simulationTime": 0.5334000000000013
+  }
+}

@@ -70,7 +70,6 @@ export default defineConfig(({ mode }) => {
           reference: fileURLToPath(new URL('./reference.html', import.meta.url)),
           expedition: fileURLToPath(new URL('./expedition.html', import.meta.url)),
           whitebox: fileURLToPath(new URL('./whitebox.html', import.meta.url)),
-          narrative: fileURLToPath(new URL('./narrative.html', import.meta.url)),
           story: fileURLToPath(new URL('./story.html', import.meta.url)),
           pipeline: fileURLToPath(new URL('./pipeline.html', import.meta.url)),
         },

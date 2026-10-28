@@ -1,0 +1,57 @@
+{
+  "before": {
+    "once": {
+      "free": 0,
+      "used": 14,
+      "bench": [
+        {
+          "id": "sup.cell",
+          "n": 3
+        }
+      ],
+      "candle": 7,
+      "plates": 0,
+      "oxygen": 200
+    },
+    "twice": {
+      "free": 0,
+      "used": 14,
+      "bench": [
+        {
+          "id": "sup.cell",
+          "n": 3
+        }
+      ],
+      "candle": 7,
+      "plates": 0,
+      "oxygen": 200
+    },
+    "saved": true
+  },
+  "after": {
+    "restored": {
+      "bench": [
+        {
+          "id": "sup.cell",
+          "n": 3
+        }
+      ],
+      "candle": 7,
+      "plates": 0,
+      "oxygen": 200
+    },
+    "afterDuplicate": 7,
+    "used": true,
+    "powerAfter": 0.5158,
+    "oxygenAfter": 192.91999999999996,
+    "candleAfter": 6,
+    "benchAfter": [
+      {
+        "id": "sup.cell",
+        "n": 2
+      }
+    ]
+  },
+  "errors": [],
+  "method": "Diagnostic full inventory and cargo callback injection; real save storage reload/Continue and normal useSupply from life; no physical tools pickup or user profile writes"
+}

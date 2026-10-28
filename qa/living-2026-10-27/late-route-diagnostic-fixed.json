@@ -1,0 +1,89 @@
+{
+  "method": "SYNTHETIC DIAGNOSTIC: isolated browser, direct state/capture/tape injection; API routes blocked; no genuine generated media; no blind-play claim.",
+  "result": [
+    {
+      "label": "manual required",
+      "line": "罗温：标签糊成一团。开探照灯，把说明牌拍下来，去分析台放大看。不能凭颜色拧。",
+      "valve": false
+    },
+    {
+      "label": "wrong valve",
+      "line": "冷却支路C自复位：回流报警，阀门恢复原位。罗温：不是这根。先核对说明，别把冷却也停了。",
+      "valve": false
+    },
+    {
+      "label": "closed but not reported",
+      "pending": "L2-S04",
+      "reported": false,
+      "clearSeen": false
+    },
+    {
+      "label": "report preempts reminder",
+      "pending": "L2-S05"
+    },
+    {
+      "label": "ask before door",
+      "lines": [
+        "罗温：请给我密码",
+        "艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。"
+      ],
+      "askedCode": false
+    },
+    {
+      "label": "unknown code not leaked",
+      "lines": [
+        "罗温：请给我密码",
+        "艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。"
+      ],
+      "leaked": false,
+      "guessedCodeAccepted": false
+    },
+    {
+      "label": "missing playlist rejection",
+      "analyzed": false,
+      "report": [
+        "录像尚未下载到可播放状态。请等待回片后再次核验；本次未扣除分析电量。"
+      ],
+      "codeSeen": false,
+      "pending": "L2-S06",
+      "powerBefore": 1,
+      "powerAfter": 1
+    },
+    {
+      "label": "retry after rejection",
+      "validatorCalls": 0,
+      "analyzed": false,
+      "pending": "L2-S06"
+    },
+    {
+      "label": "SYNTHETIC local test pattern playlist installed",
+      "frames": 3
+    },
+    {
+      "label": "wrong code rejected",
+      "codeSeen": false,
+      "power": 0.955
+    },
+    {
+      "label": "wrong ID rejected",
+      "codeSeen": false,
+      "power": 0.9099999999999999
+    },
+    {
+      "label": "old analyzed true recovered with SYNTHETIC playlist",
+      "codeSeen": true,
+      "analyzed": true,
+      "status": {
+        "accepted": true,
+        "next": "南廊03门 X128.5 Y36 · 查看门锁、向艾里亚斯求密码、门旁输入\n导航坐标 X128.5 Y36 DEPTH 1040m\n下一段：宿舍外廊（C1）"
+      },
+      "power": 0.8649999999999999
+    },
+    {
+      "label": "repeat accepted not charged",
+      "power": 0.8649999999999999,
+      "codeSeen": true
+    }
+  ],
+  "errors": []
+}

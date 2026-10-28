@@ -1,0 +1,365 @@
+{
+  "method": "Non-blind diagnostic legal R2 initialization, real keyboard turn; public sonar toggle method, API blocked, unchanged damage",
+  "init": {
+    "legal": true,
+    "hull": 1,
+    "active": false,
+    "pulse": false
+  },
+  "quiet": {
+    "clock": 24.566699999999727,
+    "hull": 1,
+    "active": false,
+    "pulse": false,
+    "speed": 0,
+    "pos": [
+      52.3,
+      0,
+      21.9
+    ],
+    "feedback": "",
+    "caption": "",
+    "advice": "",
+    "creatures": [
+      {
+        "id": "lumen.r1",
+        "type": "lumen",
+        "position": [
+          33.970675999999706,
+          4,
+          -9.47800699999982
+        ],
+        "heading": 233.13010235415516,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "blind.r2",
+        "type": "blind",
+        "position": [
+          56,
+          -2,
+          27
+        ],
+        "heading": 0,
+        "mode": "sleep",
+        "identified": false
+      },
+      {
+        "id": "shade.r4",
+        "type": "shade",
+        "position": [
+          110,
+          -1,
+          26
+        ],
+        "heading": 0,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "lumen.a1",
+        "type": "lumen",
+        "position": [
+          146.7268136254654,
+          6,
+          54.69072545018608
+        ],
+        "heading": 111.80140948635216,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "lumen.a2",
+        "type": "lumen",
+        "position": [
+          183.5891063487912,
+          5,
+          61.58910634878767
+        ],
+        "heading": 135.00000000001205,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "blind.a2",
+        "type": "blind",
+        "position": [
+          166,
+          -2,
+          60
+        ],
+        "heading": 0,
+        "mode": "idle",
+        "identified": false
+      }
+    ]
+  },
+  "hit": {
+    "clock": 30.083299999999557,
+    "hull": 0.8200000000000001,
+    "active": true,
+    "pulse": false,
+    "speed": 0,
+    "pos": [
+      52.3,
+      0,
+      21.9
+    ],
+    "feedback": "撞击！有东西从黑暗里狠狠撞上艇壳。",
+    "caption": "撞击！有东西从黑暗里狠狠撞上艇壳。",
+    "advice": "",
+    "creatures": [
+      {
+        "id": "lumen.r1",
+        "type": "lumen",
+        "position": [
+          32.4260279999997,
+          4,
+          -8.319520999999776
+        ],
+        "heading": 233.13010235415584,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "blind.r2",
+        "type": "blind",
+        "position": [
+          54.108692603628164,
+          -0.9713486646127243,
+          24.393062777973917
+        ],
+        "heading": 144.03948280335464,
+        "mode": "recoil",
+        "identified": false
+      },
+      {
+        "id": "shade.r4",
+        "type": "shade",
+        "position": [
+          110,
+          -1,
+          26
+        ],
+        "heading": 0,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "lumen.a1",
+        "type": "lumen",
+        "position": [
+          148.51952570499446,
+          6,
+          55.407810281997484
+        ],
+        "heading": 111.80140948635307,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "lumen.a2",
+        "type": "lumen",
+        "position": [
+          184.9543951929751,
+          5,
+          62.95439519297113
+        ],
+        "heading": 135.0000000000162,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "blind.a2",
+        "type": "blind",
+        "position": [
+          166,
+          -2,
+          60
+        ],
+        "heading": 0,
+        "mode": "idle",
+        "identified": false
+      }
+    ]
+  },
+  "off": {
+    "clock": 31.566699999999514,
+    "hull": 0.8200000000000001,
+    "active": false,
+    "pulse": false,
+    "speed": 0,
+    "pos": [
+      52.3,
+      0,
+      21.9
+    ],
+    "feedback": "撞击！有东西从黑暗里狠狠撞上艇壳。",
+    "caption": "撞击！有东西从黑暗里狠狠撞上艇壳。",
+    "advice": "",
+    "creatures": [
+      {
+        "id": "lumen.r1",
+        "type": "lumen",
+        "position": [
+          32.010675999999705,
+          4,
+          -8.008006999999777
+        ],
+        "heading": 233.13010235415598,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "blind.r2",
+        "type": "blind",
+        "position": [
+          55.15400473687342,
+          -0.9713486646127243,
+          25.8338984210957
+        ],
+        "heading": 144.03948280335487,
+        "mode": "recoil",
+        "identified": false
+      },
+      {
+        "id": "shade.r4",
+        "type": "shade",
+        "position": [
+          110,
+          -1,
+          26
+        ],
+        "heading": 0,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "lumen.a1",
+        "type": "lumen",
+        "position": [
+          149.0015815181353,
+          6,
+          55.60063260725382
+        ],
+        "heading": 111.80140948635324,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "lumen.a2",
+        "type": "lumen",
+        "position": [
+          185.32151796269966,
+          5,
+          63.32151796269553
+        ],
+        "heading": 135.00000000001774,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "blind.a2",
+        "type": "blind",
+        "position": [
+          166,
+          -2,
+          60
+        ],
+        "heading": 0,
+        "mode": "idle",
+        "identified": false
+      }
+    ]
+  },
+  "recovered": {
+    "clock": 52.58340000000056,
+    "hull": 0.8200000000000001,
+    "active": false,
+    "pulse": false,
+    "speed": 0,
+    "pos": [
+      52.3,
+      0,
+      21.9
+    ],
+    "feedback": "那个声源慢慢游远了。",
+    "caption": "那个声源慢慢游远了。",
+    "advice": "",
+    "creatures": [
+      {
+        "id": "lumen.r1",
+        "type": "lumen",
+        "position": [
+          36.53315197263632,
+          4,
+          -12.533151972635952
+        ],
+        "heading": 44.999999999998636,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "blind.r2",
+        "type": "blind",
+        "position": [
+          56,
+          -2,
+          27
+        ],
+        "heading": 53.84704172160656,
+        "mode": "sleep",
+        "identified": false
+      },
+      {
+        "id": "shade.r4",
+        "type": "shade",
+        "position": [
+          110,
+          -1,
+          26
+        ],
+        "heading": 0,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "lumen.a1",
+        "type": "lumen",
+        "position": [
+          155.83131214239793,
+          6,
+          58.332524856960255
+        ],
+        "heading": 111.80140948633908,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "lumen.a2",
+        "type": "lumen",
+        "position": [
+          190.52288584355804,
+          5,
+          68.52288584355551
+        ],
+        "heading": 135.00000000004894,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "blind.a2",
+        "type": "blind",
+        "position": [
+          166,
+          -2,
+          60
+        ],
+        "heading": 0,
+        "mode": "idle",
+        "identified": false
+      }
+    ]
+  }
+}

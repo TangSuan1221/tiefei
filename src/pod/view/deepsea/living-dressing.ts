@@ -159,11 +159,12 @@ export function buildDressing(m: LivingMaterials, shells: ShellBuild, root: T.Gr
   {
     const b = B('R2');
     const rack = Kit.at(b, [59.6, -3, 30.7], PI);   // box at z 30.5, face north (−Z); rack front flush at 30.15
-    shelving(rack, m, 6.4, 1.1, 4.2, [.8, 2.0, 3.4], 21);
+    // Storage beams are dark steel; keep high-contrast hazard paint on the navigable doorway.
+    shelving(rack, m, 6.4, 1.1, 4.2, [.8, 2.0, 3.4], 21, true, m.frame);
     solids.push(rack.solid([0, 2.1, 0], [6.4, 4.2, 1.1]));
     atlas.add('液压维修工具', 'HYDRAULIC REPAIR KIT', 'warn', [57.2, .9, 30.1], [0, 0, -1], 1.5);
-    workbench(wallKit('R2', 'E', 22, -3, .45), m, 5.5, 31);
-    solids.push(Kit.at(b, onWall('R2', 'E', 22, -3, .45), FACE.E).solid([0, 1, 0], [5.5, 2, .9]));
+    workbench(wallKit('R2', 'E', 17, -3, .45), m, 5.5, 31);
+    solids.push(Kit.at(b, onWall('R2', 'E', 17, -3, .45), FACE.E).solid([0, 1, 0], [5.5, 2, .9]));
     workbench(wallKit('R2', 'W', 29, -3, .45), m, 4, 32);
     gasCylinders(wallKit('R2', 'W', 21, -3, .3), m, 5);
     lockerRow(wallKit('R2', 'W', 16, -3, .3), m, 6, 33);
@@ -177,7 +178,7 @@ export function buildDressing(m: LivingMaterials, shells: ShellBuild, root: T.Gr
     b.rod([54, -.9, hz], [54, -1.4, hz], .03, m.chrome, 6);
     hang('R2-hoist', 'R2', [54, 5, hz], [54, -1.4, hz], 'beam');
     atlas.add('机修间', 'MAINTENANCE SHOP', 'enamel', onWall('R2', 'N', 61, 3.6, .1), [0, 0, 1], 2.4);
-    atlas.add('佩戴护目镜', 'EYE PROTECTION REQUIRED', 'warn', onWall('R2', 'E', 22, 0, .1), [-1, 0, 0], 1.8);
+    atlas.add('佩戴护目镜', 'EYE PROTECTION REQUIRED', 'warn', onWall('R2', 'E', 17, 0, .1), [-1, 0, 0], 1.8);
     // Floor markings.
     for (const z of [17, 29]) b.slab([45, -2.99, z], [62, -2.985, z + .12], m.bandYellow);
   }
@@ -399,40 +400,7 @@ export function buildDressing(m: LivingMaterials, shells: ShellBuild, root: T.Gr
     const c7 = B('C7'); c7.rod([106.4, 2.4, 64.5], [109.6, 2.4, 64.5], .12, m.pipe, 10);
   }
 
-  // ================================================================ Alex side: L lobby, M corridor, N dormitories (human scale)
-  {
-    const L = B('L'), r = rng(321);
-    // Reception counter facing the blast glass, sofas and columns.
-    const rc = Kit.at(L, [150.5, -3, 3], -PI / 2);
-    rc.box([0, .55, 0], [4, 1.1, .7], m.veneer); rc.box([0, 1.12, 0], [4.1, .05, .8], m.porcelain); rc.rbox([.6, 1.3, -.1], [.45, .38, .38], m.trim, .03);
-    atlas.add('前厅接待', 'LOBBY RECEPTION', 'cyan', [150.1, -1.4, 3], [-1, 0, 0], 1.6);
-    sofa(Kit.at(L, [146.5, -3, 10.5], PI / 2), m, 2, m.padTeal); sofa(Kit.at(L, [149, -3, -2.5], 0), m, 2, m.padTeal);
-    for (const z of [-30, -18, -6, 18, 30]) for (const x of [148, 158]) L.slab([x - .3, -3, z - .3], [x + .3, .6, z + .3], m.veneer);
-    deadPlant(Kit.at(L, [143.4, -3, -1], 0), m, 501, .9); deadPlant(Kit.at(L, [143.4, -3, 13], 0), m, 502, .9);
-    for (let i = 0; i < 8; i++) chair(Kit.at(L, [144 + r() * 18, -3, -35 + r() * 70], r() * 6, r() < .5 ? [PI / 2, 0, 0] : [0, 0, 0]), m);
-    // Transfer tube exit flange on the lobby side.
-    const out = Kit.at(L, [142.35, 0, 17], PI / 2);
-    out.cyl([0, 0, .25], .5, .5, .5, m.indSteel, 20, [PI / 2, 0, 0]); out.ring([0, 0, .5], .48, .07, m.frame, [0, 0, 0], 24); out.cyl([0, 0, .52], .36, .36, .02, m.rubber, 20, [PI / 2, 0, 0]);
-    for (let i = 0; i < 8; i++) { const a = i / 8 * PI * 2; out.cyl([Math.cos(a) * .48, Math.sin(a) * .48, .55], .03, .03, .06, m.chrome, 6, [PI / 2, 0, 0]); }
-    atlas.add('传递管道出口', 'TRANSFER TUBE OUTLET', 'warn', [142.4, .35, 18.3], [1, 0, 0], .9);
-    atlas.add('生活区前厅', 'LIVING QUARTERS LOBBY', 'enamel', [142.33, 1.3, 6], [-1, 0, 0], 3);
-    // Doors in M and N.
-    for (const z of [-34, -26, -2, 6, 14, 22, 30, 38]) for (const [sp, side] of [['M', 'W'], ['M', 'E'], ['N', 'W']] as const) {
-      if (sp === 'M' && side === 'E' && z > -24 && z < 8) continue; // the colour-banded pipe run passes here
-      dormDoor(wallKit(sp, side, z, -3), m, r() < .3, .95);
-      atlas.add(`${sp === 'N' ? 'N' : 'S'}-${Math.abs(z)}`, '', 'room', onWall(sp, side, z, -.85, .12), side === 'W' ? [1, 0, 0] : [-1, 0, 0], .36);
-    }
-    atlas.add('疗养区走廊', 'SANATORIUM WING  ·  STAFF ESCORT', 'cyan', onWall('M', 'S', 170, -.1, .1), [0, 0, -1], 2.2);
-    // N: open dorm cells with beds visible through the inner partition.
-    const N = B('N');
-    for (let z = -36; z < 40; z += 6) {
-      N.slab([190, -3, z - .06], [201.7, .6, z + .06], m.wallpaper);
-      bed(Kit.at(N, [198.5, -3, z + 3], PI / 2), m, z * 7);
-      Kit.at(N, [194.5, -3, z + 4.6], 0).box([0, .45, 0], [.6, .9, .5], m.veneer);
-    }
-    N.slab([190 - .06, -3, -40], [190 + .06, -.4, 42], m.wallpaper);
-    atlas.add('内侧宿舍 N1 — N12', 'INNER DORMITORIES', 'cyan', onWall('N', 'S', 180, -.05, .1), [0, 0, -1], 2.2);
-  }
+  // Personnel routes are video-only: no L/M/N dressing is constructed.
 
   // Merge sheets into the atrium/laundry animation set: laundry linen hangs from the lines.
   {

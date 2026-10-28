@@ -1,0 +1,61 @@
+{
+  "method": "Fixed image-coordinate rectangles, mean sRGB channels, diagnostic only; captures have independently advancing particles/grain. Not linear radiometry.",
+  "boxes": {
+    "tank": [
+      792,
+      280,
+      958,
+      500
+    ],
+    "ground": [
+      320,
+      480,
+      650,
+      610
+    ],
+    "far": [
+      496,
+      295,
+      635,
+      383
+    ]
+  },
+  "rows": [
+    {
+      "mode": "live",
+      "region": "tank",
+      "baseline": 0.20820809083034456,
+      "third": 0.20864885567224337
+    },
+    {
+      "mode": "live",
+      "region": "ground",
+      "baseline": 0.08933290674467145,
+      "third": 0.0892351569998629
+    },
+    {
+      "mode": "live",
+      "region": "far",
+      "baseline": 0.005201293510646029,
+      "third": 0.0148489764338262
+    },
+    {
+      "mode": "film",
+      "region": "tank",
+      "baseline": 0.37687097767182814,
+      "third": 0.37521848534959806
+    },
+    {
+      "mode": "film",
+      "region": "ground",
+      "baseline": 0.33890674467145054,
+      "third": 0.33575848987613693
+    },
+    {
+      "mode": "film",
+      "region": "far",
+      "baseline": 0.11040002222820675,
+      "third": 0.15633674878279197
+    }
+  ]
+}

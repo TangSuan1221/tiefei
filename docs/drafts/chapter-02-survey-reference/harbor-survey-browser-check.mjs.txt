@@ -1,0 +1,31 @@
+import {chromium} from '@playwright/test';
+import assert from 'node:assert/strict';
+const b=await chromium.launch({channel:'msedge',headless:true});
+try {
+ const p=await b.newPage({viewport:{width:1280,height:800}}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('**/api/**',r=>r.abort());
+ await p.goto(process.env.HARBOR_TEST_URL??'http://127.0.0.1:5195/');await p.locator('[data-id="new"]').click();await p.waitForFunction(()=>!!window.__pod);
+ const report=await p.evaluate(async()=>{
+  const r=window.__pod;r.receive();r.arrive();const s=r.authoredSite;s.tick(.1);
+  const {harborHullClear}=await import('/src/pod/sim/harbor-navigation.ts');
+  const check=(ok,msg)=>{if(!ok)throw Error(msg);};
+  const aim=(pos,target)=>{s.position.set(...pos);r.heading=Math.atan2(target[0]-pos[0],-(target[2]-pos[2]))*180/Math.PI;r.pitch=-Math.atan2(target[1]-pos[1],Math.hypot(target[0]-pos[0],target[2]-pos[2]))*180/Math.PI;r.camPan=r.camTilt=0;r.lamp=true;r.power=1;r.blackout=false;s.syncVisual();return s.aimedInterface();};
+  const pose=(pos,target)=>{const hit=aim(pos,target);check(harborHullClear(s.position,r.heading,s.world.walkable,s.solids()),'Illegal hull pose '+pos);return hit;};
+  const fixture=id=>{const c=document.createElement('canvas');c.width=c.height=4;const frame=c.toDataURL();r.receiveRemoteTape({id:'harbor.task.'+id,siteName:'SYNTHETIC TEST ONLY',frames:[frame,frame,frame],siteEvidence:{harborTask:id,generated:true},videoResult:'video',cacheKey:'harbor-task:'+id+':synthetic'});s.analyzeEvidence({capture:{harborTask:id,generated:true},media:{playable:true,source:'generated-video',mediaId:'harbor.task.'+id}});};
+  const film=()=>{const e=s.captureEvidence();check(e.valid,'invalid photo '+JSON.stringify(e));s.commitEvidence(e);const c=document.createElement('canvas');c.width=c.height=4;const frame=c.toDataURL();r.receiveRemoteTape({id:e.id,siteName:'SYNTHETIC PHOTO',frames:[frame,frame,frame],siteEvidence:e,videoResult:'video',cacheKey:'survey:synthetic:'+e.id});s.analyzeEvidence({capture:e,media:{playable:true,source:'generated-video',mediaId:e.id}});return e;};
+  const op=()=>{s.interact();check(r.arm.phase==='extending','arm not extending');r.arm.phase='aiming';s.interact();check(r.arm.phase==='gripping','arm not gripping');s.armEvent('grip','harbor.facility.operation');r.arm.phase='aiming';s.interact();s.armEvent('stowed');r.arm.phase='stowed';};
+  check(!s.prepareCapture().ok,'camera available before search');const initial=s.snapshot();check(s.restore(initial),'initial save failed');fixture('L1-S01');
+  const body=pose([11.5,0,12],[13.45,-2.3,13.3]);check(body.id==='harbor.rescue.survey.body'&&body.distance<3.4,'body reach');op();check(s.survey.camera,'camera not recovered');check(r.stowedCount('sup.plate')===3,'repair stock');
+  s.radioSay('传递移动摄像机');fixture('L1-S02');
+  pose([45,0,29],[45,0,23]);r.lamp=false;check(!s.captureEvidence().valid,'dark film accepted');r.lamp=true;film();
+  pose([62,0,29],[62,0,21]);film();check(s.survey.photos.length===2,'first photos');fixture('L1-S03');s.radioSay('嗯？');
+  pose([40,0,28],[40,0,24.95]);const manual=film();check(manual.target==='manual'&&s.survey.manual,'manual film');
+  pose([42.4,0,28],[42.4,0,24.8]);op();check(!s.survey.valve,'wrong valve');pose([41.2,0,28],[41.2,0,24.8]);op();check(s.survey.valve,'right valve');
+  s.radioSay('含硫支路关好了，你看看');fixture('L1-S05');
+  pose([62.5,0,27.8],[62.5,0,24.57]);op();s.radioSay('密码是什么');fixture('L1-S06');s.radioSay(s.survey.code);check(s.survey.unlocked&&s.rescue.state.gateOpen,'code gate');
+  s.tick(2);pose([77,1,10],[77,1,6]);film();check(s.evidenceReady,'quota not met');pose([62.5,0,27.8],[62.5,0,24.57]);op();check(s.complete,'exit failed');check(s.restore(s.snapshot()),'completed save failed');
+  const code=s.survey.code;check(s.restore(s.snapshot())&&s.survey.code===code,'password changed on restore');const legacy=structuredClone(initial);delete legacy.survey;check(s.restore(legacy)&&s.survey===null,'old save compatibility');
+  return {bodyDistance:body.distance,codePersisted:true,completeBeforeLegacy:true,syntheticOnly:true};
+ });
+ assert.deepEqual(errors,[]);console.log(JSON.stringify(report,null,2));console.log('PASS: browser adapter, legal hull poses, ray hits, arm stages, search/stow, dark film, three targets, manual, valves, report, password, completion and old/new saves. Synthetic media and diagnostic positioning; no full driving or paid video claim.');
+}finally{await b.close();}
+

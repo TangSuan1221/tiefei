@@ -1,0 +1,41 @@
+{
+  "trace": [
+    {
+      "before": "stowed",
+      "after": "extending",
+      "aim": {
+        "id": "living.box.probe",
+        "distance": 2.515216214145236
+      },
+      "feedback": "机械臂伸出中 · 遗体腰侧 · 移动水下摄像仪 · 伸出后再按 F 夹取"
+    },
+    {
+      "before": "aiming",
+      "after": "gripping",
+      "aim": {
+        "id": "living.box.probe",
+        "distance": 2.515216214145236
+      },
+      "feedback": "爪头扣住箱体 · 正在解锁"
+    },
+    {
+      "before": "aiming",
+      "after": "hauling",
+      "aim": {
+        "id": "living.box.probe",
+        "distance": 2.515216214145236
+      },
+      "feedback": "箱体已夹紧 · 正在回收，收臂完成后才入库"
+    }
+  ],
+  "state": {
+    "cargo": [
+      "living.box.probe"
+    ],
+    "camera": true,
+    "arm": "stowed",
+    "nearTransfer": true,
+    "feedback": "罗温：……借用一下。防水匣里是一台移动水下摄像仪。艇载相机还能用，这台留给艾里亚斯。"
+  },
+  "method": "Diagnostic legal teleport and direct interact() calls; real timed arm state machine; not keyboard blind play"
+}

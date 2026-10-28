@@ -142,7 +142,7 @@ async function exists(url: string, kind: 'json' | 'glb') {
 export function loadHeroGlbs(fallbacks: Map<HeroName, T.Group>, groups: Map<string, T.Group>, onLoaded?: (name: HeroName, scene: T.Object3D) => void) {
   const loader = new GLTFLoader();
   const loaded = new Map<HeroName, T.Object3D>();
-  const jobs = (Object.keys(HERO_GLB_PLACEMENT) as HeroName[]).filter(n => !ACTOR_OWNED.has(n)).map(async name => {
+  const jobs = (Object.keys(HERO_GLB_PLACEMENT) as HeroName[]).filter(n => !ACTOR_OWNED.has(n) && n !== 'valve-manifold').map(async name => {
     const glbUrl = `${BASE}${name}.glb`;
     if (!(await exists(glbUrl, 'glb'))) return;
     let manifest: HeroManifest = {};

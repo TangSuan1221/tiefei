@@ -1,0 +1,106 @@
+[
+  {
+    "id": "rusty_painted_metal",
+    "name": "Rusty Painted Metal",
+    "authors": {
+      "Amal Kumar": "All"
+    },
+    "dimensions": [
+      2200.000047683716,
+      2200.000047683716
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "source": "https://polyhaven.com/a/rusty_painted_metal",
+    "files": [
+      {
+        "name": "rusty_painted_metal_diff_1k.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_painted_metal/rusty_painted_metal_diff_1k.jpg",
+        "md5": "3846f5567b6e7985b275a6b3867a648f",
+        "bytes": 471866
+      },
+      {
+        "name": "rusty_painted_metal_rough_1k.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_painted_metal/rusty_painted_metal_rough_1k.jpg",
+        "md5": "4d1a17deece24665d877f818b59b7d38",
+        "bytes": 318766
+      },
+      {
+        "name": "rusty_painted_metal_nor_gl_1k.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_painted_metal/rusty_painted_metal_nor_gl_1k.jpg",
+        "md5": "b5a2c2b08219304dcd4e0b00837f3e2d",
+        "bytes": 484158
+      }
+    ]
+  },
+  {
+    "id": "blue_metal_plate",
+    "name": "Blue Metal Plate",
+    "authors": {
+      "Rob Tuytel": "All"
+    },
+    "dimensions": [
+      2500,
+      2500
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "source": "https://polyhaven.com/a/blue_metal_plate",
+    "files": [
+      {
+        "name": "blue_metal_plate_diff_1k.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/blue_metal_plate/blue_metal_plate_diff_1k.jpg",
+        "md5": "a906d0e554596fb76c6969f2f644c5e6",
+        "bytes": 395923
+      },
+      {
+        "name": "blue_metal_plate_rough_1k.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/blue_metal_plate/blue_metal_plate_rough_1k.jpg",
+        "md5": "76c3911d8ad2416e4db3104a2ef831c7",
+        "bytes": 402450
+      },
+      {
+        "name": "blue_metal_plate_nor_gl_1k.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/blue_metal_plate/blue_metal_plate_nor_gl_1k.jpg",
+        "md5": "f14c0f01832f8b18c39f07e4b5d6f749",
+        "bytes": 238025
+      }
+    ]
+  },
+  {
+    "id": "concrete_wall_007",
+    "name": "Concrete Wall 007",
+    "authors": {
+      "Dario Barresi": "Processing",
+      "Rico Cilliers": "Tiling",
+      "Charlotte Baglioni": "Photography"
+    },
+    "dimensions": [
+      2159.9998474121094,
+      2159.9998474121094
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "source": "https://polyhaven.com/a/concrete_wall_007",
+    "files": [
+      {
+        "name": "concrete_wall_007_diff_1k.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_wall_007/concrete_wall_007_diff_1k.jpg",
+        "md5": "f8a951200ebe1a42ba57ef331d94f8e2",
+        "bytes": 654485
+      },
+      {
+        "name": "concrete_wall_007_rough_1k.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_wall_007/concrete_wall_007_rough_1k.jpg",
+        "md5": "57fc45c0410543a5117bbfab360e040a",
+        "bytes": 563812
+      },
+      {
+        "name": "concrete_wall_007_nor_gl_1k.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_wall_007/concrete_wall_007_nor_gl_1k.jpg",
+        "md5": "7d62088fb4f40833226cdb2a09476a58",
+        "bytes": 602349
+      }
+    ]
+  }
+]

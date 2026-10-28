@@ -1,0 +1,195 @@
+[
+  {
+    "wall": "2026-10-27T08:45:48.975Z",
+    "elapsed": 10.704,
+    "action": "press",
+    "key": "F10"
+  },
+  {
+    "wall": "2026-10-27T08:45:57.642Z",
+    "elapsed": 19.371,
+    "action": "click",
+    "x": 1185,
+    "y": 506
+  },
+  {
+    "wall": "2026-10-27T08:46:00.723Z",
+    "elapsed": 22.452,
+    "action": "press",
+    "key": "F10"
+  },
+  {
+    "wall": "2026-10-27T08:46:04.880Z",
+    "elapsed": 26.609,
+    "action": "click",
+    "x": 1015,
+    "y": 410
+  },
+  {
+    "wall": "2026-10-27T08:46:13.287Z",
+    "elapsed": 35.016,
+    "action": "snap"
+  },
+  {
+    "wall": "2026-10-27T08:46:26.843Z",
+    "elapsed": 48.572,
+    "action": "click",
+    "x": 968,
+    "y": 406
+  },
+  {
+    "wall": "2026-10-27T08:46:32.422Z",
+    "elapsed": 54.151,
+    "action": "snap"
+  },
+  {
+    "wall": "2026-10-27T08:46:38.935Z",
+    "elapsed": 60.664,
+    "action": "press",
+    "key": "2"
+  },
+  {
+    "wall": "2026-10-27T08:46:49.031Z",
+    "elapsed": 70.76,
+    "action": "press",
+    "key": "Escape"
+  },
+  {
+    "wall": "2026-10-27T08:46:57.454Z",
+    "elapsed": 79.183,
+    "action": "click",
+    "x": 877,
+    "y": 848
+  },
+  {
+    "wall": "2026-10-27T08:47:09.039Z",
+    "elapsed": 90.768,
+    "action": "key",
+    "key": "l",
+    "ms": 1500
+  },
+  {
+    "wall": "2026-10-27T08:47:23.246Z",
+    "elapsed": 104.975,
+    "action": "key",
+    "key": "l",
+    "ms": 3200
+  },
+  {
+    "wall": "2026-10-27T08:47:28.055Z",
+    "elapsed": 109.784,
+    "action": "click",
+    "x": 880,
+    "y": 843
+  },
+  {
+    "wall": "2026-10-27T08:47:36.228Z",
+    "elapsed": 117.957,
+    "action": "key",
+    "key": "j",
+    "ms": 900
+  },
+  {
+    "wall": "2026-10-27T08:47:41.129Z",
+    "elapsed": 122.858,
+    "action": "key",
+    "key": "w",
+    "ms": 1500
+  },
+  {
+    "wall": "2026-10-27T08:47:49.394Z",
+    "elapsed": 131.123,
+    "action": "key",
+    "key": "w",
+    "ms": 5000
+  },
+  {
+    "wall": "2026-10-27T08:48:03.204Z",
+    "elapsed": 144.933,
+    "action": "key",
+    "key": "ArrowDown",
+    "ms": 2000
+  },
+  {
+    "wall": "2026-10-27T08:48:15.397Z",
+    "elapsed": 157.126,
+    "action": "key",
+    "key": "ArrowUp",
+    "ms": 1300
+  },
+  {
+    "wall": "2026-10-27T08:48:21.975Z",
+    "elapsed": 163.704,
+    "action": "key",
+    "key": "i",
+    "ms": 2000
+  },
+  {
+    "wall": "2026-10-27T08:48:32.096Z",
+    "elapsed": 173.825,
+    "action": "press",
+    "key": "h"
+  },
+  {
+    "wall": "2026-10-27T08:48:41.275Z",
+    "elapsed": 183.004,
+    "action": "click",
+    "x": 400,
+    "y": 804
+  },
+  {
+    "wall": "2026-10-27T08:48:53.245Z",
+    "elapsed": 194.974,
+    "action": "press",
+    "key": "Tab"
+  },
+  {
+    "wall": "2026-10-27T08:49:02.760Z",
+    "elapsed": 204.489,
+    "action": "press",
+    "key": "2"
+  },
+  {
+    "wall": "2026-10-27T08:49:06.820Z",
+    "elapsed": 208.549,
+    "action": "snap"
+  },
+  {
+    "wall": "2026-10-27T08:49:17.533Z",
+    "elapsed": 219.262,
+    "action": "press",
+    "key": "F1"
+  },
+  {
+    "wall": "2026-10-27T08:49:24.713Z",
+    "elapsed": 226.442,
+    "action": "press",
+    "key": "Escape"
+  },
+  {
+    "wall": "2026-10-27T08:50:04.452Z",
+    "elapsed": 266.181,
+    "action": "click",
+    "x": 1012,
+    "y": 842
+  },
+  {
+    "wall": "2026-10-27T08:50:10.686Z",
+    "elapsed": 272.415,
+    "action": "key",
+    "key": "w",
+    "ms": 3000
+  },
+  {
+    "wall": "2026-10-27T08:50:19.648Z",
+    "elapsed": 281.377,
+    "action": "press",
+    "key": "1"
+  },
+  {
+    "wall": "2026-10-27T08:50:36.315Z",
+    "elapsed": 298.044,
+    "action": "press",
+    "key": "Escape"
+  }
+]

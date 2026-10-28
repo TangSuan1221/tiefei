@@ -12,8 +12,8 @@ export function livingOpening(s:LivingStory):string[]{return s.partner==='keeper
  '罗温：我从艇侧找阀门。你别越过隔离门。',
  '周岑：拿探头来，观察廊有传递管。这里的通话器快断电了——',
  ]:[
- '罗温：万斯，我到-1层了。收到请回答。',
- '艾里亚斯：罗温，我到了楼梯间。岸上的频道还是不通。',
+ '罗温：艾里亚斯，我到-1层了。收到请回答。',
+ s.injured?'艾里亚斯：我到了楼梯间。肩膀勒住了，走得慢一点，能继续。':'艾里亚斯：罗温，我到了楼梯间。岸上的频道还是不通。',
  '艾里亚斯：我去生活区前厅。你绕过去，观察廊见。通话器在掉电——',
  ];}
 /** Recorded probe speech. Sources remain local: this partner never inherits the other's private testimony. */
@@ -23,6 +23,7 @@ export function livingTapeLines(kind:string,base:string[],s?:LivingStory):string
  if(kind==='alexIntro'){
   if(s.partner==='keeper')lines[0]='周岑：我是周岑，生活区值班员。探头收到了。我守的是这道隔离门，后面的管道一直没有停。';
   else if(s.promised)lines.unshift('艾里亚斯：你说不会丢下我。看到探头过来，我才知道你真的绕到了这边。');
+  if(s.injured&&s.partner==='elias')lines.push('艾里亚斯：肩膀还疼，我换只手拿探头。你先看清楚，我们再动。');
   if(s.mistrust&&s.partner==='elias')lines.push('艾里亚斯：我会把看到的拍给你。下一次让我走之前，也请把依据传过来。');
  }
  if(kind==='slimeCleared'&&s.records&&s.partner==='elias')lines.push('艾里亚斯：你让我留意记录。我经过管线口，看到了“VIP优先供给”的标牌。管理处在中庭另一边，申请原件还得你去找。');

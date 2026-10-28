@@ -33,6 +33,7 @@
  */
 
 /** 默认走 vite dev proxy。它等价于上游的 /v1 */
+import {isLocalNoVideoMode} from './no-video-mode';
 import {lockVideoCamera} from '../content/fixed-camera';
 const API_BASE = (import.meta.env.VITE_VIDEO_API_BASE as string | undefined) ?? '/api/video';
 /** 直连模式的 key。留空就不发 Authorization 头，由代理去补 */
@@ -51,6 +52,18 @@ export const VIDEO_ENABLED = /^(1|true|yes)$/i.test(
   (import.meta.env.VITE_VIDEO_ENABLED as string | undefined) ?? '',
 );
 
+
+/** Every submit, poll and cached download rechecks the local GM switch. */
+async function guardedVideoFetch(url:string, options:RequestInit):Promise<Response>{
+ if(isLocalNoVideoMode())throw new DOMException('GM no-video mode','AbortError');
+ const abort=new AbortController(),outer=options.signal;
+ const cancel=()=>abort.abort();outer?.addEventListener('abort',cancel,{once:true});
+ const check=()=>{if(isLocalNoVideoMode())cancel();};
+ window.addEventListener('ironlung-no-video-change',check);
+ const timer=window.setInterval(check,50);
+ try{if(outer?.aborted)cancel();const response=await fetch(url,{...options,signal:abort.signal});const body=await response.arrayBuffer();return new Response(body,{status:response.status,statusText:response.statusText,headers:response.headers});}
+ finally{clearInterval(timer);window.removeEventListener('ironlung-no-video-change',check);outer?.removeEventListener('abort',cancel);}
+}
 
 /** 首次轮询前先等这么久。生成实测约 9 秒，早问纯属浪费 */
 const FIRST_POLL_DELAY = 6000;
@@ -133,9 +146,9 @@ const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
  * 因为调用方（view/footage.ts）对每一种失败都有一句对应的游戏内台词，
  * 而 try/catch 里区分不出「key 不对」和「断网」。
  */
-export async function requestVideo(prompt: string, signal?: AbortSignal, keyframe?: string, progress?: (status: string) => void, duration:5|10=5): Promise<VideoResult> {
-  prompt = lockVideoCamera(prompt);
-  if (!VIDEO_ENABLED) return { ok: false, fail: { kind: 'disabled' } };
+export async function requestVideo(prompt: string, signal?: AbortSignal, keyframe?: string, progress?: (status: string) => void, duration:5|10=5, cameraMode:'fixed'|'elias-selfie'='fixed'): Promise<VideoResult> {
+  prompt = lockVideoCamera(prompt,cameraMode);
+  if (!VIDEO_ENABLED || isLocalNoVideoMode()) return { ok: false, fail: { kind: 'disabled' } };
 
   const deadline = Date.now() + TOTAL_TIMEOUT;
 
@@ -145,15 +158,16 @@ export async function requestVideo(prompt: string, signal?: AbortSignal, keyfram
   // 降到游戏分辨率的活全在 view/footage.ts 里干。
   let job: VideoJob;
   try {
+    if(cameraMode==='elias-selfie'&&!keyframe)throw new Error('Elias task reference is required');
     let body: BodyInit = JSON.stringify({ model: MODEL, prompt, duration, size: '480p' });
     if (keyframe) {
       const match = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(keyframe);
       if (!match) throw new Error('Invalid shutter keyframe');
       body = JSON.stringify({ model: MODEL,
-        prompt: (prompt.includes('ENVIRONMENT_ONLY_REFERENCE:')?'Use the attached image as an environment and camera reference, not an exact opening frame. Add only the described generated creatures; preserve the architecture, camera and lighting. ':'Use the attached image as the exact opening frame. Preserve its camera position, framing, architecture and lighting. Animate underwater particles and the described events without changing location. ') + prompt,
+        prompt: (cameraMode==='elias-selfie'?'Use the attached Elias task image as the character, equipment and location reference. Reframe it as his arm-length selfie as instructed; preserve task evidence and the dry or flooded state. Do not copy its external observer viewpoint. ':prompt.includes('ENVIRONMENT_ONLY_REFERENCE:')?'Use the attached image as an environment and camera reference, not an exact opening frame. Add only the described generated creatures; preserve the architecture, camera and lighting. ':'Use the attached image as the exact opening frame. Preserve its camera position, framing, architecture and lighting. Animate underwater particles and the described events without changing location. ') + prompt,
         duration, size: '480p', first_frame: keyframe });
     }
-    const res = await fetch(`${API_BASE}/videos`, {
+    const res = await guardedVideoFetch(`${API_BASE}/videos`, {
       method: 'POST',
       headers: headers(true),
       body,
@@ -180,7 +194,7 @@ export async function requestVideo(prompt: string, signal?: AbortSignal, keyfram
       return { ok: false, fail: { kind: isFilterRejection(detail) ? 'filtered' : 'generate', detail } };
     }
     try {
-      const res = await fetch(`${API_BASE}/videos/${encodeURIComponent(job.id)}`, {
+      const res = await guardedVideoFetch(`${API_BASE}/videos/${encodeURIComponent(job.id)}`, {
         headers: headers(false),
         signal,
       });
@@ -200,7 +214,7 @@ export async function requestVideo(prompt: string, signal?: AbortSignal, keyfram
   // 这一步没有 JSON 中转，直接是字节流。也不计费，所以同一个 id
   // 可以反复取 —— view/footage.ts 的 sessionStorage 缓存就靠这一点。
   try {
-    const res = await fetch(`${API_BASE}/videos/${encodeURIComponent(job.id)}/content`, {
+    const res = await guardedVideoFetch(`${API_BASE}/videos/${encodeURIComponent(job.id)}/content`, {
       headers: headers(false),
       signal,
     });
@@ -226,9 +240,9 @@ export async function requestVideo(prompt: string, signal?: AbortSignal, keyfram
  * 第一道是内存缓存，它挡不住 F5。
  */
 export async function fetchVideoContent(videoId: string, signal?: AbortSignal): Promise<VideoResult> {
-  if (!VIDEO_ENABLED) return { ok: false, fail: { kind: 'disabled' } };
+  if (!VIDEO_ENABLED || isLocalNoVideoMode()) return { ok: false, fail: { kind: 'disabled' } };
   try {
-    const res = await fetch(`${API_BASE}/videos/${encodeURIComponent(videoId)}/content`, {
+    const res = await guardedVideoFetch(`${API_BASE}/videos/${encodeURIComponent(videoId)}/content`, {
       headers: headers(false),
       signal,
     });

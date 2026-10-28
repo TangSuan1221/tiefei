@@ -1,0 +1,81 @@
+{
+  "results": [
+    {
+      "name": "initial_snapshot_restores",
+      "pass": true
+    },
+    {
+      "name": "invalid_restore_rejected_atomic",
+      "pass": true
+    },
+    {
+      "name": "dark_capture_rejected",
+      "pass": true
+    },
+    {
+      "name": "unissued_capture_rejected",
+      "pass": true
+    },
+    {
+      "name": "fabricated_task_media_rejected",
+      "pass": true
+    },
+    {
+      "name": "remote_code_rejected",
+      "pass": true
+    },
+    {
+      "name": "scene_personnel_absent",
+      "pass": true,
+      "detail": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "living-inflow-curtain",
+        "living-space:S",
+        "living-space:C1",
+        "living-space:R1",
+        "living-space:R2",
+        "living-space:J1",
+        "living-space:C2",
+        "living-space:R3",
+        "living-space:C3",
+        "living-space:R4",
+        "living-space:G",
+        "living-space:C4",
+        "living-space:V",
+        "living-space:C5",
+        "living-space:A",
+        "living-space:C6",
+        "living-space:R5",
+        "living-space:C7",
+        "living-space:D",
+        "living-space:C8",
+        "living-space:E",
+        "living-signage",
+        "living-atmosphere"
+      ]
+    },
+    {
+      "name": "repair_awarded_once",
+      "pass": true,
+      "detail": {
+        "inv0": 0,
+        "inv1": 2,
+        "inv2": 2,
+        "note": "direct arm callback injection, not physical pickup"
+      }
+    }
+  ],
+  "position": [
+    7,
+    30,
+    7
+  ],
+  "errors": [],
+  "method": "Runtime diagnostic integration; direct state/callback mutations; no physical playthrough; API blocked"
+}

@@ -1,0 +1,210 @@
+{
+  "status": "IMPLEMENTED_ROUTE_SHELL_CHECK",
+  "geometry": "runtime shells and openings only; final assets and dynamic obstacles require separate browser checks",
+  "hull": "2.8x5x3",
+  "samples": 6379,
+  "baselineMetres": 700.1165612620551,
+  "proposedMetres": 350.53656816406726,
+  "baselineHorizontalMetres": 629.9957518435815,
+  "proposedHorizontalMetres": 310.53656816406726,
+  "reductionPercent": 49.93168458518142,
+  "failures": [],
+  "route": [
+    [
+      7,
+      0,
+      7
+    ],
+    [
+      10,
+      0,
+      8.5
+    ],
+    [
+      7,
+      0,
+      7
+    ],
+    [
+      24,
+      0,
+      7.5
+    ],
+    [
+      53,
+      0,
+      7.5
+    ],
+    [
+      53,
+      0,
+      24
+    ],
+    [
+      56,
+      0,
+      27
+    ],
+    [
+      60,
+      0,
+      26
+    ],
+    [
+      76,
+      0,
+      26
+    ],
+    [
+      92,
+      0,
+      26
+    ],
+    [
+      108,
+      0,
+      26
+    ],
+    [
+      112,
+      0,
+      29
+    ],
+    [
+      112,
+      0,
+      17
+    ],
+    [
+      128.5,
+      0,
+      17
+    ],
+    [
+      137.8,
+      0,
+      17
+    ],
+    [
+      128.5,
+      0,
+      17
+    ],
+    [
+      128.5,
+      0,
+      30
+    ],
+    [
+      128.5,
+      0,
+      50
+    ],
+    [
+      144,
+      0,
+      60
+    ],
+    [
+      166,
+      0,
+      60
+    ],
+    [
+      188,
+      0,
+      52
+    ],
+    [
+      188,
+      0,
+      68
+    ],
+    [
+      208,
+      0,
+      68
+    ],
+    [
+      208,
+      -40,
+      68
+    ]
+  ],
+  "extraSpaces": [
+    {
+      "id": "C8",
+      "name": "维修联络水道",
+      "kind": "corridor",
+      "minX": 64,
+      "maxX": 96,
+      "minZ": 21,
+      "maxZ": 31,
+      "floorY": -3,
+      "ceilY": 3,
+      "pod": true
+    },
+    {
+      "id": "E",
+      "name": "东侧下潜井",
+      "kind": "shaft",
+      "minX": 200,
+      "maxX": 218,
+      "minZ": 60,
+      "maxZ": 76,
+      "floorY": -60,
+      "ceilY": 3,
+      "pod": true
+    }
+  ],
+  "extraDoors": [
+    {
+      "id": "R2-C8",
+      "kind": "open",
+      "a": "R2",
+      "b": "C8",
+      "axis": "x",
+      "at": 64,
+      "from": 22,
+      "to": 30,
+      "bottom": -3,
+      "top": 2.5
+    },
+    {
+      "id": "C8-R4",
+      "kind": "open",
+      "a": "C8",
+      "b": "R4",
+      "axis": "x",
+      "at": 96,
+      "from": 22,
+      "to": 30,
+      "bottom": -3,
+      "top": 2.5
+    },
+    {
+      "id": "R4-G",
+      "kind": "open",
+      "a": "R4",
+      "b": "G",
+      "axis": "x",
+      "at": 120,
+      "from": 13,
+      "to": 21,
+      "bottom": -3,
+      "top": 2.5
+    },
+    {
+      "id": "A-E",
+      "kind": "open",
+      "a": "A",
+      "b": "E",
+      "axis": "x",
+      "at": 200,
+      "from": 64,
+      "to": 72,
+      "bottom": -3,
+      "top": 2.5
+    }
+  ]
+}

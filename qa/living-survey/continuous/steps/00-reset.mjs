@@ -1,0 +1,1 @@
+export default async({page})=>{await page.reload();await page.waitForTimeout(1500);return page.evaluate(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('ironlung.'))localStorage.removeItem(k);return 'reset';});};

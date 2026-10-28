@@ -135,8 +135,9 @@ export function buildHeroes(m: LivingMaterials, shells: ShellBuild, spaceGroups:
     k.rod([-.3, .42, 0], [.3, .42, 0], .03, m.rubber, 6);
     for (const x of [-.55, .55]) k.box([x, -.3, .3], [.08, .14, .12], m.chrome);
   }, [1.2, .75, .8]);
+  const cameraPaint = new T.MeshStandardMaterial({color:'#725000',roughness:1,metalness:0}); owned.push(cameraPaint);
   const probeCase = item('living.box.probe', (b, k) => {
-    k.rbox([0, 0, 0], [.9, .55, .38], m.bandYellow, .06);
+    k.rbox([0, 0, 0], [.9, .55, .38], cameraPaint, .06);
     k.box([0, .02, 0], [.92, .03, .4], m.rubber);
     for (const x of [-.3, .3]) k.box([x, .02, .2], [.12, .1, .04], m.trim);
     k.rod([-.18, .32, 0], [.18, .32, 0], .025, m.rubber, 6);
@@ -225,7 +226,7 @@ export function buildHeroes(m: LivingMaterials, shells: ShellBuild, spaceGroups:
       for (let i = 0; i < 5; i++) { const a = i / 5 * PI * 2; k.rod([0, 0, 0], [Math.cos(a) * .48, Math.sin(a) * .48, 0], .03, band, 6); }
       k.cyl([0, 0, 0], .1, .1, .14, m.chrome, 12, [PI / 2, 0, 0]);
       for (let i = 0; i < 10; i++) { const a = i / 10 * PI * 2; k.sphere([Math.cos(a) * .5, Math.sin(a) * .5, 0], [.06, .06, .06], m.rubber, 6); }
-    }, [1.1, 1.1, .25], [0, 0, 0], [141.34, 0, z]);
+    }, [1.1, 1.1, .25], [0, 0, 0], LIVING_ITEMS.find(i => i.id === id)!.position);
     valveWheels[key] = g;
   }
 
@@ -424,7 +425,7 @@ export function buildHeroes(m: LivingMaterials, shells: ShellBuild, spaceGroups:
 
   // ================================================================ atrium balconies (y 0 and 6), columns
   const cutsY0: {wall: 'N' | 'S' | 'W' | 'E'; from: number; to: number}[] = [
-    {wall: 'N', from: 121.3, to: 135.7}, {wall: 'N', from: 181, to: 195}, {wall: 'S', from: 155.3, to: 168.7}, {wall: 'W', from: 61.3, to: 74.7},
+    {wall: 'N', from: 121.3, to: 135.7}, {wall: 'N', from: 181, to: 195}, {wall: 'S', from: 155.3, to: 168.7}, {wall: 'W', from: 61.3, to: 74.7}, {wall:'E',from:61,to:75},
   ];
   // Deck spans covered by the Blender module tiles (ATRIUM_BALCONY_TILES) go into the hideable fallback;
   // the rest of the ring (door-cut spans, W/E sides, S storey 0 above the C6 door), columns and dorm doors stay.
@@ -493,7 +494,7 @@ export function buildHeroes(m: LivingMaterials, shells: ShellBuild, spaceGroups:
     };
     const blocked = (wall: 'N' | 'S' | 'W' | 'E', v: number) => cutsY0.some(c => c.wall === wall && v > c.from - 1.5 && v < c.to + 1.5);
     for (let x = 114; x <= 196; x += 9) { if (!blocked('N', x)) col(x, z0 + D + .1); if (!blocked('S', x)) col(x, z1 - D - .1); }
-    for (const z of [51, 60, 69]) { if (!blocked('W', z)) col(x0 + D + .1, z); col(x1 - D - .1, z); }
+    for (const z of [51, 60, 69]) { if (!blocked('W', z)) col(x0 + D + .1, z); if (!blocked('E', z)) col(x1 - D - .1, z); }
     // Upper-storey dorm doors along the balconies.
     for (const y of ATRIUM_BALCONY_Y) for (let x = 118; x < 196; x += 7.5) {
       if (!(y === 0 && (blocked('N', x) || blocked('S', x)))) {
@@ -552,29 +553,12 @@ export function buildHeroes(m: LivingMaterials, shells: ShellBuild, spaceGroups:
     g.position.set(0, 1.8, .47); gateMesh.add(g);   // item point z 42.6 (outer viewport face)
     interactables.set(it.id, g); photoTargets.set(it.id, g);
   }
-  // Inner controls (sanatorium side): pressure lever, keypad, lock wheel — what Alex operates.
-  let gateInner: T.Group;
-  {
-    const b = new Batcher('living-gate-inner'); batchers.push(b);
-    const k = Kit.at(b, [182.6, -3, 41.68], PI);
-    k.box([0, 1.3, .08], [.9, 1.6, .16], m.indGreen);
-    k.rod([-.25, 1.6, .2], [-.25, 1.1, .45], .035, m.bandRed, 8); k.sphere([-.25, 1.1, .45], [.07, .07, .07], m.bandRed, 8);
-    k.box([.2, 1.55, .17], [.3, .4, .02], m.trim); for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) k.box([.11 + j * .09, 1.68 - i * .08, .185], [.06, .05, .01], m.chrome);
-    k.box([.2, 1.8, .18], [.22, .06, .01], m.lampAmber);
-    k.ring([0, .85, .22], .25, .03, m.bandRed, [0, 0, 0], 18);
-    plate(b, '闸门 F 内侧控制', 'GATE F — INNER RELEASE', 'warn', [182.6, -.75, 41.67], [0, 0, -1], 1.2);
-    gateInner = b.build(spaceGroups.get('N')!); gateInner.name = 'living-gate-inner-controls';
-  }
+  const gateInner = new T.Group(); // Personnel-side controls belong to video only.
   const gate = {mesh: gateMesh, bounds: new T.Box3(new T.Vector3(184, -3, 41.7), new T.Vector3(192, .6, 42.3))};
 
-  // ================================================================ amber cocoon around a dead resident (M)
-  hero('cocoon-corpse', () => {});
-  const cocoonBuild = buildCocoon(); disposers.push(() => cocoonBuild.dispose());
-  const cocoon = cocoonBuild.root;
-  cocoon.position.set(...ALEX_MARKS.cocoon); cocoon.position.y = -2.97;
-  fallbacks.get('cocoon-corpse')!.add(cocoon);
+  // Video-only personnel route: retain an empty compatibility handle, without actor loads.
+  const cocoon = new T.Group();
 
-  // ================================================================ Blender GLB adoption
   const parts: HeroBuild['parts'] = {
     'pipe-intake': interactables.get('living.pipe.intake')!, 'wheel-heat': valveWheels.heat, 'wheel-feed': valveWheels.feed, 'wheel-cool': valveWheels.cool,
     'probe-case': probeCase, 'battery-case': interactables.get('living.box.battery')!, 'ballast-crate': interactables.get('living.box.ballast')!, 'gate-leaf': gateMesh,
@@ -594,6 +578,8 @@ export function buildHeroes(m: LivingMaterials, shells: ShellBuild, spaceGroups:
       scene.updateMatrixWorld(true);
       for (const spec of HERO_GLB_PARTS) {
         if (spec.hero !== name) continue;
+        if(spec.node==='probe-case'){const n=scene.getObjectByName(spec.node);if(n)n.visible=false;continue;}
+        if(spec.node==='pipe-intake'){const n=scene.getObjectByName(spec.node);if(n)n.visible=false;continue;}
         // children of an already adopted part (port glass on the leaf) are no longer under `scene`
         const node = scene.getObjectByName(spec.node) ?? [...glbParts.values()].map(n => n.getObjectByName(spec.node)).find(Boolean);
         if (!node) { console.warn(`[living] hero GLB ${name}: part ${spec.node} missing, keeping procedural`); continue; }
@@ -611,7 +597,7 @@ export function buildHeroes(m: LivingMaterials, shells: ShellBuild, spaceGroups:
         } else {
           const g = interactables.get(spec.id!)!;
           hideProcedural(g);
-          adoptInto(g, node, () => {});
+          adoptInto(g, node, () => {if(spec.id==='living.box.probe')g.position.set(76,-1.2,-61.5);if(spec.id==='living.box.battery'){g.position.set(29,-.6,-20.5);g.rotation.y=0;}});
         }
         glbParts.set(spec.node, node);
       }

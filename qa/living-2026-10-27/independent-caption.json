@@ -1,0 +1,143 @@
+{
+  "method": "Legal diagnostic R2 positioning; physical shutter click and real exposure timer; exported runtime rectangular/circular draws plus actual cockpit screenshot; API blocked",
+  "setup": {
+    "legal": true,
+    "hint": "机修补给 · 应急电池箱 · 2.8 米 · F 伸出机械臂"
+  },
+  "shot": {
+    "phase": "exposing",
+    "left": 3.9832999999999976
+  },
+  "draws": [
+    {
+      "shape": "rectangle",
+      "texts": [
+        {
+          "text": "机修补给 · 应急电池箱 · 2.8 米 · F 伸出机械臂",
+          "x": 35.84,
+          "y": 555.328,
+          "font": "24.48px \"Microsoft YaHei\"",
+          "baseline": "top"
+        },
+        {
+          "text": "曝光中 · 3.9s",
+          "x": 102.4,
+          "y": 662.4,
+          "font": "500 13.7px \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans SC\", \"Source Han Sans SC\", \"Hiragino Sans GB\", sans-serif",
+          "baseline": "alphabetic"
+        }
+      ]
+    },
+    {
+      "shape": "circle",
+      "texts": [
+        {
+          "text": "机修补给 · 应急电池箱 · 2.8 米 · F 伸出机械臂",
+          "x": 264.39679450683593,
+          "y": 510.59583694824215,
+          "font": "19.0944px \"Microsoft YaHei\"",
+          "baseline": "top"
+        },
+        {
+          "text": "曝光中 · 3.9s",
+          "x": 348.16,
+          "y": 619.2,
+          "font": "500 13.7px \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans SC\", \"Source Han Sans SC\", \"Hiragino Sans GB\", sans-serif",
+          "baseline": "alphabetic"
+        },
+        {
+          "text": "2.8 m",
+          "x": 557.36,
+          "y": 360,
+          "font": "15.84px Consolas, monospace",
+          "baseline": "middle"
+        },
+        {
+          "text": "180°",
+          "x": 512,
+          "y": 98.64,
+          "font": "500 27.36px Consolas, monospace",
+          "baseline": "alphabetic"
+        },
+        {
+          "text": "135",
+          "x": 245.76,
+          "y": 109.44,
+          "font": "12.96px Consolas, monospace",
+          "baseline": "alphabetic"
+        },
+        {
+          "text": "150",
+          "x": 334.50666666666666,
+          "y": 109.44,
+          "font": "12.96px Consolas, monospace",
+          "baseline": "alphabetic"
+        },
+        {
+          "text": "165",
+          "x": 423.25333333333333,
+          "y": 109.44,
+          "font": "12.96px Consolas, monospace",
+          "baseline": "alphabetic"
+        },
+        {
+          "text": "195",
+          "x": 600.7466666666667,
+          "y": 109.44,
+          "font": "12.96px Consolas, monospace",
+          "baseline": "alphabetic"
+        },
+        {
+          "text": "210",
+          "x": 689.4933333333333,
+          "y": 109.44,
+          "font": "12.96px Consolas, monospace",
+          "baseline": "alphabetic"
+        },
+        {
+          "text": "225",
+          "x": 778.24,
+          "y": 109.44,
+          "font": "12.96px Consolas, monospace",
+          "baseline": "alphabetic"
+        },
+        {
+          "text": "俯仰  +11°",
+          "x": 512,
+          "y": 163.44,
+          "font": "14.4px Consolas, \"Microsoft YaHei\", monospace",
+          "baseline": "alphabetic"
+        },
+        {
+          "text": "X     56.0",
+          "x": 220.16,
+          "y": 273.6,
+          "font": "15.84px Consolas, monospace",
+          "baseline": "alphabetic"
+        },
+        {
+          "text": "Y     27.5",
+          "x": 220.16,
+          "y": 300.96000000000004,
+          "font": "15.84px Consolas, monospace",
+          "baseline": "alphabetic"
+        },
+        {
+          "text": "DEPTH 1040.0 m",
+          "x": 220.16,
+          "y": 328.32000000000005,
+          "font": "15.84px Consolas, monospace",
+          "baseline": "alphabetic"
+        }
+      ]
+    }
+  ],
+  "after": {
+    "phase": "developing",
+    "frames": 10
+  },
+  "errors": [
+    "console: Failed to load resource: net::ERR_FAILED",
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
+}

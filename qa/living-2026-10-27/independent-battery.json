@@ -1,0 +1,41 @@
+[
+  {
+    "initialTeleport": true,
+    "down": true,
+    "across": true,
+    "pos": [
+      29.000000000000185,
+      0,
+      -17.00000000000009
+    ],
+    "aim": {
+      "id": "living.box.battery",
+      "distance": 3.2590857462846907
+    },
+    "power": 0.08,
+    "method": "actual site move and turn geometry, not run movement-cost path"
+  },
+  {
+    "before": "stowed",
+    "after": "extending",
+    "feedback": "机械臂伸出中 · 应急电池箱 · 伸出后再按 F 夹取"
+  },
+  {
+    "before": "aiming",
+    "after": "gripping",
+    "feedback": "爪头扣住箱体 · 正在解锁"
+  },
+  {
+    "before": "aiming",
+    "after": "hauling",
+    "feedback": "箱体已夹紧 · 正在回收，收臂完成后才入库"
+  },
+  {
+    "power": 0.6686,
+    "cell": 1,
+    "cargo": [
+      "living.box.battery"
+    ],
+    "feedback": "备用蓄电池组并入主母线，电量回升。"
+  }
+]

@@ -1,0 +1,39 @@
+{
+  "diagnostic": true,
+  "viewport": "1600x900",
+  "environment": "headless Edge on this machine; other agent browsers may compete",
+  "method": "Actual application requestAnimationFrame intervals at diagnostic stationary positions; no video generation",
+  "samples": [
+    {
+      "zone": "gallery",
+      "samples": 90,
+      "meanMs": 16.666666666666668,
+      "p50Ms": 16.69999999999709,
+      "p95Ms": 16.799999999999272,
+      "observedRafHz": 59.99999999999999,
+      "sceneDraws": 106,
+      "meanSceneSubmitMs": 2.5594339615331507
+    },
+    {
+      "zone": "pit",
+      "samples": 90,
+      "meanMs": 16.666666666666668,
+      "p50Ms": 16.69999999999709,
+      "p95Ms": 16.799999999999272,
+      "observedRafHz": 59.99999999999999,
+      "sceneDraws": 106,
+      "meanSceneSubmitMs": 2.583018868599298
+    },
+    {
+      "zone": "plant",
+      "samples": 90,
+      "meanMs": 16.666666666666668,
+      "p50Ms": 16.69999999999709,
+      "p95Ms": 16.799999999999272,
+      "observedRafHz": 59.99999999999999,
+      "sceneDraws": 106,
+      "meanSceneSubmitMs": 3.0877358487473345
+    }
+  ],
+  "errors": []
+}

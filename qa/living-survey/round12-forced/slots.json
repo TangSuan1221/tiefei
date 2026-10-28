@@ -1,0 +1,410 @@
+[
+  {
+    "name": "fixed",
+    "enabled": false,
+    "film": false,
+    "slots": [
+      {
+        "position": [
+          154,
+          8.2,
+          57
+        ],
+        "rated": 34,
+        "actual": 822.8000000000001,
+        "range": 22,
+        "forced": false
+      },
+      {
+        "position": [
+          163,
+          3,
+          57
+        ],
+        "rated": 52,
+        "actual": 1258.4,
+        "range": 25,
+        "forced": false
+      }
+    ],
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  },
+  {
+    "name": "fixed",
+    "enabled": false,
+    "film": true,
+    "slots": [
+      {
+        "position": [
+          154,
+          8.2,
+          57
+        ],
+        "rated": 34,
+        "actual": 822.8000000000001,
+        "range": 22,
+        "forced": false
+      },
+      {
+        "position": [
+          163,
+          3,
+          57
+        ],
+        "rated": 52,
+        "actual": 1258.4,
+        "range": 25,
+        "forced": false
+      }
+    ],
+    "profile": {
+      "exposure": 2.95,
+      "lampGain": 1,
+      "practicalGain": 1.1,
+      "envIntensity": 0.9,
+      "scatter": 1,
+      "grain": 0.03,
+      "vignette": 0.6,
+      "aberration": 0.0022,
+      "bloom": 0.4,
+      "halo": 1,
+      "meter": 1,
+      "meterKey": 0.032,
+      "meterRange": [
+        0.08,
+        1.2
+      ],
+      "whiteKnee": 2.5,
+      "look": [
+        1.15,
+        1.08
+      ],
+      "spread": [
+        0.2,
+        1.45,
+        1.9
+      ]
+    }
+  },
+  {
+    "name": "fixed",
+    "enabled": true,
+    "film": false,
+    "slots": [
+      {
+        "position": [
+          163,
+          3,
+          57
+        ],
+        "rated": 52,
+        "actual": 1258.4,
+        "range": 25,
+        "forced": true
+      },
+      {
+        "position": [
+          191,
+          3,
+          57
+        ],
+        "rated": 34,
+        "actual": 822.8000000000001,
+        "range": 22,
+        "forced": true
+      }
+    ],
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  },
+  {
+    "name": "fixed",
+    "enabled": true,
+    "film": true,
+    "slots": [
+      {
+        "position": [
+          163,
+          3,
+          57
+        ],
+        "rated": 52,
+        "actual": 1258.4,
+        "range": 25,
+        "forced": true
+      },
+      {
+        "position": [
+          191,
+          3,
+          57
+        ],
+        "rated": 34,
+        "actual": 822.8000000000001,
+        "range": 22,
+        "forced": true
+      }
+    ],
+    "profile": {
+      "exposure": 2.95,
+      "lampGain": 1,
+      "practicalGain": 1.1,
+      "envIntensity": 0.9,
+      "scatter": 1,
+      "grain": 0.03,
+      "vignette": 0.6,
+      "aberration": 0.0022,
+      "bloom": 0.4,
+      "halo": 1,
+      "meter": 1,
+      "meterKey": 0.032,
+      "meterRange": [
+        0.08,
+        1.2
+      ],
+      "whiteKnee": 2.5,
+      "look": [
+        1.15,
+        1.08
+      ],
+      "spread": [
+        0.2,
+        1.45,
+        1.9
+      ]
+    }
+  },
+  {
+    "name": "approach",
+    "enabled": false,
+    "film": false,
+    "slots": [
+      {
+        "position": [
+          163,
+          3,
+          57
+        ],
+        "rated": 52,
+        "actual": 1258.4,
+        "range": 25,
+        "forced": false
+      },
+      {
+        "position": [
+          155,
+          8,
+          62
+        ],
+        "rated": 26,
+        "actual": 343.20000000000005,
+        "range": 30,
+        "forced": false
+      }
+    ],
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  },
+  {
+    "name": "approach",
+    "enabled": false,
+    "film": true,
+    "slots": [
+      {
+        "position": [
+          163,
+          3,
+          57
+        ],
+        "rated": 52,
+        "actual": 1258.4,
+        "range": 25,
+        "forced": false
+      },
+      {
+        "position": [
+          155,
+          8,
+          62
+        ],
+        "rated": 26,
+        "actual": 343.20000000000005,
+        "range": 30,
+        "forced": false
+      }
+    ],
+    "profile": {
+      "exposure": 2.95,
+      "lampGain": 1,
+      "practicalGain": 1.1,
+      "envIntensity": 0.9,
+      "scatter": 1,
+      "grain": 0.03,
+      "vignette": 0.6,
+      "aberration": 0.0022,
+      "bloom": 0.4,
+      "halo": 1,
+      "meter": 1,
+      "meterKey": 0.032,
+      "meterRange": [
+        0.08,
+        1.2
+      ],
+      "whiteKnee": 2.5,
+      "look": [
+        1.15,
+        1.08
+      ],
+      "spread": [
+        0.2,
+        1.45,
+        1.9
+      ]
+    }
+  },
+  {
+    "name": "approach",
+    "enabled": true,
+    "film": false,
+    "slots": [
+      {
+        "position": [
+          163,
+          3,
+          57
+        ],
+        "rated": 52,
+        "actual": 1258.4,
+        "range": 25,
+        "forced": true
+      },
+      {
+        "position": [
+          191,
+          3,
+          57
+        ],
+        "rated": 34,
+        "actual": 822.8000000000001,
+        "range": 22,
+        "forced": true
+      }
+    ],
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  },
+  {
+    "name": "approach",
+    "enabled": true,
+    "film": true,
+    "slots": [
+      {
+        "position": [
+          163,
+          3,
+          57
+        ],
+        "rated": 52,
+        "actual": 1258.4,
+        "range": 25,
+        "forced": true
+      },
+      {
+        "position": [
+          191,
+          3,
+          57
+        ],
+        "rated": 34,
+        "actual": 822.8000000000001,
+        "range": 22,
+        "forced": true
+      }
+    ],
+    "profile": {
+      "exposure": 2.95,
+      "lampGain": 1,
+      "practicalGain": 1.1,
+      "envIntensity": 0.9,
+      "scatter": 1,
+      "grain": 0.03,
+      "vignette": 0.6,
+      "aberration": 0.0022,
+      "bloom": 0.4,
+      "halo": 1,
+      "meter": 1,
+      "meterKey": 0.032,
+      "meterRange": [
+        0.08,
+        1.2
+      ],
+      "whiteKnee": 2.5,
+      "look": [
+        1.15,
+        1.08
+      ],
+      "spread": [
+        0.2,
+        1.45,
+        1.9
+      ]
+    }
+  }
+]

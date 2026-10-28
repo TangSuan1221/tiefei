@@ -1,0 +1,446 @@
+[
+  {
+    "eye": [
+      144,
+      0,
+      60
+    ],
+    "dir": [
+      1,
+      0,
+      -2.220446049250313e-16
+    ],
+    "cases": [
+      {
+        "moved": false,
+        "target": {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "space": "A",
+          "key": true,
+          "intensity": 34,
+          "range": 22,
+          "d": 13.275541420220872,
+          "ahead": 0.8149487100071298,
+          "w": 0.7210565982990308,
+          "passesRange": true,
+          "target": true
+        },
+        "targetRank": 0,
+        "selected": [
+          {
+            "position": [
+              154,
+              8.2,
+              57
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 34,
+            "range": 22,
+            "d": 13.275541420220872,
+            "ahead": 0.8149487100071298,
+            "w": 0.7210565982990308,
+            "passesRange": true,
+            "target": true
+          },
+          {
+            "position": [
+              163,
+              3,
+              57
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 52,
+            "range": 25,
+            "d": 19.467922333931785,
+            "ahead": 0.9819733331359576,
+            "w": 0.6666137509539137,
+            "passesRange": true,
+            "target": false
+          }
+        ],
+        "next": [
+          {
+            "position": [
+              155,
+              8,
+              62
+            ],
+            "space": "A",
+            "key": false,
+            "intensity": 26,
+            "range": 30,
+            "d": 13.74772708486752,
+            "ahead": 0.850099198148979,
+            "w": 0.627258092255155,
+            "passesRange": true,
+            "target": false
+          },
+          {
+            "position": [
+              170,
+              3,
+              80.8
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 26,
+            "range": 28,
+            "d": 33.431123223726715,
+            "ahead": 0.8332888075432796,
+            "w": 0.10221024362786658,
+            "passesRange": true,
+            "target": false
+          },
+          {
+            "position": [
+              154.5,
+              -3.3,
+              43.3
+            ],
+            "space": "A",
+            "key": false,
+            "intensity": 15,
+            "range": 13,
+            "d": 20.00074998593803,
+            "ahead": 0.6437352352055146,
+            "w": 0.08617010116908473,
+            "passesRange": true,
+            "target": false
+          }
+        ]
+      },
+      {
+        "moved": true,
+        "target": {
+          "position": [
+            191,
+            3,
+            57
+          ],
+          "space": "A",
+          "key": true,
+          "intensity": 34,
+          "range": 22,
+          "d": 47.19110085598767,
+          "ahead": 0.9969628671637023,
+          "w": 0.07126391380525099,
+          "passesRange": false,
+          "target": true
+        },
+        "targetRank": -1,
+        "selected": [
+          {
+            "position": [
+              163,
+              3,
+              57
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 52,
+            "range": 25,
+            "d": 19.467922333931785,
+            "ahead": 0.9819733331359576,
+            "w": 0.6666137509539137,
+            "passesRange": true,
+            "target": false
+          },
+          {
+            "position": [
+              155,
+              8,
+              62
+            ],
+            "space": "A",
+            "key": false,
+            "intensity": 26,
+            "range": 30,
+            "d": 13.74772708486752,
+            "ahead": 0.850099198148979,
+            "w": 0.627258092255155,
+            "passesRange": true,
+            "target": false
+          }
+        ],
+        "next": [
+          {
+            "position": [
+              170,
+              3,
+              80.8
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 26,
+            "range": 28,
+            "d": 33.431123223726715,
+            "ahead": 0.8332888075432796,
+            "w": 0.10221024362786658,
+            "passesRange": true,
+            "target": false
+          },
+          {
+            "position": [
+              154.5,
+              -3.3,
+              43.3
+            ],
+            "space": "A",
+            "key": false,
+            "intensity": 15,
+            "range": 13,
+            "d": 20.00074998593803,
+            "ahead": 0.6437352352055146,
+            "w": 0.08617010116908473,
+            "passesRange": true,
+            "target": false
+          },
+          {
+            "position": [
+              174,
+              -4.6,
+              63.5
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 20,
+            "range": 16,
+            "d": 30.551759360141602,
+            "ahead": 0.9864551329032109,
+            "w": 0.08418558649071044,
+            "passesRange": true,
+            "target": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "eye": [
+      151,
+      0,
+      60
+    ],
+    "dir": [
+      1,
+      0,
+      -2.220446049250313e-16
+    ],
+    "cases": [
+      {
+        "moved": false,
+        "target": {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "space": "A",
+          "key": true,
+          "intensity": 34,
+          "range": 22,
+          "d": 9.232551110067032,
+          "ahead": 0.4937029563309577,
+          "w": 0.8822596629265895,
+          "passesRange": true,
+          "target": true
+        },
+        "targetRank": 2,
+        "selected": [
+          {
+            "position": [
+              163,
+              3,
+              57
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 52,
+            "range": 25,
+            "d": 12.727922061357855,
+            "ahead": 0.9571067811865475,
+            "w": 1.4990829102921828,
+            "passesRange": true,
+            "target": false
+          },
+          {
+            "position": [
+              155,
+              8,
+              62
+            ],
+            "space": "A",
+            "key": false,
+            "intensity": 26,
+            "range": 30,
+            "d": 9.16515138991168,
+            "ahead": 0.5773268353539885,
+            "w": 0.9342713863849674,
+            "passesRange": true,
+            "target": false
+          }
+        ],
+        "next": [
+          {
+            "position": [
+              154,
+              8.2,
+              57
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 34,
+            "range": 22,
+            "d": 9.232551110067032,
+            "ahead": 0.4937029563309577,
+            "w": 0.8822596629265895,
+            "passesRange": true,
+            "target": true
+          },
+          {
+            "position": [
+              174,
+              -4.6,
+              63.5
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 20,
+            "range": 16,
+            "d": 23.715185008766007,
+            "ahead": 0.9773820547309147,
+            "w": 0.13804587556447304,
+            "passesRange": true,
+            "target": false
+          },
+          {
+            "position": [
+              170,
+              3,
+              80.8
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 26,
+            "range": 28,
+            "d": 28.33090185645349,
+            "ahead": 0.7529843409928015,
+            "w": 0.12842765544037762,
+            "passesRange": true,
+            "target": false
+          }
+        ]
+      },
+      {
+        "moved": true,
+        "target": {
+          "position": [
+            191,
+            3,
+            57
+          ],
+          "space": "A",
+          "key": true,
+          "intensity": 34,
+          "range": 22,
+          "d": 40.22437072223753,
+          "ahead": 0.9958165152454426,
+          "w": 0.09790812467200301,
+          "passesRange": false,
+          "target": true
+        },
+        "targetRank": -1,
+        "selected": [
+          {
+            "position": [
+              163,
+              3,
+              57
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 52,
+            "range": 25,
+            "d": 12.727922061357855,
+            "ahead": 0.9571067811865475,
+            "w": 1.4990829102921828,
+            "passesRange": true,
+            "target": false
+          },
+          {
+            "position": [
+              155,
+              8,
+              62
+            ],
+            "space": "A",
+            "key": false,
+            "intensity": 26,
+            "range": 30,
+            "d": 9.16515138991168,
+            "ahead": 0.5773268353539885,
+            "w": 0.9342713863849674,
+            "passesRange": true,
+            "target": false
+          }
+        ],
+        "next": [
+          {
+            "position": [
+              174,
+              -4.6,
+              63.5
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 20,
+            "range": 16,
+            "d": 23.715185008766007,
+            "ahead": 0.9773820547309147,
+            "w": 0.13804587556447304,
+            "passesRange": true,
+            "target": false
+          },
+          {
+            "position": [
+              170,
+              3,
+              80.8
+            ],
+            "space": "A",
+            "key": true,
+            "intensity": 26,
+            "range": 28,
+            "d": 28.33090185645349,
+            "ahead": 0.7529843409928015,
+            "w": 0.12842765544037762,
+            "passesRange": true,
+            "target": false
+          },
+          {
+            "position": [
+              154.5,
+              -3.3,
+              43.3
+            ],
+            "space": "A",
+            "key": false,
+            "intensity": 15,
+            "range": 13,
+            "d": 17.379010328554386,
+            "ahead": 0.4010442741199725,
+            "w": 0.07087470316982632,
+            "passesRange": true,
+            "target": false
+          }
+        ]
+      }
+    ]
+  }
+]

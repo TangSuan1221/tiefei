@@ -1,0 +1,104 @@
+{
+  "method": "Diagnostic legal teleport and normal site.move/moveVertical with actual hull/colliders; not keyboard or blind play; API blocked",
+  "cases": [
+    {
+      "name": "high_then_descend",
+      "x": 50.3,
+      "legal": true,
+      "high": {
+        "moved": 17,
+        "pos": [
+          50.3,
+          1.3,
+          9.150000000000015
+        ],
+        "feedback": "艇顶碰到门楣。先松开推进，按 PageDown 下潜一点，再过门。"
+      },
+      "descended": true,
+      "low": {
+        "moved": 0,
+        "pos": [
+          50.3,
+          -2.7755575615628914e-17,
+          9.150000000000015
+        ],
+        "feedback": "艇身擦住侧门框。先按 N 倒车；门洞中心在左前方，重新对准中间再进。"
+      },
+      "realigned": {
+        "reverse": true,
+        "across": true,
+        "heading": 180,
+        "moved": 90,
+        "pos": [
+          52.99999999999996,
+          -2.7755575615628914e-17,
+          16.150000000000126
+        ],
+        "feedback": ""
+      }
+    },
+    {
+      "name": "high_then_descend",
+      "x": 53,
+      "legal": true,
+      "high": {
+        "moved": 17,
+        "pos": [
+          53,
+          1.3,
+          9.150000000000015
+        ],
+        "feedback": "艇顶碰到门楣。先松开推进，按 PageDown 下潜一点，再过门。"
+      },
+      "descended": true,
+      "low": {
+        "moved": 70,
+        "pos": [
+          53,
+          -2.7755575615628914e-17,
+          16.150000000000112
+        ],
+        "feedback": ""
+      },
+      "realigned": null
+    },
+    {
+      "name": "centerline",
+      "legal": true,
+      "moved": 70,
+      "pos": [
+        53,
+        0,
+        16.2000000000001
+      ],
+      "feedback": ""
+    },
+    {
+      "name": "closed_survey_gate",
+      "legal": true,
+      "lift": 0,
+      "bounds": {
+        "min": [
+          124.3,
+          -3,
+          41.83
+        ],
+        "max": [
+          132.7,
+          2.5,
+          42.17
+        ]
+      },
+      "moved": 23,
+      "pos": [
+        128.5,
+        0,
+        39.29999999999987
+      ],
+      "feedback": "艇身前方有阻挡。按 Shift 制动，N 倒车留出空间，再调整船头。"
+    }
+  ],
+  "errors": [
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
+}

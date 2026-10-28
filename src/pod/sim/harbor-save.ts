@@ -46,7 +46,7 @@ export interface SaveStorage { getItem(key:string):string|null; setItem(key:stri
 export function isHarborSave(v:unknown):v is HarborSave {
   if(!object(v)||v.version!==1||!Number.isInteger(v.seed)||v.seed<0||v.seed>0xffffffff||v.phase!=='site')return false;
   const s=v.site,r=v.run,c=v.campaign;
-  if(!object(s)||s.index!==0||typeof s.levelId!=='string'||!s.levelId.startsWith('harbor')||!object(s.state)||!object(s.harbor))return false;
+  if(!object(s)||s.debugNoVideo===true||s.index!==0||typeof s.levelId!=='string'||!s.levelId.startsWith('harbor')||!object(s.state)||!object(s.harbor))return false;
   if(s.state.version!==1||s.state.levelId!==s.levelId||s.harbor.version!==1||s.harbor.levelId!==s.levelId)return false;
   if(!['inventory','collected','opened','visited','recorded'].every(k=>Array.isArray(s.state[k])&&s.state[k].every((x:unknown)=>typeof x==='string')))return false;
   if(!Array.isArray(s.harbor.grants)||!s.harbor.grants.every((x:unknown)=>typeof x==='string')||!Array.isArray(s.harbor.exposures))return false;

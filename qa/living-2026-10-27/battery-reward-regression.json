@@ -1,0 +1,25 @@
+{
+  "method": "Cargo callback fixture; real save/reload/Continue and normal supply use. No physical pickup or full-route claim.",
+  "before": {
+    "once": {
+      "cells": 3,
+      "power": 0.18
+    },
+    "twice": {
+      "cells": 3,
+      "power": 0.18
+    }
+  },
+  "after": {
+    "restored": {
+      "cells": 3,
+      "power": 0.18
+    },
+    "repeated": 3,
+    "used": true,
+    "cells": 2,
+    "power": 0.5958
+  },
+  "pass": true,
+  "errors": []
+}

@@ -1,0 +1,37 @@
+{
+  "result": {
+    "rows": [
+      {
+        "name": "north wall recommends forward",
+        "pass": true,
+        "heading": 176,
+        "text": "艇身转向净空不足。先轻按 Space 前进约 0.6 米，按 Shift 制动后再向左转。"
+      },
+      {
+        "name": "south doorway wall recommends reverse",
+        "pass": true,
+        "heading": 176,
+        "text": "艇身转向净空不足。先轻按 N 倒车约 0.6 米，按 Shift 制动后再向左转。"
+      },
+      {
+        "name": "pitched down near floor must not suggest forward",
+        "pass": true,
+        "heading": 176,
+        "text": "艇身转向净空不足。先按 Shift 制动，检查门框和艇身位置，再调整航向。"
+      },
+      {
+        "name": "both short translations blocked stays neutral",
+        "pass": true,
+        "heading": 6.5,
+        "text": "艇身转向净空不足。先按 Shift 制动，检查门框和艇身位置，再调整航向。"
+      }
+    ],
+    "pass": true,
+    "method": "Actual world north/south jam poses and production turn feedback; no movement triggered by hint. Third case bounded AABB pocket fixture using real harborHullClear and sweep; no runtime geometry mutation."
+  },
+  "blocked": [
+    "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Noto+Serif+SC:wght@300;400;600&display=swap",
+    "http://127.0.0.1:5180/api/video/videos"
+  ],
+  "errors": []
+}

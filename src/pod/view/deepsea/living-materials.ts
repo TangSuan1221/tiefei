@@ -8,6 +8,8 @@ import * as T from 'three';
 export interface WearOptions {
   /** World Y of the floor this surface stands on (grime band reference). */
   floorY?: number;
+  /** Failed seal origin and width in world metres. */
+  leak?: readonly [number,number,number,number];
   /** Silt blanket on up-facing surfaces, 0..1. */
   silt?: number;
   /** Low-wall grime band and vertical runoff, 0..1. */
@@ -35,6 +37,7 @@ const WEAR_COMMON = /* glsl */`
 varying vec3 vLWorld;varying vec3 vLNormal;
 uniform float uFloor,uSilt,uGrime,uBio,uRust,uAnti,uWet;
 uniform sampler2D uRustMap;
+
 float lwHash(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
 float lwNoise(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
  return mix(mix(mix(lwHash(i),lwHash(i+vec3(1,0,0)),f.x),mix(lwHash(i+vec3(0,1,0)),lwHash(i+vec3(1,1,0)),f.x),f.y),
@@ -63,6 +66,7 @@ export function applyWear(material: T.MeshStandardMaterial, o: WearOptions = {})
     const w = material.userData.wear as typeof u;
     for (const k of WEAR_UNIFORM_KEYS) shader.uniforms[k] = w[k];
     shader.uniforms.uRustMap = RUST_MAP;
+    if(o.leak)shader.uniforms.uLeak = {value: new T.Vector4(...o.leak)};
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vLWorld;varying vec3 vLNormal;')
       .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
@@ -72,7 +76,7 @@ export function applyWear(material: T.MeshStandardMaterial, o: WearOptions = {})
  #endif
  vLWorld=(modelMatrix*lwP).xyz;vLNormal=normalize(mat3(modelMatrix)*lwN);`);
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\n' + WEAR_COMMON)
+      .replace('#include <common>', '#include <common>\n' + WEAR_COMMON + (o.leak?'\nuniform vec4 uLeak;':''))
       .replace('#include <map_fragment>', `
  vec3 lwN=normalize(vLNormal);float lwUp=clamp(lwN.y,0.,1.);float lwSide=1.-smoothstep(.55,.85,abs(lwN.y));
  float lwA=lwFbm(vLWorld*.33),lwB=lwFbm(vLWorld*1.9+4.1);
@@ -85,6 +89,7 @@ export function applyWear(material: T.MeshStandardMaterial, o: WearOptions = {})
  float lwCurv=clamp(length(fwidth(lwN))/max(length(fwidth(vLWorld)),1e-4)*.06,0.,1.);
  float lwLow=(1.-smoothstep(0.,1.6,lwH))*lwSide*(.55+.45*lwA);
  float lwStreak=smoothstep(.6,.93,lwNoise(vec3(vLWorld.x*3.7+vLWorld.z*3.7,vLWorld.y*.16,vLWorld.z*.31+vLWorld.x*.07)))*lwSide*(.35+.65*lwB);
+ ${o.leak?`float lwFall=uLeak.y-vLWorld.y; float lwLeak=step(0.,lwFall)*exp(-length(vLWorld.xz-uLeak.xz)/max(.01,uLeak.w*(1.+.07*lwFall)))*(.55+.45*lwB);`:''}
  float lwTide=0.;
  for(int i=0;i<3;i++){float th=.62+float(i)*.83+.05*sin(vLWorld.x*1.3+vLWorld.z*.9)+.04*lwB;
   lwTide+=(1.-smoothstep(.0,.022+.02*lwA,abs(lwH-th)))*(.55-.15*float(i));}
@@ -95,6 +100,7 @@ export function applyWear(material: T.MeshStandardMaterial, o: WearOptions = {})
  float lwBioMask=smoothstep(.56,.78,lwFbm(vLWorld*.55+17.))*uBio*(.6+.4*lwB);
  float lwChip=lwCurv*smoothstep(.42,.62,lwFbm(vLWorld*7.3+2.))*.9;
  float lwRustM=clamp(uRust*(lwStreak*.9+lwLow*.45+lwCurv*.8*lwB)*smoothstep(.3,.7,lwFbm(vLWorld*2.6+31.)+lwStreak*.4),0.,1.);
+ ${o.leak?'lwRustM=max(lwRustM,lwLeak*.92);':''}
  vec3 lwRustC=texture2D(uRustMap,lwBox(vLWorld,lwN)*.37).rgb;
  vec3 lwBase=diffuseColor.rgb*mix(.84,1.1,lwA);
  lwBase*=1.-clamp(lwLow*uGrime*.6+lwStreak*uGrime*.26+lwBelow*uGrime*.12,0.,.8);
@@ -124,7 +130,7 @@ export function applyWear(material: T.MeshStandardMaterial, o: WearOptions = {})
     patchStatic(shader, null);
   };
   material.userData.livingStatic = true;
-  material.customProgramCacheKey = () => 'living-wear-v5';
+  material.customProgramCacheKey = () => o.leak?'living-wear-v6-leak':'living-wear-v5';
   return material;
 }
 
@@ -133,7 +139,7 @@ export function wearVariant<M extends T.MeshStandardMaterial>(source: M, o: Wear
   const m = source.clone() as M;
   const base = source.userData.wear as Record<string, {value: number}> | undefined;
   applyWear(m, {
-    floorY: o.floorY ?? base?.uFloor.value, silt: o.silt ?? base?.uSilt.value, grime: o.grime ?? base?.uGrime.value,
+    leak:o.leak, floorY: o.floorY ?? base?.uFloor.value, silt: o.silt ?? base?.uSilt.value, grime: o.grime ?? base?.uGrime.value,
     bio: o.bio ?? base?.uBio.value, rust: o.rust ?? base?.uRust.value, antiTile: o.antiTile ?? base?.uAnti.value, wet: o.wet ?? base?.uWet.value,
   });
   owned.push(m);
@@ -337,7 +343,7 @@ vec4 lcStain(vec2 uv,vec4 h,float v){
   return material;
 }
 
-export function createLivingMaterials() {
+export function createLivingMaterials(options:{survey?:boolean}={}) {
   const owned: T.Material[] = [], textures: T.Texture[] = [], loads: Promise<void>[] = [];
   const loader = new T.TextureLoader();
   const scanCache = new Map<string, Scan>();
@@ -474,7 +480,7 @@ export function createLivingMaterials() {
     carpet: std('carpet', carpetScan, 1.4, {color: '#5f574c', roughness: 1, metalness: 0, normal: .9}, {silt: .8, grime: .5, bio: .35}),
     carpetRed: std('carpet-red', carpetScan, 1.4, {color: '#5e3a31', roughness: 1, metalness: 0, normal: .9}, {silt: .8, grime: .5, bio: .35}),
     /** Residential bulkhead: welded painted steel panels (key kept for compatibility; no more wallpaper). */
-    wallpaper: std('bulkhead', panelScan, 2.6, {color: '#8e9a93', roughness: .78, metalness: .42, normal: 1.1}, {silt: .4, grime: .75, bio: .35, rust: .45, antiTile: 0, wet: 0.55}),
+    wallpaper: std('bulkhead', panelScan, 2.6, {color: '#8e9a93', roughness: .9, metalness: .42, normal: 1.1}, {silt: .4, grime: .75, bio: .35, rust: .12, antiTile: 0, wet: 0.18}),
     /** Remaining wood trim, waterlogged and blackened. */
     veneer: std('veneer-soaked', veneerScan, 1.3, {color: '#3e342d', roughness: .62, metalness: 0, normal: 1.2}, {silt: .6, grime: .7, bio: .5, wet: 0.3}),
     wallTile: std('wall-tile', wallTileScan, 1.5, {color: '#b1ab9e', roughness: .8, metalness: 0, normal: .9}, {silt: .45, grime: .75, bio: .55, rust: .35, antiTile: 0, wet: 0.6}),
@@ -488,11 +494,12 @@ export function createLivingMaterials() {
     indGreen: std('ind-green', paintScan, 1.6, {color: '#6c8476', roughness: .85, metalness: .4, normal: 1}, {silt: .6, grime: .6, bio: .3, rust: .55, wet: 0.5}),
     rustSheet: std('rust-sheet', harborPaint, 2, {color: '#8b9187', roughness: 1, metalness: .4, normal: .8}, {silt: .6, grime: .5, bio: .25, rust: .6, wet: 0.4}),
     plate: std('plate', deckScan, 1.6, {color: '#8f928c', roughness: .9, metalness: .6, normal: 1}, {silt: .75, grime: .4, bio: .25, rust: .35, antiTile: 0, wet: 0.95}),
-    frame: std('frame', deckScan, 1.5, {color: '#525a57', roughness: .85, metalness: .6, normal: .8}, {silt: .55, grime: .45, bio: .25, rust: .6, antiTile: 0, wet: 0.45}),
+    frame: std('frame', deckScan, 1.5, {color: '#525a57', roughness: .54, metalness: .6, normal: .8}, {silt: .25, grime: .45, bio: .25, rust: .18, antiTile: 0, wet: 0.2}),
     ceiling: withCeilingStains(std('ceiling', null, 1, {map: ceilingMap, color: '#9d9a90', roughness: .97, metalness: 0}, {silt: .2, grime: .25, bio: .55, antiTile: 0})),
     /** Dark painted steel (rails, seams, bezels). */
-    trim: std('trim', paintScan, .9, {color: '#3f4542', roughness: .7, metalness: .5, normal: .8}, {silt: .6, grime: .35, bio: .3, rust: .5, wet: 0.4}),
+    trim: std('trim', paintScan, .9, {color: '#3f4542', roughness: .7, metalness: .5, normal: .8}, {silt: .2, grime: .35, bio: .3, rust: .16, wet: 0.4}),
     brass: std('brass', null, 1, {color: '#7a5e36', roughness: .5, metalness: 1}, {silt: .55, grime: .3, bio: .5, rust: .25, wet: 0.3}),
+    oxidizedSteel: options.survey ? std('seal-oxide', rustScan, 1, {color:'#807368',roughness:.9,metalness:.15,normal:.55},{silt:.12,grime:.15,bio:.05,rust:0,antiTile:.4,wet:0}) : null,
     chrome: std('chrome', paintScan, .6, {color: '#9a9d9b', roughness: .45, metalness: 1, normal: .4}, {silt: .5, grime: .3, bio: .4, rust: .3, wet: 0.3}),
     rubber: std('rubber', rubberScan, .8, {color: '#1e201f', roughness: .88, metalness: 0, normal: .5}, {silt: .6, grime: .1, bio: .2, antiTile: 0, wet: 0.5}),
     porcelain: std('porcelain', null, 1, {color: '#bdbab0', roughness: .32, metalness: 0}, {silt: .7, grime: .6, bio: .6, wet: 0.4}),
@@ -532,7 +539,7 @@ export function createLivingMaterials() {
     bandRed: std('band-red', null, 1, {color: '#8e2a20', roughness: .7, metalness: .1}, {silt: .4, grime: .3, bio: .3}),
     bandYellow: std('band-yellow', null, 1, {color: '#b38a22', roughness: .7, metalness: .1}, {silt: .4, grime: .3, bio: .3}),
     bandBlue: std('band-blue', null, 1, {color: '#245a86', roughness: .7, metalness: .1}, {silt: .4, grime: .3, bio: .3}),
-    pipe: std('pipe', harborPaint, 1.2, {color: '#6f766f', roughness: 1, metalness: .5, normal: .6}, {silt: .7, grime: .4, bio: .35, rust: .6, wet: 0.5}),
+    pipe: std('pipe', harborPaint, 1.2, {color: '#6f766f', roughness: .46, metalness: .5, normal: .6}, {silt: .2, grime: .4, bio: .35, rust: .24, wet: 0.5}),
     corpseCloth: std('corpse-cloth', null, 1, {color: '#3c4a52', roughness: .95, metalness: 0}, {silt: .6, grime: .2, bio: .4}),
     corpseSkin: new T.MeshPhysicalMaterial({color: '#8d8f82', roughness: .7, metalness: 0, sheen: .4, sheenColor: new T.Color('#c4c8b4'), sheenRoughness: .6}),
     paper: new T.MeshStandardMaterial({map: paperMap, color: '#c2bba6', roughness: .95, metalness: 0}),

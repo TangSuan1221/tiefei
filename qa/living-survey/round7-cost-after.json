@@ -1,0 +1,80 @@
+{
+  "meshes": 1463,
+  "triangles": 2151478,
+  "ok": true,
+  "closedBlocked": true,
+  "samples": 4973,
+  "failures": [],
+  "solids": 266,
+  "spaces": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "living-inflow-curtain",
+    "living-space:S",
+    "living-space:C1",
+    "living-space:R1",
+    "living-space:R2",
+    "living-space:J1",
+    "living-space:C2",
+    "living-space:R3",
+    "living-space:C3",
+    "living-space:R4",
+    "living-space:G",
+    "living-space:C4",
+    "living-space:V",
+    "living-space:C5",
+    "living-space:A",
+    "living-space:C6",
+    "living-space:R5",
+    "living-space:C7",
+    "living-space:D",
+    "living-space:C8",
+    "living-space:E",
+    "living-signage",
+    "living-atmosphere"
+  ],
+  "batteryBounds": {
+    "isBox3": true,
+    "min": {
+      "x": 55.697500228881836,
+      "y": -0.8199999988079071,
+      "z": 30.2150000333786
+    },
+    "max": {
+      "x": 56.302499771118164,
+      "y": -0.3026794850826263,
+      "z": 30.75499999523163
+    }
+  },
+  "probeBounds": {
+    "isBox3": true,
+    "min": {
+      "x": 9.53999999165535,
+      "y": -1.4750000059604644,
+      "z": 11.280000001192093
+    },
+    "max": {
+      "x": 10.46000000834465,
+      "y": -0.8583493649959564,
+      "z": 11.700000002980232
+    }
+  },
+  "probeWorldBounds": {
+    "isBox3": true,
+    "min": {
+      "x": 9.53999999165535,
+      "y": -1.4750000059604644,
+      "z": 11.280000001192093
+    },
+    "max": {
+      "x": 10.46000000834465,
+      "y": -0.8583493649959564,
+      "z": 11.700000002980232
+    }
+  }
+}

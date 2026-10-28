@@ -1,0 +1,14 @@
+import {openLevelTwo,startNew} from './living-browser-lib.mjs';
+import {writeFileSync} from 'node:fs';
+const out='qa/living-survey/r4-damage';const {browser,page,errors}=await openLevelTwo(out);
+try{await page.evaluate(()=>sessionStorage.setItem('ironlung.gm.novideo','1'));await startNew(page);await page.evaluate(()=>window.__living.world.ready);
+const result=await page.evaluate(async()=>{const {LivingCreatures}=await import('/src/pod/sim/living-creatures.ts');const r=window.__pod,l=window.__living;r.pilot.stop();l.position.set(109.5,0,27.1);r.heading=131;
+const mob=l.creatures.mobs.find(m=>m.spawn.id==='shade.r4');Object.assign(mob,{mode:'recoil',pos:[117,-2,14],dark:24.9,cooldown:0});const before=l.clear(l.position),events=[];let elapsed=0;
+while(mob.mode!=='idle'&&elapsed<30){const cr=l.creatures.tick(.05,{pod:l.vec(),heading:131,lampOn:true,lampRange:26,lampHalfAngle:.72,pulse:false,activePowered:false,speed:0,noiseBursts:[],armOut:false,gateOpen:false,extraLumens:0});elapsed+=.05;events.push(...cr.events);}
+const after={elapsed,clear:l.clear(l.position),mode:mob.mode,blockers:l.creatures.blockers(),reverse:l.move(-.1),pos:l.vec()};
+const retreat={steps:0,clear:true,pos:[]};for(let i=0;i<30;i++){if(!l.move(-.1)||!l.clear(l.position)){retreat.clear=false;break;}retreat.steps++;}retreat.pos=l.vec();
+// Legal R4 center, northbound into its actual enclosing wall. No collider substitution.
+l.position.set(110,0,23);r.heading=0;const wall={startClear:l.clear(l.position),steps:0,blocked:false,pos:[]};for(let i=0;i<300;i++){wall.steps++;if(!l.move(.1)){wall.blocked=true;break;}}wall.pos=l.vec();
+const c=new LivingCreatures(()=>.5,'survey'),hits=[],warnings=[];for(let t=0;t<42;t+=.05){const cr=c.tick(.05,{pod:[109.5,0,27.1],heading:131,lampOn:true,lampRange:26,lampHalfAngle:.72,pulse:false,activePowered:false,speed:0,noiseBursts:[],armOut:false,gateOpen:false,extraLumens:0});if(cr.damage)hits.push({time:+(t+.05).toFixed(3),damage:cr.damage});if(cr.events.length)warnings.push({time:+(t+.05).toFixed(3),events:cr.events});}
+const legacy=new LivingCreatures(()=>.5,'legacy');const legacyBlockers=legacy.blockers();return{method:'Loaded actual Three.js world; independent initial state then normal creature return and normal site.move. Separate stationary attack fixture and actual enclosing-wall movement probe; not a blind replay.',before,after,retreat,wall,hits,warnings,legacyBlockers,pass:before&&after.clear&&after.mode==='idle'&&after.reverse&&after.blockers.length===0&&retreat.clear&&retreat.steps===30&&wall.startClear&&wall.blocked&&legacyBlockers.length>0&&hits.length===4&&hits.every(h=>h.damage===.16)&&hits.every((h,i)=>i===0||Math.abs(h.time-hits[i-1].time-10)<.06)};});writeFileSync(`${out}/after-blocker-fix.json`,JSON.stringify({result,errors},null,2));console.log(JSON.stringify({result,errors}));if(!result.pass||errors.length)process.exitCode=1;
+}finally{await browser.close();}

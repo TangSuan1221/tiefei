@@ -1,0 +1,114 @@
+[
+  {
+    "label": "near",
+    "enabled": false,
+    "asset": {
+      "meshes": 4,
+      "triangles": 1496
+    },
+    "scene": {
+      "meshes": 470,
+      "triangles": 1045484
+    },
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  },
+  {
+    "label": "near",
+    "enabled": true,
+    "asset": {
+      "meshes": 3,
+      "triangles": 1532
+    },
+    "scene": {
+      "meshes": 421,
+      "triangles": 750008
+    },
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  },
+  {
+    "label": "fixed",
+    "enabled": false,
+    "asset": {
+      "meshes": 4,
+      "triangles": 1496
+    },
+    "scene": {
+      "meshes": 393,
+      "triangles": 741756
+    },
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  },
+  {
+    "label": "fixed",
+    "enabled": true,
+    "asset": {
+      "meshes": 3,
+      "triangles": 1532
+    },
+    "scene": {
+      "meshes": 392,
+      "triangles": 741792
+    },
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 1.8,
+      "lampDecay": 0.9,
+      "practicalGain": 2.2,
+      "envIntensity": 0.065,
+      "scatter": 0.4,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.22,
+      "halo": 4.2,
+      "fogTint": 1.2,
+      "lensGain": 2.2,
+      "lampNearFull": 9
+    }
+  }
+]

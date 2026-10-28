@@ -1,6 +1,6 @@
 import {Box3,Vector3} from 'three';
 import {harborHullClear} from '../src/pod/sim/harbor-navigation';
-import {LIVING_MAIN_ROUTE,LIVING_ITEMS,LIVING_SPAWN,livingSolids,livingWalkable,type Aabb} from '../src/pod/content/living-deck-layout';
+import {LIVING_MAIN_ROUTE,LIVING_SURVEY_ROUTE,LIVING_ITEMS,LIVING_SPAWN,livingSolids,livingWalkable,type Aabb} from '../src/pod/content/living-deck-layout';
 
 const toBox=(b:Aabb)=>new Box3(new Vector3(...b.min),new Vector3(...b.max));
 const walkable=livingWalkable().map(toBox),solids=livingSolids().map(toBox);
@@ -12,7 +12,7 @@ if(!clearAny(new Vector3(...LIVING_SPAWN.position),LIVING_SPAWN.heading))fail('s
 
 // Walk the route with the hull pointed along each leg; vertical legs keep the previous heading.
 let heading=LIVING_SPAWN.heading;
-const route=[LIVING_SPAWN.position,...LIVING_MAIN_ROUTE];
+const route=[...LIVING_SURVEY_ROUTE];
 for(let i=1;i<route.length;i++){
  const a=new Vector3(...route[i-1]),b=new Vector3(...route[i]),d=b.clone().sub(a);
  const flat=Math.hypot(d.x,d.z);

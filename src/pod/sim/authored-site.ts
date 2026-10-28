@@ -85,6 +85,7 @@ export interface AuthoredSite {
   finishCapture?():void;
   commitEvidence?(capture:unknown):void;
   analyzeEvidence?(snapshot:unknown):string[];
+  isEvidenceMediaReady?(mediaId:string):boolean;
   readonly recoveredDocument?:boolean;
   readonly cargoManifest?: readonly {name:string;quantity:number}[];
   readRecoveredDocument?():string[];

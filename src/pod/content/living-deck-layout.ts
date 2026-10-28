@@ -43,6 +43,8 @@ export const LIVING_SPACES: readonly LivingSpace[] = [
   { id: 'R5', name: '住宿管理处',     kind: 'room',     minX: 150, maxX: 174, minZ: 86,  maxZ: 108, floorY: -3, ceilY: 5,  pod: true },
   { id: 'C7', name: '下行井连廊',     kind: 'corridor', minX: 106, maxX: 110, minZ: 64,  maxZ: 72,  floorY: -3, ceilY: 3,  pod: true },
   { id: 'D',  name: '下行井',         kind: 'shaft',    minX: 90,  maxX: 106, minZ: 60,  maxZ: 76,  floorY: -60, ceilY: 3, pod: true },
+  { id: 'C8', name: '维修联络水道', kind: 'corridor', minX:64,maxX:96,minZ:21,maxZ:31,floorY:-3,ceilY:3,pod:true },
+  { id: 'E', name: '东侧下潜井', kind: 'shaft', minX:200,maxX:218,minZ:60,maxZ:76,floorY:-60,ceilY:3,pod:true },
   // Alex side: flooded human-scale quarters. Rendered for probe footage only.
   { id: 'L',  name: '生活区前厅',     kind: 'alex',     minX: 142, maxX: 164, minZ: -40, maxZ: 42,  floorY: -3, ceilY: 0.6, pod: false },
   { id: 'M',  name: '污染走廊',       kind: 'slime',    minX: 164, maxX: 176, minZ: -40, maxZ: 42,  floorY: -3, ceilY: 0.6, pod: false },
@@ -80,6 +82,10 @@ export const LIVING_DOORS: readonly LivingDoor[] = [
   { id: 'C6-R5', kind: 'open',  a: 'C6', b: 'R5', axis: 'z', at: 86,  from: 158.3,to: 165.7,bottom: -3, top: 2.5 },
   { id: 'A-C7',  kind: 'open',  a: 'A',  b: 'C7', axis: 'x', at: 110, from: 64.3, to: 71.7, bottom: -3, top: 2.5 },
   { id: 'C7-D',  kind: 'open',  a: 'C7', b: 'D',  axis: 'x', at: 106, from: 64.3, to: 71.7, bottom: -3, top: 2.5 },
+  {id:'R2-C8',kind:'open',a:'R2',b:'C8',axis:'x',at:64,from:22,to:30,bottom:-3,top:2.5},
+  {id:'C8-R4',kind:'open',a:'C8',b:'R4',axis:'x',at:96,from:22,to:30,bottom:-3,top:2.5},
+  {id:'R4-G',kind:'open',a:'R4',b:'G',axis:'x',at:120,from:13,to:21,bottom:-3,top:2.5},
+  {id:'A-E',kind:'open',a:'A',b:'E',axis:'x',at:200,from:64,to:72,bottom:-3,top:2.5},
   // Barriers between the pod and Alex. Closed glass blocks pod; pipe is a 0.7 m transfer tube.
   { id: 'G-L-glass', kind: 'glass', a: 'G', b: 'L', axis: 'x', at: 142, from: 0,   to: 12,  bottom: -3, top: 2 },
   { id: 'G-L-pipe',  kind: 'pipe',  a: 'G', b: 'L', axis: 'x', at: 142, from: 16.6,to: 17.4,bottom: -0.4, top: 0.4 },
@@ -89,8 +95,8 @@ export const LIVING_DOORS: readonly LivingDoor[] = [
   { id: 'M-N', kind: 'alex', a: 'M', b: 'N', axis: 'x', at: 176, from: -10, to: -6, bottom: -3, top: 0.4 },
 ];
 
-/** Spawn at the top of the drop shaft, facing east toward the corridor. */
-export const LIVING_SPAWN = { position: [7, 30, 7] as Vec3, heading: 90 };
+/** Arrival is at the shaft landing: chapter transition already covers descent, avoiding an empty minute of heave. */
+export const LIVING_SPAWN = { position: [7, 0, 7] as Vec3, heading: 90 };
 
 export type ItemKind = 'box' | 'terminal' | 'photo' | 'pipe' | 'uplink';
 export interface LivingItem {
@@ -109,14 +115,16 @@ export interface LivingItem {
  * Terminals are wall faces; the pod must be ≤3.4 m and facing them.
  */
 export const LIVING_ITEMS: readonly LivingItem[] = [
-  { id: 'living.box.battery', kind: 'box',      space: 'R1', name: '应急电池箱',     position: [29, -0.6, -20.5], face: 180, required: false },
+  { id: 'living.box.battery', kind: 'box',      space: 'R2', name: '机修补给 · 应急电池箱', position: [56, -0.6, 30.5], face: 0, required: false },
   { id: 'living.box.tools',   kind: 'box',      space: 'R2', name: '液压维修工具箱', position: [59.5, -0.6, 30.5], face: 0,   required: false },
-  { id: 'living.box.probe',   kind: 'box',      space: 'R3', name: '有缆摄像探头箱', position: [76, -1.2, -61.5], face: 180, required: true },
+  { id: 'living.box.probe',   kind: 'box',      space: 'S', name: '遗体旁 · 黄色摄像仪匣', position: [10, -1.2, 11.5], face: 0, required: true },
   { id: 'living.box.ballast', kind: 'box',      space: 'R4', name: '压载配重块',     position: [115.5, -0.6, 32.5], face: 270, required: true },
-  { id: 'living.pipe.intake', kind: 'pipe',     space: 'G',  name: '传递管道入口',   position: [141.4, 0, 17],    face: 270, required: true },
-  { id: 'living.valve.heat',  kind: 'terminal', space: 'V',  name: '阀门 V-1 疗养区供热回路', position: [141.4, 0, -36], face: 270, required: false },
-  { id: 'living.valve.feed',  kind: 'terminal', space: 'V',  name: '阀门 V-2 疗养区营养液管', position: [141.4, 0, -29], face: 270, required: true },
-  { id: 'living.valve.cool',  kind: 'terminal', space: 'V',  name: '阀门 V-3 冷却水回流',     position: [141.4, 0, -22], face: 270, required: false },
+  { id: 'living.pipe.intake', kind: 'pipe',     space: 'S',  name: '设备传递口',   position: [12.0, -0.5, 12.45],    face: 0, required: true },
+  { id: 'living.valve.heat',  kind: 'terminal', space: 'G',  name: '阀门 V-1 疗养区供热回路', position: [141.4, 0, 10], face: 270, required: false },
+  { id: 'living.valve.feed',  kind: 'terminal', space: 'G',  name: '阀门 V-2 含硫温水供给', position: [141.4, 0, 13.5], face: 270, required: true },
+  { id: 'living.valve.cool',  kind: 'terminal', space: 'G',  name: '阀门 V-3 冷却水回流',     position: [141.4, 0, 17], face: 270, required: false },
+  {id:'living.photo.sulfur',kind:'photo',space:'G',name:'供水检修说明',position:[141.30,1.65,13.5],face:270,required:true},
+  {id:'living.survey.lock',kind:'terminal',space:'C5',name:'中庭隔离门授权终端',position:[132.4,0,38],face:270,required:true},
   { id: 'living.photo.code',  kind: 'box',    space: 'R5', name: '管理员遗体 · 搜索衣袋证件夹',   position: [167.15, -2.05, 104.6], face: 0, required: true },
   { id: 'living.photo.guide', kind: 'photo',    space: 'R5', name: '墙面应急开闸步骤图',     position: [173.4, 0, 96],   face: 270, required: true },
   { id: 'living.photo.delroy',kind: 'photo',    space: 'R5', name: '员工治疗申请单 · 坎贝尔', position: [150.6, 0, 92],  face: 90,  required: false },
@@ -192,6 +200,8 @@ export const LIVING_LIGHTS: readonly { position: Vec3; color: string; intensity:
 
 /** Leaving the level: descend in shaft D below this y with ballast fitted and Alex met. */
 export const LIVING_EXIT_Y = -34;
+/** Current survey route: clear the E shaft collar, then hand the remaining descent to the chapter transition. */
+export const LIVING_SURVEY_EXIT_Y = -10;
 /** Without ballast the damaged trim tank cannot take the pod below this y in shaft D. */
 export const LIVING_TRIM_FLOOR_Y = -8;
 
@@ -247,7 +257,7 @@ function wallStrip(axis: 'x' | 'z', at: number, from: number, to: number, bottom
 export function livingSolids(): Aabb[] {
   const out: Aabb[] = [];
   const open = LIVING_DOORS.filter(d => d.kind === 'open');
-  for (const s of LIVING_SPACES) {
+  for (const s of LIVING_SPACES.filter(s => s.pod)) {
     const cuts = (axis: 'x' | 'z', at: number) => open
       .filter(d => d.axis === axis && Math.abs(d.at - at) < 1e-6 && (d.a === s.id || d.b === s.id))
       .map(d => ({ from: d.from, to: d.to, bottom: d.bottom, top: d.top }));
@@ -270,3 +280,6 @@ export const LIVING_MAIN_ROUTE: readonly Vec3[] = [
   [162, 0, 96], [162, 0, 84], [162, -1, 70], [176, -1, 60], [188, -1.2, 52], [170, -1, 66],
   [130, -1, 68], [108, 0, 68], [98, 0, 68], [98, -40, 68],
 ];
+
+/** Forward survey route, including work-face staging and east exit. */
+export const LIVING_SURVEY_ROUTE: readonly Vec3[] = [[7,0,7],[10,0,8.5],[12,0,9],[24,0,7.5],[53,0,7.5],[53,0,24],[56,0,27],[60,0,26],[76,0,26],[92,0,26],[108,0,26],[112,0,29],[112,0,17],[128.5,0,17],[137.8,0,17],[128.5,0,17],[128.5,0,30],[128.5,0,50],[144,0,60],[166,0,60],[188,0,52],[188,0,68],[208,0,68],[208,LIVING_SURVEY_EXIT_Y-2,68]];

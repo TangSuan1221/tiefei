@@ -1,0 +1,89 @@
+{
+  "method": "Legal diagnostic R4 position and dark lamp initial state; real 17 second runtime while lab expanded, API blocked; not blind play",
+  "start": {
+    "legal": true,
+    "pos": [
+      103.7,
+      0.8,
+      26.1
+    ],
+    "hull": 1
+  },
+  "end": {
+    "hull": 0.84,
+    "pos": [
+      102.20018892877461,
+      0.8,
+      26.123806524940086
+    ],
+    "at": "lab",
+    "expanded": true,
+    "feedback": "门口的东西一口咬住艇壳，把你甩了出去！",
+    "videoStatus": "任务录像未完成：Error: 信号中断。冲洗槽那头没人接。；输入“重试录像”",
+    "shade": {
+      "id": "shade.r4",
+      "type": "shade",
+      "position": [
+        110,
+        -1,
+        26
+      ],
+      "heading": 0,
+      "mode": "idle",
+      "identified": false
+    },
+    "log": [
+      {
+        "text": "公司调查艇三号 · 正在接近接驳港。内部电池供电，接收机正在等待接驳岗回传。",
+        "tone": "system",
+        "at": 0,
+        "stamp": 0
+      },
+      {
+        "text": "事故区域结构不稳。碰撞、失电和艇体破损都可能致命；低速进港，优先恢复岸电。",
+        "tone": "bad",
+        "at": 0,
+        "stamp": 0
+      },
+      {
+        "text": "接听万斯，沿声呐回波抵港，再跟随岸电缆寻找维修湾。现场底片须完成曝光、显影后送到分析台核验。",
+        "tone": "system",
+        "at": 0,
+        "stamp": 0
+      },
+      {
+        "text": "航段：坠落接驳港 · 380 米",
+        "tone": "system",
+        "at": 0,
+        "stamp": 0
+      },
+      {
+        "text": "三号逃生舱 · 坐标 3A3·B94·E5",
+        "tone": "system",
+        "at": 0,
+        "stamp": 0
+      },
+      {
+        "text": "舱外没有窗户。你的眼睛是雷达、全息屏，和那一台摄像头。",
+        "tone": "neutral",
+        "at": 0,
+        "stamp": 0
+      },
+      {
+        "text": "任务录像未完成：Error: 信号中断。冲洗槽那头没人接。；输入“重试录像”",
+        "tone": "system",
+        "at": 0,
+        "stamp": 0.21659999999999857
+      },
+      {
+        "text": "门口的东西一口咬住艇壳，把你甩了出去！",
+        "tone": "system",
+        "at": 0,
+        "stamp": 0.7998000000000032
+      }
+    ]
+  },
+  "errors": [
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
+}

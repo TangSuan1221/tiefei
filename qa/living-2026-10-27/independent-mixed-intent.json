@@ -1,0 +1,630 @@
+{
+  "method": "Pure fact machine API transitions and JSON snapshot/restore; not browser save/physical valve/video playback",
+  "rows": [
+    {
+      "closed": false,
+      "restored": false,
+      "text": "关好了，公司到底想干什么？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了，公司到底想干什么？",
+        "艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": false,
+      "text": "含硫支路已关闭，密码呢？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：含硫支路已关闭，密码呢？",
+        "艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": false,
+      "text": "没有关好，公司到底想干什么？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：没有关好，公司到底想干什么？",
+        "艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": false,
+      "text": "如果关好了，密码呢？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：如果关好了，密码呢？",
+        "艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": false,
+      "text": "含硫支路未关闭，密码呢？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：含硫支路未关闭，密码呢？",
+        "艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": false,
+      "text": "关好了才怪，我没关好。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了才怪，我没关好。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": false,
+      "text": "关好了以后再通知你。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了以后再通知你。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": false,
+      "text": "完成了吗，公司到底想干什么？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：完成了吗，公司到底想干什么？",
+        "艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": false,
+      "text": "别关阀门。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：别关阀门。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": false,
+      "text": "关好了，不过我不确定。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了，不过我不确定。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": false,
+      "text": "等到关好了再告诉你。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：等到关好了再告诉你。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": false,
+      "text": "关好了，我还没确认。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了，我还没确认。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "关好了，公司到底想干什么？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了，公司到底想干什么？",
+        "艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "含硫支路已关闭，密码呢？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：含硫支路已关闭，密码呢？",
+        "艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "没有关好，公司到底想干什么？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：没有关好，公司到底想干什么？",
+        "艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "如果关好了，密码呢？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：如果关好了，密码呢？",
+        "艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "含硫支路未关闭，密码呢？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：含硫支路未关闭，密码呢？",
+        "艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "关好了才怪，我没关好。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了才怪，我没关好。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "关好了以后再通知你。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了以后再通知你。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "完成了吗，公司到底想干什么？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：完成了吗，公司到底想干什么？",
+        "艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "别关阀门。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：别关阀门。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "关好了，不过我不确定。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了，不过我不确定。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "等到关好了再告诉你。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：等到关好了再告诉你。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": false,
+      "restored": true,
+      "text": "关好了，我还没确认。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了，我还没确认。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "关好了，公司到底想干什么？",
+      "expectedReported": true,
+      "reported": true,
+      "pending": "L2-S05",
+      "trust": 1,
+      "reply": [
+        "罗温：关好了，公司到底想干什么？",
+        "艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。公司的事，我也没底。先让我看清这条路，我们再想怎么出去。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "含硫支路已关闭，密码呢？",
+      "expectedReported": true,
+      "reported": true,
+      "pending": "L2-S05",
+      "trust": 1,
+      "reply": [
+        "罗温：含硫支路已关闭，密码呢？",
+        "艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。门锁的事我记着，等面罩清了，我去看值班终端。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "没有关好，公司到底想干什么？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：没有关好，公司到底想干什么？",
+        "艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "如果关好了，密码呢？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：如果关好了，密码呢？",
+        "艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "含硫支路未关闭，密码呢？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：含硫支路未关闭，密码呢？",
+        "艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "关好了才怪，我没关好。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了才怪，我没关好。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "关好了以后再通知你。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了以后再通知你。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "完成了吗，公司到底想干什么？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：完成了吗，公司到底想干什么？",
+        "艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "别关阀门。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：别关阀门。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "关好了，不过我不确定。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了，不过我不确定。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "等到关好了再告诉你。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：等到关好了再告诉你。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": false,
+      "text": "关好了，我还没确认。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了，我还没确认。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "关好了，公司到底想干什么？",
+      "expectedReported": true,
+      "reported": true,
+      "pending": "L2-S05",
+      "trust": 1,
+      "reply": [
+        "罗温：关好了，公司到底想干什么？",
+        "艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。公司的事，我也没底。先让我看清这条路，我们再想怎么出去。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "含硫支路已关闭，密码呢？",
+      "expectedReported": true,
+      "reported": true,
+      "pending": "L2-S05",
+      "trust": 1,
+      "reply": [
+        "罗温：含硫支路已关闭，密码呢？",
+        "艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。门锁的事我记着，等面罩清了，我去看值班终端。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "没有关好，公司到底想干什么？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：没有关好，公司到底想干什么？",
+        "艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "如果关好了，密码呢？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：如果关好了，密码呢？",
+        "艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "含硫支路未关闭，密码呢？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：含硫支路未关闭，密码呢？",
+        "艾里亚斯：先到03闸机核对门锁，我不能隔空判断是哪扇门。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "关好了才怪，我没关好。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了才怪，我没关好。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "关好了以后再通知你。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了以后再通知你。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "完成了吗，公司到底想干什么？",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：完成了吗，公司到底想干什么？",
+        "艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "别关阀门。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：别关阀门。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "关好了，不过我不确定。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了，不过我不确定。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "等到关好了再告诉你。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：等到关好了再告诉你。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "closed": true,
+      "restored": true,
+      "text": "关好了，我还没确认。",
+      "expectedReported": false,
+      "reported": false,
+      "pending": null,
+      "trust": 0,
+      "reply": [
+        "罗温：关好了，我还没确认。",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    }
+  ],
+  "failures": []
+}

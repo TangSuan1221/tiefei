@@ -1,0 +1,8 @@
+import assert from 'node:assert/strict';
+import {openLevelTwo} from './living-browser-lib.mjs';
+import {writeFile} from 'node:fs/promises';
+const {browser,page,errors}=await openLevelTwo('qa/level-03/runtime',{query:'?level=3'});
+try{await page.locator('[data-id="new"]').click();await page.waitForFunction(()=>window.__abyss,null,{timeout:120000});await page.evaluate(()=>window.__abyss.materialsReady);
+const before=await page.evaluate(()=>{const s=window.__abyss,r=window.__pod;r.at='camera';r.lamp=true;r.power=1;r.pilot.stop();s.position.set(-95.8,0,-81.1);r.heading=24;r.pitch=0;r.camPan=-6*Math.PI/180;r.camTilt=11*Math.PI/180;s.world.root.updateMatrixWorld(true);const near=s.aim(),far=s.aim(8);const c=document.createElement('canvas');c.width=1280;c.height=720;const ctx=c.getContext('2d'),labels=[],fill=ctx.fillText.bind(ctx);ctx.fillText=(text,...a)=>{labels.push(text);return fill(text,...a);};s.drawWindowLocks(ctx,1280,720);return {clear:s.clear(s.vec()),near:near?.id??null,far:far?{id:far.id,distance:far.distance}:null,labels};});
+await page.keyboard.press('f');const after=await page.evaluate(()=>({phase:window.__pod.arm.phase,selected:window.__abyss.selected,cargo:window.__abyss.cargo,sedatives:window.__abyss.story.state['pod.sedatives']}));console.log({before,after,errors});await writeFile('qa/level-03/runtime/optical-range.json',JSON.stringify({before,after,errors},null,2));assert(before.clear);assert.equal(before.near,null);assert.equal(before.far.id,'abyss.box.med2');assert(before.far.distance>6&&before.far.distance<7);assert(before.labels.some(x=>x.includes(' m')));assert.equal(after.phase,'stowed');assert.equal(after.selected,null);assert.equal(after.sedatives,0);
+}finally{await browser.close();}

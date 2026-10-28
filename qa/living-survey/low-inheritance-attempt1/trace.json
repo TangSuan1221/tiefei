@@ -1,0 +1,105 @@
+{
+  "method": "Known-route continuous real keyboard driving; once-only 18%/zero-cell fixture; direct normal interact/useSupply; explicit local no-video task acceptance; not blind play, no external API",
+  "trace": [
+    {
+      "label": "initial fixture",
+      "time": 1793087788220,
+      "pos": [
+        7,
+        0,
+        7
+      ],
+      "power": 0.18,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "电量 18%。推进、声纳发射和摄影分析都要用电，先确认方向，少走回头路。R2 机修间货架上有应急电池箱（领航台坐标 X56 Y30.5 DEPTH 1040.6m）。"
+    },
+    {
+      "label": "local diagnostic intro",
+      "time": 1793087792605,
+      "pos": [
+        7,
+        0,
+        7
+      ],
+      "power": 0.17859999999999998,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "【GM诊断 · 非真实录像 · 禁写正式存档】我到人员侧了。你井底右前方，那个人旁边的托盘上有只黄色仪器匣。先取匣子，别动他。你的艇载相机留着；里面的移动摄像仪，从旁边传递口送给我，通话窗口能确认交接。"
+    },
+    {
+      "label": "sample",
+      "time": 1793087798232,
+      "pos": [
+        7.965628567956922,
+        0,
+        7.48067060568826
+      ],
+      "power": 0.17747341062671307,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "【GM诊断 · 非真实录像 · 禁写正式存档】我到人员侧了。你井底右前方，那个人旁边的托盘上有只黄色仪器匣。先取匣子，别动他。你的艇载相机留着；里面的移动摄像仪，从旁边传递口送给我，通话窗口能确认交接。"
+    },
+    {
+      "error": "Error: turn blocked toward 180 at 140.5676294667844 pos 9.970340595404986,0,8.48029293961273"
+    },
+    {
+      "label": "failure",
+      "time": 1793087807734,
+      "pos": [
+        9.970340595404986,
+        0,
+        8.48029293961273
+      ],
+      "power": 0.1751337349809644,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "艇身转向净空不足。先轻按 N 倒车约 0.6 米，按 Shift 制动后再向右转。"
+    },
+    {
+      "label": "sample",
+      "time": 1793087808285,
+      "pos": [
+        9.970340595404986,
+        0,
+        8.48029293961273
+      ],
+      "power": 0.1751337349809644,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "艇身转向净空不足。先轻按 N 倒车约 0.6 米，按 Shift 制动后再向右转。"
+    },
+    {
+      "label": "final",
+      "time": 1793087808300,
+      "pos": [
+        9.970340595404986,
+        0,
+        8.48029293961273
+      ],
+      "power": 0.1751337349809644,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "艇身转向净空不足。先轻按 N 倒车约 0.6 米，按 Shift 制动后再向右转。"
+    }
+  ],
+  "errors": []
+}

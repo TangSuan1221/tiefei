@@ -1,0 +1,142 @@
+{
+  "errors": [],
+  "stats": [
+    {
+      "name": "arrival",
+      "recording": false,
+      "timing": [
+        2179.9000000059605,
+        8.200000002980232
+      ],
+      "info": {
+        "frame": 2274,
+        "calls": 2000,
+        "triangles": 6387064,
+        "points": 45550,
+        "lines": 0
+      },
+      "infoScope": "all passes of last diagnostic draw",
+      "monsterVisible": false
+    },
+    {
+      "name": "arrival",
+      "recording": true,
+      "timing": [
+        9.799999997019768,
+        6.5
+      ],
+      "info": {
+        "frame": 2334,
+        "calls": 2000,
+        "triangles": 6387064,
+        "points": 45550,
+        "lines": 0
+      },
+      "infoScope": "all passes of last diagnostic draw",
+      "monsterVisible": false
+    },
+    {
+      "name": "power",
+      "recording": false,
+      "timing": [
+        515.2000000029802,
+        5.699999988079071
+      ],
+      "info": {
+        "frame": 2394,
+        "calls": 1388,
+        "triangles": 6000164,
+        "points": 45550,
+        "lines": 0
+      },
+      "infoScope": "all passes of last diagnostic draw",
+      "monsterVisible": false
+    },
+    {
+      "name": "power",
+      "recording": true,
+      "timing": [
+        8.299999997019768,
+        5.9000000059604645
+      ],
+      "info": {
+        "frame": 2454,
+        "calls": 1388,
+        "triangles": 6000164,
+        "points": 45550,
+        "lines": 0
+      },
+      "infoScope": "all passes of last diagnostic draw",
+      "monsterVisible": false
+    },
+    {
+      "name": "passage",
+      "recording": false,
+      "timing": [
+        796.1000000089407,
+        15.899999991059303
+      ],
+      "info": {
+        "frame": 2514,
+        "calls": 6621,
+        "triangles": 6169804,
+        "points": 45550,
+        "lines": 0
+      },
+      "infoScope": "all passes of last diagnostic draw",
+      "monsterVisible": false
+    },
+    {
+      "name": "passage",
+      "recording": true,
+      "timing": [
+        18.5,
+        15.200000002980232
+      ],
+      "info": {
+        "frame": 2574,
+        "calls": 6621,
+        "triangles": 6169804,
+        "points": 45550,
+        "lines": 0
+      },
+      "infoScope": "all passes of last diagnostic draw",
+      "monsterVisible": false
+    },
+    {
+      "name": "entry",
+      "recording": false,
+      "timing": [
+        10.099999994039536,
+        8.700000002980232
+      ],
+      "info": {
+        "frame": 2634,
+        "calls": 3168,
+        "triangles": 3090660,
+        "points": 45550,
+        "lines": 0
+      },
+      "infoScope": "all passes of last diagnostic draw",
+      "monsterVisible": false
+    },
+    {
+      "name": "entry",
+      "recording": true,
+      "timing": [
+        8.799999997019768,
+        26.099999994039536
+      ],
+      "info": {
+        "frame": 2694,
+        "calls": 3168,
+        "triangles": 3090660,
+        "points": 45550,
+        "lines": 0
+      },
+      "infoScope": "all passes of last diagnostic draw",
+      "monsterVisible": false
+    }
+  ],
+  "method": "Fixed diagnostic viewpoints in actual main renderer. GPU finish timings are not player FPS."
+}

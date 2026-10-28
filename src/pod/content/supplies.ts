@@ -54,6 +54,8 @@ export type SupplyId =
  * vitals 的 0..100 刻度，其余是 0..1 的舱体标量。
  */
 export interface SupplyEffect {
+  /** 有限氧气储量，受 oxygenMax 封顶。 */
+  oxygen?: number;
   /** 电池组 0..1 */
   power?: number;
   /** 舱体完整度 0..1 */
@@ -300,6 +302,7 @@ export const SUPPLIES: Readonly<Record<SupplyId, Supply>> = {
     cost: 1,
     bulk: 2,
     effect: {
+      oxygen: 600,
       co2: -34,
       scrubber: 0.12,
       noiseBurst: 0.22,

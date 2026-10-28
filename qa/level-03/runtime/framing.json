@@ -1,0 +1,180 @@
+{
+  "result": {
+    "frames": [
+      {
+        "id": "P01",
+        "accepted": "L3-P01"
+      },
+      {
+        "id": "P02",
+        "accepted": "L3-P02"
+      },
+      {
+        "id": "P03",
+        "accepted": "L3-P03"
+      },
+      {
+        "id": "P05",
+        "accepted": "L3-P05"
+      },
+      {
+        "id": "P06",
+        "accepted": "L3-P06"
+      },
+      {
+        "id": "P04",
+        "accepted": null
+      }
+    ],
+    "items": [
+      {
+        "id": "abyss.box.serviceQ",
+        "clear": true,
+        "park": [
+          -97.18581315729841,
+          0,
+          -78.59041331212927
+        ],
+        "hit": "abyss.box.serviceQ",
+        "distance": 2.8796148988289056
+      },
+      {
+        "id": "abyss.box.serviceL",
+        "clear": true,
+        "park": [
+          84.48454285518243,
+          0,
+          -63.111837284836426
+        ],
+        "hit": "abyss.box.serviceL",
+        "distance": 2.910802078779641
+      },
+      {
+        "id": "abyss.box.serviceC",
+        "clear": true,
+        "park": [
+          -38.66943581905639,
+          -23.400000000000002,
+          86.37005022161462
+        ],
+        "hit": "abyss.box.serviceC",
+        "distance": 2.951038994022685
+      },
+      {
+        "id": "abyss.box.serviceP",
+        "clear": true,
+        "park": [
+          -41.98188597542164,
+          -5,
+          -77.95883966276826
+        ],
+        "hit": "abyss.box.serviceP",
+        "distance": 2.8224186948063053
+      },
+      {
+        "id": "abyss.box.serviceR",
+        "clear": true,
+        "park": [
+          46.70362618711442,
+          0,
+          -64.59395160707363
+        ],
+        "hit": "abyss.box.serviceR",
+        "distance": 2.9229392801935195
+      },
+      {
+        "id": "abyss.box.med1",
+        "clear": true,
+        "park": [
+          -93.84085682894293,
+          0,
+          -82.30480322141588
+        ],
+        "hit": "abyss.box.med1",
+        "distance": 2.8450036316072187
+      },
+      {
+        "id": "abyss.box.med2",
+        "clear": true,
+        "park": [
+          -91.23902538648588,
+          0,
+          -84.99795305879758
+        ],
+        "hit": "abyss.box.med2",
+        "distance": 2.8174141206482126
+      },
+      {
+        "id": "abyss.box.med3",
+        "clear": true,
+        "park": [
+          -88.56016137122504,
+          0,
+          -87.60916134413823
+        ],
+        "hit": "abyss.box.med3",
+        "distance": 2.7882376437714442
+      },
+      {
+        "id": "abyss.box.key",
+        "clear": true,
+        "park": [
+          120.56714148606767,
+          0,
+          -17.186429227186306
+        ],
+        "hit": "abyss.box.key",
+        "distance": 2.8318861946251994
+      },
+      {
+        "id": "abyss.hatch.pass",
+        "clear": true,
+        "park": [
+          100.56590240271495,
+          0.19999999999999996,
+          -2.1718222360985355
+        ],
+        "hit": "abyss.hatch.pass",
+        "distance": 2.8751651254719923
+      },
+      {
+        "id": "abyss.box.med6",
+        "clear": true,
+        "park": [
+          -36.48598867312254,
+          -23.400000000000002,
+          80.87802938424073
+        ],
+        "hit": "abyss.box.med6",
+        "distance": 2.8325610402712833
+      },
+      {
+        "id": "abyss.box.med4",
+        "clear": true,
+        "park": [
+          -34.658753847143956,
+          -5,
+          -81.07414669568993
+        ],
+        "hit": "abyss.box.med4",
+        "distance": 2.878929450854052
+      },
+      {
+        "id": "abyss.box.med5",
+        "clear": true,
+        "park": [
+          50.921412123952244,
+          0,
+          -60.94688948827487
+        ],
+        "hit": "abyss.box.med5",
+        "distance": 2.866033135789146
+      }
+    ],
+    "aim": {
+      "id": "abyss.box.serviceQ",
+      "distance": 2.8796148988289056
+    }
+  },
+  "errors": []
+}

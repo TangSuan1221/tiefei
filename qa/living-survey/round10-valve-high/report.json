@@ -1,0 +1,110 @@
+[
+  {
+    "label": "near",
+    "enabled": false,
+    "asset": {
+      "meshes": 4,
+      "triangles": 1496
+    },
+    "scene": {
+      "meshes": 470,
+      "triangles": 1045484
+    },
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 6,
+      "lampDecay": 1.05,
+      "practicalGain": 0.08,
+      "envIntensity": 0.13461538461538464,
+      "scatter": 0.8,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.3,
+      "halo": 4.2,
+      "fogTint": 3,
+      "lensGain": 2.2
+    }
+  },
+  {
+    "label": "near",
+    "enabled": true,
+    "asset": {
+      "meshes": 3,
+      "triangles": 8220
+    },
+    "scene": {
+      "meshes": 421,
+      "triangles": 756696
+    },
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 6,
+      "lampDecay": 1.05,
+      "practicalGain": 0.08,
+      "envIntensity": 0.13461538461538464,
+      "scatter": 0.8,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.3,
+      "halo": 4.2,
+      "fogTint": 3,
+      "lensGain": 2.2
+    }
+  },
+  {
+    "label": "fixed",
+    "enabled": false,
+    "asset": {
+      "meshes": 4,
+      "triangles": 1496
+    },
+    "scene": {
+      "meshes": 393,
+      "triangles": 741756
+    },
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 6,
+      "lampDecay": 1.05,
+      "practicalGain": 0.08,
+      "envIntensity": 0.13461538461538464,
+      "scatter": 0.8,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.3,
+      "halo": 4.2,
+      "fogTint": 3,
+      "lensGain": 2.2
+    }
+  },
+  {
+    "label": "fixed",
+    "enabled": true,
+    "asset": {
+      "meshes": 3,
+      "triangles": 8220
+    },
+    "scene": {
+      "meshes": 392,
+      "triangles": 748480
+    },
+    "profile": {
+      "exposure": 0.41859999999999997,
+      "lampGain": 6,
+      "lampDecay": 1.05,
+      "practicalGain": 0.08,
+      "envIntensity": 0.13461538461538464,
+      "scatter": 0.8,
+      "grain": 0.045,
+      "vignette": 0,
+      "aberration": 0.0032,
+      "bloom": 0.3,
+      "halo": 4.2,
+      "fogTint": 3,
+      "lensGain": 2.2
+    }
+  }
+]

@@ -1,0 +1,130 @@
+[
+  {
+    "upload": false,
+    "stats": null,
+    "restored": true,
+    "samples": [
+      {
+        "submitMs": 329.20000000298023,
+        "finishMs": 329.20000000298023
+      },
+      {
+        "submitMs": 3,
+        "finishMs": 3.0999999940395355
+      },
+      {
+        "submitMs": 4.0999999940395355,
+        "finishMs": 4.0999999940395355
+      },
+      {
+        "submitMs": 4.800000011920929,
+        "finishMs": 4.800000011920929
+      },
+      {
+        "submitMs": 3.8999999910593033,
+        "finishMs": 3.8999999910593033
+      },
+      {
+        "submitMs": 3.7000000029802322,
+        "finishMs": 3.7000000029802322
+      },
+      {
+        "submitMs": 3.5,
+        "finishMs": 3.5
+      },
+      {
+        "submitMs": 3.4000000059604645,
+        "finishMs": 3.4000000059604645
+      }
+    ],
+    "errors": []
+  },
+  {
+    "upload": true,
+    "stats": {
+      "geometries": 943,
+      "textures": 214,
+      "deferredBitmaps": 39,
+      "completed": 1157,
+      "total": 1157,
+      "slices": 11,
+      "maxSliceMs": 596.2999999970198,
+      "elapsedMs": 962.7999999970198,
+      "worst": [
+        {
+          "task": 21,
+          "ms": 8.099999994039536,
+          "kind": "texture",
+          "detail": "living.env.metal_plate_02.diff:1024x1024"
+        },
+        {
+          "task": 23,
+          "ms": 8.799999997019768,
+          "kind": "texture",
+          "detail": "living.env.metal_plate_02.rough:1024x1024"
+        },
+        {
+          "task": 27,
+          "ms": 8.200000002980232,
+          "kind": "texture",
+          "detail": "living.dirty_tiles.diff:1024x1024"
+        },
+        {
+          "task": 28,
+          "ms": 8.200000002980232,
+          "kind": "texture",
+          "detail": "living.dirty_tiles.nor_gl:1024x1024"
+        },
+        {
+          "task": 214,
+          "ms": 595.0999999940395,
+          "kind": "geometry",
+          "detail": ":24"
+        },
+        {
+          "task": 803,
+          "ms": 25.700000002980232,
+          "kind": "geometry",
+          "detail": ":297030"
+        }
+      ],
+      "cancelled": false
+    },
+    "restored": true,
+    "samples": [
+      {
+        "submitMs": 36.8999999910593,
+        "finishMs": 36.8999999910593
+      },
+      {
+        "submitMs": 2.2000000029802322,
+        "finishMs": 2.300000011920929
+      },
+      {
+        "submitMs": 2.699999988079071,
+        "finishMs": 2.699999988079071
+      },
+      {
+        "submitMs": 2.9000000059604645,
+        "finishMs": 3
+      },
+      {
+        "submitMs": 2.5,
+        "finishMs": 2.5
+      },
+      {
+        "submitMs": 3.300000011920929,
+        "finishMs": 3.300000011920929
+      },
+      {
+        "submitMs": 2.5999999940395355,
+        "finishMs": 2.699999988079071
+      },
+      {
+        "submitMs": 2.7000000029802322,
+        "finishMs": 2.7000000029802322
+      }
+    ],
+    "errors": []
+  }
+]

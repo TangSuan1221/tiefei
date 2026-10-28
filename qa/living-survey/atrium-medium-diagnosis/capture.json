@@ -1,0 +1,360 @@
+{
+  "setup": {
+    "fog": {
+      "color": "#081717",
+      "density": 0.0215
+    },
+    "profiles": {
+      "live": {
+        "exposure": 0.41859999999999997,
+        "lampGain": 1.8,
+        "lampDecay": 0.9,
+        "practicalGain": 2.2,
+        "envIntensity": 0.065,
+        "scatter": 0.4,
+        "grain": 0.045,
+        "vignette": 0,
+        "aberration": 0.0032,
+        "bloom": 0.22,
+        "halo": 4.2,
+        "fogTint": 1.2,
+        "lensGain": 2.2,
+        "lampNearFull": 9
+      },
+      "film": {
+        "exposure": 2.95,
+        "lampGain": 1,
+        "practicalGain": 1.1,
+        "envIntensity": 0.9,
+        "scatter": 1,
+        "grain": 0.03,
+        "vignette": 0.6,
+        "aberration": 0.0022,
+        "bloom": 0.4,
+        "halo": 1,
+        "meter": 1,
+        "meterKey": 0.032,
+        "meterRange": [
+          0.08,
+          1.2
+        ],
+        "whiteKnee": 2.5,
+        "look": [
+          1.15,
+          1.08
+        ],
+        "spread": [
+          0.2,
+          1.45,
+          1.9
+        ]
+      }
+    }
+  },
+  "records": [
+    {
+      "variant": "baseline",
+      "fog": -0.01462,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.065
+    },
+    {
+      "variant": "baseline",
+      "fog": -0.01462,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.065
+    },
+    {
+      "variant": "clear-water",
+      "fog": -0.00001,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.065
+    },
+    {
+      "variant": "clear-water",
+      "fog": -0.00001,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.065
+    },
+    {
+      "variant": "half-absorption",
+      "fog": -0.01462,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.065
+    },
+    {
+      "variant": "half-absorption",
+      "fog": -0.01462,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.065
+    },
+    {
+      "variant": "half-medium",
+      "fog": -0.00731,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.065
+    },
+    {
+      "variant": "half-medium",
+      "fog": -0.00731,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.065
+    },
+    {
+      "variant": "double-exposure",
+      "fog": -0.01462,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.065
+    },
+    {
+      "variant": "double-exposure",
+      "fog": -0.01462,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.065
+    },
+    {
+      "variant": "environment",
+      "fog": -0.01462,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.26
+    },
+    {
+      "variant": "environment",
+      "fog": -0.01462,
+      "keys": [
+        {
+          "position": [
+            154,
+            8.2,
+            57
+          ],
+          "power": 822.8000000000001,
+          "distance": 44
+        },
+        {
+          "position": [
+            163,
+            3,
+            57
+          ],
+          "power": 1258.4,
+          "distance": 50
+        }
+      ],
+      "env": 0.26
+    }
+  ],
+  "errors": [
+    "console: Failed to load resource: net::ERR_FAILED"
+  ],
+  "diagnostic": true
+}

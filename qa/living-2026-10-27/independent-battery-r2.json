@@ -1,0 +1,73 @@
+[
+  {
+    "legal": true,
+    "pos": [
+      56,
+      0,
+      27.5
+    ],
+    "aim": {
+      "id": "living.box.battery",
+      "distance": 2.761637176905801
+    },
+    "worldPosition": [
+      56,
+      -0.6,
+      30.5
+    ],
+    "bounds": {
+      "min": [
+        55.69999998807907,
+        -0.8199999988079071,
+        30.24500000476837
+      ],
+      "max": [
+        56.30000001192093,
+        -0.3026794850826263,
+        30.75499999523163
+      ]
+    },
+    "actualVisualBounds": {
+      "min": [
+        55.697500228881836,
+        -0.8199999988079071,
+        30.2150000333786
+      ],
+      "max": [
+        56.302499771118164,
+        -0.3026794850826263,
+        30.75499999523163
+      ]
+    },
+    "glbPresent": true,
+    "children": [
+      "living-item-living.box.battery",
+      "living.box.battery:hit",
+      "battery-case"
+    ],
+    "power": 0.08
+  },
+  {
+    "before": "stowed",
+    "after": "extending",
+    "feedback": "机械臂伸出中 · 机修补给 · 应急电池箱 · 伸出后再按 F 夹取"
+  },
+  {
+    "before": "aiming",
+    "after": "gripping",
+    "feedback": "爪头扣住箱体 · 正在解锁"
+  },
+  {
+    "before": "aiming",
+    "after": "hauling",
+    "feedback": "箱体已夹紧 · 正在回收，收臂完成后才入库"
+  },
+  {
+    "power": 0.06860000000000001,
+    "cell": 2,
+    "cargo": [
+      "living.box.battery"
+    ],
+    "feedback": "取回两组备用电池。到生命维持台按需接入，避免满电时浪费。备用电池组×2"
+  }
+]

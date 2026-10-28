@@ -1,0 +1,518 @@
+{
+  "method": "Known-route continuous real keyboard driving; once-only 18%/zero-cell fixture; direct normal interact/useSupply; explicit local no-video task acceptance; not blind play, no external API",
+  "trace": [
+    {
+      "label": "initial fixture",
+      "time": 1793088127441,
+      "pos": [
+        7,
+        0,
+        7
+      ],
+      "power": 0.18,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "电量 18%。推进、声纳发射和摄影分析都要用电，先确认方向，少走回头路。R2 机修间货架上有应急电池箱（领航台坐标 X56 Y30.5 DEPTH 1040.6m）。"
+    },
+    {
+      "label": "local diagnostic intro",
+      "time": 1793088131773,
+      "pos": [
+        7,
+        0,
+        7
+      ],
+      "power": 0.17859999999999998,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "【GM诊断 · 非真实录像 · 禁写正式存档】我到人员侧了。你井底右前方，那个人旁边的托盘上有只黄色仪器匣。先取匣子，别动他。你的艇载相机留着；里面的移动摄像仪，从旁边传递口送给我，通话窗口能确认交接。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088137471,
+      "pos": [
+        9.956596791371439,
+        0,
+        7
+      ],
+      "power": 0.17551199890678976,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "【GM诊断 · 非真实录像 · 禁写正式存档】我到人员侧了。你井底右前方，那个人旁边的托盘上有只黄色仪器匣。先取匣子，别动他。你的艇载相机留着；里面的移动摄像仪，从旁边传递口送给我，通话窗口能确认交接。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088147470,
+      "pos": [
+        9.961907344636861,
+        0,
+        7.488965624826469
+      ],
+      "power": 0.17499359586782437,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "【GM诊断 · 非真实录像 · 禁写正式存档】我到人员侧了。你井底右前方，那个人旁边的托盘上有只黄色仪器匣。先取匣子，别动他。你的艇载相机留着；里面的移动摄像仪，从旁边传递口送给我，通话窗口能确认交接。"
+    },
+    {
+      "label": "arm stage 0",
+      "time": 1793088154840,
+      "pos": [
+        9.957658770315016,
+        0,
+        8.429225587104552
+      ],
+      "power": 0.16401153654867967,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "aiming",
+      "feedback": "艾里亚斯：入口地板上那个人，你看见了吗？他旁边托盘上有个黄色摄像仪匣。只取匣子，传递口就在旁边。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088157476,
+      "pos": [
+        9.957658770315016,
+        0,
+        8.429225587104552
+      ],
+      "power": 0.16401153654867967,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "aiming",
+      "feedback": "已夹持 · 按 F 收回机械臂，收妥后入库"
+    },
+    {
+      "label": "arm stage 1",
+      "time": 1793088159857,
+      "pos": [
+        9.957658770315016,
+        0,
+        8.429225587104552
+      ],
+      "power": 0.16401153654867967,
+      "cells": 0,
+      "reserve": false,
+      "camera": false,
+      "shared": false,
+      "arm": "aiming",
+      "feedback": "已夹持 · 按 F 收回机械臂，收妥后入库"
+    },
+    {
+      "label": "arm stage 2",
+      "time": 1793088164870,
+      "pos": [
+        9.957658770315016,
+        0,
+        8.429225587104552
+      ],
+      "power": 0.16261153654867966,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "罗温：……借用一下。防水匣里是一台移动水下摄像仪。艇载相机还能用，这台留给艾里亚斯。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088167479,
+      "pos": [
+        9.957658770315016,
+        0,
+        8.429225587104552
+      ],
+      "power": 0.16261153654867966,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "罗温：……借用一下。防水匣里是一台移动水下摄像仪。艇载相机还能用，这台留给艾里亚斯。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088177486,
+      "pos": [
+        11.905555042129574,
+        0,
+        8.989553257682102
+      ],
+      "power": 0.1604945657612069,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": false,
+      "arm": "stowed",
+      "feedback": "罗温：……借用一下。防水匣里是一台移动水下摄像仪。艇载相机还能用，这台留给艾里亚斯。"
+    },
+    {
+      "label": "transfer",
+      "time": 1793088182361,
+      "pos": [
+        11.905555042129574,
+        0,
+        8.989553257682102
+      ],
+      "power": 0.1604945657612069,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "传递口已接收移动摄像仪，人员侧回执确认交接。艇载摄影系统保持可用。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088187486,
+      "pos": [
+        11.905555042129574,
+        0,
+        8.989553257682102
+      ],
+      "power": 0.1604945657612069,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "【GM诊断 · 非真实录像 · 禁写正式存档】收到了，镜头还好。公司把下潜权限绑在调查影像上。你查机修间01，X53、Y24；压载库02，X108、Y26；中庭03，X166、Y60，都是1040米附近。我查人员侧第四处。这些是调查区域，别光拍门牌和设备。舷窗里未必看得见它们，按被动声纳的方位转过去，停稳、开灯取景，再去分析台看回片。声源会动，别守着旧方向等。漏一处，下面的门就不开。机修间有修补材料、备用电池和氧烛，收妥后在生命维持台按需用。配重在压载库，顺路取。别为了交差把艇撞穿。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088197494,
+      "pos": [
+        17.813032251968462,
+        0,
+        8.271275342027732
+      ],
+      "power": 0.1542790924071046,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "【GM诊断 · 非真实录像 · 禁写正式存档】收到了，镜头还好。公司把下潜权限绑在调查影像上。你查机修间01，X53、Y24；压载库02，X108、Y26；中庭03，X166、Y60，都是1040米附近。我查人员侧第四处。这些是调查区域，别光拍门牌和设备。舷窗里未必看得见它们，按被动声纳的方位转过去，停稳、开灯取景，再去分析台看回片。声源会动，别守着旧方向等。漏一处，下面的门就不开。机修间有修补材料、备用电池和氧烛，收妥后在生命维持台按需用。配重在压载库，顺路取。别为了交差把艇撞穿。"
+    },
+    {
+      "label": "waypoint 24,7.5",
+      "time": 1793088203609,
+      "pos": [
+        23.997703747875804,
+        0,
+        7.518460933274864
+      ],
+      "power": 0.1477718689821805,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "电量只剩 15%。R2 机修间货架上有应急电池箱（领航台坐标 X56 Y30.5 DEPTH 1040.6m）。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088207509,
+      "pos": [
+        24.720263105602335,
+        0,
+        7.521615719762586
+      ],
+      "power": 0.14701716801611775,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "电量只剩 15%。R2 机修间货架上有应急电池箱（领航台坐标 X56 Y30.5 DEPTH 1040.6m）。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088217527,
+      "pos": [
+        36.33275582759265,
+        0,
+        7.585477162605264
+      ],
+      "power": 0.13488838110433957,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "电量只剩 15%。R2 机修间货架上有应急电池箱（领航台坐标 X56 Y30.5 DEPTH 1040.6m）。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088227524,
+      "pos": [
+        48.91549348088439,
+        0,
+        7.654683713281788
+      ],
+      "power": 0.12174621188707734,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "电量只剩 15%。R2 机修间货架上有应急电池箱（领航台坐标 X56 Y30.5 DEPTH 1040.6m）。"
+    },
+    {
+      "label": "waypoint 53,7.5",
+      "time": 1793088231918,
+      "pos": [
+        52.97815758303453,
+        0,
+        7.677028848085868
+      ],
+      "power": 0.11750292075485028,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "电量只剩 15%。R2 机修间货架上有应急电池箱（领航台坐标 X56 Y30.5 DEPTH 1040.6m）。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088237527,
+      "pos": [
+        52.98029446686764,
+        0,
+        7.6770406012006
+      ],
+      "power": 0.11750068886464438,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "电量只剩 15%。R2 机修间货架上有应急电池箱（领航台坐标 X56 Y30.5 DEPTH 1040.6m）。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088247539,
+      "pos": [
+        53.068500622499066,
+        0,
+        15.35457225963961
+      ],
+      "power": 0.10948140315265113,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "电量只剩 15%。R2 机修间货架上有应急电池箱（领航台坐标 X56 Y30.5 DEPTH 1040.6m）。"
+    },
+    {
+      "label": "waypoint 53,24",
+      "time": 1793088255494,
+      "pos": [
+        53.16607751434763,
+        0,
+        23.92459754897188
+      ],
+      "power": 0.10052990768331466,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "撞击！有东西从黑暗里狠狠撞上艇壳。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088257552,
+      "pos": [
+        53.16610363350643,
+        0,
+        23.92689155370215
+      ],
+      "power": 0.1005275115675208,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "撞击！有东西从黑暗里狠狠撞上艇壳。"
+    },
+    {
+      "label": "waypoint 56,25",
+      "time": 1793088267031,
+      "pos": [
+        55.93115376827606,
+        0,
+        24.941205741578187
+      ],
+      "power": 0.09745138924417257,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "有东西贴着艇壳滑了过去——它没撞。它在找声音。别推进，切断主动声纳的电源。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088267574,
+      "pos": [
+        55.93287940499447,
+        0,
+        24.941838262402594
+      ],
+      "power": 0.09744946965169625,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "那个声源慢慢游远了。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088277579,
+      "pos": [
+        55.93624860258356,
+        0,
+        27.284717632811777
+      ],
+      "power": 0.09500245973309362,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "那个声源慢慢游远了。"
+    },
+    {
+      "label": "arm stage 0",
+      "time": 1793088283783,
+      "pos": [
+        55.936430178337304,
+        0,
+        27.416739378822037
+      ],
+      "power": 0.08486457022351296,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "aiming",
+      "feedback": "有东西贴着艇壳滑了过去——它没撞。它在找声音。别推进，切断主动声纳的电源。"
+    },
+    {
+      "label": "sample",
+      "time": 1793088287593,
+      "pos": [
+        55.936430178337304,
+        0,
+        27.416739378822037
+      ],
+      "power": 0.08486457022351296,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "aiming",
+      "feedback": "已夹持 · 按 F 收回机械臂，收妥后入库"
+    },
+    {
+      "label": "arm stage 1",
+      "time": 1793088288804,
+      "pos": [
+        55.936430178337304,
+        0,
+        27.416739378822037
+      ],
+      "power": 0.08486457022351296,
+      "cells": 0,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "aiming",
+      "feedback": "那个声源慢慢游远了。"
+    },
+    {
+      "label": "arm stage 2",
+      "time": 1793088293814,
+      "pos": [
+        55.936430178337304,
+        0,
+        27.416739378822037
+      ],
+      "power": 0.08346457022351296,
+      "cells": 3,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "取回三组备用电池。到生命维持台按需接入，别在满电时浪费。"
+    },
+    {
+      "label": "battery collected",
+      "time": 1793088293817,
+      "pos": [
+        55.936430178337304,
+        0,
+        27.416739378822037
+      ],
+      "power": 0.08346457022351296,
+      "cells": 3,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "取回三组备用电池。到生命维持台按需接入，别在满电时浪费。"
+    },
+    {
+      "label": "battery normal use true",
+      "time": 1793088293823,
+      "pos": [
+        55.936430178337304,
+        0,
+        27.416739378822037
+      ],
+      "power": 0.49716457022351296,
+      "cells": 2,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "取回三组备用电池。到生命维持台按需接入，别在满电时浪费。"
+    },
+    {
+      "label": "final",
+      "time": 1793088293847,
+      "pos": [
+        55.936430178337304,
+        0,
+        27.416739378822037
+      ],
+      "power": 0.49716457022351296,
+      "cells": 2,
+      "reserve": false,
+      "camera": true,
+      "shared": true,
+      "arm": "stowed",
+      "feedback": "取回三组备用电池。到生命维持台按需接入，别在满电时浪费。"
+    }
+  ],
+  "errors": []
+}

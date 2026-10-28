@@ -206,10 +206,10 @@ export function createAtmosphere(fixtures: readonly LivingHaloSource[] = []): At
  */
 const SNOW_LAYERS = [
   // three particle sizes: fine silt (sub-mm haze grain), flakes (1.5–4 mm), aggregates (5–12 mm clumps, defocused near the lens)
-  {name: 'aggregate', count: 3200, box: 7, sizeMin: .005, sizeMax: .012, aggregate: 0, coc: 14, keepClear: .4, gain: .5},
-  {name: 'silt', count: 90000, box: 12, sizeMin: .0003, sizeMax: .0011, aggregate: 0, coc: 2, keepClear: .3, gain: .75},
-  {name: 'flake', count: 26000, box: 16, sizeMin: .0015, sizeMax: .004, aggregate: .03, coc: 6, keepClear: .3, gain: 1},
-  {name: 'far', count: 14000, box: 34, sizeMin: .0012, sizeMax: .003, aggregate: .02, coc: 0, keepClear: .25, gain: 1.2},
+  {name: 'aggregate', count: 550, box: 7, sizeMin: .005, sizeMax: .012, aggregate: 0, coc: 14, keepClear: .4, gain: .5},
+  {name: 'silt', count: 30000, box: 12, sizeMin: .0003, sizeMax: .0011, aggregate: 0, coc: 2, keepClear: .3, gain: .75},
+  {name: 'flake', count: 6500, box: 16, sizeMin: .0015, sizeMax: .004, aggregate: .03, coc: 6, keepClear: .3, gain: 1},
+  {name: 'far', count: 8500, box: 34, sizeMin: .0012, sizeMax: .003, aggregate: .02, coc: 0, keepClear: .25, gain: 1.2},
 ] as const;
 
 function snowMaterial(L: (typeof SNOW_LAYERS)[number], time: {value: number}, cam: {value: T.Vector3}, optics: LivingOptics) {

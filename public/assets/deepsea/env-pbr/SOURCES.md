@@ -20,3 +20,5 @@ Derived files (same CC0 licence, made locally with Pillow):
   50 %, the low-frequency blotches below it kept at 25 % (they read as a repeat on 8 m walls); mean
   normalised to ≈ 0.62 so the paint colour is set by `material.color`.
 - `paint_gray_diff_1k.jpg` — `green_metal_rust_diff`, same treatment (detail kept at 60 %).
+
+2026-10-27 material trial: the existing `rusty_metal_02` 1K triplet is also used on the failed pressure-vessel manway flange. Rob Tuytel / Poly Haven, https://polyhaven.com/a/rusty_metal_02 ; licence https://polyhaven.com/license (CC0). No preview images downloaded. Source files remain local; SHA256 inventory: qa/living-survey/material-asset-hashes.json. Diffuse uses sRGB, normalGL/roughness linear, geometry UVs in metres and material tile width 1m. Restricted to a small exposed oxidized flange; surrounding painted vessel and blue enamel header retain their distinct surface systems.

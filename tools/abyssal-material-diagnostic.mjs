@@ -1,0 +1,3 @@
+import {openLevelTwo} from './living-browser-lib.mjs';
+const {page,browser}=await openLevelTwo('qa/level-03/visual',{query:'?level=3'});
+try { await page.locator('[data-id="new"]').click();await page.waitForFunction(()=>window.__abyss,null,{timeout:120000});await page.evaluate(()=>window.__abyss.world.ready);console.log(await page.evaluate(()=>{const mats=new Map();window.__abyss.world.root.traverse(o=>{if(o.material?.name?.includes('abyss.scan'))mats.set(o.material.name,{name:o.material.name,width:o.material.map?.image?.width,url:o.material.map?.image?.src,version:o.material.map?.version,uv:o.geometry.attributes.uv?.array.slice(0,8)});});return [...mats.values()];})); } finally { await browser.close(); }

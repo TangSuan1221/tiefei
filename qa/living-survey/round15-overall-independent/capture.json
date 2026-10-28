@@ -1,0 +1,53 @@
+{
+  "base": "http://127.0.0.1:5180",
+  "method": "Independent local browser; original six fixed diagnostic cameras; API and external requests blocked; HMR disabled; not blind play.",
+  "cameras": [
+    [
+      "entry",
+      7,
+      0,
+      6,
+      145
+    ],
+    [
+      "repair-link",
+      56,
+      0,
+      26,
+      90
+    ],
+    [
+      "supply",
+      134,
+      0,
+      13.5,
+      90
+    ],
+    [
+      "password",
+      128.5,
+      0,
+      35,
+      180
+    ],
+    [
+      "atrium",
+      144,
+      0,
+      60,
+      90
+    ],
+    [
+      "exit",
+      193,
+      0,
+      68,
+      90
+    ]
+  ],
+  "blocked": [
+    "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Noto+Serif+SC:wght@300;400;600&display=swap",
+    "http://127.0.0.1:5180/api/video/videos"
+  ],
+  "errors": []
+}

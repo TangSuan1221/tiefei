@@ -698,94 +698,108 @@ export function buildWreck(m: LivingMaterials, shells: ShellBuild, solids: T.Box
   // ================================================================ atrium: slime-covered clock tower on the dry fountain
   const curtain = buildAtriumLandmark();
   function buildAtriumLandmark() {
-    const b = B('A'), C: V3 = [155, -9, 62], r = rng(4040);
-    // Base materials except the stone: one variant (same program) measures its tide lines and silt from the
-    // tower foot, so the shaft carries flood deposits, water marks and biofilm instead of clean concrete.
-    const stone = wearVariant(m.concrete, {floorY: -8.5, silt: 1, grime: 1, bio: .8, rust: .2, wet: .75}, ownedM);
-    stone.color.set('#77746a'); stone.name = 'living.tower-stone';
-    const tile = m.wallTile, brass = m.brass, frame = m.frame;
-    // Basin: lathed tiled wall with a rounded coping, a glossy gel pool sunk below the rim.
-    const f = Kit.at(b, C, 0);
-    const prof = [[5.5, 0], [5.45, .64], [5.4, .72], [5.2, .76], [4.95, .75], [4.84, .7], [4.78, .55], [4.74, .4]].map(([x, y]) => new T.Vector2(x, y));
-    f.geo(new T.LatheGeometry(prof, 56), tile, [0, 0, 0], undefined, [1, 1, 1], 'keep');
-    f.cyl([0, .48, 0], 4.76, 4.76, .04, m.slime, 48);
-    solids.push(f.solid([0, .35, 0], [10.8, .7, 10.8]));
-    // Tower stump: 2.4 m square stone shaft, three courses lost from the top, a corner pier still standing.
-    const t = Kit.at(b, [C[0], -8.5, C[2]], .35, [.04, 0, -.03]);
-    const courses = 9, ch = .62;
-    for (let i = 0; i < courses; i++) {
-      const w = 2.4 - (i % 2) * .04, y = i * ch + ch / 2;
-      t.box([0, y, 0], [w, ch - .02, w], stone);
-      t.box([0, y + ch / 2 - .02, 0], [w + .06, .04, w + .06], frame);
-    }
-    for (const [x, z, h] of [[-.9, -.9, 1.6], [.9, -.9, .9], [-.9, .9, .5]] as const) t.box([x, courses * ch + h / 2, z], [.62, h, .62], stone, [0, (r() - .5) * .2, (r() - .5) * .1]);
-    // Water marks on every face: runoff stains under the gel cap, a silt tide band low down, mould at the foot.
-    for (let f = 0; f < 4; f++) {
-      const a = f * PI / 2, nl = new T.Vector3(Math.sin(a), 0, Math.cos(a)), nw = nl.clone().applyMatrix4(new T.Matrix4().extractRotation(t.m)).normalize();
-      const fp = (u: number, y: number): V3 => t.point([nl.x * 1.235 + nl.z * u, y, nl.z * 1.235 - nl.x * u]);
-      const fn: V3 = [nw.x, nw.y, nw.z];
-      grime.wall(b, 'leak', fp((r() - .5) * .6, courses * ch - 1.3), fn, 1.1, 2.4);
-      grime.wall(b, 'slimeDrip', fp((r() - .5) * 1.2, courses * ch - .8), fn, .7, 1.6);
-      grime.wall(b, 'tide', fp(0, 1.2 + r() * .3), fn, 2.3, .7);
-      grime.wall(b, 'mould', fp((r() - .5) * .8, .45), fn, 1.6, .9);
-    }
-    for (const [x, z] of [[-1.22, -1.22], [1.22, -1.22], [-1.22, 1.22], [1.22, 1.22]]) t.box([x, courses * ch / 2, z], [.12, courses * ch, .12], brass);
-    // Fallen clock head lying on the floor south of the basin (stopped 4:12, the flood hour).
-    const head = Kit.at(b, [154.3, -9, 70.8], .4);
-    const hk = head.child([0, 1.52, 0], [0, 0, PI / 2 + .02]);
-    hk.box([0, 0, 0], [3.0, 2.6, 2.6], stone);
-    for (const s of [-1, 1]) hk.box([s * 1.5, 0, 0], [.1, 2.7, 2.7], frame);
-    for (const [n, rot] of [[[0, 0, 1], [0, 0, 0]], [[0, 0, -1], [0, PI, 0]], [[0, 1, 0], [-PI / 2, 0, 0]]] as const) {
-      const face = hk.child([n[0] * 1.31, n[1] * 1.31, n[2] * 1.31], rot as unknown as V3);
-      face.cyl([0, 0, .02], .98, .98, .05, brass, 36, [PI / 2, 0, 0]);
-      face.cyl([0, 0, .05], .9, .9, .02, m.porcelain, 36, [PI / 2, 0, 0]);
-      for (let i = 0; i < 12; i++) { const a = i / 12 * PI * 2; face.box([Math.sin(a) * .76, Math.cos(a) * .76, .065], [.04, i % 3 ? .1 : .18, .01], m.rubber, [0, 0, -a]); }
-      const ha = (4 + 12 / 60) / 12 * PI * 2, ma = 12 / 60 * PI * 2;
-      face.box([Math.sin(ha) * .22, Math.cos(ha) * .22, .075], [.05, .48, .01], m.rubber, [0, 0, -ha]);
-      face.box([Math.sin(ma) * .32, Math.cos(ma) * .32, .08], [.035, .68, .01], m.rubber, [0, 0, -ma]);
-      face.cyl([0, 0, .085], .05, .05, .02, brass, 12, [PI / 2, 0, 0]);
-    }
-    solids.push(head.solid([0, 1.3, 0], [2.8, 2.6, 3.1]));
-    // Debris trail from the stump to the head; a cracked fourth dial face on the floor.
-    const sc = shells.scatter.get('A')!;
-    for (let i = 0; i < 40; i++) { const u = r(); sc.put('chunk', [155 + (154.3 - 155) * u + (r() - .5) * 2.4, -8.97, 62 + 5.6 + (70.8 - 67.6) * u * .8 + (r() - .5) * 2], [r() * 3, r() * 6, r() * 3], [1.5 + r() * 2, .8 + r(), 1.5 + r() * 2]); }
-    for (let i = 0; i < 9; i++) Kit.at(b, [152 + r() * 5, -9, 67.6 + r() * 2], r() * 6).box([0, .2, 0], [.6, .4, .6], stone, [r() * .5, 0, r() * .5]);
-    const dial = Kit.at(b, [158.2, -8.98, 69.2], .7);
-    for (let i = 0; i < 5; i++) dial.box([(r() - .5) * 1.2, .01, (r() - .5) * 1.2], [.4 + r() * .3, .02, .3 + r() * .3], m.porcelain, [0, r() * 6, 0]);
-    // Panacea gel: a mass over the broken top, sheets down each face, strands into the pool.
-    const topY = -8.5 + courses * ch;
-    gel(b, [C[0], topY - .1, C[2]], [1.55, .7, 1.45], 4041);
-    gel(b, [C[0] - .5, topY + .5, C[2] - .6], [.6, .5, .5], 4042);
-    for (let i = 0; i < 4; i++) {
-      const a = .35 + i * PI / 2 + .2, px = C[0] + Math.sin(a) * 1.28, pz = C[2] + Math.cos(a) * 1.28;
-      Kit.at(b, [px, -8.5 + 2.2 + i * .4, pz], a).geo(gelGeo(4050 + i), m.slime, [0, 0, 0], undefined, [.7, 2.2 + i * .3, .14], 'keep');
-    }
-    for (let i = 0; i < 8; i++) {
-      const a = r() * PI * 2, d = 1.25 + r() * .2, top: V3 = [C[0] + Math.cos(a) * d, topY - .2 - r() * .6, C[2] + Math.sin(a) * d];
-      b.rod(top, [top[0] + Math.cos(a) * .4, -8.5, top[2] + Math.sin(a) * .4], .02, m.slime, 6, {r2: .05});
-    }
-    for (let i = 0; i < 7; i++) { const a = r() * PI * 2, d = 2 + r() * 2.6; gel(b, [C[0] + Math.cos(a) * d, -8.52, C[2] + Math.sin(a) * d], [.5 + r() * .5, .12 + r() * .1, .4 + r() * .4], 4060 + i); }
-    gel(b, [153.6, -9 + 2.55, 70.6], [1.1, .25, 1.4], 4070);
-    for (let i = 0; i < 5; i++) gel(b, [154.3 + (r() - .5) * 3, -9, 70.8 + (r() - .5) * 3.4], [.4 + r() * .4, .1, .4 + r() * .3], 4080 + i);
-    for (const [x, z, w, d] of [[149.4, 62.5, 2.4, 3.2], [160.6, 60.4, 2.2, 2.6], [155.6, 67.4, 3, 2]] as const) grime.floor(b, 'slime', [x, -9 + .005, z], w, d, r() * 6);
-    // Up-light fixtures on the basin rim aimed at the tower (lighting is the lighting pass's call).
-    const tiltDeg = 24, phi = tiltDeg * PI / 180;
-    for (let i = 0; i < 6; i++) {
-      const al = PI / 6 + i * PI / 3, p: V3 = [C[0] + Math.cos(al) * 4.95, -8.275, C[2] + Math.sin(al) * 4.95];
-      const th = Math.atan2(-Math.cos(al), -Math.sin(al));
-      const state: LivingUplight['state'] = i === 4 ? 'toppled' : i === 1 ? 'cracked' : 'intact';
-      if (state === 'toppled') {
-        const lp: V3 = [C[0] + Math.cos(al) * 4.3, -8.36 + .14, C[2] + Math.sin(al) * 4.3];
-        upLight(Kit.at(b, lp, th + .6, [PI / 2, 0, 0]), m, m.lampOff);
-        LIVING_UPLIGHTS.push({id: `A-uplight-${i + 1}`, position: lp.map(v => +v.toFixed(2)) as V3, aim: [Math.sin(th + .6), 0, Math.cos(th + .6)].map(v => +v.toFixed(3)) as V3, state});
-        continue;
+    const b = B('A');
+    // Emergency circulation retrofit in the former public atrium. Every vessel has a
+    // pump, isolator, inspection hatch, return header and a supported service deck.
+    const k=Kit.at(b,[155,-9,67],0);
+    k.box([0,.2,0],[16,.4,12],m.concrete);
+    for(const x of [-7,7])for(const z of [-5,5])k.box([x,2.4,z],[.32,4.8,.32],m.frame);
+    const bare=withStaticLights(new T.MeshStandardMaterial({color:'#596665',roughness:.32,metalness:.85}));ownedM.push(bare);
+    const enamel=withStaticLights(new T.MeshStandardMaterial({color:'#174d70',roughness:.64,metalness:.02}));ownedM.push(enamel);
+    const vessel=wearVariant(m.indGreen,{floorY:-9,rust:.16,silt:.35,grime:.45,bio:.12,wet:.25},ownedM);
+    vessel.color.set('#364c45');vessel.roughness=.88;vessel.metalness=.14;
+    for(const [i,x] of [-4.6,0,4.6].entries()){
+      const height=i===1?8.1:6.4,cy=2.1+height/2;
+      const skin=wearVariant(vessel,{floorY:-9,rust:i===0?.18:.1,silt:.35,grime:.45,bio:.06,wet:.02,leak:i===2?[159.6,-3,65.5,.32]:undefined},ownedM);skin.color.set(i===0?'#343f48':i===1?'#354b44':'#625c4c');skin.roughness=i===1?.92:.84;
+      if(i===0)for(let y=2.8;y<8;y+=.8)k.ring([x,y,0],1.57,.045,m.frame,[Math.PI/2,0,0],48);
+      // Dished pressure-vessel heads, cylindrical barrel, two bolted circumferential seams.
+      k.cyl([x,cy,0],1.55,1.55,height,skin,48);
+      k.sphere([x,cy-height/2,0],[1.55,.65,1.55],skin,28);
+      k.sphere([x,cy+height/2,0],[1.55,.65,1.55],skin,28);
+      for(const y of [2.25,height+1.95]){
+        k.ring([x,y,0],1.58,.09,m.trim,[Math.PI/2,0,0],48);
+        for(let n=0;n<16;n++){const a=n*Math.PI/8;k.cyl([x+Math.cos(a)*1.61,y,Math.sin(a)*1.61],.045,.045,.22,m.chrome,6);}
       }
-      upLight(Kit.at(b, p, th, [phi, 0, 0]), m, m.lampOff);
-      if (state === 'cracked') for (let j = 0; j < 4; j++) sc.put('shard', [p[0] + (r() - .5) * .6, -8.27, p[2] + (r() - .5) * .6], [0, r() * 6, 0], [.4, 1, .4]);
-      const aim: V3 = [Math.sin(phi) * Math.sin(th), Math.cos(phi), Math.sin(phi) * Math.cos(th)];
-      LIVING_UPLIGHTS.push({id: `A-uplight-${i + 1}`, position: [p[0], -8.275 + .31, p[2]].map(v => +v.toFixed(2)) as V3, aim: aim.map(v => +v.toFixed(3)) as V3, state});
+      for(const z of [-.9,.9])k.box([x,.95,z],[1.4,1.5,.25],m.frame);
+      // Front-facing circular manway with thick flange, eight studs and hinge ears.
+      k.cyl([x,5,-1.63],.72,.72,.22,i===2?m.oxidizedSteel!:bare,36,[Math.PI/2,0,0]);
+      k.cyl([x,5,-1.78],.58,.58,.13,vessel,36,[Math.PI/2,0,0]);
+      for(let j=0;j<8;j++){const a=j*Math.PI/4;k.cyl([x+Math.cos(a)*.64,5+Math.sin(a)*.64,-1.8],.065,.065,.12,m.frame,6,[Math.PI/2,0,0]);}
+      k.box([x-.82,5,-1.65],[.2,.48,.3],m.frame);k.box([x+.76,5,-1.85],[.13,.35,.2],m.bandYellow);
+      // Vertical sight gauge, guarded lamp and serial plate make the units distinguishable.
+      k.box([x+.65,7,-1.43],[.18,1.45,.14],m.rubber);k.box([x+.65,7.25,-1.52],[.07,.8,.025],m.darkGlass);
+      k.box([x,6.7,-1.52],[.85,.4,.06],m.bandYellow);
+      shells.atlas.add('循环水 '+(i+1),'CIRCULATION / '+(i===1?'PRESSURE BALANCE':'FILTRATION'),'enamel',[155+x,-2.2,65.43],[0,0,-1],1.05);
+      k.rod([x,2.4,1.3],[x,2.4,3.4],.22,m.pipe,20);
+      k.rod([x,2.4,3.4],[x,7.6,3.4],.22,m.pipe,20);
+      k.rod([x,7.6,3.4],[x,height+2.5,0],.16,m.pipe,20);
+      // Motor and coupling on a common anchor skid, with a discharge pipe into the vessel.
+      k.box([x,.65,-3.4],[2.4,.3,1.8],m.frame);
+      k.cyl([x,1.5,-3.3],.48,.48,1.3,m.indGreen,32,[0,0,Math.PI/2]);
+      for(let n=0;n<6;n++)k.ring([x-.5+n*.2,1.5,-3.3],.5,.045,m.frame,[0,Math.PI/2,0],24);
+      k.cyl([x+.9,1.5,-3.3],.38,.38,.65,bare,24,[0,0,Math.PI/2]);
+      k.rod([x+.9,1.5,-3.3],[x+.9,2.4,-1.2],.18,m.pipe,16);
     }
-    rep.identifiers.A = 'gel-covered clock-tower stump on the fountain; clock head fallen south, stopped at 4:12';
+    // Front service header remains visibly traceable from filter to pressure vessel to return.
+    k.rod([-6.3,6.0,-2.7],[6.2,6.0,-2.7],.18,enamel,24);
+    // Bolted spool joints: dark gasket is compressed between two thick flanges.
+    for(const x of [-5.8,-2.3,2.3,5.8]){
+      k.cyl([x,6,-2.7],.265,.265,.035,m.rubber,16,[0,0,Math.PI/2]);
+      for(const side of [-1,1])k.cyl([x+side*.065,6,-2.7],.29,.29,.075,enamel,16,[0,0,Math.PI/2]);
+      for(let j=0;j<6;j++){const a=j*Math.PI/3;k.cyl([x,6+Math.sin(a)*.235,-2.7+Math.cos(a)*.235],.035,.035,.23,bare,6,[0,0,Math.PI/2]);}
+    }
+    const valveFallback=new Batcher('living-valve-r10-fallback');owned.push(valveFallback);
+    const headerKit=k;
+    for(const x of [-4.6,0,4.6]){
+      const k=x===4.6?Kit.at(valveFallback,[155,-9,67],0):headerKit;
+      // Wheel shaft enters a bonnet and valve casting; branch has a bolted vessel neck.
+      k.cyl([x,6,-2.72],.245,.245,.5,enamel,16,[Math.PI/2,0,0]);
+      k.cyl([x,6,-2.92],.13,.18,.18,bare,12,[Math.PI/2,0,0]);
+      k.rod([x,6,-2.9],[x,6,-3.05],.055,bare,10);
+      for(const z of [-1.85,-1.73])k.cyl([x,6,z],.29,.29,.07,enamel,16,[Math.PI/2,0,0]);
+      k.cyl([x,6,-1.79],.27,.27,.025,m.rubber,16,[Math.PI/2,0,0]);
+      for(let j=0;j<6;j++){const a=j*Math.PI/3;k.cyl([x+Math.cos(a)*.235,6+Math.sin(a)*.235,-1.79],.035,.035,.23,bare,6,[Math.PI/2,0,0]);}
+      k.rod([x,6,-2.7],[x,6,-1.4],.18,enamel,20);
+      k.ring([x,6,-3],.3,.045,m.bandRed,[0,0,0],28);
+      for(let n=0;n<4;n++){const a=n*Math.PI/2;k.rod([x,6,-3],[x+Math.cos(a)*.28,6+Math.sin(a)*.28,-3],.023,m.bandRed,8);}
+    }
+    valveFallback.build(root);
+    // Failed right-hand seal runoff reaches the skid, rather than random floor grime.
+    grime.floor(b,'stain',[159.6,-8.58,65.25],1.5,2.8,.12);
+    grime.floor(b,'grime',[159.8,-8.57,63.7],1.3,2.2,.1);
+    const console=Kit.at(b,[148,-9,64.3],0);
+    console.box([0,2.5,0],[1.5,5,.8],m.indGreen);console.box([0,4.2,-.45],[1.25,.55,.05],m.screenDead);
+    for(let i=0;i<3;i++)console.cyl([-.4+i*.4,3.6,-.46],.07,.07,.06,i===1?m.lampRed:m.lampOff,14,[Math.PI/2,0,0]);
+    console.rod([.65,3,.1],[2.4,3,2.4],.065,m.rubber,12);
+    shells.atlas.add('停机 / 回压异常','RETURN PRESSURE HIGH','warn',[148,-4.1,63.85],[0,0,-1],1.3);
+    // One legible shutdown consequence: a torn-off motor skid, dragged from its
+    // four exposed anchor studs, with its flexible coupling still attached.
+    const failed=Kit.at(b,[175,-8.8,61],.5);
+    failed.box([0,.08,0],[3.4,.16,2.3],m.frame);
+    failed.cyl([0,.9,0],.8,.8,2.4,m.indGreen,36,[0,0,Math.PI/2]);
+    for(let j=0;j<8;j++)failed.ring([-1+j*.28,.9,0],.84,.055,m.frame,[0,Math.PI/2,0],32);
+    failed.box([-.4,1.9,0],[1.1,.25,.9],m.trim,[0,.1,.25]);
+    failed.rod([1.2,.9,0],[2.5,.3,1],.12,m.rubber,18);
+    for(const x of [171.7,173.7])for(const z of [61,63]){b.rod([x,-9,z],[x,-8.65,z],.055,m.chrome,12);}
+    grime.floor(b,'scrape',[173,-8.98,62],5,1.5,.45);
+    b.rod([163.6,-6.6,70.4],[170,-8.6,65],.12,m.rubber,18);
+    b.rod([170,-8.6,65],[177.5,-8.5,62],.12,m.rubber,18);
+    // Return header ends at the south utility riser rather than disappearing in empty space.
+    k.rod([-6.8,2.4,3.4],[8.6,2.4,3.4],.32,m.pipe,24);
+    k.rod([8.6,2.4,3.4],[8.6,2.4,14.5],.32,m.pipe,24);
+    for(let z=4;z<14;z+=2.8){k.box([8.6,1.2,z],[.5,2.4,.5],m.frame);k.ring([8.6,2.4,z],.37,.055,m.chrome,[0,0,0],24);}
+    // Supported rear catwalk, handrails and ladder; entirely outside the cruise lane.
+    k.box([0,5.7,4.3],[14,.22,2.0],m.tread);
+    for(const x of [-6.5,-3,0,3,6.5]){k.rod([x,.5,4.3],[x,5.7,4.3],.1,m.frame,12);k.rod([x,5.7,5.15],[x,6.8,5.15],.045,m.bandYellow,12);}
+    for(const y of [6.2,6.8])k.rod([-6.5,y,5.15],[6.5,y,5.15],.045,m.bandYellow,12);
+    for(const x of [-6.9,-6.4])k.rod([x,.5,5.3],[x,6.8,5.3],.045,m.frame,12);
+    for(let y=.7;y<6.8;y+=.34)k.rod([-6.9,y,5.3],[-6.4,y,5.3],.028,m.chrome,10);
+    // Operator station is attached to the service deck, with an open hinged service cover.
+    k.box([6,4.7,4.3],[1.6,2,.5],m.indGreen);k.box([6,5.05,4.01],[1.25,.55,.025],m.screenDead);
+    for(let i=0;i<4;i++)k.cyl([5.5+i*.33,4.5,4.0],.065,.065,.045,i===0?m.lampAmber:m.lampOff,12,[Math.PI/2,0,0]);
+    shells.atlas.add('生活区循环水 / 临时检修','RESIDENTIAL WATER RECOVERY','warn',[155,-1.8,65.25],[0,0,-1],3.2);
+    solids.push(k.solid([0,4.6,.4],[13.3,8.8,4.2]));
+    rep.identifiers.A='three dished-head circulation vessels with pumps, manways, return header and supported service catwalk';
     // ---- Sediment inflow curtain from a cracked skylight pane: three crossed sheets + falling motes.
     // It falls the full hall height, so it goes at the first lantern edge spot whose column stays off the route.
     const spots: [number, number][] = [[160.6, 57.2], [148.4, 56.2], [161.8, 67.4], [148.2, 68.6], [163.2, 62]];

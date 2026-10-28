@@ -1,0 +1,14 @@
+{
+  "method": "Real UI F10/menu/M/text/Enter; state read only for assertion. APIs blocked.",
+  "result": {
+    "accepted": [
+      "L2-S01"
+    ],
+    "at": "camera",
+    "gm": true,
+    "feedback": "【GM诊断 · 非真实录像 · 禁写正式存档】我到人员侧了。你井底右前方，那个人旁边的托盘上有只黄色仪器匣。先取匣子，别动他。你的艇载相机留着；里面的移动摄像仪，从旁边传递口送给我，通话窗口能确认交接。"
+  },
+  "errors": [
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
+}

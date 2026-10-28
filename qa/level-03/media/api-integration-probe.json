@@ -1,0 +1,62 @@
+{
+  "httpStatus": 200,
+  "response": {
+    "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU1ODU4NTU1NzMyMzY0",
+    "object": "video",
+    "status": "queued",
+    "created_at": 1792846421,
+    "completed_at": null,
+    "expires_at": null,
+    "error": null,
+    "progress": null,
+    "remixed_from_video_id": null,
+    "seconds": "5",
+    "size": "16:9",
+    "model": "minimax-h3-max",
+    "last_frame_url": null,
+    "usage": {
+      "duration_seconds": 5,
+      "video_resolution": "768p"
+    }
+  },
+  "poll": {
+    "httpStatus": 200,
+    "response": {
+      "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU1ODU4NTU1NzMyMzY0",
+      "object": "video",
+      "status": "completed",
+      "created_at": 1792846421,
+      "completed_at": 1792846429,
+      "expires_at": null,
+      "error": null,
+      "progress": null,
+      "remixed_from_video_id": null,
+      "seconds": "5",
+      "size": "16:9",
+      "model": "MiniMax-H3-Max",
+      "last_frame_url": null,
+      "usage": {
+        "total_seconds": 5,
+        "input_seconds": 0,
+        "output_seconds": 5,
+        "input_image_count": 0,
+        "total_tokens": 162745,
+        "prompt_tokens": 0,
+        "completion_tokens": 162745,
+        "video_resolution": "768p"
+      }
+    }
+  },
+  "download": {
+    "status": 200,
+    "type": "video/mp4",
+    "bytes": 2104116
+  },
+  "decode": {
+    "width": 1344,
+    "height": 768,
+    "duration": 5.184,
+    "currentTime": 0.960096,
+    "error": null
+  }
+}

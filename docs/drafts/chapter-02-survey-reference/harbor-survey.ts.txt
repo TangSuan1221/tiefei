@@ -1,0 +1,68 @@
+/** Chapter-one survey facts. Dialogue cannot manufacture physical evidence. */
+export const SURVEY_POINTS = [[45,0,28],[62,0,27],[77,1,7]] as const;
+export const SURVEY_TARGETS = [[45,0,23],[62,0,21],[77,1,6]] as const;
+export type SurveyVideo = 'L1-S01'|'L1-S02'|'L1-S03'|'L1-S04'|'L1-S05'|'L1-S06';
+export type SurveyCapture={survey:true;id:string;target:number|'manual';valid:boolean;lit:boolean};
+export class HarborSurvey {
+ camera=false;shared=false;briefed=false;helpSeen=false;helpReplied=false;manual=false;
+ valve=false;reported=false;clearSeen=false;doorSeen=false;askedCode=false;codeSeen=false;unlocked=false;complete=false;
+ photos:number[]=[];accepted:SurveyVideo[]=[];captures:SurveyCapture[]=[];analyzed:string[]=[];
+ elapsed=0;closedAt:number|null=null;nudged=false;pickupNudged=false;trust=0;private rewarded:string[]=[];
+ private pendingCapture:SurveyCapture|null=null;
+ code=String(1000+Math.floor(Math.random()*9000));
+ get pending():SurveyVideo|null {
+  if(!this.accepted.includes('L1-S01'))return 'L1-S01';
+  if(!this.shared)return null;
+  if(!this.briefed)return 'L1-S02';
+  if(this.photos.includes(0)&&this.photos.includes(1)&&!this.helpSeen)return 'L1-S03';
+  if(this.reported&&!this.clearSeen)return 'L1-S05';
+  if(this.closedAt!==null&&!this.reported&&this.elapsed-this.closedAt>=60&&!this.nudged)return 'L1-S04';
+  if(this.clearSeen&&this.askedCode&&!this.codeSeen)return 'L1-S06';
+  return null;
+ }
+ accept(id:SurveyVideo){if(id!==this.pending)return false;this.accepted.push(id);if(id==='L1-S02')this.briefed=true;if(id==='L1-S03')this.helpSeen=true;if(id==='L1-S04')this.nudged=true;if(id==='L1-S05')this.clearSeen=true;if(id==='L1-S06')this.codeSeen=true;return true;}
+ tick(dt:number){this.elapsed+=Math.max(0,dt);if(!this.camera&&this.elapsed>=25&&!this.pickupNudged){this.pickupNudged=true;return '艾里亚斯：我是先到的调查员艾里亚斯。入口地板上那个人，你看见了吗？他腰侧有个摄像仪匣。搜一下，我们得留下证据。';}return '';}
+ operate(id:string){
+  if(id==='body'){if(this.camera)return '仪器匣已经搜过。身份牌压在身体下面，暂时无法辨认。';this.camera=true;return '罗温：……借用一下。防水匣里有水下摄像仪和一枚可传输的移动探头。摄像仪接入艇载摄影线路。';}
+  if(id==='valve-s'){if(!this.helpReplied)return '先听艾里亚斯说明堵塞情况，再核对供水说明。';if(!this.manual)return '罗温：标签糊成一团。开探照灯，把说明牌拍下来，去分析台放大看。不能凭颜色拧。';this.valve=true;this.closedAt??=this.elapsed;return '含硫热水支路S已关闭。罗温：阀门到底了……得告诉艾里亚斯，让他确认那边。';}
+  if(id==='valve-c'){return '冷却支路C自复位：回流报警，阀门恢复原位。罗温：不是这根。先核对说明，别把冷却也停了。';}
+  if(id==='door'){this.doorSeen=true;return this.unlocked?'03闸门已解锁。':this.clearSeen?'03闸门要求一次性密码。可以通过通话窗口向艾里亚斯求助。':'03闸门锁住了。先完成前两处调查，并确认艾里亚斯通路恢复。';}
+  if(id==='exit'){if(this.photos.length===3&&this.clearSeen){this.complete=true;return '公司收件终端：三处影像已登记，下潜权限开放。艾里亚斯：第四处我已交件。我走人员通道，生活区末端的密码闸门见。';}return '公司收件终端：调查附件未齐，下潜权限未开放。';}
+  return '';
+ }
+ issue(e:SurveyCapture){this.pendingCapture={...e};return e;}
+ commit(e:SurveyCapture){if(!this.pendingCapture||JSON.stringify(this.pendingCapture)!==JSON.stringify(e))return;this.pendingCapture=null;if(!this.captures.some(x=>x.id===e.id))this.captures.push({...e});}
+ analyze(e:SurveyCapture){const stored=this.captures.find(x=>x.id===e.id);if(!stored||JSON.stringify(stored)!==JSON.stringify(e)||!e.valid||!e.lit)return false;if(this.analyzed.includes(e.id))return true;this.analyzed.push(e.id);if(e.target==='manual')this.manual=true;else if(!this.photos.includes(e.target))this.photos.push(e.target);return true;}
+ say(raw:string){const t=raw.replace(/[\u0000-\u001f]/g,' ').trim().slice(0,240);if(!t)return [];
+  const out=['罗温：'+t],reply=(s:string)=>[...out,'艾里亚斯：'+s];
+  const negative=/没|未|不|别|如果|假如|要是|是否|怎么|为什么|吗|？|\?/.test(t);
+  const reward=(id:string,n:number)=>{if(!this.rewarded.includes(id)){this.rewarded.push(id);this.trust=Math.max(-3,Math.min(3,this.trust+n));}};
+  if(this.helpSeen&&!this.helpReplied){this.helpReplied=true;return reply((/怕|救|慌/.test(t)?'我靠着墙，先不往前走。':'收到，你还在就好。')+'这东西聚在温热、含硫的水里。我怀疑实验供水串进了通道。去供水检修点X42、Y28、深度1012米，找操作说明。别猜哪根管；关掉含硫热水，再叫我试。');}
+  if(/公司|灭口|陪葬|杀了我们|泄露|秘密/.test(t))return reply('我见过深海生物，可没见过长成这样的。刚才那一下，普通动物撞不出来。公司怕消息漏出去，还是怕它们出去？我说不准。最坏的打算……他们把门一锁，连我们一起留在里面。先把原片留好，别只留公司那份。');
+  if(/传|给你|移动|探头|摄像机/.test(t)&&!this.shared){if(!this.camera)return reply('先搜入口尸体腰侧的仪器匣。你得保留主机，别把唯一的相机也给我。');this.shared=true;return reply('移动探头的控制权收到了，通话窗口显示已交接。主机留在你艇上；我用人员侧的配对探头。我们各走各的水道，频道别关。');}
+  if(/密码|门锁|打不开|开不了|求助/.test(t)){if(!this.doorSeen)return reply('先到03闸机核对门锁，我不能隔空判断是哪扇门。');if(!this.clearSeen)return reply('我还没看清路，先把供水的事处理完。');this.askedCode=true;return reply(this.codeSeen?'密码仍是'+this.code+'。到03门锁旁输入，开错了可以重来。':'我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。');}
+  if(/\d{4}/.test(t))return reply('密码要在03门锁附近录入；通话不会远程替你开门。');
+  if(this.valve&&!this.reported&&/关|好了|完成|搞定|试|看看|散/.test(t)&&!negative){this.reported=true;reward('report',1);return reply('收到，我先不迈步，等它散开。回传给你，你自己也看一眼。');}
+  if(/关|完成|搞定/.test(t)&&!negative&&!this.valve)return reply('我这边还是一片糊。你说的是哪根？核对含硫支路S，再报给我。');
+  if(/怕|救命|撤退|回去|不干/.test(t)){reward('honest',1);return reply('我也想回去。先停稳，别拿艇壳试路。可以沿来路退到入口，修补、补电，再决定。任务坐标都留着。');}
+  if(/不管你|活该|废物/.test(t)){reward('hostile',-1);return reply('你可以骂，别断线。那扇门的值班终端在我这侧，我们还得互相搭把手。');}
+  if(/抱歉|对不起|骗/.test(t)){reward('apology',1);return reply('听到了。往后没确认就说没确认，我宁愿多等一会儿。');}
+  if(/谢谢|相信|坚持|别怕|一起/.test(t)){reward('support',1);return reply(this.trust<0?'先把眼前这件事做准，我们再说。':'好。你看仪表，我摸着墙。谁有动静都出个声。');}
+  if(/尸体|是谁|死因|兄弟/.test(t))return reply('我没核对过他的身份，也不知道死因。先记位置，别替他下结论。');
+  if(/声纳|雷达/.test(t))return reply('被动声纳只能听大概方位。主动声纳要通电，能测地形和距离，也一直发声。听到东西靠近，先找安全机位，再停稳拍；别为了拍照硬挨撞。');
+  if(/哪里|坐标|任务|怎么|下一步/.test(t))return reply(this.objective);
+  return reply(this.helpReplied&&!this.reported?'我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。':this.trust<0?'收到。任务照做，结果请说清楚。':'听见了。你那边有新情况就说，手上的事慢慢做准。');
+ }
+ enterCode(text:string,near:boolean){if(!near||!this.doorSeen||!this.codeSeen)return false;if(text.trim()!==this.code)return false;this.unlocked=true;return true;}
+ get objective(){if(this.complete)return '首关调查完成 · 操作台按B下潜至生活区';if(!this.camera)return '入口地板尸体 · 对准腰侧仪器匣，机械臂搜取水下摄像仪';if(!this.shared)return '通话窗口输入“传递移动摄像机”交接配对探头控制权';if(this.pending)return '分析台播放艾里亚斯任务录像 · 失败可输入“重试录像”';if(!this.photos.includes(0)||!this.photos.includes(1))return '调查01 X45 Y28、02 X62 Y27，深度1012m · 开灯拍摄并在分析台确认上传';if(!this.helpReplied)return '自由回复艾里亚斯的求助视频';if(!this.manual)return '供水点 X42 Y28 深度1012m · 开灯拍说明牌，分析后辨认支路';if(!this.valve)return '按说明关闭含硫热水支路S · 机械臂实际操作';if(!this.reported)return '主动通知艾里亚斯：含硫支路已关闭';if(!this.clearSeen)return '核验粘液菌消散回传';if(!this.unlocked)return '01面板（03门锁）X60 Y27 深度1012m · 操作门锁后向艾里亚斯求密码，在门锁旁录入';if(!this.photos.includes(2))return '进入03 X77 Y7 深度1011m · 拍摄第三只生物并分析上传';return '回01面板确认公司下潜权限，再按B';}
+ snapshot(){return JSON.parse(JSON.stringify({...this,version:1})) as Record<string,any>;}
+ restore(v:any){if(!v||v.version!==1||!/^\d{4}$/.test(v.code)||!Number.isFinite(v.elapsed)||v.elapsed<0||!Array.isArray(v.photos)||new Set(v.photos).size!==v.photos.length||v.photos.some((x:any)=>![0,1,2].includes(x)))return false;
+  const fresh=new HarborSurvey();for(const k of Object.keys(fresh)){if(typeof (fresh as any)[k]==='boolean'&&typeof v[k]!=='boolean')return false;}for(const k of ['accepted','captures','analyzed','rewarded'])if(!Array.isArray(v[k]))return false;
+  if(v.captures.some((e:any)=>!e||e.survey!==true||typeof e.id!=='string'||![0,1,2,'manual'].includes(e.target)||typeof e.valid!=='boolean'||typeof e.lit!=='boolean')||new Set(v.captures.map((e:any)=>e.id)).size!==v.captures.length||v.analyzed.some((id:any)=>!v.captures.some((e:any)=>e.id===id&&e.valid&&e.lit)))return false;
+  if(v.shared&&!v.camera||v.briefed&&!v.shared||v.helpSeen&&(!v.photos.includes(0)||!v.photos.includes(1))||v.helpReplied&&!v.helpSeen||v.valve&&!v.manual||v.reported&&!v.valve||v.clearSeen&&!v.reported||v.codeSeen&&(!v.clearSeen||!v.askedCode)||v.unlocked&&!v.codeSeen||v.photos.includes(2)&&!v.unlocked||v.complete&&(v.photos.length!==3||!v.clearSeen))return false;
+  if(v.photos.some((t:any)=>!v.captures.some((e:any)=>e.target===t&&v.analyzed.includes(e.id)))||v.manual&&!v.captures.some((e:any)=>e.target==='manual'&&v.analyzed.includes(e.id)))return false;
+  if(new Set(v.accepted).size!==v.accepted.length||[['L1-S02','briefed'],['L1-S03','helpSeen'],['L1-S04','nudged'],['L1-S05','clearSeen'],['L1-S06','codeSeen']].some(([id,k])=>v.accepted.includes(id)!==v[k]))return false;
+  if(v.accepted.some((x:any)=>!['L1-S01','L1-S02','L1-S03','L1-S04','L1-S05','L1-S06'].includes(x))||!Number.isFinite(v.trust)||Math.abs(v.trust)>3||!(v.closedAt===null||Number.isFinite(v.closedAt)&&v.closedAt>=0&&v.closedAt<=v.elapsed))return false;
+  for(const k of Object.keys(fresh))(this as any)[k]=structuredClone(v[k]);return true;
+ }
+}

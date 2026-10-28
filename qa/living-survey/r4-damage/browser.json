@@ -1,0 +1,278 @@
+{
+  "result": {
+    "method": "Independent fixture; synchronous normal site.tick in .05s increments, real hurt/push/collision. Lab entered for interruption check. No full run clock/UI wall-time claim. Separate reverse and recoil-to-home geometry probes; QA-only blocker disable comparison restored immediately.",
+    "start": 0.6331000000000059,
+    "rows": [
+      {
+        "time": 10.633100000000024,
+        "amount": 0.16,
+        "before": 0.64,
+        "pos": [
+          109.5,
+          0,
+          27.1
+        ],
+        "heading": 131,
+        "at": "lab"
+      },
+      {
+        "time": 20.633100000000166,
+        "amount": 0.16,
+        "before": 0.48,
+        "pos": [
+          109.5,
+          0,
+          27.1
+        ],
+        "heading": 131,
+        "at": "camera"
+      },
+      {
+        "time": 30.633100000000308,
+        "amount": 0.16,
+        "before": 0.31999999999999995,
+        "pos": [
+          109.5,
+          0,
+          27.1
+        ],
+        "heading": 131,
+        "at": "camera"
+      },
+      {
+        "time": 40.633099999999835,
+        "amount": 0.16,
+        "before": 0.15999999999999995,
+        "pos": [
+          109.5,
+          0,
+          27.1
+        ],
+        "heading": 131,
+        "at": "camera"
+      }
+    ],
+    "end": {
+      "elapsed": 39.99999999999983,
+      "hull": 0,
+      "pos": [
+        109.5,
+        0,
+        27.1
+      ],
+      "heading": 131,
+      "at": "camera",
+      "viewing": false,
+      "feedback": "门口的东西一口咬住艇壳，把你甩了出去！",
+      "creatures": {
+        "version": 1,
+        "profile": "survey",
+        "identified": [],
+        "extra": 0,
+        "mobs": [
+          {
+            "id": "lumen.r1",
+            "space": "R1",
+            "pos": [
+              33.361180553783896,
+              4,
+              -9.361180553784092
+            ],
+            "heading": 45.00000000000051,
+            "mode": "idle",
+            "next": 2,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 0,
+            "clock": 0,
+            "cooldown": 0,
+            "pause": -0.008809497072854819
+          },
+          {
+            "id": "blind.r2",
+            "space": "R2",
+            "pos": [
+              56,
+              -2,
+              27
+            ],
+            "heading": 0,
+            "mode": "sleep",
+            "next": 0,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 0,
+            "clock": 0,
+            "cooldown": 0,
+            "pause": 0
+          },
+          {
+            "id": "shade.r4",
+            "space": "R4",
+            "pos": [
+              110,
+              -1,
+              26
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "next": 0,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 39.999999999999865,
+            "clock": 1,
+            "cooldown": 8,
+            "pause": 0
+          },
+          {
+            "id": "lumen.a1",
+            "space": "A",
+            "pos": [
+              152.80369356731347,
+              6,
+              57.12147742692531
+            ],
+            "heading": 111.80140948635233,
+            "mode": "idle",
+            "next": 1,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 0,
+            "clock": 0,
+            "cooldown": 0,
+            "pause": -0.049961881393980945
+          },
+          {
+            "id": "lumen.a2",
+            "space": "A",
+            "pos": [
+              187.77575124990688,
+              5,
+              65.7757512499056
+            ],
+            "heading": 135.00000000000875,
+            "mode": "idle",
+            "next": 1,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 0,
+            "clock": 0,
+            "cooldown": 0,
+            "pause": -0.010908357040497238
+          },
+          {
+            "id": "blind.a2",
+            "space": "A",
+            "pos": [
+              166,
+              -2,
+              60
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "next": 0,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 0,
+            "clock": 0,
+            "cooldown": 0,
+            "pause": 0
+          }
+        ]
+      }
+    },
+    "reverse": [
+      {
+        "ok": false,
+        "pos": [
+          109.5,
+          0,
+          27.1
+        ]
+      }
+    ],
+    "without": {
+      "clear": true,
+      "reverse": true,
+      "pos": [
+        109.42452904197773,
+        0,
+        27.03439409710095
+      ]
+    },
+    "returning": [
+      {
+        "t": 0,
+        "clear": true,
+        "mode": "recoil",
+        "mobPos": [
+          117,
+          -2,
+          14
+        ],
+        "blockers": []
+      },
+      {
+        "t": 13.950000000000063,
+        "clear": false,
+        "mode": "idle",
+        "mobPos": [
+          110,
+          -1,
+          26
+        ],
+        "blockers": [
+          {
+            "min": [
+              106.4,
+              -3.4,
+              24.2
+            ],
+            "max": [
+              113.6,
+              1.4,
+              27.8
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "errors": []
+}

@@ -10,8 +10,10 @@ export interface LivingNavigationHost {
   run: PodRun;
   position: { x: number; y: number; z: number };
   readonly datum: number;
+  readonly receiverLabel?: string;
   /** Creature sources audible on the passive array; bearings are relative to the hull, never ranges. */
   contacts(): CreatureContact[];
+  passiveSources?(): PassiveContact[];
   drawActive(ctx: CanvasRenderingContext2D, w: number, h: number): void;
   readonly waypointCatalog: readonly { position: readonly [number, number, number]; name: string; detail: string }[];
 }
@@ -46,11 +48,11 @@ export class LivingNavigation implements NavigationConsole {
   constructor(private readonly host: LivingNavigationHost) {}
   get passiveRows() { return this.rows; }
   get pendingRadioCount() { return 0; }
-  get receivedCoordinates() { return '−1层生活区 · 基地中继无信号 · 被动阵列常开'; }
+  get receivedCoordinates() { return this.host.receiverLabel??'−1层生活区 · 基地中继无信号 · 被动阵列常开'; }
   recordDialogue(text: string) { if (text && this.radioRecords.at(-1)?.text !== text) this.radioRecords.push({ text, frequency: this.frequency, at: this.clock, kind: 'voice' }); }
   private label(relative: number) { return BEARINGS[Math.round((((relative % 360) + 360) % 360) / 45) % 8]!; }
   private buildContacts(): PassiveContact[] {
-    const out: PassiveContact[] = [];
+    const out: PassiveContact[] = [...(this.host.passiveSources?.()??[])];
     this.types.clear();
     for (const c of this.host.contacts()) {
       this.types.set(c.id, c.type);
@@ -216,3 +218,5 @@ export class LivingNavigation implements NavigationConsole {
     return true;
   }
 }
+
+

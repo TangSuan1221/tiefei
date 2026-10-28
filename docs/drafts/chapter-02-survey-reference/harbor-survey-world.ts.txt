@@ -1,0 +1,20 @@
+import * as T from 'three';
+import type {ExpeditionWorld} from './expedition-world';
+import {createHarborSign} from './harbor-sign-art';
+/** Interactive story assets occupy the structure channel; labels are decoration. */
+export function createHarborSurveyWorld(world:ExpeditionWorld){
+ const root=new T.Group();root.name='harbor-survey';world.root.add(root);
+ const geo:T.BufferGeometry[]=[],mats:T.Material[]=[],signs:ReturnType<typeof createHarborSign>[]=[];
+ const suit=new T.MeshStandardMaterial({color:0x454b42,roughness:.93}),metal=new T.MeshStandardMaterial({color:0x8b967b,roughness:.65});mats.push(suit,metal);
+ const bounds:T.Box3[]=[];
+ function box(id:string,p:number[],size:number[],material:T.Material){const g=new T.BoxGeometry(...size as [number,number,number]);geo.push(g);const o=new T.Mesh(g,material);o.position.set(...p as [number,number,number]);o.userData.interactionId='harbor.rescue.survey.'+id;root.add(o);const b=new T.Box3().setFromCenterAndSize(o.position,new T.Vector3(...size));world.colliders.push(b);bounds.push(b);return o;}
+ // Covered, anonymous body. No face, cuff anomaly or identity clue.
+ box('body',[14,-2.55,13],[.8,.5,1.8],suit);
+ box('body',[14,-2.55,14.12],[.58,.48,.5],suit);
+ box('body',[13.45,-2.3,13.3],[.42,.25,.6],metal);
+ function panel(id:string,p:number[],text:string,sub:string){box(id,p,[.7,.7,.25],metal);const sign=createHarborSign(text,sub,.65);sign.root.position.set(p[0],p[1],p[2]+.14);sign.root.userData.interactionId='harbor.rescue.survey.'+id;root.add(sign.root);signs.push(sign);}
+ panel('manual',[40,0,24.8],'供水检修','LIGHT + CAMERA');
+ panel('valve-s',[41.2,0,24.8],'S / 支路','SERVICE');
+ panel('valve-c',[42.4,0,24.8],'C / 支路','SERVICE');
+ return {root,manual:new T.Vector3(40,0,24.95),setEnabled(v:boolean){root.visible=v;for(const b of bounds){const i=world.colliders.indexOf(b);if(!v&&i>=0)world.colliders.splice(i,1);else if(v&&i<0)world.colliders.push(b);}},dispose(){root.removeFromParent();for(const g of geo)g.dispose();for(const m of mats)m.dispose();for(const s of signs)s.dispose();}};
+}

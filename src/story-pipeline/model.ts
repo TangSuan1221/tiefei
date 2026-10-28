@@ -1,8 +1,8 @@
-/** 剧情管线数据模型：事实、关卡阶段、玩家输入窗口、录像槽位与呼应。纯数据与纯函数，不依赖游戏运行时。 */
+/** 剧情管线数据模型：五关收容物取证配额、互斥习性封路、双人视频合作逃生、实时事实驱动剧情变化。纯数据与纯函数，不依赖游戏运行时。 */
 
 export type Layer = 'W' | 'E' | 'K' | 'R' | 'S' | 'C' | 'T';
 export type Value = string | number | boolean;
-export type Holder = 'elias' | 'rowan' | 'vance';
+export type Holder = 'elias' | 'rowan' | 'hq' | 'vera' | 'keeper';
 
 export interface FactDef {
   key: string;
@@ -63,26 +63,41 @@ export interface InputWindow {
   gap?: string;
 }
 
-export interface SlotCase { when: Cond[]; key: string; en: string; zh: string }
+export interface SlotCase {
+  when: Cond[];
+  key: string;
+  en: string;
+  zh: string;
+  /** 视频中的人物原声独白/对白（让艾里亚斯传回的视频有真正的戏剧台词与情感细节） */
+  dialogue?: string;
+  /** 这段视频揭示的核心剧情信息与人物弧光 */
+  storyBeat?: string;
+}
 export interface SlotRule { slot: string; cases: SlotCase[]; gap?: string }
 export interface Shot {
   id: string;
   title: string;
   stage: string;
+  /** 视频路由：潜艇本机拍摄 / 玩家操作结果 / 艾里亚斯内侧或探头视频 */
+  videoType?: 'player-capture' | 'player-action' | 'elias-story';
   /** 由物理状态决定的槽位读取 */
   reads: string[];
-  /** 受玩家输入间接影响的槽位 */
+  /** 受玩家输入与实时游戏事实影响的槽位 */
   slots: SlotRule[];
   note: string;
+  /** 当没有条件分支时，该视频承载的完整剧情画面与对白剧本 */
+  script?: { visual: string; dialogue: string; reveal: string };
 }
 
 export interface Stage {
   id: string;
   title: string;
   dialogueStages: string[];
+  /** 连贯的本阶段故事正文（交代人物在哪、看见/听见什么、为什么要做下一步） */
+  narrative?: string;
   objective: string;
   advance: string;
-  /** 推进到下一阶段要读取的事实（现有对话状态机的推进条件） */
+  /** 推进到下一阶段要读取的事实（含收容物拍摄配额硬门禁） */
   gate: string[];
   sets: Write[];
 }
@@ -92,7 +107,7 @@ export interface OptionalAction { id: string; label: string; stage: string; requ
 export interface Echo {
   id: string;
   title: string;
-  level: 1 | 2 | 4 | 5;
+  level: 1 | 2 | 3 | 4 | 5;
   kind: 'line' | 'log' | 'objective' | 'video' | 'report';
   perspective: Holder | 'world';
   reads: string[];
@@ -100,11 +115,23 @@ export interface Echo {
   gap?: string;
 }
 
+export interface ContainmentQuota {
+  required: number;
+  capturedFact: string;
+  requiredFact: string;
+  gateFact: string;
+  specimens: { id: string; name: string; trait: string; blocker: string; countermeasure: string }[];
+}
+
 export interface Pipeline {
   id: string;
+  chapter?: number;
   title: string;
+  /** 本章故事梗概（让读者一眼看懂本章前因后果） */
+  synopsis?: string;
   status: string;
   sourceDoc: string;
+  quota?: ContainmentQuota;
   facts: FactDef[];
   stages: Stage[];
   windows: InputWindow[];
@@ -115,9 +142,11 @@ export interface Pipeline {
 }
 
 export const layerNames: Record<Layer, string> = {
-  W: '客观事实', E: '证据', K: '角色认知', R: '关系', S: '言行记录', C: '承诺', T: '证词',
+  W: '客观事实', E: '证据与收容配额', K: '角色认知', R: '关系', S: '言行记录', C: '承诺', T: '证词',
 };
-export const holderNames: Record<Holder, string> = { elias: '艾里亚斯', rowan: '罗温', vance: '万斯' };
+export const holderNames: Record<Holder, string> = {
+  elias: '艾里亚斯', rowan: '罗温', hq: '总部简报', vera: '维拉', keeper: '周岑',
+};
 
 export type TagKind = 'none' | 'fact' | 'video' | 'xvideo';
 
@@ -170,6 +199,15 @@ export function apply(p: Pipeline, state: State, writes: Write[]): Write[] {
     if (def?.type === 'int' && typeof next === 'number') next = Math.max(def.min ?? -Infinity, Math.min(def.max ?? Infinity, next));
     if (state[w.fact] !== next) { state[w.fact] = next; changed.push({ fact: w.fact, op: 'set', value: next }); }
   }
+  if (p.quota) {
+    const captured = Number(state[p.quota.capturedFact] ?? 0);
+    const required = Number(state[p.quota.requiredFact] ?? p.quota.required);
+    const met = captured >= required;
+    if (p.facts.some(f => f.key === p.quota!.gateFact) && state[p.quota.gateFact] !== met) {
+      state[p.quota.gateFact] = met;
+      changed.push({ fact: p.quota.gateFact, op: 'set', value: met });
+    }
+  }
   return changed;
 }
 
@@ -179,15 +217,25 @@ export interface SimEvent {
   inputs: { window: InputWindow; tag: Tag | null; reply: string; changed: Write[]; blocked: boolean }[];
   optional: { action: OptionalAction; done: boolean; changed: Write[] }[];
   shots: { shot: Shot; slots: { slot: string; hit: SlotCase | null }[] }[];
+  gateBlocked: string[];
 }
 
-export interface SimResult { events: SimEvent[]; state: State; echoes: { echo: Echo; text: string | null }[] }
+export interface SimResult {
+  events: SimEvent[];
+  state: State;
+  echoes: { echo: Echo; text: string | null }[];
+  canClearChapter: boolean;
+  missingGates: string[];
+}
 
 export function simulate(p: Pipeline, picks: Record<string, string[]>, toggles: Set<string>): SimResult {
   const state = initialState(p), events: SimEvent[] = [];
-  if (toggles.has('corpse')) state['corpse.present'] = 'background';
+  if (toggles.has('corpse') && p.facts.some(f => f.key === 'corpse.present')) state['corpse.present'] = 'background';
   for (const stage of p.stages) {
-    const ev: SimEvent = { stage, physical: apply(p, state, stage.sets), inputs: [], optional: [], shots: [] };
+    const baseSets = toggles.has('skip-quota') && p.quota
+      ? stage.sets.filter(w => w.fact !== p.quota!.capturedFact && w.fact !== p.quota!.gateFact)
+      : stage.sets;
+    const ev: SimEvent = { stage, physical: apply(p, state, baseSets), inputs: [], optional: [], shots: [], gateBlocked: [] };
     for (const window of p.windows.filter(w => w.stage === stage.id)) {
       const ids = picks[window.id] ?? [];
       if (!ids.length) { ev.inputs.push({ window, tag: null, reply: window.optional ? '（未开口）' : '（未选择）', changed: [], blocked: false }); continue; }
@@ -206,10 +254,16 @@ export function simulate(p: Pipeline, picks: Record<string, string[]>, toggles: 
     }
     for (const shot of p.shots.filter(s => s.stage === stage.id))
       ev.shots.push({ shot, slots: shot.slots.map(r => ({ slot: r.slot, hit: r.cases.find(c => test(state, c.when)) ?? null })) });
+    for (const g of stage.gate) {
+      const v = state[g];
+      if (v === false || v === 0 || v === 'none' || v === 'unknown') ev.gateBlocked.push(g);
+    }
     events.push(ev);
   }
   const echoes = p.echoes.map(echo => ({ echo, text: echo.cases.find(c => test(state, c.when))?.text ?? null }));
-  return { events, state, echoes };
+  const lastStage = p.stages.at(-1);
+  const missingGates = (lastStage?.gate ?? []).filter(g => !state[g]);
+  return { events, state, echoes, canClearChapter: missingGates.length === 0, missingGates };
 }
 
 export interface FactRefs {
@@ -237,6 +291,9 @@ export function factRefs(p: Pipeline, key: string): FactRefs {
     for (const r of s.slots) if (r.cases.some(c => reads(c.when))) readers.push({ where: 'shot:' + s.id, label: `${s.id} 槽位 ${r.slot}` });
   }
   for (const e of p.echoes) if (e.reads.includes(key) || e.cases.some(c => reads(c.when))) readers.push({ where: 'echo:' + e.id, label: `L${e.level} ${e.title}` });
+  if (p.quota && [p.quota.capturedFact, p.quota.requiredFact, p.quota.gateFact].includes(key)) {
+    readers.push({ where: 'quota:' + p.id, label: '总部收容物配额门禁' });
+  }
   return { writers, readers };
 }
 
@@ -258,6 +315,15 @@ export function validate(p: Pipeline): Issue[] {
     if (def.type === 'enum' && typeof w.value === 'string' && !def.values?.includes(w.value)) issues.push({ level: 'error', where, text: `${w.fact} 没有取值 ${w.value}` });
     if (def.type === 'int' && w.op === 'set' && typeof w.value !== 'number') issues.push({ level: 'error', where, text: `${w.fact} 需要数值` });
   });
+  if (p.quota) {
+    check('配额定义', p.quota.capturedFact);
+    check('配额定义', p.quota.requiredFact);
+    check('配额定义', p.quota.gateFact);
+    const lastStage = p.stages.at(-1);
+    if (!lastStage?.gate.includes(p.quota.gateFact)) {
+      issues.push({ level: 'error', where: p.title, text: `终段阶段必须以收容物配额 ${p.quota.gateFact} 作为通关硬门禁` });
+    }
+  }
   for (const s of p.stages) { checkWrites('阶段 ' + s.title, s.sets, false); s.gate.forEach(k => check('阶段 ' + s.title, k)); }
   const stageIds = new Set(p.stages.map(s => s.id));
   for (const w of p.windows) {

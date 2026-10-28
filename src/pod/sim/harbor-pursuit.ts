@@ -72,6 +72,12 @@ export class HarborPursuit {
   let left=Math.min(dt,1);
   while(left>0){const step=Math.min(left,.025);left-=step;this.step(step,gateOpen);}
  }
+ /** Personnel door motor is a distinct acoustic source. Travel uses the same cargo gate route; never teleport. */
+ tickPersonnel(dt:number,target:Vector3,gateOpen:boolean,isolated:boolean){
+  if(isolated||!Number.isFinite(dt)||dt<=0)return;
+  this.heard=target.clone();this.mode='hunt';this.goal=null;this.pause=0;
+  let left=Math.min(dt,1);while(left>0){const d=Math.min(left,.025);left-=d;this.advance(target,HUNT_SPEED*d,gateOpen,false);}
+ }
  private step(dt:number,gateOpen:boolean){
   if(this.mode==='hunt'&&this.heard){
    const target=this.heard;

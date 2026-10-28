@@ -1,0 +1,41 @@
+{
+  "diagnostic": true,
+  "events": [
+    {
+      "cue": "door.close",
+      "gain": 0.5,
+      "space": {
+        "dist": 10,
+        "pan": 1,
+        "room": 30,
+        "flooded": true
+      }
+    },
+    {
+      "cue": "door.open",
+      "gain": 0.25,
+      "space": {
+        "dist": 10,
+        "pan": 1,
+        "room": 30,
+        "flooded": true
+      }
+    },
+    {
+      "cue": "door.close",
+      "gain": 0.5,
+      "space": {
+        "dist": 10,
+        "pan": -1,
+        "room": 30,
+        "flooded": true
+      }
+    }
+  ],
+  "closed": true,
+  "open": true,
+  "afterHold": 1,
+  "afterFar": 3,
+  "noiseUnchanged": true,
+  "errors": []
+}

@@ -1,0 +1,159 @@
+[
+  {
+    "upload": false,
+    "stats": null,
+    "restored": true,
+    "samples": [
+      {
+        "submitMs": 338.40000000596046,
+        "finishMs": 338.40000000596046
+      },
+      {
+        "submitMs": 6.299999997019768,
+        "finishMs": 6.299999997019768
+      },
+      {
+        "submitMs": 6.799999997019768,
+        "finishMs": 6.799999997019768
+      },
+      {
+        "submitMs": 6.5,
+        "finishMs": 6.5999999940395355
+      },
+      {
+        "submitMs": 5.600000008940697,
+        "finishMs": 5.600000008940697
+      },
+      {
+        "submitMs": 5.899999991059303,
+        "finishMs": 6
+      },
+      {
+        "submitMs": 5,
+        "finishMs": 5
+      },
+      {
+        "submitMs": 5.5,
+        "finishMs": 5.5
+      }
+    ],
+    "errors": []
+  },
+  {
+    "upload": true,
+    "stats": {
+      "geometries": 943,
+      "textures": 253,
+      "completed": 1196,
+      "total": 1196,
+      "slices": 17,
+      "maxSliceMs": 609.1000000089407,
+      "elapsedMs": 1109.199999988079,
+      "worst": [
+        {
+          "task": 21,
+          "ms": 10.099999994039536,
+          "kind": "texture",
+          "detail": "living.env.metal_plate_02.diff:1024x1024"
+        },
+        {
+          "task": 23,
+          "ms": 9.700000002980232,
+          "kind": "texture",
+          "detail": "living.env.metal_plate_02.rough:1024x1024"
+        },
+        {
+          "task": 27,
+          "ms": 8.900000005960464,
+          "kind": "texture",
+          "detail": "living.dirty_tiles.diff:1024x1024"
+        },
+        {
+          "task": 28,
+          "ms": 9,
+          "kind": "texture",
+          "detail": "living.dirty_tiles.nor_gl:1024x1024"
+        },
+        {
+          "task": 29,
+          "ms": 8.5,
+          "kind": "texture",
+          "detail": "living.dirty_tiles.rough:1024x1024"
+        },
+        {
+          "task": 229,
+          "ms": 607.6999999880791,
+          "kind": "texture",
+          "detail": "aged-brass-albedo:512x512"
+        },
+        {
+          "task": 234,
+          "ms": 19.100000008940697,
+          "kind": "texture",
+          "detail": "enamel-ivory-roughness:512x512"
+        },
+        {
+          "task": 249,
+          "ms": 20.200000002980232,
+          "kind": "texture",
+          "detail": "blue_metal_plate_rough_1k:1024x1024"
+        },
+        {
+          "task": 253,
+          "ms": 13.799999997019768,
+          "kind": "geometry",
+          "detail": ":24"
+        },
+        {
+          "task": 842,
+          "ms": 20.5,
+          "kind": "geometry",
+          "detail": ":297030"
+        },
+        {
+          "task": 1111,
+          "ms": 15.899999991059303,
+          "kind": "geometry",
+          "detail": ":28956"
+        }
+      ],
+      "cancelled": false
+    },
+    "restored": true,
+    "samples": [
+      {
+        "submitMs": 23.100000008940697,
+        "finishMs": 23.200000002980232
+      },
+      {
+        "submitMs": 2.5,
+        "finishMs": 2.6000000089406967
+      },
+      {
+        "submitMs": 2.199999988079071,
+        "finishMs": 2.199999988079071
+      },
+      {
+        "submitMs": 1.9000000059604645,
+        "finishMs": 1.9000000059604645
+      },
+      {
+        "submitMs": 2,
+        "finishMs": 2.0999999940395355
+      },
+      {
+        "submitMs": 2,
+        "finishMs": 2
+      },
+      {
+        "submitMs": 2.2000000029802322,
+        "finishMs": 2.2000000029802322
+      },
+      {
+        "submitMs": 2.2000000029802322,
+        "finishMs": 2.2000000029802322
+      }
+    ],
+    "errors": []
+  }
+]

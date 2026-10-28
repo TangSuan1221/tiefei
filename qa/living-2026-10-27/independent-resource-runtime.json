@@ -1,0 +1,67 @@
+{
+  "rows": [
+    {
+      "case": "120s active powered lamp on, no pulse, no action",
+      "before": {
+        "power": 1,
+        "oxygen": 1450,
+        "scrubber": 0.52,
+        "breaths": 0,
+        "mode": "calm",
+        "cell": 1,
+        "reserveUsed": false,
+        "pos": [
+          7,
+          0,
+          7
+        ]
+      },
+      "after": {
+        "power": 1,
+        "oxygen": 1450,
+        "scrubber": 0.52,
+        "breaths": 0,
+        "mode": "calm",
+        "cell": 1,
+        "reserveUsed": false,
+        "pos": [
+          7,
+          0,
+          7
+        ]
+      }
+    },
+    {
+      "case": "60s periodic active pulses",
+      "before": {
+        "power": 1,
+        "oxygen": 1450,
+        "scrubber": 0.52,
+        "breaths": 0,
+        "mode": "calm",
+        "cell": 1,
+        "reserveUsed": false,
+        "pos": [
+          7,
+          0,
+          7
+        ]
+      },
+      "after": {
+        "power": 0.9357999999999991,
+        "oxygen": 1442.90974,
+        "scrubber": 0.5103999999999993,
+        "breaths": 5.999999999999998,
+        "mode": "calm",
+        "cell": 1,
+        "reserveUsed": false,
+        "pos": [
+          7,
+          0,
+          7
+        ]
+      }
+    }
+  ],
+  "method": "Accelerated runtime frame(dt) simulation in browser; no realtime 3-minute wall wait or physical play; all APIs aborted"
+}

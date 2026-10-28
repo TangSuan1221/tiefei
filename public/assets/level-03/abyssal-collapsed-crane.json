@@ -1,0 +1,28 @@
+{
+  "asset": "abyssal-collapsed-crane.glb",
+  "origin": "bottom centre",
+  "blender_z_up": true,
+  "gltf_y_up": true,
+  "front_gltf": "+Z",
+  "radius": 5.755204064811995,
+  "bottom": 0.019999980926513672,
+  "height": 8.65000057220459,
+  "bounds_blender_xyz": [
+    [
+      -4.808161735534668,
+      4.348764419555664
+    ],
+    [
+      -5.309886932373047,
+      2.1500000953674316
+    ],
+    [
+      0.019999980926513672,
+      8.65000057220459
+    ]
+  ],
+  "triangles": 47004,
+  "draw_meshes": 5,
+  "collision": "decor only; fixed ABYSS_SOLIDS crane radius6 floor-5 ceil5 remains authoritative",
+  "license": "Original geometry. Embedded Poly Haven CC0 blue_metal_plate and rusty_painted_metal; see materials/README.md"
+}

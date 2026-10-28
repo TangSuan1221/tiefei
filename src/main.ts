@@ -1,3 +1,4 @@
+import {hasAbyssalSave} from './pod/sim/abyssal-save';
 import './game/boot.css';
 import { TitleBackground } from './game/titlebg';
 import { SaveManager } from './game/save';
@@ -20,7 +21,9 @@ bg.start();
 const save = new SaveManager();
 const meta = save.loadMeta();
 // Validate the harbor payload; legacy procedural runs are not resumable here.
-const hasRun = hasHarborSave() || hasLivingSave();
+const hasRun = hasHarborSave() || hasLivingSave() || hasAbyssalSave();
+// Keep rejected checkpoints discoverable so Continue can explain incompatibility.
+const hasCheckpointRecord = (()=>{try{return ['ironlung.harbor.v1','ironlung.living.v1','ironlung.abyssal.v1'].some(k=>localStorage.getItem(k)!==null);}catch{return false;}})();
 const uiRoot = document.getElementById('ui-root') as HTMLDivElement;
 
 // 每次启动生成一个新种子，但玩家可以在"深度坐标"里输入旧的
@@ -42,7 +45,7 @@ function renderTitle(): void {
         <p class="title-tag">
           ${livingEntry
             ? `<span>接驳港之后，你独自沿竖井下到 -1 层宿舍区。</span>
-          <span>找回动力与工具，绕开看不见的东西，打开 F 闸门与艾里亚斯会合。</span>`
+          <span>取回摄像仪，与艾里亚斯分头调查声源。带好修补材料，取得下潜许可后到 F 闸门会合。</span>`
             : `<span>你受公司委派，下潜调查接驳港事故。</span>
           <span>核对救生舱，找回撤离记录，确认下行通道。</span>`}
           <span>声纳引路。实体快门曝光。冲洗后的影像，在分析台核验。</span>
@@ -54,8 +57,8 @@ function renderTitle(): void {
 
   const menu = document.getElementById('menu') as HTMLElement;
   const items: { id: string; label: string; sub: string; disabled?: boolean }[] = [
-    hasRun
-      ? { id: 'continue', label: '继续下潜', sub: '恢复上次的呼吸' }
+    hasRun || hasCheckpointRecord
+      ? { id: 'continue', label: '继续下潜', sub: hasRun?'恢复上次的呼吸':'检查已有记录 · 可能为旧版存档' }
       : { id: 'continue', label: '继续下潜', sub: '无记录', disabled: true },
     { id: 'new', label: '开始事故调查', sub: livingEntry ? '正式游戏 · 第二关 · -1 层宿舍区' : '正式游戏 · 接驳港' },
     { id: 'expedition', label: '设施探索预览', sub: '独立测试场景 · 非正式剧情入口' },
@@ -123,7 +126,7 @@ async function onMenu(id: string): Promise<void> {
       break;
     case 'new':
     case 'continue':
-      if (id === 'continue' && !hasHarborSave() && !hasLivingSave()) {
+      if (id === 'continue' && !hasCheckpointRecord && !hasHarborSave() && !hasLivingSave() && !hasAbyssalSave()) {
         showBootLog(['没有有效的接驳港或第二关存档，或存档版本不兼容。', '原存档未修改；请选择开始事故调查。']);
         return;
       }
@@ -169,9 +172,12 @@ async function enterGame(resume: boolean): Promise<void> {
       // 这是有意的快速失败，但报错必须说清是什么坏了 —— 早先这里吞掉了真实
       // 原因，只留下一句"仍在整合中"，排查时完全没有指向性。
       const msg = err instanceof Error ? err.message : String(err);
+      // Session setup removes title decorations; retain a visible failure even
+      // when construction throws after it has detached this boot log.
+      if(!log.isConnected)document.body.append(log);
       replaceLastLog(log, `${label} … 失败`, 'bad');
       appendLog(log, msg, 'bad');
-      appendLog(log, '这是一个内容或装配错误，不是缺失模块。详情见浏览器控制台。', 'pending');
+      appendLog(log, resume?'原存档未修改。请核对上方原因；旧版路线可保留记录并开始新游戏。':'这是一个内容或装配错误，不是缺失模块。详情见浏览器控制台。', 'pending');
       console.error('[boot] 会话启动失败', err);
       document.querySelector('.title-screen')?.classList.remove('fade-out');
       return;
@@ -206,3 +212,4 @@ function el(tag: string, cls: string): HTMLElement {
   n.className = cls;
   return n;
 }
+

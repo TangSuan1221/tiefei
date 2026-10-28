@@ -9,7 +9,7 @@ import {DecalSet, Scatter} from './living-decals';
 
 export type ShellStyle = 'res' | 'ind' | 'shaft' | 'hall' | 'office' | 'laundry' | 'security' | 'gallery' | 'alex';
 export const SHELL_STYLE: Record<string, ShellStyle> = {
-  S: 'shaft', C1: 'res', R1: 'laundry', R2: 'ind', J1: 'res', C2: 'res', R3: 'security', C3: 'res', R4: 'ind', G: 'gallery',
+  C8: 'ind', E: 'shaft', S: 'shaft', C1: 'res', R1: 'laundry', R2: 'ind', J1: 'res', C2: 'res', R3: 'security', C3: 'res', R4: 'ind', G: 'gallery',
   C4: 'ind', V: 'ind', C5: 'res', A: 'hall', C6: 'res', R5: 'office', C7: 'ind', D: 'shaft', L: 'alex', M: 'alex', N: 'alex',
 };
 
@@ -154,9 +154,10 @@ export function buildShells(m: LivingMaterials): ShellBuild {
   const grime = new DecalSet();
   const scatter = new Map<string, Scatter>(), scatterGeos = new Map<string, T.BufferGeometry>();
   const scat = (id: string) => { let s = scatter.get(id); if (!s) { s = new Scatter(); defineScatterParts(s, m, scatterGeos); scatter.set(id, s); } return s; };
-  for (const s of LIVING_SPACES) scat(s.id);
+  for (const s of LIVING_SPACES.filter(s => s.pod)) scat(s.id);
   const atlas = new SignAtlas(signBatch, false), decals = new SignAtlas(signBatch, true);
   const silt = wearVariant(m.concrete, {silt: 1, grime: 0, bio: .2}, owned); silt.color.set('#6e675a');
+  const entryWall=wearVariant(m.rustSheet,{rust:.22,grime:.55,wet:.1},owned);entryWall.color.set('#505e58');entryWall.roughness=.98;entryWall.metalness=.08;
   const ceilStain = wearVariant(m.ceiling, {grime: .9, bio: .4}, owned); ceilStain.color.set('#86704e');
   const ceilRot = wearVariant(m.ceiling, {grime: 1, bio: .9}, owned); ceilRot.color.set('#4d4a38');
   const hallMats = {
@@ -239,7 +240,7 @@ export function buildShells(m: LivingMaterials): ShellBuild {
     return out;
   }
 
-  for (const s of LIVING_SPACES) {
+  for (const s of LIVING_SPACES.filter(s => s.pod)) {
     const b = new Batcher(`living-shell-${s.id}`); batches.set(s.id, b);
     b.reseed(s.id.charCodeAt(0) * 131 + (s.id.charCodeAt(1) || 7) * 17);
     const style = SHELL_STYLE[s.id];
@@ -250,7 +251,7 @@ export function buildShells(m: LivingMaterials): ShellBuild {
       floorTile: hall ? hallMats.floorTile : m.floorTile, frame: hall ? hallMats.frame : deep ? shaftD.frame : m.frame,
       rust: deep ? shaftD.rust : m.rustSheet, ind: deep ? shaftD.ind : m.indSteel, paintDark: hall ? hallMats.paintDark : m.paintDark,
     };
-    const baseWall: T.Material = style === 'ind' ? mat.ind : style === 'shaft' ? mat.rust : style === 'laundry' ? m.indGreen
+    const baseWall: T.Material = style === 'ind' ? mat.ind : style === 'shaft' ? (s.id==='S'?entryWall:mat.rust) : style === 'laundry' ? m.indGreen
       : style === 'security' ? m.paintSecurity : style === 'office' ? m.paintCream : style === 'gallery' ? m.paintDark : mat.wallpaper;
 
     // ---------------------------------------------------------------- floor & ceiling slabs
@@ -522,12 +523,17 @@ export function buildShells(m: LivingMaterials): ShellBuild {
         }
         drift.computeVertexNormals();
       }
-      for (let i = 0; i < perim / (human ? 1.2 : 2.4); i++) {
+      for (let i = 0; i < perim / (human ? 1.2 : 4.8); i++) {
         const t = r() * perim; let x: number, z: number;
         if (t < W) { x = s.minX + t; z = s.minZ + H + .2; } else if (t < 2 * W) { x = s.minX + t - W; z = s.maxZ - H - .2; }
         else if (t < 2 * W + D) { x = s.minX + H + .2; z = s.minZ + t - 2 * W; } else { x = s.maxX - H - .2; z = s.minZ + t - 2 * W - D; }
         const along = t < 2 * W, len = (human ? .8 : 1.6) + r() * (human ? 1.5 : 3), wid = (human ? .4 : .7) + r() * .6;
-        b.geo(drift.clone(), silt, [x, f - .02, z], new T.Euler(0, along ? 0 : Math.PI / 2, 0), [len, (human ? .07 : .13) + r() * .12, wid]);
+        const driftHeight = (human ? .04 : .055) + r() * .065;
+        // These wall-side banks must not continue across the open L2 maintenance portals.
+        // Keep RNG consumption intact; retain deposits beside real walls.
+        const maintenancePortal = (s.id === 'R2' && x > 62 || s.id === 'C8' && (x < 66 || x > 94))
+          && !along && z + len > 22 && z - len < 30;
+        if (!maintenancePortal) b.geo(drift.clone(), silt, [x, f - .02, z], new T.Euler(0, along ? 0 : Math.PI / 2, 0), [len, driftHeight, wid]);
       }
       // Scattered fallen ceiling tiles / paper / cups in residential spaces.
       if (style !== 'ind' && style !== 'shaft') for (let i = 0; i < W * D / 30; i++) {
@@ -585,7 +591,21 @@ export function buildShells(m: LivingMaterials): ShellBuild {
         const x = s.minX + 1 + r() * (W - 2), z = s.minZ + 1 + r() * (D - 2), k = r();
         const kind = k < .4 ? 'puddle' : k < .75 ? 'silt' : 'scrape';
         const sz = kind === 'scrape' ? [1.4 + r() * 2, .5] : [1.2 + r() * 2.4, 1 + r() * 2];
-        grime.floor(b, kind, [x, f + top, z], sz[0], sz[1], r() * 6.28);
+        const yaw = r() * 6.28;
+        // L2 maintenance deposits follow equipment bases and wall-side drains, not the pilot lane.
+        // Consume the original RNG sequence so unrelated room dressing remains identical.
+        const maintenanceMarks: number[][] | undefined = s.id === 'C8' ? [
+          [71.7,22.35,2.4,1.1,.1], [72.8,23,1.3,.65,.35],
+          [65.5,21.75,2.2,.65,0], [81.8,30.2,2.7,.75,0],
+          [87.2,30.4,1.7,.5,.12], [94.4,30.2,2.1,.7,-.12],
+        ] : s.id === 'R2' ? [
+          [52,21,2.3,1.4,.4], [52.8,21.6,1.3,.6,.4],
+          [58.8,30.55,2.8,.85,0], [61.5,30.7,1.4,.65,0],
+          [45.1,28.6,1.2,.8,1.57], [62.8,17,2.5,.8,1.57],
+          [63,22.8,1.8,.65,1.57], [45,16.8,1.5,.7,1.57],
+        ] : undefined;
+        const mark = maintenanceMarks?.[i % maintenanceMarks.length];
+        grime.floor(b, kind, [mark?.[0] ?? x, f + top, mark?.[1] ?? z], mark?.[2] ?? sz[0], mark?.[3] ?? sz[1], mark?.[4] ?? yaw, !!mark);
       }
     }
 

@@ -1,0 +1,14 @@
+{
+  "result": {
+    "open": true,
+    "closed": false,
+    "loudDamage": 0.07999999999999996,
+    "pressure": 1,
+    "quietPressure": 0.27999999999999936,
+    "fake": true,
+    "obeyed": true,
+    "recovered": true,
+    "forgedSave": false
+  },
+  "errors": []
+}

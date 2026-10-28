@@ -1,0 +1,21 @@
+[
+  {
+    "warm": true,
+    "warmMs": 0,
+    "restored": true,
+    "samples": [
+      145.29999999701977,
+      2.7000000029802322,
+      2.5,
+      2.8999999910593033,
+      2.8999999910593033,
+      2.2000000029802322,
+      2.1000000089406967,
+      2.199999988079071
+    ],
+    "programs": 39,
+    "errors": [
+      "console: Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR"
+    ]
+  }
+]

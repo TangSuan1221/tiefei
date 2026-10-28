@@ -1,0 +1,119 @@
+{
+  "result": {
+    "rows": [
+      {
+        "name": "camera pickup navigation survives pending S01",
+        "pass": true,
+        "detail": [
+          7,
+          0,
+          8
+        ]
+      },
+      {
+        "name": "transfer destination before pending suppression",
+        "pass": true,
+        "detail": [
+          12,
+          0,
+          9
+        ]
+      },
+      {
+        "name": "old pose outside transfer reach",
+        "pass": true,
+        "detail": {
+          "old": true,
+          "oldNear": false
+        }
+      },
+      {
+        "name": "new transfer pose world hull and radio handoff",
+        "pass": true,
+        "detail": {
+          "legal": true,
+          "near": true,
+          "shared": true,
+          "feedback": "艾里亚斯：传递口已接收移动摄像仪，人员侧回执确认交接。艇载摄影系统保持可用。"
+        }
+      },
+      {
+        "name": "pending shared task has no premature photography destination",
+        "pass": true,
+        "detail": {
+          "pending": "L2-S01",
+          "destination": null
+        }
+      },
+      {
+        "name": "briefed navigation resumes photo01",
+        "pass": true,
+        "detail": [
+          53,
+          0,
+          24
+        ]
+      },
+      {
+        "name": "pending distress keeps navigation suppressed",
+        "pass": true,
+        "detail": {
+          "pending": "L2-S03",
+          "destination": null
+        }
+      },
+      {
+        "name": "unanswered distress does not get replaced by ballast",
+        "pass": true,
+        "detail": {
+          "objective": "【GM无视频】分析台输入“诊断核验任务”或“诊断分析底片”\n自由回复艾里亚斯的求助\n导航坐标 X137.8 Y13.5 DEPTH 1040m\n下一段：防爆玻璃观察廊（G）",
+          "destination": [
+            137.8,
+            0,
+            13.5
+          ]
+        }
+      },
+      {
+        "name": "R4 local ballast destination matches actual box",
+        "pass": true,
+        "detail": {
+          "objective": "【GM无视频】分析台输入“诊断核验任务”或“诊断分析底片”\n离开压载库前 · 机械臂收妥下潜配重，免得下潜前再折返\n导航坐标 X115.5 Y32.5 DEPTH 1040.6m",
+          "destination": [
+            115.5,
+            -0.6,
+            32.5
+          ]
+        }
+      },
+      {
+        "name": "leaving R4 is not progression locked",
+        "pass": true,
+        "detail": {
+          "leave": true,
+          "destination": [
+            137.8,
+            0,
+            13.5
+          ]
+        }
+      },
+      {
+        "name": "collected ballast restores supply destination",
+        "pass": true,
+        "detail": [
+          137.8,
+          0,
+          13.5
+        ]
+      }
+    ],
+    "pass": true,
+    "method": "Local GM isolated diagnostic; collision-validated teleports with actual loaded world; radioSay physical proximity path; navigation state fixtures for photos only; not blind play or earned film evidence."
+  },
+  "blocked": [
+    "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Noto+Serif+SC:wght@300;400;600&display=swap",
+    "http://127.0.0.1:5180/api/video/videos"
+  ],
+  "errors": []
+}

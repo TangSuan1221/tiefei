@@ -180,16 +180,13 @@ function compose(byId, id, overrides, baseId) {
   return { template: id, base: baseId ?? null, slots: values, main, fallback, length: { main: main.length, fallback: fallback.length } };
 }
 
-function runBranch(args) {
-  const result = spawnSync(process.execPath, ['--experimental-transform-types', '--import', new URL('./window-locks-ts-loader.mjs', import.meta.url).href, path.join(root, 'tools/video-prompt-compose.ts'), ...args], {cwd:root, encoding:'utf8'});
-  if (result.stdout) process.stdout.write(result.stdout);
-  if (result.status !== 0) throw new Error(result.stderr || result.error?.message || 'Branch validation failed');
+function runBranch(_args) {
+  // Independent narrative-lab workspace has been removed.
 }
 
 try {
   const [command, ...args] = process.argv.slice(2);
   if (command === 'build') {
-    runBranch(['--check']);
     const index = buildIndex();
     // Composition must succeed for every template before the index is accepted.
     const byId = new Map(sections().chunks.map(c => [c.id, c]));
@@ -205,7 +202,6 @@ try {
     let composed = 0;
     for (const id of byId.keys()) if (id.startsWith('PT-') && id !== 'PT-011') { compose(byId, id, {}, id === 'PT-010' ? 'PT-003' : undefined); composed++; }
     console.log(`PASS: ${index.chunks.length} sections current; ${composed} templates compose within ${MAX_PROMPT} chars with no Chinese text.`);
-    runBranch(['--check']);
   } else if (command === 'compose-branch') {
     loadFresh();
     runBranch(args);

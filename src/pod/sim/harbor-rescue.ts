@@ -18,7 +18,7 @@ export class HarborRescue {
  /** Knowledge can authorize an unsafe action; it cannot make that action safe. */
  requestDeparture(){const s=this.value;if(!s.replied||!s.powered||s.failed||s.departed)return false;s.departing=true;s.voluntary=true;return true;}
  stopDeparture(){const s=this.value;if(!s.departed){s.departing=false;s.departureSeconds=0;s.voluntary=false;}}
- step(dt:number,input:{nearB:boolean;zone:RescueZone;activeSonar:boolean;monsterInside?:boolean;monsterDistance?:number;npcThreat?:boolean}):RescueResult{
+ step(dt:number,input:{nearB:boolean;zone:RescueZone;activeSonar:boolean;monsterInside?:boolean;monsterDistance?:number;npcThreat?:boolean;chapterOne?:boolean;personnelApproaching?:boolean}):RescueResult{
   const s=this.value,out=result();if(!Number.isFinite(dt)||dt<=0||s.failed||s.complete)return out;
   if(input.nearB&&!s.signal){s.signal=true;out.events.push('被动接收机捕捉到断续的人声载波。');}
   // Integrate in bounded slices so large elapsed times cannot bypass the danger window.
@@ -37,18 +37,19 @@ export class HarborRescue {
    // the strike clock only starts once that photograph is confirmed.
    const awaitingEntryPhoto=s.monsterInside&&!s.lureConfirmed;
    // Hull strikes and NPC encounters are separate physical outcomes.
-   if(s.warned&&!s.isolated&&input.activeSonar&&!safeLure&&!awaitingEntryPhoto){s.noiseSeconds+=d;const strikes=Math.max(0,Math.floor((s.noiseSeconds-RESCUE_TIMING.noiseGrace)/RESCUE_TIMING.noiseStrike)+1);if(strikes>s.noiseStrikes){const damage=(strikes-s.noiseStrikes)*RESCUE_TIMING.damage;s.noiseStrikes=strikes;s.damageTotal+=damage;out.damage+=damage;out.events.push('怪物追着主动声纳撞击艇壳！立即停止脉冲，屏幕可保持通电。');}}
+   if((s.warned||input.chapterOne&&s.replied)&&!s.isolated&&input.activeSonar&&!safeLure&&!awaitingEntryPhoto){s.noiseSeconds+=d;const strikes=Math.max(0,Math.floor((s.noiseSeconds-RESCUE_TIMING.noiseGrace)/RESCUE_TIMING.noiseStrike)+1);if(strikes>s.noiseStrikes){const damage=(strikes-s.noiseStrikes)*RESCUE_TIMING.damage;s.noiseStrikes=strikes;s.damageTotal+=damage;out.damage+=damage;out.events.push('怪物追着主动声纳撞击艇壳！立即停止脉冲，屏幕可保持通电。');}}
    else {s.noiseSeconds=0;s.noiseStrikes=0;}
    if(s.departing&&!s.departed){
-    s.departureSeconds+=d;
-    if(!s.isolated&&!s.injured&&s.departureSeconds>=1.5&&input.npcThreat){
-     s.injured=true;s.departing=false;s.departureSeconds=0;s.voluntary=false;
-     out.events.push('（水听器：栏杆猛响，呼吸声被一声闷喊打断。）','艾里亚斯：它还活着！我退回门边了……腿动不了。先把它隔开！');
-    }else if(s.departureSeconds>=(s.injured?20:RESCUE_TIMING.departure)){s.departed=true;out.events.push(s.injured?'艾里亚斯：我挪进值班室了，门已经锁住。我留在这里，去不了生活区。':'艾里亚斯：我已经到内侧门后了。拍下门后的情况，我们分别往下走。');}
+    // The jammed powered door remains in motion while the audible creature approaches.
+    if(!(input.chapterOne&&input.personnelApproaching&&!s.isolated&&!s.injured&&s.departureSeconds>=1.5))s.departureSeconds+=d;
+    if(!s.isolated&&!s.monsterInside&&!s.injured&&s.departureSeconds>=1.5&&input.npcThreat){
+     s.injured=true;if(input.chapterOne){s.departureSeconds=0;out.events.push('（人员通道回传：门框撞响，艾里亚斯闷喊一声，退回安保室。）');}else{s.departing=false;s.departureSeconds=0;s.voluntary=false;}
+     if(!input.chapterOne)out.events.push('（水听器：栏杆猛响，呼吸声被一声闷喊打断。）','艾里亚斯：它还活着！我退回门边了……腿动不了。先把它隔开！');
+    }else if(s.departureSeconds>=(s.injured?20:RESCUE_TIMING.departure)){s.departed=true;out.events.push(input.chapterOne?'艾里亚斯：我从安保室内侧绕进值班室了。门已锁好，我给你回传。':s.injured?'艾里亚斯：我挪进值班室了，门已经锁住。我留在这里，去不了生活区。':'艾里亚斯：我已经到内侧门后了。拍下门后的情况，我们分别往下走。');}
    }
   }return out;
  }
- interact(zone:RescueZone,activeSonar=false):RescueResult{
+ interact(zone:RescueZone,activeSonar=false,chapterOne=false):RescueResult{
   const s=this.value;if(s.failed||s.complete)return result();
   if(zone==='power'){if(!s.powered){s.powered=true;return result('02配电箱恢复供电。艾里亚斯：回01打开货仓闸机，再去03开启脉冲把它引过去。');}return result('配电箱已供电。');}
   if(zone==='observe'&&s.powered&&!s.isolated){
@@ -60,7 +61,7 @@ export class HarborRescue {
   }
   if(zone==='observe')return result(s.powered?'货仓闸机已落下锁定。':'01闸机面板没有电，需先恢复02配电箱供电。');
   if(zone==='rescue'){if(!s.verified)return result('尚未核验怪物隔离结果，不能让艾里亚斯离开。');if(!s.departing){s.departing=true;return result('内侧逃生门接通。艾里亚斯：我沿里面的路走，你留在艇里。');}return result();}
-  if(zone==='exit'){if(!s.departureConfirmed)return result('需要核验艾里亚斯撤离的结果片。');s.complete=true;return result(s.injured?'艾里亚斯留在锁好的值班室休息，罗温继续前往生活区。':'艾里亚斯已真实脱困，双方沿各自通道继续前进。');}
+  if(zone==='exit'){if(!s.departureConfirmed)return result('需要核验艾里亚斯撤离的结果片。');s.complete=true;return result(chapterOne&&s.injured?'艾里亚斯包扎肩伤后沿人员通道继续前进，生活区末端会合。':s.injured?'艾里亚斯留在锁好的值班室休息，罗温继续前往生活区。':'艾里亚斯已真实脱困，双方沿各自通道继续前进。');}
   return result();
  }
  capture(id:string,kind:RescueEvidenceKind,visible:boolean,diagnostic?:string,capturedAt?:number,creatureVisible?:boolean):RescueEvidence{
@@ -92,6 +93,8 @@ export class HarborRescue {
   if(e.kind==='departure'&&e.departed&&s.departed){s.departureConfirmed=true;return result('结果片确认艾里亚斯已经走到内侧门后；断桥依然分隔两条路线。');}
   return result(e.kind==='lure'?'曝光确认怪物完全进入03货仓。':'录像已归档。');
  }
+ /** Only a validated remote safety-room video may call this in the simplified route. */
+ confirmRemoteDeparture(chapterOne=false){const s=this.value;if((!chapterOne&&(!s.verified||s.injured))||!s.departed||s.failed)return false;s.departureConfirmed=true;return true;}
  restore(value:unknown):boolean{
   if(!value||typeof value!=='object')return false;const s={injured:false,voluntary:false,...value} as HarborRescueState,base=fresh();
   for(const k of Object.keys(base) as (keyof HarborRescueState)[]){const v=s[k];if(typeof base[k]==='boolean'&&typeof v!=='boolean')return false;if(typeof base[k]==='number'&&(typeof v!=='number'||!Number.isFinite(v)||v<0))return false;}

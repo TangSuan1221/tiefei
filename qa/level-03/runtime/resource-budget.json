@@ -1,0 +1,100 @@
+[
+  {
+    "extra": false,
+    "initialPower": 1,
+    "initialOxygen": 1450,
+    "seconds": 517.2666666665249,
+    "metres": 648.400713213533,
+    "extraEnergy": 0.7385994906083442,
+    "used": {
+      "sup.cell": 1
+    },
+    "collected": [],
+    "power": 0,
+    "oxygen": 1266.1479085668257,
+    "scrubber": 0.2798575241912247,
+    "bench": [],
+    "outcome": {
+      "kind": "alive"
+    }
+  },
+  {
+    "extra": true,
+    "initialPower": 1,
+    "initialOxygen": 1450,
+    "seconds": 1646.9166666654976,
+    "metres": 1319.6699923164479,
+    "extraEnergy": 1.4948810092333105,
+    "used": {
+      "sup.cell": 6,
+      "sup.filter": 1
+    },
+    "collected": [
+      "abyss.box.serviceQ",
+      "abyss.box.serviceL",
+      "abyss.box.serviceC",
+      "abyss.box.serviceP",
+      "abyss.box.serviceR"
+    ],
+    "power": 0.6187969987916005,
+    "oxygen": 1063.0542761104819,
+    "scrubber": 0.5367840027307922,
+    "bench": [],
+    "outcome": {
+      "kind": "alive"
+    }
+  },
+  {
+    "extra": true,
+    "initialPower": 0.25,
+    "initialOxygen": 1450,
+    "seconds": 1646.9166666654976,
+    "metres": 1319.6699923164479,
+    "extraEnergy": 1.4948810092333105,
+    "used": {
+      "sup.cell": 7,
+      "sup.filter": 1
+    },
+    "collected": [
+      "abyss.box.serviceQ",
+      "abyss.box.serviceL",
+      "abyss.box.serviceC",
+      "abyss.box.serviceP",
+      "abyss.box.serviceR"
+    ],
+    "power": 0.28459699879185496,
+    "oxygen": 1056.0119015223436,
+    "scrubber": 0.5271840027307143,
+    "bench": [],
+    "outcome": {
+      "kind": "alive"
+    }
+  },
+  {
+    "extra": true,
+    "initialPower": 0.25,
+    "initialOxygen": 500,
+    "seconds": 1646.9166666654976,
+    "metres": 1319.6699923164479,
+    "extraEnergy": 1.4948810092333105,
+    "used": {
+      "sup.cell": 7,
+      "sup.o2candle": 1,
+      "sup.filter": 1
+    },
+    "collected": [
+      "abyss.box.serviceQ",
+      "abyss.box.serviceL",
+      "abyss.box.serviceC",
+      "abyss.box.serviceP",
+      "abyss.box.serviceR"
+    ],
+    "power": 0.2838969987918585,
+    "oxygen": 703.5628479139779,
+    "scrubber": 0.6455840027307772,
+    "bench": [],
+    "outcome": {
+      "kind": "alive"
+    }
+  }
+]

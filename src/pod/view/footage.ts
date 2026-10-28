@@ -1,3 +1,5 @@
+import {isHarborOpening,harborOpeningOpened,harborOpeningFinished,finishHarborCall} from '../sim/harbor-opening';
+import {abyssalVideoAuthorized} from '../net/abyssal-video-authorization';
 /**
  * 冲出来的那卷片子。
  * ============================================================================
@@ -39,6 +41,33 @@ interface Reel {
 
 /** 已经冲好的片子。键是 leg.id */
 const REELS = new Map<string, Reel>();
+const REMOTE_PLAYLISTS = new Map<string,{reels:Reel[];index:number}>();
+export function pauseHarborCallAway(run:PodRun){
+  const tape=run.tapes.find(isHarborOpening);
+  if(tape&&(run.at!=='lab'||!run.powered||run.selectedTape!==tape))REMOTE_PLAYLISTS.get(tape.cacheKey??'')?.reels.forEach(r=>r.video.pause());
+}
+export const hasRemotePlaylist=(key:string)=>REMOTE_PLAYLISTS.has(key);
+
+/** Decode every authored segment before publishing a remote tape. No repeated stills. */
+export async function installRemotePlaylist(key:string,legId:string,blobs:Blob[]):Promise<string[]> {
+  const reels:Reel[]=[],frames:string[]=[];
+  try {
+    for(const blob of blobs){
+      const reel=await decodeReel(legId,blob,false);
+      if(!reel||!Number.isFinite(reel.video.duration)||reel.video.duration<=0)throw Error('远端录像无法解码');
+      reels.push(reel);reel.video.pause();reel.video.loop=false;
+      const canvas=document.createElement('canvas');canvas.width=768;canvas.height=Math.round(768*reel.video.videoHeight/reel.video.videoWidth);
+      const ctx=canvas.getContext('2d')!;
+      for(const fraction of [.1,.5,.9]){
+        await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('录像采样超时')),8000);reel.video.onseeked=()=>{clearTimeout(timer);reel.video.onseeked=null;resolve();};reel.video.currentTime=reel.video.duration*fraction;});
+        ctx.drawImage(reel.video,0,0,canvas.width,canvas.height);frames.push(canvas.toDataURL('image/jpeg',.8));
+      }
+      reel.video.currentTime=0;
+    }
+    const old=REMOTE_PLAYLISTS.get(key);if(old)for(const r of old.reels){r.video.pause();URL.revokeObjectURL(r.url);}
+    REMOTE_PLAYLISTS.set(key,{reels,index:0});return frames;
+  }catch(error){for(const r of reels){r.video.pause();URL.revokeObjectURL(r.url);}throw error;}
+}
 /** 正在冲的航段，挡住重复请求 */
 const INFLIGHT = new Map<string,Promise<void>>();
 
@@ -146,6 +175,13 @@ export function readyPrompt(run: PodRun): string | null {
 }
 
 async function handle(run: PodRun, req: FootageRequest): Promise<void> {
+  if(isNoVideoMode()){handlePrompt(run,req);return;}
+  // Level three requires its explicit local flag or per-tab approval, in addition to the global service switch.
+  if (run.legIndex === 2 && !abyssalVideoAuthorized()) {
+    run.videoStatus = '第三关录像生成未启用 · 未上传素材';
+    req.settle(req.token, false);
+    return;
+  }
   const { legId, token, settle, cacheKey } = req;
   if(req.allowed===false){settle(token,false,'附近没有怪物；保留机载录像，未提交视频生成。');return;}
   const status=(text:string)=>{if(!req.prefetch&&run.shot.token===token)run.videoStatus=text;};
@@ -206,6 +242,7 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
       return;
     }
 
+    if(isNoVideoMode()){handlePrompt(run,req);return;}
     // 4. 必须能解码才算成功。
     status('视频已下载 · 正在解码');
     const reel = await decodeReel(legId, result.blob, creatureMissing);
@@ -234,6 +271,7 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
     status('生成视频 · 远端回放');
     settle(token, true, undefined, creatureMissing);
   } catch (e) {
+    if(isNoVideoMode()){settle(token,false,'已切换 GM 无视频模式，停止等待视频。请重新曝光，取得本地调试片；已提交任务费用无法撤销。');return;}
     console.warn('[footage] 冲洗回路异常', e);
     settle(token, false, '信号中断。冲洗槽那头没人接。');
   } finally {
@@ -267,9 +305,19 @@ export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:numbe
   // Local evidence can be ready before the remote job. Do not present its frame loop as the requested movie.
   if(run.shot.phase==='developing' && tape.id===`tape.${run.shot.token}` && !run.shot.pendingResult && !isNoVideoMode() && VIDEO_ENABLED)
     return notice('MiniMax 视频生成中',run.videoStatus);
-  const reel=REELS.get(tape.cacheKey??tape.legId);
+  const opening=isHarborOpening(tape)&&!tape.analyzed;
+  if(opening&&(!harborOpeningOpened(tape)||run.at!=='lab'))return notice('接驳岗有呼叫','点击接听后播放');
+  const playlist=REMOTE_PLAYLISTS.get(tape.cacheKey??'');
+  if(opening&&playlist?.reels[playlist.index]?.video.ended&&run.at==='lab'&&run.powered){
+    finishHarborCall(tape);run.analyzeTape();
+    return notice('通信结束','首个任务已收到');
+  }
+  if(opening&&harborOpeningFinished(tape))return notice('通信结束','首个任务已收到');
+  if(playlist?.reels[playlist.index]?.video.ended){playlist.index=(playlist.index+1)%playlist.reels.length;playlist.reels[playlist.index].video.currentTime=0;}
+  const reel=playlist?.reels[playlist.index]??REELS.get(tape.cacheKey??tape.legId);
   if(reel&&reel.video.readyState>=2){
-    if(reel.video.paused)void reel.video.play().catch(()=>{});
+    if(localPlayback?.paused)reel.video.pause();
+    else if(reel.video.paused)void reel.video.play().catch(()=>{});
     if(run.labVideoExpanded){
       const scale=Math.min(w/reel.video.videoWidth,h/reel.video.videoHeight);
       const vw=reel.video.videoWidth*scale,vh=reel.video.videoHeight*scale;
@@ -283,14 +331,17 @@ export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:numbe
   if(tape.sensorFrames&&tape.sensorFrames.length>=3){
     let frames=sensorReels.get(tape);
     if(!frames){frames=tape.sensorFrames.map(src=>{const frame=new Image();frame.src=src;return frame;});sensorReels.set(tape,frames);}
-    const frameIndex=Math.floor((localPlayback?.time??run.clock)*2)%frames.length;
+    const debugTape=(tape.siteEvidence as {debugNoVideo?:boolean})?.debugNoVideo===true;
+    const debugSlides=debugTape&&tape.id.startsWith('abyss.debug.');
+    const frameIndex=Math.floor((localPlayback?.time??run.clock)/(debugSlides?8:.5))%frames.length;
     const frame=frames[frameIndex];
     if(frame.complete&&frame.naturalWidth){
       const scale=Math.min(w/frame.naturalWidth,h/frame.naturalHeight),vw=frame.naturalWidth*scale,vh=frame.naturalHeight*scale;
       ctx.fillStyle='#020406';ctx.fillRect(0,0,w,h);ctx.drawImage(frame,(w-vw)/2,(h-vh)/2,vw,vh);
+      if(debugTape)return `GM ${debugSlides?'合成文字调试片':'现场摄影调试'} · 非真实生成录像 · ${localPlayback?.paused?'已暂停':'播放中'}`;
       return `本地录像备份 · ${tape.videoError??'本卷未收到生成视频'} · ${localPlayback?.paused?'已暂停':'播放中'}`;
     }
-    return notice('读取机载感光录像','真实曝光帧序列 · 非AI生成');
+    return debugTape?notice('读取 GM 调试片','合成剧情演算 · 非真实生成录像'):notice('读取机载感光录像','真实曝光帧序列 · 非AI生成');
   }
   return notice(tape.videoResult==='prompt'?'GM 提示词模式 · 未请求视频':'无可播放视频 · 不使用图片冒充录像',tape.videoError??'视频未生成、未加载或缓存已释放；请检查任务日志。');
 }

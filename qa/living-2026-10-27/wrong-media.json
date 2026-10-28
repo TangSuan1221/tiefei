@@ -1,0 +1,8 @@
+{
+  "wrongMediaAccepted": false,
+  "lines": [
+    "本卷底片尚无对应的可播放生成录像，请等待下载或重试。"
+  ],
+  "method": "Direct diagnostic state/capture injection; not physical exposure/playback",
+  "api": "all blocked"
+}

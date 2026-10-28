@@ -1,0 +1,220 @@
+{
+  "setup": {
+    "source": [
+      196,
+      4,
+      57
+    ],
+    "aim": [
+      199,
+      0,
+      67
+    ],
+    "rated": 24,
+    "multiplier": 11,
+    "distance": 26,
+    "angle": 0.8,
+    "shadow": 512,
+    "rayRows": [
+      {
+        "target": [
+          199.65,
+          0,
+          63
+        ],
+        "distance": 7.870768733273292,
+        "hits": [
+          {
+            "name": "living-shell-A:living.seal",
+            "parent": "living-space:A",
+            "material": "living.seal",
+            "d": 7.870755355442411,
+            "p": [
+              199.64999389648438,
+              0.000006664960142455101,
+              62.99999013634133
+            ]
+          },
+          {
+            "name": "living-shell-A:living.bulkhead",
+            "parent": "living-space:A",
+            "material": "living.bulkhead",
+            "d": 7.980353234808659,
+            "p": [
+              199.6999969482422,
+              -0.05459602094912963,
+              63.08079815987846
+            ]
+          },
+          {
+            "name": "living-shell-E:living.rust-sheet",
+            "parent": "living-space:E",
+            "material": "living.rust-sheet",
+            "d": 8.637907066428959,
+            "p": [
+              200,
+              -0.3821954740044222,
+              63.56562164195458
+            ]
+          },
+          {
+            "name": "living-shell-E:living.ind-steel",
+            "parent": "living-space:E",
+            "material": "living.ind-steel",
+            "d": 8.657410553351061,
+            "p": [
+              200.00889829138723,
+              -0.39191229313177844,
+              63.58000183105469
+            ]
+          }
+        ]
+      },
+      {
+        "target": [
+          199.65,
+          0,
+          73
+        ],
+        "distance": 16.67373745781889,
+        "hits": [
+          {
+            "name": "living-shell-A:living.seal",
+            "parent": "living-space:A",
+            "material": "living.seal",
+            "d": 16.6737091177104,
+            "p": [
+              199.64999389648438,
+              0.000006664960142455101,
+              72.99997313948711
+            ]
+          },
+          {
+            "name": "living-shell-A:living.bulkhead",
+            "parent": "living-space:A",
+            "material": "living.bulkhead",
+            "d": 16.905885456313918,
+            "p": [
+              199.6999969482422,
+              -0.05459602094912919,
+              73.22002789111437
+            ]
+          }
+        ]
+      },
+      {
+        "target": [
+          199.65,
+          3,
+          68
+        ],
+        "distance": 11.421625024020031,
+        "hits": [
+          {
+            "name": "living-shell-A:living.ind-steel",
+            "parent": "living-space:A",
+            "material": "living.ind-steel",
+            "d": 11.421625024020031,
+            "p": [
+              199.65,
+              3,
+              68
+            ]
+          },
+          {
+            "name": "living-shell-A:living.bulkhead",
+            "parent": "living-space:A",
+            "material": "living.bulkhead",
+            "d": 11.5806480022572,
+            "p": [
+              199.6999969482422,
+              2.9871728984216435,
+              68.15041302549642
+            ]
+          }
+        ]
+      },
+      {
+        "target": [
+          199,
+          -3,
+          68
+        ],
+        "distance": 13.16294970470572,
+        "hits": []
+      },
+      {
+        "target": [
+          199,
+          -7,
+          68
+        ],
+        "distance": 15.640766227590913,
+        "hits": []
+      },
+      {
+        "target": [
+          193,
+          2,
+          62
+        ],
+        "distance": 6.009992926468734,
+        "hits": []
+      }
+    ],
+    "profiles": {
+      "live": {
+        "exposure": 0.41859999999999997,
+        "lampGain": 1.8,
+        "lampDecay": 0.9,
+        "practicalGain": 2.2,
+        "envIntensity": 0.065,
+        "scatter": 0.4,
+        "grain": 0.045,
+        "vignette": 0,
+        "aberration": 0.0032,
+        "bloom": 0.22,
+        "halo": 4.2,
+        "fogTint": 1.2,
+        "lensGain": 2.2,
+        "lampNearFull": 9
+      },
+      "film": {
+        "exposure": 2.95,
+        "lampGain": 1,
+        "practicalGain": 1.1,
+        "envIntensity": 0.9,
+        "scatter": 1,
+        "grain": 0.03,
+        "vignette": 0.6,
+        "aberration": 0.0022,
+        "bloom": 0.4,
+        "halo": 1,
+        "meter": 1,
+        "meterKey": 0.032,
+        "meterRange": [
+          0.08,
+          1.2
+        ],
+        "whiteKnee": 2.5,
+        "look": [
+          1.15,
+          1.08
+        ],
+        "spread": [
+          0.2,
+          1.45,
+          1.9
+        ]
+      }
+    }
+  },
+  "records": [],
+  "path": [],
+  "blocked": [
+    "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Noto+Serif+SC:wght@300;400;600&display=swap",
+    "http://127.0.0.1:5180/api/video/videos"
+  ],
+  "errors": [],
+  "performance": "Deferred: parent confirms blind-play and low-battery browser concurrent. This phase is visual/geometry diagnostic only."
+}

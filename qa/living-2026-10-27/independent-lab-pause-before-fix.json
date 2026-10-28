@@ -1,0 +1,24 @@
+{
+  "method": "Diagnostic lab playback/zoom fixture and legal initial poses; real Esc/Space/mouse back and real shade damage; API blocked, not blind play",
+  "escape": {
+    "at": "camera",
+    "zoom": null,
+    "expanded": false,
+    "viewing": false,
+    "speed": 0,
+    "pos": [
+      7,
+      0,
+      7
+    ],
+    "hull": 1,
+    "depth": 1040,
+    "actualDepth": 1040,
+    "feedback": "",
+    "playback": "暂停播放"
+  },
+  "failure": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'暂停播放' !== '继续播放'\n",
+  "errors": [
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
+}

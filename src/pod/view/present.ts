@@ -1,3 +1,4 @@
+import { AbyssalLabSite } from './deepsea/abyssal-lab-site';
 import { drawTacticalObjective } from './tactical-objective';
 import { HarborRescueSite } from './deepsea/harbor-rescue-site';
 import { LivingDeckSite } from './deepsea/living-deck-site';
@@ -98,7 +99,7 @@ export class PodView {
     if (!s || !h) throw new Error('[pod] 无法创建 2D 上下文');
     this.sctx = s;
     this.hctx = h;
-    run.createAuthoredSite=index=>index===0?new HarborRescueSite(run):index===1?new LivingDeckSite(run):new PodExpedition(run,index);
+    run.createAuthoredSite=index=>index===0?new HarborRescueSite(run):index===1?new LivingDeckSite(run):index===2?new AbyssalLabSite(run):new PodExpedition(run,index);
     run.captureSensorFrame = () => {
       const size=run.authoredSite?.presentation?.sensorFrame,fw=size?.width??512,fh=size?.height??360;
       const frame=document.createElement('canvas');frame.width=fw;frame.height=fh;
@@ -319,7 +320,7 @@ export class PodView {
         const fs=Math.max(16,h*.023);ctx.shadowColor='#000';ctx.shadowBlur=5;
         lines.forEach((s,i)=>ctx.fillText(s,w*.14,h*.975-(lines.length-1-i)*fs*1.45));ctx.shadowBlur=0;
       }
-      if(run.authoredSite.managesNarrative)drawTacticalObjective(ctx,run,w,h);
+      if(run.authoredSite.managesNarrative&&!(run.authoredSite.index===1&&this.cabin.zoomedDevice))drawTacticalObjective(ctx,run,w,h);
       return;
     }
 
@@ -499,3 +500,4 @@ export class PodView {
 }
 
 export type { StationId };
+

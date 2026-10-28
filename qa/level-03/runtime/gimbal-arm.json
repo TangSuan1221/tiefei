@@ -1,0 +1,43 @@
+{
+  "start": {
+    "original": [
+      -95.8,
+      0,
+      -81.2
+    ],
+    "originalClear": false,
+    "position": [
+      -95.8,
+      0,
+      -81.10000000000001
+    ],
+    "heading": 24,
+    "clear": true,
+    "pan": -0.6247613241319149,
+    "tilt": 0.31716498410006355,
+    "aim": null
+  },
+  "aimed": {
+    "id": "abyss.box.med1",
+    "distance": 3.134001706811583,
+    "pan": -0.6374150000000013,
+    "tilt": 0.323033999999999
+  },
+  "recording": {
+    "interactionCalls": 0,
+    "helpActive": true
+  },
+  "end": {
+    "position": [
+      -95.8,
+      0,
+      -81.10000000000001
+    ],
+    "heading": 24,
+    "collected": [
+      "abyss.box.med1"
+    ],
+    "sedatives": 1
+  },
+  "errors": []
+}

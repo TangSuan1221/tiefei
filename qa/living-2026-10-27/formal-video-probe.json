@@ -1,0 +1,502 @@
+{
+  "scope": "L2-S01 only; diagnostic browser reads; no mission acceptance",
+  "events": [
+    {
+      "method": "POST",
+      "path": "/api/video/videos",
+      "status": 200,
+      "body": {
+        "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+        "object": "video",
+        "status": "queued",
+        "created_at": 1793076486,
+        "completed_at": null,
+        "expires_at": null,
+        "error": null,
+        "progress": null,
+        "remixed_from_video_id": null,
+        "seconds": "10",
+        "size": "adaptive",
+        "model": "minimax-h3-max",
+        "last_frame_url": null,
+        "usage": {
+          "duration_seconds": 10,
+          "video_resolution": "768p"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "status": 200,
+      "body": {
+        "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+        "object": "video",
+        "status": "in_progress",
+        "created_at": 1793076486,
+        "completed_at": null,
+        "expires_at": null,
+        "error": null,
+        "progress": null,
+        "remixed_from_video_id": null,
+        "seconds": "10",
+        "size": "adaptive",
+        "model": "MiniMax-H3-Max",
+        "last_frame_url": null,
+        "usage": {
+          "video_resolution": "768p"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "status": 200,
+      "body": {
+        "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+        "object": "video",
+        "status": "in_progress",
+        "created_at": 1793076486,
+        "completed_at": null,
+        "expires_at": null,
+        "error": null,
+        "progress": null,
+        "remixed_from_video_id": null,
+        "seconds": "10",
+        "size": "adaptive",
+        "model": "MiniMax-H3-Max",
+        "last_frame_url": null,
+        "usage": {
+          "video_resolution": "768p"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "status": 200,
+      "body": {
+        "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+        "object": "video",
+        "status": "in_progress",
+        "created_at": 1793076486,
+        "completed_at": null,
+        "expires_at": null,
+        "error": null,
+        "progress": null,
+        "remixed_from_video_id": null,
+        "seconds": "10",
+        "size": "adaptive",
+        "model": "MiniMax-H3-Max",
+        "last_frame_url": null,
+        "usage": {
+          "video_resolution": "768p"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "status": 200,
+      "body": {
+        "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+        "object": "video",
+        "status": "in_progress",
+        "created_at": 1793076486,
+        "completed_at": null,
+        "expires_at": null,
+        "error": null,
+        "progress": null,
+        "remixed_from_video_id": null,
+        "seconds": "10",
+        "size": "adaptive",
+        "model": "MiniMax-H3-Max",
+        "last_frame_url": null,
+        "usage": {
+          "video_resolution": "768p"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "status": 200,
+      "body": {
+        "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+        "object": "video",
+        "status": "in_progress",
+        "created_at": 1793076486,
+        "completed_at": null,
+        "expires_at": null,
+        "error": null,
+        "progress": null,
+        "remixed_from_video_id": null,
+        "seconds": "10",
+        "size": "adaptive",
+        "model": "MiniMax-H3-Max",
+        "last_frame_url": null,
+        "usage": {
+          "video_resolution": "768p"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "status": 200,
+      "body": {
+        "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+        "object": "video",
+        "status": "in_progress",
+        "created_at": 1793076486,
+        "completed_at": null,
+        "expires_at": null,
+        "error": null,
+        "progress": null,
+        "remixed_from_video_id": null,
+        "seconds": "10",
+        "size": "adaptive",
+        "model": "MiniMax-H3-Max",
+        "last_frame_url": null,
+        "usage": {
+          "video_resolution": "768p"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+      "status": 200,
+      "body": {
+        "id": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw",
+        "object": "video",
+        "status": "completed",
+        "created_at": 1793076486,
+        "completed_at": 1793076513,
+        "expires_at": null,
+        "error": null,
+        "progress": null,
+        "remixed_from_video_id": null,
+        "seconds": "10",
+        "size": "adaptive",
+        "model": "MiniMax-H3-Max",
+        "last_frame_url": null,
+        "usage": {
+          "total_seconds": 10,
+          "input_seconds": 0,
+          "output_seconds": 10,
+          "input_image_count": 1,
+          "total_tokens": 358039,
+          "prompt_tokens": 32549,
+          "completion_tokens": 325490,
+          "video_resolution": "768p"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/video/videos/video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw/content",
+      "status": 200,
+      "bytes": 13287268
+    }
+  ],
+  "errors": [],
+  "audio": "NOT_VERIFIED",
+  "existingCache": {},
+  "latest": {
+    "status": "艾里亚斯任务录像已收到",
+    "tapes": [
+      {
+        "id": "living.task.L2-S01",
+        "ready": true,
+        "cacheKey": "living-task:L2-S01:6a1b9a9b"
+      }
+    ],
+    "state": {
+      "survey": {
+        "camera": false,
+        "shared": false,
+        "briefed": false,
+        "helpSeen": false,
+        "helpReplied": false,
+        "manual": false,
+        "valve": false,
+        "reported": false,
+        "clearSeen": false,
+        "doorSeen": false,
+        "askedCode": false,
+        "codeSeen": false,
+        "unlocked": false,
+        "reunion": false,
+        "reunionReached": false,
+        "ballast": false,
+        "complete": false,
+        "photos": [],
+        "accepted": [],
+        "captures": [],
+        "analyzed": [],
+        "elapsed": 51.833100000000535,
+        "closedAt": null,
+        "nudged": false,
+        "pickupNudged": true,
+        "trust": 0,
+        "rewarded": [],
+        "pendingCapture": null,
+        "code": "4365",
+        "version": 1
+      },
+      "routeVersion": 2,
+      "stage": "explore",
+      "objective": "入口井底 · 右前方黄色摄像仪匣\nW靠近驾驶台，E就坐；J/L转船头，空格推进，Shift制动\n开探照灯，方向键对镜；3.4m内按F伸臂，再F夹取，最后F收回",
+      "pos": [
+        7,
+        0,
+        7
+      ],
+      "heading": 90,
+      "collected": [],
+      "probe": "none",
+      "valves": {
+        "heat": false,
+        "feed": false,
+        "cool": false
+      },
+      "slime": 0.75,
+      "tapes": [],
+      "tapesAnalyzed": [],
+      "identified": [],
+      "codeVerified": false,
+      "guideVerified": false,
+      "uplinked": false,
+      "gateOpen": false,
+      "met": false,
+      "ballast": false,
+      "complete": false,
+      "ended": false,
+      "lens": false,
+      "creatures": [
+        {
+          "id": "lumen.r1",
+          "mode": "idle",
+          "pos": [
+            35.88141872348384,
+            4,
+            -11.881418723484053
+          ]
+        },
+        {
+          "id": "blind.r2",
+          "mode": "sleep",
+          "pos": [
+            56,
+            -2,
+            27
+          ]
+        },
+        {
+          "id": "shade.r4",
+          "mode": "idle",
+          "pos": [
+            110,
+            -1,
+            26
+          ]
+        },
+        {
+          "id": "lumen.a1",
+          "mode": "idle",
+          "pos": [
+            156.17792177587242,
+            6,
+            58.47116871034952
+          ]
+        },
+        {
+          "id": "lumen.a2",
+          "mode": "idle",
+          "pos": [
+            189.9783641245691,
+            5,
+            67.97836412456591
+          ]
+        },
+        {
+          "id": "blind.a2",
+          "mode": "idle",
+          "pos": [
+            166,
+            -2,
+            60
+          ]
+        }
+      ],
+      "pendingTapes": 0,
+      "saveSafe": true,
+      "timers": {
+        "alexTapeLeft": 0,
+        "resultLeft": 0,
+        "gateLeft": 0
+      },
+      "extraLumens": 0
+    }
+  },
+  "outcome": "RECEIVED",
+  "cache": {
+    "living-task:L2-S01:6a1b9a9b": "video_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm1pbmltYXg7bW9kZWxfaWQ6TWluaU1heC1IMy1NYXg7dmlkZW9faWQ6NDU2ODAwNDY3NDc3MDkw"
+  },
+  "ui": {
+    "at": "nav",
+    "hits": [
+      {
+        "id": "life",
+        "hits": {
+          "hits": []
+        }
+      },
+      {
+        "id": "radio",
+        "hits": {
+          "hits": []
+        }
+      },
+      {
+        "id": "camera",
+        "hits": {
+          "hits": []
+        }
+      },
+      {
+        "id": "nav",
+        "hits": {
+          "hits": [
+            {
+              "id": "sonar.tab.main",
+              "x": 900,
+              "y": 20,
+              "w": 104,
+              "h": 70
+            },
+            {
+              "id": "sonar.tab.log",
+              "x": 900,
+              "y": 104,
+              "w": 104,
+              "h": 70
+            },
+            {
+              "id": "sonar.tab.help",
+              "x": 900,
+              "y": 188,
+              "w": 104,
+              "h": 70
+            }
+          ]
+        }
+      },
+      {
+        "id": "nav",
+        "hits": {
+          "hits": [
+            {
+              "id": "sonar.axis.0",
+              "x": 14,
+              "y": 620,
+              "w": 324,
+              "h": 96
+            },
+            {
+              "id": "sonar.axis.1",
+              "x": 350,
+              "y": 620,
+              "w": 324,
+              "h": 96
+            },
+            {
+              "id": "sonar.axis.2",
+              "x": 686,
+              "y": 620,
+              "w": 324,
+              "h": 96
+            }
+          ]
+        }
+      },
+      {
+        "id": "lab",
+        "hits": {
+          "hits": [
+            {
+              "id": "lab.tab:status",
+              "x": 28,
+              "y": 61,
+              "w": 253,
+              "h": 48
+            },
+            {
+              "id": "lab.tab:tapes",
+              "x": 295,
+              "y": 61,
+              "w": 253,
+              "h": 48
+            },
+            {
+              "id": "lab.tab:cargo",
+              "x": 562,
+              "y": 61,
+              "w": 253,
+              "h": 48
+            },
+            {
+              "id": "back",
+              "x": 837,
+              "y": 61,
+              "w": 159,
+              "h": 48
+            },
+            {
+              "id": "lab.send:vance",
+              "x": 28,
+              "y": 657,
+              "w": 295,
+              "h": 39
+            },
+            {
+              "id": "lab.send:elias",
+              "x": 350,
+              "y": 657,
+              "w": 295,
+              "h": 39
+            },
+            {
+              "id": "lab.localPlayback",
+              "x": 28,
+              "y": 591,
+              "w": 317.3333333333333,
+              "h": 49
+            },
+            {
+              "id": "lab.expand",
+              "x": 353.3333333333333,
+              "y": 591,
+              "w": 317.3333333333333,
+              "h": 49
+            },
+            {
+              "id": "lab.analyze",
+              "x": 678.6666666666666,
+              "y": 591,
+              "w": 317.3333333333333,
+              "h": 49
+            }
+          ]
+        }
+      },
+      {
+        "id": "salvage",
+        "hits": {
+          "hits": []
+        }
+      }
+    ]
+  }
+}

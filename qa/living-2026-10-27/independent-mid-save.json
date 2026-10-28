@@ -1,0 +1,1407 @@
+{
+  "saved": {
+    "version": 1,
+    "adapter": "living-deck",
+    "seed": 3848482761,
+    "savedAt": 1793070525491,
+    "phase": "site",
+    "legIndex": 1,
+    "site": {
+      "routeVersion": 2,
+      "survey": {
+        "camera": true,
+        "shared": false,
+        "briefed": false,
+        "helpSeen": false,
+        "helpReplied": false,
+        "manual": false,
+        "valve": false,
+        "reported": false,
+        "clearSeen": false,
+        "doorSeen": false,
+        "askedCode": false,
+        "codeSeen": false,
+        "unlocked": false,
+        "reunion": false,
+        "reunionReached": false,
+        "ballast": false,
+        "complete": false,
+        "photos": [],
+        "accepted": [],
+        "captures": [],
+        "analyzed": [],
+        "elapsed": 12.633199999999977,
+        "closedAt": null,
+        "nudged": false,
+        "pickupNudged": false,
+        "trust": 0,
+        "rewarded": [],
+        "pendingCapture": null,
+        "code": "4248",
+        "version": 1
+      },
+      "cargo": [
+        "living.box.probe"
+      ],
+      "debugNoVideo": false,
+      "surveyGateLift": 0,
+      "reserveUsed": false,
+      "adapter": "living-deck",
+      "adapterVersion": 1,
+      "index": 1,
+      "levelId": "living.2",
+      "position": [
+        12.121320343559642,
+        0,
+        9.378679656440358
+      ],
+      "heading": 225,
+      "pitch": 0,
+      "elapsed": 12.633199999999977,
+      "sequence": 0,
+      "ended": false,
+      "deck": {
+        "version": 1,
+        "stage": "descend",
+        "epoch": 0,
+        "pod": [
+          7,
+          30,
+          7
+        ],
+        "space": "S",
+        "leftShaft": false,
+        "visitedOffice": false,
+        "reachedExit": false,
+        "collected": [],
+        "probe": "none",
+        "valves": {
+          "heat": false,
+          "feed": false,
+          "cool": false
+        },
+        "valveOps": 0,
+        "slime": 0.75,
+        "slimeCleared": false,
+        "pendingResult": null,
+        "timers": {
+          "alexTapeLeft": 0,
+          "resultLeft": 0,
+          "gateLeft": 0
+        },
+        "facts": [],
+        "identified": [],
+        "tapes": [],
+        "tapesAnalyzed": [],
+        "captures": [],
+        "analyzed": [],
+        "codeVerified": false,
+        "guideVerified": false,
+        "delroyVerified": false,
+        "uplinked": false,
+        "gateOpen": false,
+        "met": false,
+        "ballast": false,
+        "extraLumens": 0,
+        "damageTotal": 0,
+        "complete": false,
+        "failed": false,
+        "story": {
+          "partner": "elias",
+          "promised": false,
+          "records": false,
+          "mistrust": false,
+          "injured": false
+        }
+      },
+      "creatures": {
+        "version": 1,
+        "profile": "survey",
+        "identified": [],
+        "extra": 0,
+        "mobs": [
+          {
+            "id": "lumen.r1",
+            "space": "R1",
+            "pos": [
+              37.12535199999969,
+              4,
+              -11.844013999999884
+            ],
+            "heading": 233.13010235415516,
+            "mode": "idle",
+            "next": 1,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 0,
+            "clock": 0,
+            "cooldown": 0,
+            "pause": -0.009813332777996824
+          },
+          {
+            "id": "blind.r2",
+            "space": "R2",
+            "pos": [
+              56,
+              -2,
+              27
+            ],
+            "heading": 0,
+            "mode": "sleep",
+            "next": 0,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 0,
+            "clock": 0,
+            "cooldown": 0,
+            "pause": 0
+          },
+          {
+            "id": "shade.r4",
+            "space": "R4",
+            "pos": [
+              110,
+              -1,
+              26
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "next": 0,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 0,
+            "clock": 0,
+            "cooldown": 0,
+            "pause": 0
+          },
+          {
+            "id": "lumen.a1",
+            "space": "A",
+            "pos": [
+              143.01137023300143,
+              6,
+              53.204548093200025
+            ],
+            "heading": 111.8014094863534,
+            "mode": "idle",
+            "next": 1,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 0,
+            "clock": 0,
+            "cooldown": 0,
+            "pause": -0.006212254157189151
+          },
+          {
+            "id": "lumen.a2",
+            "space": "A",
+            "pos": [
+              180.51202158890462,
+              5,
+              58.51202158890214
+            ],
+            "heading": 135.0000000000062,
+            "mode": "idle",
+            "next": 1,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 0,
+            "clock": 0,
+            "cooldown": 0,
+            "pause": -0.00006243067866434915
+          },
+          {
+            "id": "blind.a2",
+            "space": "A",
+            "pos": [
+              166,
+              -2,
+              60
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "next": 0,
+            "leg": [],
+            "legSpace": null,
+            "goal": null,
+            "goalSpace": null,
+            "last": null,
+            "lastSpace": null,
+            "timer": 0,
+            "glare": 0,
+            "dark": 0,
+            "clock": 0,
+            "cooldown": 0,
+            "pause": 0
+          }
+        ]
+      },
+      "dialogue": {
+        "version": 1,
+        "published": "descend",
+        "objective": "",
+        "pending": [],
+        "active": null,
+        "remaining": 0,
+        "played": []
+      },
+      "navigation": {
+        "clock": 12.633199999999977,
+        "frequency": 37.8,
+        "target": null,
+        "waypoints": [],
+        "radioRecords": []
+      },
+      "sonarDesk": {
+        "frequency": 37.8,
+        "axis": 0,
+        "fields": [
+          "",
+          "",
+          ""
+        ],
+        "target": null,
+        "page": "home",
+        "records": [],
+        "message": ""
+      },
+      "narrative": {
+        "version": 1,
+        "trust": 0,
+        "belief": "unknown",
+        "beliefSource": "",
+        "claims": [],
+        "seeds": [],
+        "elias": "healthy",
+        "partner": "elias",
+        "received": [],
+        "paid": [],
+        "lastOrder": null,
+        "apologized": false
+      },
+      "alexFollow": null,
+      "gateLift": 0
+    },
+    "run": {
+      "breaths": 2,
+      "clock": 12.633199999999977,
+      "power": 0.9886,
+      "hull": 1,
+      "flood": 0.063,
+      "leak": 0.0015,
+      "scrubber": 0.5168,
+      "cabinTemp": 18.57,
+      "noise": 0.045,
+      "traveled": 420,
+      "siteBreaths": 2,
+      "heading": 225,
+      "pitch": 0,
+      "collisions": 0,
+      "camPan": 0,
+      "camTilt": 0.38050637711236485,
+      "camZoom": 1,
+      "flareLeft": 0,
+      "corruption": 0.17884652740990492,
+      "suspicion": 0.03002999999999956,
+      "huntRecoveryUntil": 12,
+      "blackout": false,
+      "lamp": true,
+      "openingReceived": false,
+      "openingScanned": false,
+      "earsPlugged": false,
+      "activeSonarEnabled": true,
+      "sonarPulseEnabled": false,
+      "stock": [
+        [
+          "sup.filter",
+          1
+        ],
+        [
+          "sup.sealant",
+          1
+        ],
+        [
+          "sup.cell",
+          1
+        ],
+        [
+          "sup.wax",
+          1
+        ]
+      ],
+      "salvaged": [],
+      "containers": [],
+      "containerItems": [],
+      "filed": [],
+      "askedOnce": [],
+      "bench": [],
+      "pending": [
+        {
+          "speaker": "beacon",
+          "text": "公司调查艇三号，我是调度员万斯。你的任务是核查海底基地事故。先进入坠落接驳港。入口坐标X11、Y16、深度1012米。输入左侧导航台，手动驶到A气闸前，再穿过维修湾前往主港。主动声纳用于近场避障，被动接收机保持监听。",
+          "at": 0
+        },
+        {
+          "speaker": "beacon",
+          "text": "公司调查艇三号，我是调度员万斯。沿目标回波进入接驳港，先接岸电。",
+          "at": 0
+        }
+      ],
+      "heard": [],
+      "chart": [
+        {
+          "act": 0,
+          "id": "act.debris",
+          "nodes": [
+            {
+              "id": "act.debris.entry.0",
+              "pos": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "role": "entry",
+              "stripe": "none",
+              "label": "气闸",
+              "size": {
+                "x": 12,
+                "y": 10,
+                "z": 7
+              },
+              "obstacles": [
+                {
+                  "id": "act.debris.entry.0.o0",
+                  "kind": "column",
+                  "pos": {
+                    "x": -4.5,
+                    "y": -3.5,
+                    "z": 0
+                  },
+                  "size": {
+                    "x": 1.1,
+                    "y": 1.1,
+                    "z": 5.95
+                  }
+                },
+                {
+                  "id": "act.debris.entry.0.o1",
+                  "kind": "crate",
+                  "pos": {
+                    "x": 4.284549629688263,
+                    "y": -0.9255226850509644,
+                    "z": 2.0134638249874115
+                  },
+                  "size": {
+                    "x": 1.7436205863952636,
+                    "y": 1.988763999938965,
+                    "z": 1.2743777275085448
+                  }
+                },
+                {
+                  "id": "act.debris.entry.0.o2",
+                  "kind": "crate",
+                  "pos": {
+                    "x": -4.573920226097107,
+                    "y": -1.3051984310150146,
+                    "z": 2.333969992399216
+                  },
+                  "size": {
+                    "x": 1.4760403156280517,
+                    "y": 1.903776264190674,
+                    "z": 1.71960072517395
+                  }
+                },
+                {
+                  "id": "act.debris.entry.0.o3",
+                  "kind": "column",
+                  "pos": {
+                    "x": 4.5,
+                    "y": 3.5,
+                    "z": 0
+                  },
+                  "size": {
+                    "x": 1.1,
+                    "y": 1.1,
+                    "z": 5.95
+                  }
+                },
+                {
+                  "id": "act.debris.entry.0.o4",
+                  "kind": "beam",
+                  "pos": {
+                    "x": -0.9319574832916261,
+                    "y": 1.1,
+                    "z": -2.65
+                  },
+                  "size": {
+                    "x": 5.25896292924881,
+                    "y": 0.55,
+                    "z": 0.5
+                  }
+                }
+              ]
+            },
+            {
+              "id": "act.debris.chamber.1",
+              "pos": {
+                "x": -2.6646065711975098,
+                "y": 22,
+                "z": 3
+              },
+              "role": "chamber",
+              "stripe": "none",
+              "label": "前厅",
+              "size": {
+                "x": 20,
+                "y": 18,
+                "z": 9
+              },
+              "obstacles": [
+                {
+                  "id": "act.debris.chamber.1.o0",
+                  "kind": "beam",
+                  "pos": {
+                    "x": -1.7077648639678955,
+                    "y": 1.98,
+                    "z": -3.65
+                  },
+                  "size": {
+                    "x": 4.277956604957581,
+                    "y": 0.55,
+                    "z": 0.5
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.1.o1",
+                  "kind": "column",
+                  "pos": {
+                    "x": -8.5,
+                    "y": 7.5,
+                    "z": 0
+                  },
+                  "size": {
+                    "x": 1.1,
+                    "y": 1.1,
+                    "z": 7.6499999999999995
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.1.o2",
+                  "kind": "pipe",
+                  "pos": {
+                    "x": -9.1,
+                    "y": 1.1765987277030945,
+                    "z": -3.4
+                  },
+                  "size": {
+                    "x": 0.7,
+                    "y": 3.81646728515625,
+                    "z": 0.6
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.1.o3",
+                  "kind": "column",
+                  "pos": {
+                    "x": 8.5,
+                    "y": 7.5,
+                    "z": 0
+                  },
+                  "size": {
+                    "x": 1.1,
+                    "y": 1.1,
+                    "z": 7.6499999999999995
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.1.o4",
+                  "kind": "beam",
+                  "pos": {
+                    "x": 0.8129751682281494,
+                    "y": -1.98,
+                    "z": -3.65
+                  },
+                  "size": {
+                    "x": 6.955415070056915,
+                    "y": 0.55,
+                    "z": 0.5
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.1.o5",
+                  "kind": "crate",
+                  "pos": {
+                    "x": 7.758771634101867,
+                    "y": -1.0543748080730437,
+                    "z": 3.277856767177582
+                  },
+                  "size": {
+                    "x": 1.8507355690002443,
+                    "y": 1.4038203716278075,
+                    "z": 1.555524969100952
+                  }
+                }
+              ]
+            },
+            {
+              "id": "act.debris.chamber.2",
+              "pos": {
+                "x": -4.1591269969940186,
+                "y": 48,
+                "z": 6
+              },
+              "role": "chamber",
+              "stripe": "none",
+              "label": "处理大厅",
+              "size": {
+                "x": 28,
+                "y": 22,
+                "z": 11
+              },
+              "obstacles": [
+                {
+                  "id": "act.debris.chamber.2.o0",
+                  "kind": "beam",
+                  "pos": {
+                    "x": 0.5047058105468749,
+                    "y": -2.42,
+                    "z": -4.65
+                  },
+                  "size": {
+                    "x": 4.570027709007263,
+                    "y": 0.55,
+                    "z": 0.5
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.2.o1",
+                  "kind": "column",
+                  "pos": {
+                    "x": 12.5,
+                    "y": 9.5,
+                    "z": 0
+                  },
+                  "size": {
+                    "x": 1.1,
+                    "y": 1.1,
+                    "z": 9.35
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.2.o2",
+                  "kind": "grate",
+                  "pos": {
+                    "x": 2.115494430065155,
+                    "y": -3.08,
+                    "z": 5.35
+                  },
+                  "size": {
+                    "x": 4.547817289829254,
+                    "y": 2.4,
+                    "z": 0.25
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.2.o3",
+                  "kind": "beam",
+                  "pos": {
+                    "x": -2.602349948883057,
+                    "y": 2.42,
+                    "z": -4.65
+                  },
+                  "size": {
+                    "x": 6.901990652084351,
+                    "y": 0.55,
+                    "z": 0.5
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.2.o4",
+                  "kind": "column",
+                  "pos": {
+                    "x": -12.5,
+                    "y": 9.5,
+                    "z": 0
+                  },
+                  "size": {
+                    "x": 1.1,
+                    "y": 1.1,
+                    "z": 9.35
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.2.o5",
+                  "kind": "pipe",
+                  "pos": {
+                    "x": 13.1,
+                    "y": 0.03349878787994376,
+                    "z": -4.4
+                  },
+                  "size": {
+                    "x": 0.7,
+                    "y": 4.981547504663467,
+                    "z": 0.6
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.2.o6",
+                  "kind": "crate",
+                  "pos": {
+                    "x": 11.601041054725647,
+                    "y": 2.7110549151897425,
+                    "z": 3.8366010904312136
+                  },
+                  "size": {
+                    "x": 2.1210851669311523,
+                    "y": 2.0907931327819824,
+                    "z": 1.923212480545044
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.2.o7",
+                  "kind": "pipe",
+                  "pos": {
+                    "x": -13.1,
+                    "y": 1.4436925649642944,
+                    "z": -4.4
+                  },
+                  "size": {
+                    "x": 0.7,
+                    "y": 4.655499964952469,
+                    "z": 0.6
+                  }
+                }
+              ]
+            },
+            {
+              "id": "act.debris.wreck.3",
+              "pos": {
+                "x": 18.93016767501831,
+                "y": 52,
+                "z": 8
+              },
+              "role": "wreck",
+              "stripe": "none",
+              "label": "设备间",
+              "size": {
+                "x": 16,
+                "y": 14,
+                "z": 9
+              },
+              "obstacles": [
+                {
+                  "id": "act.debris.wreck.3.o0",
+                  "kind": "grate",
+                  "pos": {
+                    "x": -0.17392992973327637,
+                    "y": 1.9600000000000002,
+                    "z": 4.35
+                  },
+                  "size": {
+                    "x": 5.184455543756485,
+                    "y": 2.4,
+                    "z": 0.25
+                  }
+                },
+                {
+                  "id": "act.debris.wreck.3.o1",
+                  "kind": "crate",
+                  "pos": {
+                    "x": -6.50432071685791,
+                    "y": 2.3627760410308833,
+                    "z": 2.9861290037631987
+                  },
+                  "size": {
+                    "x": 2.1443887233734134,
+                    "y": 1.664929485321045,
+                    "z": 1.3302570819854735
+                  }
+                },
+                {
+                  "id": "act.debris.wreck.3.o2",
+                  "kind": "beam",
+                  "pos": {
+                    "x": 0.9863866806030273,
+                    "y": -1.54,
+                    "z": -3.65
+                  },
+                  "size": {
+                    "x": 5.088369965553284,
+                    "y": 0.55,
+                    "z": 0.5
+                  }
+                },
+                {
+                  "id": "act.debris.wreck.3.o3",
+                  "kind": "crate",
+                  "pos": {
+                    "x": 5.834183490276336,
+                    "y": 0.5195107221603394,
+                    "z": 3.0024683713912963
+                  },
+                  "size": {
+                    "x": 1.7991962432861328,
+                    "y": 1.9707645416259767,
+                    "z": 1.4570951461791992
+                  }
+                },
+                {
+                  "id": "act.debris.wreck.3.o4",
+                  "kind": "crate",
+                  "pos": {
+                    "x": -5.799890851974487,
+                    "y": -0.28848645091056824,
+                    "z": 3.3955169200897215
+                  },
+                  "size": {
+                    "x": 1.5856024742126464,
+                    "y": 1.454889440536499,
+                    "z": 1.6761871337890626
+                  }
+                },
+                {
+                  "id": "act.debris.wreck.3.o5",
+                  "kind": "beam",
+                  "pos": {
+                    "x": -1.227135467529297,
+                    "y": 1.54,
+                    "z": -3.65
+                  },
+                  "size": {
+                    "x": 5.716603219509125,
+                    "y": 0.55,
+                    "z": 0.5
+                  }
+                },
+                {
+                  "id": "act.debris.wreck.3.o6",
+                  "kind": "grate",
+                  "pos": {
+                    "x": -1.5369353294372559,
+                    "y": -1.9600000000000002,
+                    "z": 4.35
+                  },
+                  "size": {
+                    "x": 5.309087514877319,
+                    "y": 2.4,
+                    "z": 0.25
+                  }
+                }
+              ]
+            },
+            {
+              "id": "act.debris.echo.4",
+              "pos": {
+                "x": -22.61861753463745,
+                "y": 50,
+                "z": 9
+              },
+              "role": "echo",
+              "stripe": "none",
+              "label": "观察廊",
+              "size": {
+                "x": 11,
+                "y": 11,
+                "z": 7
+              },
+              "obstacles": [
+                {
+                  "id": "act.debris.echo.4.o0",
+                  "kind": "pipe",
+                  "pos": {
+                    "x": -4.6,
+                    "y": -0.7670828640460967,
+                    "z": -2.4
+                  },
+                  "size": {
+                    "x": 0.7,
+                    "y": 5.1541120409965515,
+                    "z": 0.6
+                  }
+                },
+                {
+                  "id": "act.debris.echo.4.o1",
+                  "kind": "column",
+                  "pos": {
+                    "x": 4,
+                    "y": 4,
+                    "z": 0
+                  },
+                  "size": {
+                    "x": 1.1,
+                    "y": 1.1,
+                    "z": 5.95
+                  }
+                },
+                {
+                  "id": "act.debris.echo.4.o2",
+                  "kind": "crate",
+                  "pos": {
+                    "x": -3.880833959579468,
+                    "y": 0.734064635634422,
+                    "z": 2.3159604430198666
+                  },
+                  "size": {
+                    "x": 1.919349765777588,
+                    "y": 1.730236005783081,
+                    "z": 1.9360132694244385
+                  }
+                },
+                {
+                  "id": "act.debris.echo.4.o3",
+                  "kind": "grate",
+                  "pos": {
+                    "x": 1.2813410609960556,
+                    "y": -1.54,
+                    "z": 3.35
+                  },
+                  "size": {
+                    "x": 3.9841178357601166,
+                    "y": 2.4,
+                    "z": 0.25
+                  }
+                },
+                {
+                  "id": "act.debris.echo.4.o4",
+                  "kind": "beam",
+                  "pos": {
+                    "x": -0.8356174826622009,
+                    "y": -1.21,
+                    "z": -2.65
+                  },
+                  "size": {
+                    "x": 5.821958959102631,
+                    "y": 0.55,
+                    "z": 0.5
+                  }
+                },
+                {
+                  "id": "act.debris.echo.4.o5",
+                  "kind": "column",
+                  "pos": {
+                    "x": 4,
+                    "y": -4,
+                    "z": 0
+                  },
+                  "size": {
+                    "x": 1.1,
+                    "y": 1.1,
+                    "z": 5.95
+                  }
+                }
+              ]
+            },
+            {
+              "id": "act.debris.chamber.5",
+              "pos": {
+                "x": 11.466818809509277,
+                "y": 72,
+                "z": 10
+              },
+              "role": "chamber",
+              "stripe": "none",
+              "label": "物料格",
+              "size": {
+                "x": 20,
+                "y": 18,
+                "z": 9
+              },
+              "obstacles": [
+                {
+                  "id": "act.debris.chamber.5.o0",
+                  "kind": "crate",
+                  "pos": {
+                    "x": 8.075432634353637,
+                    "y": -1.145136523246765,
+                    "z": 3.2098421931266783
+                  },
+                  "size": {
+                    "x": 1.5779284954071044,
+                    "y": 1.5919814586639405,
+                    "z": 1.2025022029876709
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.5.o1",
+                  "kind": "grate",
+                  "pos": {
+                    "x": 0.38915038108825684,
+                    "y": 2.5200000000000005,
+                    "z": 4.35
+                  },
+                  "size": {
+                    "x": 5.010723799467087,
+                    "y": 2.4,
+                    "z": 0.25
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.5.o2",
+                  "kind": "pipe",
+                  "pos": {
+                    "x": 9.1,
+                    "y": -1.6039686083793638,
+                    "z": -3.4
+                  },
+                  "size": {
+                    "x": 0.7,
+                    "y": 3.846684753894806,
+                    "z": 0.6
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.5.o3",
+                  "kind": "grate",
+                  "pos": {
+                    "x": 0.5241495370864868,
+                    "y": -2.5200000000000005,
+                    "z": 4.35
+                  },
+                  "size": {
+                    "x": 5.437736392021179,
+                    "y": 2.4,
+                    "z": 0.25
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.5.o4",
+                  "kind": "beam",
+                  "pos": {
+                    "x": -1.9194788932800293,
+                    "y": -1.98,
+                    "z": -3.65
+                  },
+                  "size": {
+                    "x": 4.408725738525391,
+                    "y": 0.55,
+                    "z": 0.5
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.5.o5",
+                  "kind": "pipe",
+                  "pos": {
+                    "x": -9.1,
+                    "y": 0.9629797697067262,
+                    "z": -3.4
+                  },
+                  "size": {
+                    "x": 0.7,
+                    "y": 3.765403091907501,
+                    "z": 0.6
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.5.o6",
+                  "kind": "beam",
+                  "pos": {
+                    "x": 0.4940769672393799,
+                    "y": 1.98,
+                    "z": -3.65
+                  },
+                  "size": {
+                    "x": 4.3600388169288635,
+                    "y": 0.55,
+                    "z": 0.5
+                  }
+                },
+                {
+                  "id": "act.debris.chamber.5.o7",
+                  "kind": "crate",
+                  "pos": {
+                    "x": -7.856463766098022,
+                    "y": -0.8642308115959167,
+                    "z": 2.9353582739830015
+                  },
+                  "size": {
+                    "x": 2.0880747318267825,
+                    "y": 1.9517415046691895,
+                    "z": 1.6743012905120849
+                  }
+                }
+              ]
+            },
+            {
+              "id": "act.debris.exit.6",
+              "pos": {
+                "x": 4.360786199569702,
+                "y": 98,
+                "z": 16
+              },
+              "role": "exit",
+              "stripe": "none",
+              "label": "远端气闸",
+              "size": {
+                "x": 12,
+                "y": 10,
+                "z": 7
+              },
+              "obstacles": [
+                {
+                  "id": "act.debris.exit.6.o0",
+                  "kind": "crate",
+                  "pos": {
+                    "x": -4.424715197086334,
+                    "y": -1.6971871256828308,
+                    "z": 1.8416720092296601
+                  },
+                  "size": {
+                    "x": 1.9838951110839846,
+                    "y": 2.1216100215911866,
+                    "z": 1.434966230392456
+                  }
+                },
+                {
+                  "id": "act.debris.exit.6.o1",
+                  "kind": "pipe",
+                  "pos": {
+                    "x": -5.1,
+                    "y": 1.3801671266555786,
+                    "z": -2.4
+                  },
+                  "size": {
+                    "x": 0.7,
+                    "y": 4.572239130735397,
+                    "z": 0.6
+                  }
+                },
+                {
+                  "id": "act.debris.exit.6.o2",
+                  "kind": "grate",
+                  "pos": {
+                    "x": 0.35349440574645996,
+                    "y": 1.4000000000000001,
+                    "z": 3.35
+                  },
+                  "size": {
+                    "x": 3.7984554767608643,
+                    "y": 2.4,
+                    "z": 0.25
+                  }
+                },
+                {
+                  "id": "act.debris.exit.6.o3",
+                  "kind": "beam",
+                  "pos": {
+                    "x": -0.4626867771148683,
+                    "y": 1.1,
+                    "z": -2.65
+                  },
+                  "size": {
+                    "x": 4.895419180393219,
+                    "y": 0.55,
+                    "z": 0.5
+                  }
+                },
+                {
+                  "id": "act.debris.exit.6.o4",
+                  "kind": "column",
+                  "pos": {
+                    "x": 4.5,
+                    "y": 3.5,
+                    "z": 0
+                  },
+                  "size": {
+                    "x": 1.1,
+                    "y": 1.1,
+                    "z": 5.95
+                  }
+                },
+                {
+                  "id": "act.debris.exit.6.o5",
+                  "kind": "grate",
+                  "pos": {
+                    "x": 0.4622790813446045,
+                    "y": -1.4000000000000001,
+                    "z": 3.35
+                  },
+                  "size": {
+                    "x": 3.5408552289009094,
+                    "y": 2.4,
+                    "z": 0.25
+                  }
+                }
+              ]
+            },
+            {
+              "id": "act.debris.cache.0",
+              "pos": {
+                "x": -17.74785852432251,
+                "y": 34.107720375061035,
+                "z": 6.649553298950195
+              },
+              "role": "cache",
+              "stripe": "none",
+              "label": "块状货箱",
+              "size": {
+                "x": 8,
+                "y": 8,
+                "z": 6
+              },
+              "obstacles": []
+            }
+          ],
+          "edges": [
+            {
+              "id": "act.debris.entry.0>act.debris.chamber.1",
+              "from": "act.debris.entry.0",
+              "to": "act.debris.chamber.1",
+              "kind": "lateral",
+              "length": 22.362918597072007
+            },
+            {
+              "id": "act.debris.chamber.1>act.debris.chamber.2",
+              "from": "act.debris.chamber.1",
+              "to": "act.debris.chamber.2",
+              "kind": "lateral",
+              "length": 26.215140497489667
+            },
+            {
+              "id": "act.debris.chamber.2>act.debris.wreck.3",
+              "from": "act.debris.chamber.2",
+              "to": "act.debris.wreck.3",
+              "kind": "lateral",
+              "length": 23.51840828906193
+            },
+            {
+              "id": "act.debris.chamber.2>act.debris.echo.4",
+              "from": "act.debris.chamber.2",
+              "to": "act.debris.echo.4",
+              "kind": "lateral",
+              "length": 18.808317067439805
+            },
+            {
+              "id": "act.debris.chamber.2>act.debris.chamber.5",
+              "from": "act.debris.chamber.2",
+              "to": "act.debris.chamber.5",
+              "kind": "lateral",
+              "length": 28.916607379631827
+            },
+            {
+              "id": "act.debris.chamber.5>act.debris.exit.6",
+              "from": "act.debris.chamber.5",
+              "to": "act.debris.exit.6",
+              "kind": "lateral",
+              "length": 27.613324672221644
+            },
+            {
+              "id": "act.debris.chamber.1>act.debris.cache.0",
+              "from": "act.debris.chamber.1",
+              "to": "act.debris.cache.0",
+              "kind": "lateral",
+              "length": 19.683003364425755
+            }
+          ],
+          "hazards": [],
+          "locks": [],
+          "echoes": [
+            {
+              "node": "act.debris.echo.4",
+              "kind": "ally-or-acid",
+              "sonarLabel": "巨大回波 · 缓慢位移",
+              "candidates": [
+                "磷光水母",
+                "幕皮"
+              ],
+              "truth": "幕皮",
+              "creature": "cre.veil"
+            }
+          ],
+          "caches": [
+            {
+              "node": "act.debris.cache.0",
+              "sonarLabel": "块状货箱回波",
+              "stripe": "ember",
+              "truth": "live",
+              "loot": [
+                [
+                  "sup.cell",
+                  1
+                ]
+              ]
+            }
+          ],
+          "fauna": [
+            {
+              "id": "echo.act.debris.echo.4",
+              "creature": "cre.veil",
+              "role": "echo",
+              "node": "act.debris.echo.4"
+            },
+            {
+              "id": "bg.cre.school",
+              "creature": "cre.school",
+              "role": "background",
+              "node": null
+            },
+            {
+              "id": "site.cre.hollow",
+              "creature": "cre.hollow",
+              "role": "site-threat",
+              "node": null
+            }
+          ],
+          "identified": false,
+          "shifted": false,
+          "photoOpenUntil": 0,
+          "san": "lucid",
+          "splicedFrom": null,
+          "visited": [],
+          "story": "accident",
+          "stencil": "GH-52",
+          "memory": {
+            "headings": [
+              72
+            ],
+            "stripes": [],
+            "stencil": "GH-52",
+            "lastExitHeading": 72
+          },
+          "hookNode": "act.debris.wreck.3"
+        }
+      ],
+      "tapes": [],
+      "volumeAt": "act.debris.entry.0",
+      "cabinPos": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "tapeCursor": 0,
+      "timing": {
+        "breathAcc": 0,
+        "siteIdleSec": 0,
+        "hallucTimer": 12.375705442914823,
+        "ghostTimer": 65,
+        "huntActIndex": 1,
+        "encounterSerial": 0
+      },
+      "hookNudged": [],
+      "firedBeats": [],
+      "footageRepeats": []
+    },
+    "campaign": {
+      "chapter": 1,
+      "choice": null,
+      "journal": [
+        {
+          "id": "0.hook",
+          "chapter": 0,
+          "beat": "hook",
+          "text": "沿岸电缆进入维修湾，恢复控制电源。万斯要求核对救生舱、撤离记录与下行通道。"
+        },
+        {
+          "id": "1.arrival",
+          "chapter": 1,
+          "beat": "arrival",
+          "text": "分叉的两根管道在雷达上完全相同。压力表的指针抖动，三下敲击沿管壁传来。"
+        }
+      ],
+      "seen": [
+        "0.hook",
+        "1.arrival"
+      ],
+      "queue": [
+        {
+          "id": "0.hook",
+          "chapter": 0,
+          "beat": "hook",
+          "text": "沿岸电缆进入维修湾，恢复控制电源。万斯要求核对救生舱、撤离记录与下行通道。"
+        },
+        {
+          "id": "1.arrival",
+          "chapter": 1,
+          "beat": "arrival",
+          "text": "分叉的两根管道在雷达上完全相同。压力表的指针抖动，三下敲击沿管壁传来。"
+        }
+      ],
+      "cooldown": 0
+    },
+    "vitals": {
+      "v": {
+        "oxygen": 1447.6399999999999,
+        "oxygenMax": 1450,
+        "san": 99.91414775542908,
+        "sanMax": 100,
+        "coreTemp": 37.007633433524646,
+        "co2": 2.9696,
+        "trauma": 0,
+        "infection": 0,
+        "fatigue": 0.09165542636184869,
+        "fear": 18.884699906642673
+      },
+      "fx": [],
+      "band": {
+        "oxygen": 4,
+        "san": 4,
+        "coreTemp": 4,
+        "co2": 0,
+        "trauma": 0,
+        "infection": 0,
+        "fatigue": 0,
+        "fear": 0
+      },
+      "holding": false,
+      "heldFor": 0,
+      "holdSaved": 0,
+      "elapsed": 2,
+      "death": null,
+      "drown": 0,
+      "hullStress": 0,
+      "hypoxicDwell": 0,
+      "gasps": 0,
+      "heldTotal": 0
+    },
+    "flags": {}
+  },
+  "restored": {
+    "code": "4248",
+    "cargo": [
+      "living.box.probe"
+    ],
+    "pos": [
+      12.121320343559642,
+      0,
+      9.378679656440358
+    ]
+  },
+  "pass": true,
+  "legacy": {
+    "text": "公司事故调查组 · 深潜器 KYRIE-9\n铁肺迷城\nIRONLUNG MAZE\n\n接驳港之后，你独自沿竖井下到 -1 层宿舍区。\n找回动力与工具，绕开看不见的东西，打开 F 闸门与艾里亚斯会合。\n声纳引路。实体快门曝光。冲洗后的影像，在分析台核验。\n\n继续下潜\n检查已有记录 · 可能为旧版存档\n开始事故调查\n正式游戏 · 第二关 · -1 层宿舍区\n设施探索预览\n独立测试场景 · 非正式剧情入口\n输入深度坐标\n指定种子\n档案\n0/8 结局 · 0 条知识\n设置\n舷外压力 341.2 BAR\n舱内含氧 17.4%\n船体完整度 0.61\n坐标 2FA·571·7B\n当前深度 341 M\n轮回 #001\n公司事故调查组 · 现场证据须核验\nV0.1.0 · 垂直切片\n加载生命支持模拟 … 失败\n无法继续：这是旧版第二关路线存档，不能载入新版调查流程。原存档保留，请开始新的事故调查。\n原存档未修改。请核对上方原因；旧版路线可保留记录并开始新游戏。",
+    "preserved": true
+  },
+  "errors": [
+    "console: Failed to load resource: net::ERR_FAILED",
+    "console: [boot] 会话启动失败 Error: 无法继续：这是旧版第二关路线存档，不能载入新版调查流程。原存档保留，请开始新的事故调查。\n    at startPodSession (http://127.0.0.1:5180/src/pod/view/session.ts?t=1793070535509:60:11)\n    at Module.startSession (http://127.0.0.1:5180/src/game/session.ts?t=1793070535509:3:9)\n    at async enterGame (http://127.0.0.1:5180/src/main.ts?t=1793070535509:137:9)\n    at async onMenu (http://127.0.0.1:5180/src/main.ts?t=1793070535509:105:7)"
+  ]
+}

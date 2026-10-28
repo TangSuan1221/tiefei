@@ -37,6 +37,8 @@ export interface LivingRenderProfile {
   lensGain?: number;
   /** Headlamp falloff exponent (default LIVING_LAMP.decay). */
   lampDecay?: number;
+  /** Near-field reflector compensation distance; omitted preserves the established 2.2 m calibration. */
+  lampNearFull?: number;
   /**
    * Film metering (0 = off, 1 = full): centre-weighted log-average of the exposed frame, measured on the GPU in the
    * same frame, pulls the exposure towards `meterKey` within `meterRange` (gain limits).
@@ -99,6 +101,8 @@ export interface LivingRenderOptions {
   width: number; height: number;
   /** 'high': MSAA 4×, ¾-res AO, 2048 lamp shadow. 'medium': no MSAA, half-res AO, 1024 shadows. */
   quality?: 'high' | 'medium';
+  /** Per-world optical calibration; leaves the established level-two profiles untouched. */
+  profiles?: Partial<Record<LivingOpticsMode, Partial<LivingRenderProfile>>>;
 }
 export interface LivingRenderFrame {
   mode: LivingOpticsMode;
@@ -587,6 +591,7 @@ const spaceBox = new Map(LIVING_SPACES.map(s => [s.id, {min: new T.Vector3(s.min
 
 export function createLivingRender(o: LivingRenderOptions): LivingRender {
   const {renderer, scene, camera, world} = o;
+  const profiles:Record<LivingOpticsMode,LivingRenderProfile>={live:{...LIVING_RENDER_PROFILES.live,...o.profiles?.live},recording:{...LIVING_RENDER_PROFILES.recording,...o.profiles?.recording}};
   const high = (o.quality ?? 'high') === 'high';
   const optics = world.optics ?? createLivingOptics();
 
@@ -649,10 +654,10 @@ export function createLivingRender(o: LivingRenderOptions): LivingRender {
 
   return {
     lamp, probeLamp, keys, points, fill, composer, optics,
-    profile: m => LIVING_RENDER_PROFILES[m],
+    profile: m => profiles[m],
     frame(f) {
       mode = f.mode;
-      const P = LIVING_RENDER_PROFILES[f.mode];
+      const P = profiles[f.mode];
       camera.updateMatrixWorld();
       const eye = (f.eye ?? camera.getWorldPosition(new T.Vector3())).clone();
       const dir = (f.dir ?? camera.getWorldDirection(new T.Vector3())).clone().normalize();
@@ -664,7 +669,8 @@ export function createLivingRender(o: LivingRenderOptions): LivingRender {
       // A point-source spot is ×(1/d^1.5) at the lens; a real reflector lamp is not. Dim it against a surface inches away.
       const upV = tmpU.crossVectors(right, dir);
       const dn = world.colliders?.length && (on || f.probe) ? nearSurface(world.colliders, eye, dir, right, upV) : Infinity;
-      const nearGain = T.MathUtils.clamp(Math.pow(dn / NEAR_FULL, 1.6), NEAR_MIN, 1);
+      const nearFull = Math.max(.1, P.lampNearFull ?? NEAR_FULL);
+      const nearGain = T.MathUtils.clamp(Math.pow(dn / nearFull, 1.6), NEAR_MIN, 1);
       lamp.intensity = on ? L.intensity * P.lampGain * nearGain : 0; lamp.decay = P.lampDecay ?? L.decay;
       fill.position.copy(eye); fill.intensity = on ? .35 * P.lampGain * nearGain : 0;
       probeLamp.position.copy(eye).addScaledVector(UP, .12).addScaledVector(right, -.1);
@@ -786,7 +792,7 @@ export function createLivingRender(o: LivingRenderOptions): LivingRender {
       const mr = P.meterRange ?? [1, 1];
       grade.mat.uniforms.meter.value.set(P.meter ?? 0, P.meterKey ?? .16, mr[0], mr[1]);
       // Lower exposure (live view) opens the lens up: stronger vignette and fringing, as on a pushed sensor.
-      const push = T.MathUtils.clamp(1 + .28 * Math.log2(LIVING_RENDER_PROFILES.recording.exposure / P.exposure), .7, 1.7);
+      const push = T.MathUtils.clamp(1 + .28 * Math.log2(profiles.recording.exposure / P.exposure), .7, 1.7);
       const g = grade.mat.uniforms; g.time.value = f.time; g.grain.value = P.grain; g.look.value.set(...(P.look ?? [1.1, 1.2])); g.spread.value.set(...(P.spread ?? [0, 1, 1])); g.vignette.value = Math.min(.95, P.vignette * push); g.aberration.value = P.aberration * Math.sqrt(push);
     },
     render(dt) {

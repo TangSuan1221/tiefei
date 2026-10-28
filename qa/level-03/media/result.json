@@ -1,0 +1,131 @@
+{
+  "parts": [
+    {
+      "id": "VP-301",
+      "length": 2347,
+      "duration": 10
+    },
+    {
+      "id": "VP-302",
+      "length": 2395,
+      "duration": 10
+    }
+  ],
+  "allParts": [
+    {
+      "id": "VP-301",
+      "length": 2347
+    },
+    {
+      "id": "VP-302",
+      "length": 2395
+    },
+    {
+      "id": "VP-303",
+      "length": 2413
+    },
+    {
+      "id": "VP-304",
+      "length": 2443
+    },
+    {
+      "id": "VP-305",
+      "length": 2729
+    },
+    {
+      "id": "VP-306",
+      "length": 2169
+    },
+    {
+      "id": "VP-321",
+      "length": 2379
+    },
+    {
+      "id": "VP-322",
+      "length": 2470
+    },
+    {
+      "id": "VP-307",
+      "length": 2329
+    },
+    {
+      "id": "VP-308",
+      "length": 2460
+    },
+    {
+      "id": "VP-309",
+      "length": 2181
+    },
+    {
+      "id": "VP-310",
+      "length": 2598
+    },
+    {
+      "id": "VP-311",
+      "length": 2481
+    },
+    {
+      "id": "VP-312",
+      "length": 2737
+    },
+    {
+      "id": "VP-313",
+      "length": 2767
+    },
+    {
+      "id": "VP-314",
+      "length": 2939
+    },
+    {
+      "id": "VP-315",
+      "length": 2304
+    },
+    {
+      "id": "VP-316",
+      "length": 2103
+    }
+  ],
+  "images": [
+    {
+      "url": "/assets/abyssal/plates/quarantine.png",
+      "status": 200
+    },
+    {
+      "url": "/assets/abyssal/plates/lab.png",
+      "status": 200
+    },
+    {
+      "url": "/assets/abyssal/plates/pit.png",
+      "status": 200
+    },
+    {
+      "url": "/assets/abyssal/plates/plant.png",
+      "status": 200
+    },
+    {
+      "url": "/assets/abyssal/plates/prep.png",
+      "status": 200
+    },
+    {
+      "url": "/assets/abyssal/plates/gallery.png",
+      "status": 200
+    },
+    {
+      "url": "/assets/abyssal/plates/table.png",
+      "status": 200
+    },
+    {
+      "url": "/assets/abyssal/plates/shaft.png",
+      "status": 200
+    }
+  ],
+  "enabled": false,
+  "localOnly": {
+    "consent": null,
+    "pending": true,
+    "delivered": false,
+    "storyUnchanged": true
+  },
+  "blockedApi": [],
+  "errors": []
+}

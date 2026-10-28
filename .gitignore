@@ -41,6 +41,11 @@ tmp/
 /tools/.r4-measure.ts
 /tools/.run5.mjs
 
+# QA 用的浏览器配置目录：含 cookies 与 Local Storage，只留在本机。
+/qa/living-2026-10-27/blind-browser-profile/
+/qa/living-2026-10-27/formal-video-profile/
+/qa/living-2026-10-27/fresh-blind/profile/
+
 # Keep final first-level reports and representative evidence; other captures are local QA output.
 /qa/whitebox/normal/*
 /qa/whitebox/negative/*

@@ -1,5 +1,5 @@
 import * as T from 'three';
-import {LIVING_ITEMS, LIVING_MAIN_ROUTE, LIVING_PHOTO_STATIONS, LIVING_SPAWN} from '../../content/living-deck-layout';
+import {LIVING_ITEMS, LIVING_SURVEY_ROUTE, LIVING_PHOTO_STATIONS, LIVING_SPAWN} from '../../content/living-deck-layout';
 import {Batcher, rng, type V3} from './living-build';
 import {withStaticLights} from './living-materials';
 import {LIVING_FONT, onLivingFonts} from './living-signage';
@@ -227,9 +227,10 @@ export class DecalSet {
     b.add(this.quad(kind, w, h, flip, p[0] * 1.7 + p[1] * 3.1 + p[2] * 2.3 + 1), this.mat(kind), new T.Matrix4().compose(new T.Vector3(...p), q, new T.Vector3(1, 1, 1)), {uv: 'keep', shadow: false});
   }
   /** Floor decal lying flat at p (y = surface + 3 mm), rotated by yaw. */
-  floor(b: Batcher, kind: DecalKind, p: V3, w: number, d: number, yaw = 0) {
+  floor(b: Batcher, kind: DecalKind, p: V3, w: number, d: number, yaw = 0, fullCell = false) {
     const q = new T.Quaternion().setFromEuler(new T.Euler(0, yaw, 0)).multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(1, 0, 0), -Math.PI / 2));
-    b.add(this.quad(kind, w, d, false, p[0] * 2.9 + p[2] * 1.3 + 7), this.mat(kind), new T.Matrix4().compose(new T.Vector3(p[0], p[1] + .003, p[2]), q, new T.Vector3(1, 1, 1)), {uv: 'keep', shadow: false});
+    // Full-cell floor stamps retain the atlas's transparent perimeter instead of cutting through a blot.
+    b.add(this.quad(kind, w, d, false, fullCell ? 0 : p[0] * 2.9 + p[2] * 1.3 + 7), this.mat(kind), new T.Matrix4().compose(new T.Vector3(p[0], p[1] + .003, p[2]), q, new T.Vector3(1, 1, 1)), {uv: 'keep', shadow: false});
   }
   /** Ceiling decal facing down at p (y = ceiling face − 3 mm). */
   ceiling(b: Batcher, kind: DecalKind, p: V3, w: number, d: number, yaw = 0) {
@@ -289,7 +290,7 @@ let samples: {p: T.Vector3; turn: boolean}[] | null = null;
 function routeSamples() {
   if (samples) return samples;
   samples = [];
-  const pts = [LIVING_SPAWN.position, ...LIVING_MAIN_ROUTE].map(v => new T.Vector3(...v));
+  const pts = LIVING_SURVEY_ROUTE.map(v => new T.Vector3(...v));
   for (const s of Object.values(LIVING_PHOTO_STATIONS)) samples.push({p: new T.Vector3(...s.position), turn: true});
   // Parking poses in front of every pod-operable item (hull facing the item; no turning there).
   for (const it of LIVING_ITEMS) {

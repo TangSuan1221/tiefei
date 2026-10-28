@@ -1,0 +1,265 @@
+{
+  "method": "Diagnostic initial position/old-tape fixture and UI state; real five-second exposure and real keyboard holds; API blocked; not blind play",
+  "initial": {
+    "legal": false,
+    "phase": "exposing"
+  },
+  "archived": {
+    "at": "camera",
+    "expanded": true,
+    "shot": "developing",
+    "tapeCursor": 1,
+    "tapes": [
+      {
+        "id": "qa.old.analyzed",
+        "analyzed": true
+      },
+      {
+        "id": "tape.2",
+        "analyzed": false,
+        "ev": {
+          "survey": true,
+          "id": "living.shot.1",
+          "target": "manual",
+          "valid": false,
+          "lit": true
+        }
+      }
+    ],
+    "selected": "tape.2",
+    "lamp": true,
+    "lit": true,
+    "hull": 1,
+    "pos": [
+      7,
+      0,
+      7
+    ],
+    "heading": 90,
+    "runDepth": 1280,
+    "siteDepth": 1040,
+    "feedback": "",
+    "editing": false,
+    "shade": {
+      "id": "shade.r4",
+      "type": "shade",
+      "position": [
+        110,
+        -1,
+        26
+      ],
+      "heading": 0,
+      "mode": "idle",
+      "identified": false
+    },
+    "videoStatus": "正在提交视频任务"
+  },
+  "afterTwo": {
+    "at": "lab",
+    "expanded": true,
+    "shot": "developing",
+    "tapeCursor": 0,
+    "tapes": [
+      {
+        "id": "qa.old.analyzed",
+        "analyzed": true
+      },
+      {
+        "id": "tape.2",
+        "analyzed": false,
+        "ev": {
+          "survey": true,
+          "id": "living.shot.1",
+          "target": "manual",
+          "valid": false,
+          "lit": true
+        }
+      }
+    ],
+    "selected": "qa.old.analyzed",
+    "lamp": true,
+    "lit": true,
+    "hull": 1,
+    "pos": [
+      7,
+      0,
+      7
+    ],
+    "heading": 90,
+    "runDepth": 1280,
+    "siteDepth": 1040,
+    "feedback": "",
+    "editing": false,
+    "shade": {
+      "id": "shade.r4",
+      "type": "shade",
+      "position": [
+        110,
+        -1,
+        26
+      ],
+      "heading": 0,
+      "mode": "idle",
+      "identified": false
+    },
+    "videoStatus": "正在提交视频任务"
+  },
+  "afterDown": {
+    "at": "lab",
+    "expanded": true,
+    "shot": "developing",
+    "tapeCursor": 0,
+    "tapes": [
+      {
+        "id": "qa.old.analyzed",
+        "analyzed": true
+      },
+      {
+        "id": "tape.2",
+        "analyzed": false,
+        "ev": {
+          "survey": true,
+          "id": "living.shot.1",
+          "target": "manual",
+          "valid": false,
+          "lit": true
+        }
+      }
+    ],
+    "selected": "qa.old.analyzed",
+    "lamp": true,
+    "lit": true,
+    "hull": 1,
+    "pos": [
+      7,
+      -0.22477431723504943,
+      7
+    ],
+    "heading": 90,
+    "runDepth": 1280.224774317235,
+    "siteDepth": 1040.224774317235,
+    "feedback": "",
+    "editing": false,
+    "shade": {
+      "id": "shade.r4",
+      "type": "shade",
+      "position": [
+        110,
+        -1,
+        26
+      ],
+      "heading": 0,
+      "mode": "idle",
+      "identified": false
+    },
+    "videoStatus": "正在提交视频任务"
+  },
+  "afterSpace": {
+    "at": "lab",
+    "expanded": true,
+    "shot": "developing",
+    "tapeCursor": 0,
+    "tapes": [
+      {
+        "id": "qa.old.analyzed",
+        "analyzed": true
+      },
+      {
+        "id": "tape.2",
+        "analyzed": false,
+        "ev": {
+          "survey": true,
+          "id": "living.shot.1",
+          "target": "manual",
+          "valid": false,
+          "lit": true
+        }
+      }
+    ],
+    "selected": "qa.old.analyzed",
+    "lamp": true,
+    "lit": true,
+    "hull": 1,
+    "pos": [
+      8.245306941148131,
+      -0.49009329915760963,
+      7
+    ],
+    "heading": 90,
+    "runDepth": 1280.4900932991577,
+    "siteDepth": 1040.4900932991577,
+    "feedback": "",
+    "editing": false,
+    "shade": {
+      "id": "shade.r4",
+      "type": "shade",
+      "position": [
+        110,
+        -1,
+        26
+      ],
+      "heading": 0,
+      "mode": "idle",
+      "identified": false
+    },
+    "videoStatus": "正在提交视频任务"
+  },
+  "darkStart": {
+    "legal": false,
+    "hull": 1
+  },
+  "darkEnd": {
+    "at": "lab",
+    "expanded": true,
+    "shot": "ready",
+    "tapeCursor": 0,
+    "tapes": [
+      {
+        "id": "qa.old.analyzed",
+        "analyzed": true
+      },
+      {
+        "id": "tape.2",
+        "analyzed": false,
+        "ev": {
+          "survey": true,
+          "id": "living.shot.1",
+          "target": "manual",
+          "valid": false,
+          "lit": true
+        }
+      }
+    ],
+    "selected": "qa.old.analyzed",
+    "lamp": false,
+    "lit": false,
+    "hull": 1,
+    "pos": [
+      8.245306941148131,
+      -0.49009329915760963,
+      7
+    ],
+    "heading": 90,
+    "runDepth": 1280.4900932991577,
+    "siteDepth": 1040.4900932991577,
+    "feedback": "艾里亚斯：入口地板上那个人，你看见了吗？他旁边托盘上有个黄色摄像仪匣。只取匣子，传递口就在旁边。",
+    "editing": false,
+    "shade": {
+      "id": "shade.r4",
+      "type": "shade",
+      "position": [
+        110,
+        -1,
+        26
+      ],
+      "heading": 0,
+      "mode": "idle",
+      "identified": false
+    },
+    "videoStatus": "本地底片 · 非生成视频"
+  },
+  "errors": [
+    "console: Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR",
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
+}

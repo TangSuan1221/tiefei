@@ -1,0 +1,425 @@
+{
+  "method": "Pure new LivingSurvey API reachable stages; synthetic evidence via issue/commit/analyze; each pre/post snapshot passes restore. No direct flag edits, no browser/real-media claim.",
+  "rows": [
+    {
+      "stage": "pickup",
+      "text": "摄像仪坏了",
+      "nearTransfer": true,
+      "before": {
+        "shared": false,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": false,
+        "helpReplied": false,
+        "trust": 0
+      },
+      "after": {
+        "shared": false,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpReplied": false,
+        "trust": 0,
+        "rewarded": []
+      },
+      "pending": null,
+      "reply": [
+        "罗温：摄像仪坏了",
+        "艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。"
+      ]
+    },
+    {
+      "stage": "pickup",
+      "text": "摄像仪留给我",
+      "nearTransfer": true,
+      "before": {
+        "shared": false,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": false,
+        "helpReplied": false,
+        "trust": 0
+      },
+      "after": {
+        "shared": false,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpReplied": false,
+        "trust": 0,
+        "rewarded": []
+      },
+      "pending": null,
+      "reply": [
+        "罗温：摄像仪留给我",
+        "艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。"
+      ]
+    },
+    {
+      "stage": "pickup",
+      "text": "摄像仪坏了",
+      "nearTransfer": false,
+      "before": {
+        "shared": false,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": false,
+        "helpReplied": false,
+        "trust": 0
+      },
+      "after": {
+        "shared": false,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpReplied": false,
+        "trust": 0,
+        "rewarded": []
+      },
+      "pending": null,
+      "reply": [
+        "罗温：摄像仪坏了",
+        "艾里亚斯：听见了。你那边有新情况就说，手上的事慢慢做准。"
+      ]
+    },
+    {
+      "stage": "closed",
+      "text": "我去看看电池",
+      "before": {
+        "shared": true,
+        "valve": true,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": true,
+        "helpReplied": true,
+        "trust": 0
+      },
+      "after": {
+        "shared": true,
+        "valve": true,
+        "reported": false,
+        "askedCode": false,
+        "helpReplied": true,
+        "trust": 0,
+        "rewarded": []
+      },
+      "pending": null,
+      "reply": [
+        "罗温：我去看看电池",
+        "艾里亚斯：我听着。处理完含硫支路，记得叫我，别让我对着面罩干等。"
+      ]
+    },
+    {
+      "stage": "closed",
+      "text": "我要关闭主动声纳",
+      "before": {
+        "shared": true,
+        "valve": true,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": true,
+        "helpReplied": true,
+        "trust": 0
+      },
+      "after": {
+        "shared": true,
+        "valve": true,
+        "reported": false,
+        "askedCode": false,
+        "helpReplied": true,
+        "trust": 0,
+        "rewarded": []
+      },
+      "pending": null,
+      "reply": [
+        "罗温：我要关闭主动声纳",
+        "艾里亚斯：被动声纳只能听大概方位。主动声纳要通电，能测地形和距离，也一直发声。听到东西靠近，先找安全机位，再停稳拍；别为了拍照硬挨撞。"
+      ]
+    },
+    {
+      "stage": "closed",
+      "text": "别怕，我已经关好含硫阀门了",
+      "before": {
+        "shared": true,
+        "valve": true,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": true,
+        "helpReplied": true,
+        "trust": 0
+      },
+      "after": {
+        "shared": true,
+        "valve": true,
+        "reported": true,
+        "askedCode": false,
+        "helpReplied": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      },
+      "pending": "L2-S05",
+      "reply": [
+        "罗温：别怕，我已经关好含硫阀门了",
+        "艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。"
+      ]
+    },
+    {
+      "stage": "closed",
+      "text": "含硫阀门已经关好，别怕",
+      "before": {
+        "shared": true,
+        "valve": true,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": true,
+        "helpReplied": true,
+        "trust": 0
+      },
+      "after": {
+        "shared": true,
+        "valve": true,
+        "reported": true,
+        "askedCode": false,
+        "helpReplied": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      },
+      "pending": "L2-S05",
+      "reply": [
+        "罗温：含硫阀门已经关好，别怕",
+        "艾里亚斯：收到，我先不迈步，等它散开。回传给你，你自己也看一眼。"
+      ]
+    },
+    {
+      "stage": "door",
+      "text": "公司这道门的密码是什么",
+      "before": {
+        "shared": true,
+        "valve": true,
+        "reported": true,
+        "askedCode": false,
+        "helpSeen": true,
+        "helpReplied": true,
+        "trust": 1
+      },
+      "after": {
+        "shared": true,
+        "valve": true,
+        "reported": true,
+        "askedCode": true,
+        "helpReplied": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      },
+      "pending": "L2-S06",
+      "reply": [
+        "罗温：公司这道门的密码是什么",
+        "艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。"
+      ]
+    },
+    {
+      "stage": "door",
+      "text": "救命，我打不开这道门",
+      "before": {
+        "shared": true,
+        "valve": true,
+        "reported": true,
+        "askedCode": false,
+        "helpSeen": true,
+        "helpReplied": true,
+        "trust": 1
+      },
+      "after": {
+        "shared": true,
+        "valve": true,
+        "reported": true,
+        "askedCode": true,
+        "helpReplied": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      },
+      "pending": "L2-S06",
+      "reply": [
+        "罗温：救命，我打不开这道门",
+        "艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。"
+      ]
+    },
+    {
+      "stage": "brief",
+      "text": "别怕，我会帮你",
+      "before": {
+        "shared": true,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": false,
+        "helpReplied": false,
+        "trust": 0
+      },
+      "after": {
+        "shared": true,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpReplied": false,
+        "trust": 1,
+        "rewarded": [
+          "support"
+        ]
+      },
+      "pending": null,
+      "reply": [
+        "罗温：别怕，我会帮你",
+        "艾里亚斯：好。你看仪表，我摸着墙。谁有动静都出个声。"
+      ]
+    },
+    {
+      "stage": "brief",
+      "text": "我不相信你",
+      "before": {
+        "shared": true,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": false,
+        "helpReplied": false,
+        "trust": 0
+      },
+      "after": {
+        "shared": true,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpReplied": false,
+        "trust": 0,
+        "rewarded": []
+      },
+      "pending": null,
+      "reply": [
+        "罗温：我不相信你",
+        "艾里亚斯：你可以怀疑我。能核对的就核对，我不知道的不会替你下结论；先把眼前的情况说清楚。"
+      ]
+    },
+    {
+      "stage": "brief",
+      "text": "你别骗我",
+      "before": {
+        "shared": true,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": false,
+        "helpReplied": false,
+        "trust": 0
+      },
+      "after": {
+        "shared": true,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpReplied": false,
+        "trust": 0,
+        "rewarded": []
+      },
+      "pending": null,
+      "reply": [
+        "罗温：你别骗我",
+        "艾里亚斯：你可以怀疑我。能核对的就核对，我不知道的不会替你下结论；先把眼前的情况说清楚。"
+      ]
+    },
+    {
+      "stage": "entry",
+      "text": "公司到底想干什么",
+      "before": {
+        "shared": false,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": false,
+        "helpReplied": false,
+        "trust": 0
+      },
+      "after": {
+        "shared": false,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpReplied": false,
+        "trust": 0,
+        "rewarded": []
+      },
+      "pending": null,
+      "reply": [
+        "罗温：公司到底想干什么",
+        "艾里亚斯：公司到底怎么打算的，我也说不准。我担心他们只想拿到材料，把我们留在里面，但这还只是猜测。能拍到的原片先留在艇里，别只留公司那份。"
+      ]
+    },
+    {
+      "stage": "brief",
+      "text": "关闭主动声纳",
+      "before": {
+        "shared": true,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": false,
+        "helpReplied": false,
+        "trust": 0
+      },
+      "after": {
+        "shared": true,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpReplied": false,
+        "trust": 0,
+        "rewarded": []
+      },
+      "pending": null,
+      "reply": [
+        "罗温：关闭主动声纳",
+        "艾里亚斯：被动声纳只能听大概方位。主动声纳要通电，能测地形和距离，也一直发声。听到东西靠近，先找安全机位，再停稳拍；别为了拍照硬挨撞。"
+      ]
+    },
+    {
+      "stage": "help",
+      "text": "救命，我被撞了，我要撤退",
+      "before": {
+        "shared": true,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpSeen": true,
+        "helpReplied": false,
+        "trust": 0
+      },
+      "after": {
+        "shared": true,
+        "valve": false,
+        "reported": false,
+        "askedCode": false,
+        "helpReplied": true,
+        "trust": 1,
+        "rewarded": [
+          "honest"
+        ]
+      },
+      "pending": null,
+      "reply": [
+        "罗温：救命，我被撞了，我要撤退",
+        "艾里亚斯：先顾好你那边。停稳，必要时沿来路撤退；我靠着墙，不往前走。等你安全了再处理供水。这东西聚在温热、含硫的水里。我怀疑实验供水串进了通道。供水检修点在X138、Y13.5、深度1040米，那里有操作说明。别猜哪根管；关掉含硫热水，再叫我试。"
+      ]
+    }
+  ]
+}

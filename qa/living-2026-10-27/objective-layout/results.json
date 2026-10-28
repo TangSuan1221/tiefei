@@ -1,0 +1,41 @@
+{
+  "method": "Actual canvas text metrics and production HUD renderer with worst-case diagnostic/status text; not screenshot or gameplay verification.",
+  "results": [
+    {
+      "w": 1600,
+      "h": 900,
+      "panel": [
+        1220,
+        26,
+        360,
+        305.2
+      ],
+      "bottom": 331.2,
+      "withinViewport": true
+    },
+    {
+      "w": 1280,
+      "h": 720,
+      "panel": [
+        900,
+        26,
+        360,
+        290.504
+      ],
+      "bottom": 316.504,
+      "withinViewport": true
+    },
+    {
+      "w": 1024,
+      "h": 576,
+      "panel": [
+        696.8,
+        26,
+        307.2,
+        271.8
+      ],
+      "bottom": 297.8,
+      "withinViewport": true
+    }
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "method": "Diagnostic lab playback/zoom fixture and legal initial poses; real Esc/Space/mouse back and real shade damage; API blocked, not blind play",
+  "escape": {
+    "at": "camera",
+    "zoom": null,
+    "expanded": false,
+    "viewing": false,
+    "speed": 0,
+    "pos": [
+      7,
+      0,
+      7
+    ],
+    "hull": 1,
+    "depth": 1040,
+    "actualDepth": 1040,
+    "feedback": "",
+    "pauseRequested": false,
+    "playback": "暂停播放"
+  },
+  "pauseFailures": [
+    {
+      "at": "camera",
+      "label": "暂停播放",
+      "requested": false
+    },
+    {
+      "at": "camera",
+      "label": "暂停播放",
+      "requested": false
+    },
+    {
+      "at": "camera",
+      "label": "暂停播放",
+      "requested": false
+    },
+    {
+      "at": "camera",
+      "label": "暂停播放",
+      "requested": false
+    },
+    {
+      "at": "camera",
+      "label": "暂停播放",
+      "requested": false
+    }
+  ],
+  "thrust": {
+    "at": "camera",
+    "zoom": null,
+    "expanded": false,
+    "viewing": false,
+    "speed": 0.8599535216434623,
+    "pos": [
+      8.259885484719339,
+      0,
+      7
+    ],
+    "hull": 1,
+    "depth": 1040,
+    "actualDepth": 1040,
+    "feedback": "",
+    "pauseRequested": false,
+    "playback": "暂停播放"
+  },
+  "thrustBefore": {
+    "at": "lab",
+    "zoom": "lab",
+    "expanded": true,
+    "viewing": true,
+    "speed": 0,
+    "pos": [
+      7,
+      0,
+      7
+    ],
+    "hull": 1,
+    "depth": 1040,
+    "actualDepth": 1040,
+    "feedback": "",
+    "pauseRequested": false,
+    "playback": "暂停播放"
+  },
+  "mousePoint": {
+    "x": 1045,
+    "y": 195
+  },
+  "mouseBack": {
+    "at": "camera",
+    "zoom": null,
+    "expanded": false,
+    "viewing": false,
+    "speed": 0,
+    "pos": [
+      8.259885484719339,
+      0,
+      7
+    ],
+    "hull": 1,
+    "depth": 1040,
+    "actualDepth": 1040,
+    "feedback": "",
+    "pauseRequested": false,
+    "playback": "暂停播放"
+  },
+  "damageInitial": {
+    "legal": true,
+    "hull": 1
+  },
+  "damage": {
+    "at": "camera",
+    "zoom": null,
+    "expanded": false,
+    "viewing": false,
+    "speed": 0,
+    "pos": [
+      102.20018892877461,
+      0.8,
+      26.123806524940086
+    ],
+    "hull": 0.84,
+    "depth": 1039.2,
+    "actualDepth": 1039.2,
+    "feedback": "船体受击，读片已中断。先退到安全处；底片和报告仍保留在分析台。",
+    "pauseRequested": false,
+    "playback": "暂停播放"
+  },
+  "localResumed": {
+    "at": "lab",
+    "zoom": "lab",
+    "expanded": true,
+    "viewing": true,
+    "speed": 0,
+    "pos": [
+      102.20018892877461,
+      0.8,
+      26.123806524940086
+    ],
+    "hull": 0.84,
+    "depth": 1039.2,
+    "actualDepth": 1039.2,
+    "feedback": "船体受击，读片已中断。先退到安全处；底片和报告仍保留在分析台。",
+    "pauseRequested": false,
+    "playback": "暂停播放"
+  },
+  "synthetic": {
+    "frames": 3,
+    "duration": 3
+  },
+  "remotePaused": {
+    "at": "camera",
+    "zoom": null,
+    "expanded": false,
+    "viewing": false,
+    "speed": 0,
+    "pos": [
+      7,
+      0,
+      7
+    ],
+    "hull": 0.84,
+    "depth": 1040,
+    "actualDepth": 1040,
+    "feedback": "船体受击，读片已中断。先退到安全处；底片和报告仍保留在分析台。",
+    "pauseRequested": false,
+    "playback": "暂停播放",
+    "video": {
+      "paused": true,
+      "time": 0
+    }
+  },
+  "remoteResumed": {
+    "at": "lab",
+    "zoom": "lab",
+    "expanded": true,
+    "viewing": false,
+    "speed": 0,
+    "pos": [
+      7,
+      0,
+      7
+    ],
+    "hull": 0.84,
+    "depth": 1040,
+    "actualDepth": 1040,
+    "feedback": "船体受击，读片已中断。先退到安全处；底片和报告仍保留在分析台。",
+    "pauseRequested": false,
+    "playback": "暂停播放",
+    "video": {
+      "paused": true,
+      "time": 0
+    }
+  },
+  "failure": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n",
+  "errors": [
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
+}

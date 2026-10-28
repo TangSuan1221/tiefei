@@ -1,0 +1,16 @@
+{
+  "result": {
+    "stockBefore": "[[\"sup.filter\",1],[\"sup.sealant\",1],[\"sup.cell\",3],[\"sup.wax\",1]]",
+    "stockRestored": "[[\"sup.filter\",1],[\"sup.sealant\",1],[\"sup.cell\",3],[\"sup.wax\",1]]",
+    "stockAfter": "[[\"sup.filter\",1],[\"sup.sealant\",1],[\"sup.cell\",3],[\"sup.wax\",1]]",
+    "duplicate": false,
+    "restored": true,
+    "collected": [
+      "abyss.box.serviceQ"
+    ],
+    "sedatives": 0,
+    "matches": true,
+    "saveSize": 13906
+  },
+  "errors": []
+}

@@ -38,6 +38,7 @@ export class CabinThree {
   private manualLook=false;
   private deviceZoom: 'nav'|'lab'|null=null;
   get zoomedDevice(){return this.deviceZoom;}
+  closeDeviceZoom(){this.deviceZoom=null;this.manualLook=false;}
   deviceClick():boolean {
     if(!this.isConsole(this.focused))return false;
     let obj:THREE.Object3D|null=this.ray.intersectObjects(this.scene.children,true)[0]?.object??null;
@@ -289,7 +290,7 @@ export class CabinThree {
     this.ensure(w,h);
     if(this.focused!==run.at && !(this.isConsole(this.focused)&&this.isConsole(run.at)))this.manualLook=false;
     this.focused=run.at;
-    if(!this.isConsole(run.at))this.deviceZoom=null;
+    if(!this.isConsole(run.at)||(run.authoredSite?.index===1&&run.at==='camera'))this.deviceZoom=null;
     if(!run.at || (this.preferredFace && canonicalStation(this.preferredFace)!==run.at)) this.preferredFace=null;
     const target=this.screens.find(s=>s.id===(this.isConsole(run.at)?'camera':this.preferredFace??run.at));
     this.focusedFace=target?.id??null;

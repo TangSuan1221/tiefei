@@ -1,0 +1,213 @@
+{
+  "result": {
+    "rows": [
+      {
+        "name": "internally consistent GM fact fixture",
+        "pass": true,
+        "detail": [
+          "L2-S01",
+          "L2-S02",
+          "L2-S03",
+          "L2-S05",
+          "L2-S06",
+          "L2-S07"
+        ]
+      },
+      {
+        "name": "legacy ballast waypoint is obstructed",
+        "pass": true
+      },
+      {
+        "name": "ballast proposed approach legal and reachable",
+        "pass": true,
+        "detail": {
+          "approach": true,
+          "near": true,
+          "aim": {
+            "id": "living.box.ballast",
+            "distance": 2.5260690904844645
+          }
+        }
+      },
+      {
+        "name": "candidate ballast connecting segments",
+        "pass": true,
+        "detail": [
+          {
+            "a": [
+              100,
+              0,
+              26
+            ],
+            "b": [
+              100,
+              0,
+              32.5
+            ],
+            "ok": true,
+            "end": [
+              100,
+              0,
+              32.49999999999986
+            ]
+          },
+          {
+            "a": [
+              100,
+              0,
+              32.5
+            ],
+            "b": [
+              112.5,
+              0,
+              32.5
+            ],
+            "ok": true,
+            "end": [
+              112.50000000000205,
+              0,
+              32.5
+            ]
+          },
+          {
+            "a": [
+              112.5,
+              0,
+              32.5
+            ],
+            "b": [
+              100,
+              0,
+              32.5
+            ],
+            "ok": true,
+            "end": [
+              99.99999999999795,
+              0,
+              32.5
+            ]
+          },
+          {
+            "a": [
+              100,
+              0,
+              32.5
+            ],
+            "b": [
+              100,
+              0,
+              17
+            ],
+            "ok": true,
+            "end": [
+              100,
+              0,
+              17.000000000000178
+            ]
+          },
+          {
+            "a": [
+              100,
+              0,
+              17
+            ],
+            "b": [
+              128.5,
+              0,
+              17
+            ],
+            "ok": true,
+            "end": [
+              128.50000000000472,
+              0,
+              17
+            ]
+          }
+        ]
+      },
+      {
+        "name": "missing ballast blocks physical descent and exit",
+        "pass": true,
+        "detail": {
+          "physical": {
+            "steps": 199,
+            "pos": [
+              208,
+              -7.960000000000006,
+              68
+            ]
+          },
+          "forcedBelowComplete": false
+        }
+      },
+      {
+        "name": "missing reunion blocks physical descent and exit",
+        "pass": true,
+        "detail": {
+          "physical": {
+            "steps": 199,
+            "pos": [
+              208,
+              -7.960000000000006,
+              68
+            ]
+          },
+          "forcedBelowComplete": false
+        }
+      },
+      {
+        "name": "outside E cannot complete",
+        "pass": true
+      },
+      {
+        "name": "exact threshold legal pose",
+        "pass": true
+      },
+      {
+        "name": "exact threshold cannot complete",
+        "pass": true
+      },
+      {
+        "name": "E start legal",
+        "pass": true
+      },
+      {
+        "name": "continuous real moveVertical passes threshold",
+        "pass": true,
+        "detail": {
+          "steps": 255,
+          "pos": [
+            208,
+            -10.199999999999958,
+            68
+          ],
+          "complete": true,
+          "objective": "第二章完成 · 操作台按 B 进入-2层研究所"
+        }
+      },
+      {
+        "name": "completed fixture remains survey-valid",
+        "pass": true
+      }
+    ],
+    "pass": true,
+    "beforeB": {
+      "canDepart": true,
+      "leg": 1,
+      "phase": "site",
+      "film": true
+    },
+    "method": "Explicit GM fact fixture via survey transitions and synthetic capture objects; real world collision and move/moveVertical; missing-condition below-threshold tests explicitly bypass position only to test gate; no real media, no claim of blind/full play.",
+    "afterB": {
+      "leg": 2,
+      "phase": "site",
+      "site": "AbyssalLabSite",
+      "caption": "进入 −2 层 · 深渊生物研究所。W向前走到操作台，E坐下。先点击中央舷窗下方的照明按钮开灯。驾驶：Space前进、N倒车、J/L转向、PageDown下潜、PageUp上浮；井底深度200米。"
+    }
+  },
+  "blocked": [
+    "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Noto+Serif+SC:wght@300;400;600&display=swap",
+    "http://127.0.0.1:5180/api/video/videos"
+  ],
+  "errors": []
+}

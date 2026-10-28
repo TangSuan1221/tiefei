@@ -1,0 +1,868 @@
+{
+  "method": "Diagnostic initialization at legal R2; real keyboard; no damage modifications; API blocked",
+  "init": {
+    "legal": true,
+    "hull": 1,
+    "threat": null,
+    "mode": "calm"
+  },
+  "afterJ": {
+    "hull": 0.8200000000000001,
+    "pos": {
+      "survey": {
+        "camera": false,
+        "shared": false,
+        "briefed": true,
+        "helpSeen": false,
+        "helpReplied": false,
+        "manual": false,
+        "valve": false,
+        "reported": false,
+        "clearSeen": false,
+        "doorSeen": false,
+        "askedCode": false,
+        "codeSeen": false,
+        "unlocked": false,
+        "reunion": false,
+        "reunionReached": false,
+        "ballast": false,
+        "complete": false,
+        "photos": [],
+        "accepted": [],
+        "captures": [],
+        "analyzed": [],
+        "elapsed": 6.58420000000002,
+        "closedAt": null,
+        "nudged": false,
+        "pickupNudged": false,
+        "trust": 0,
+        "rewarded": [],
+        "pendingCapture": null,
+        "code": "5110",
+        "version": 1
+      },
+      "routeVersion": 2,
+      "stage": "explore",
+      "objective": "入口井底 · 右前方黄色摄像仪匣\nW靠近驾驶台，E就坐；J/L转船头，空格推进，Shift制动\n开探照灯，方向键对镜；3.4m内按F伸臂，再F夹取，最后F收回",
+      "pos": [
+        52.3,
+        0,
+        21.9
+      ],
+      "heading": 97.37490840182528,
+      "collected": [],
+      "probe": "none",
+      "valves": {
+        "heat": false,
+        "feed": false,
+        "cool": false
+      },
+      "slime": 0.75,
+      "tapes": [],
+      "tapesAnalyzed": [],
+      "identified": [],
+      "codeVerified": false,
+      "guideVerified": false,
+      "uplinked": false,
+      "gateOpen": false,
+      "met": false,
+      "ballast": false,
+      "complete": false,
+      "ended": false,
+      "lens": false,
+      "creatures": [
+        {
+          "id": "lumen.r1",
+          "mode": "idle",
+          "pos": [
+            38.614027999999855,
+            4,
+            -12.960520999999995
+          ]
+        },
+        {
+          "id": "blind.r2",
+          "mode": "recoil",
+          "pos": [
+            55.51986249134716,
+            -1.2199222598090538,
+            26.33818883942449
+          ]
+        },
+        {
+          "id": "shade.r4",
+          "mode": "idle",
+          "pos": [
+            110,
+            -1,
+            26
+          ]
+        },
+        {
+          "id": "lumen.a1",
+          "mode": "idle",
+          "pos": [
+            141.77103679117985,
+            6,
+            52.708414716471914
+          ]
+        },
+        {
+          "id": "lumen.a2",
+          "mode": "idle",
+          "pos": [
+            178.96930904671913,
+            5,
+            56.9693090467183
+          ]
+        },
+        {
+          "id": "blind.a2",
+          "mode": "idle",
+          "pos": [
+            166,
+            -2,
+            60
+          ]
+        }
+      ],
+      "pendingTapes": 0,
+      "saveSafe": true,
+      "timers": {
+        "alexTapeLeft": 0,
+        "resultLeft": 0,
+        "gateLeft": 0
+      },
+      "extraLumens": 0
+    },
+    "logs": [
+      {
+        "t": 5.217600000000013,
+        "old": 1,
+        "value": 0.8200000000000001,
+        "stack": "Error\n    at PodRun.set [as hull] (eval at evaluate (:311:30), <anonymous>:1:499)\n    at LivingDeckSite.hurt (http://127.0.0.1:5180/src/pod/view/deepsea/living-deck-site.ts?t=1793075799773:392:19)\n    at LivingDeckSite.tick (http://127.0.0.1:5180/src/pod/view/deepsea/living-deck-site.ts?t=1793075799773:1016:31)\n    at PodRun.frame (http://127.0.0.1:5180/src/pod/sim/run.ts?t=1793075630462:1254:32)\n    at frame (http://127.0.0.1:5180/src/pod/view/session.ts?t=1793075799773:369:14)",
+        "pos": [
+          52.3,
+          0,
+          21.9
+        ],
+        "threat": null,
+        "fx": {
+          "flash": 0,
+          "spill": 0,
+          "lure": 0
+        },
+        "mode": "calm",
+        "creatures": [
+          {
+            "id": "lumen.r1",
+            "type": "lumen",
+            "position": [
+              38.99667599999994,
+              4,
+              -13.247507000000004
+            ],
+            "heading": 233.13010235415572,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "blind.r2",
+            "type": "blind",
+            "position": [
+              54.55685618064675,
+              -1.2199222598090538,
+              25.01080176251313
+            ],
+            "heading": 324.03948280335544,
+            "mode": "recoil",
+            "identified": false
+          },
+          {
+            "id": "shade.r4",
+            "type": "shade",
+            "position": [
+              110,
+              -1,
+              26
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "lumen.a1",
+            "type": "lumen",
+            "position": [
+              141.3269371051623,
+              6,
+              52.53077484206497
+            ],
+            "heading": 111.8014094863517,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "lumen.a2",
+            "type": "lumen",
+            "position": [
+              178.63109280220957,
+              5,
+              56.63109280220901
+            ],
+            "heading": 135.0000000000012,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "blind.a2",
+            "type": "blind",
+            "position": [
+              166,
+              -2,
+              60
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "identified": false
+          }
+        ],
+        "caption": "",
+        "last": {
+          "damage": 0.18,
+          "events": [
+            "撞击！有东西从黑暗里狠狠撞上艇壳。"
+          ],
+          "lensBlocked": false,
+          "armBlocked": false,
+          "itemsBlocked": [],
+          "clinging": [],
+          "shake": 1,
+          "cues": [
+            "hull.crack"
+          ],
+          "push": [
+            0,
+            0,
+            0
+          ]
+        },
+        "input": {
+          "pod": [
+            52.3,
+            0,
+            21.9
+          ],
+          "heading": 118.12431954395822,
+          "lampOn": true,
+          "lampRange": 26,
+          "lampHalfAngle": 0.72,
+          "pulse": false,
+          "activePowered": true,
+          "speed": 0,
+          "noiseBursts": [],
+          "armOut": false,
+          "gateOpen": false,
+          "extraLumens": 0
+        }
+      }
+    ]
+  },
+  "final": {
+    "hull": 0.46000000000000013,
+    "pos": {
+      "survey": {
+        "camera": false,
+        "shared": false,
+        "briefed": true,
+        "helpSeen": false,
+        "helpReplied": false,
+        "manual": false,
+        "valve": false,
+        "reported": false,
+        "clearSeen": false,
+        "doorSeen": false,
+        "askedCode": false,
+        "codeSeen": false,
+        "unlocked": false,
+        "reunion": false,
+        "reunionReached": false,
+        "ballast": false,
+        "complete": false,
+        "photos": [],
+        "accepted": [],
+        "captures": [],
+        "analyzed": [],
+        "elapsed": 35.78429999999984,
+        "closedAt": null,
+        "nudged": false,
+        "pickupNudged": true,
+        "trust": 0,
+        "rewarded": [],
+        "pendingCapture": null,
+        "code": "5110",
+        "version": 1
+      },
+      "routeVersion": 2,
+      "stage": "explore",
+      "objective": "入口井底 · 右前方黄色摄像仪匣\nW靠近驾驶台，E就坐；J/L转船头，空格推进，Shift制动\n开探照灯，方向键对镜；3.4m内按F伸臂，再F夹取，最后F收回",
+      "pos": [
+        60.54952025514938,
+        0,
+        24.1634409114356
+      ],
+      "heading": 90.12705925347399,
+      "collected": [],
+      "probe": "none",
+      "valves": {
+        "heat": false,
+        "feed": false,
+        "cool": false
+      },
+      "slime": 0.75,
+      "tapes": [],
+      "tapesAnalyzed": [],
+      "identified": [],
+      "codeVerified": false,
+      "guideVerified": false,
+      "uplinked": false,
+      "gateOpen": false,
+      "met": false,
+      "ballast": false,
+      "complete": false,
+      "ended": false,
+      "lens": false,
+      "creatures": [
+        {
+          "id": "lumen.r1",
+          "mode": "idle",
+          "pos": [
+            32.849698399146966,
+            4,
+            -8.84969839914673
+          ]
+        },
+        {
+          "id": "blind.r2",
+          "mode": "recoil",
+          "pos": [
+            58.1649670680755,
+            -0.15225085394655422,
+            29.68255093550268
+          ]
+        },
+        {
+          "id": "shade.r4",
+          "mode": "idle",
+          "pos": [
+            110,
+            -1,
+            26
+          ]
+        },
+        {
+          "id": "lumen.a1",
+          "mode": "idle",
+          "pos": [
+            151.26010106871203,
+            6,
+            56.50404042748541
+          ]
+        },
+        {
+          "id": "lumen.a2",
+          "mode": "idle",
+          "pos": [
+            186.19596509918878,
+            5,
+            64.19596509918429
+          ]
+        },
+        {
+          "id": "blind.a2",
+          "mode": "idle",
+          "pos": [
+            166,
+            -2,
+            60
+          ]
+        }
+      ],
+      "pendingTapes": 0,
+      "saveSafe": true,
+      "timers": {
+        "alexTapeLeft": 0,
+        "resultLeft": 0,
+        "gateLeft": 0
+      },
+      "extraLumens": 0
+    },
+    "logs": [
+      {
+        "t": 5.217600000000013,
+        "old": 1,
+        "value": 0.8200000000000001,
+        "stack": "Error\n    at PodRun.set [as hull] (eval at evaluate (:311:30), <anonymous>:1:499)\n    at LivingDeckSite.hurt (http://127.0.0.1:5180/src/pod/view/deepsea/living-deck-site.ts?t=1793075799773:392:19)\n    at LivingDeckSite.tick (http://127.0.0.1:5180/src/pod/view/deepsea/living-deck-site.ts?t=1793075799773:1016:31)\n    at PodRun.frame (http://127.0.0.1:5180/src/pod/sim/run.ts?t=1793075630462:1254:32)\n    at frame (http://127.0.0.1:5180/src/pod/view/session.ts?t=1793075799773:369:14)",
+        "pos": [
+          52.3,
+          0,
+          21.9
+        ],
+        "threat": null,
+        "fx": {
+          "flash": 0,
+          "spill": 0,
+          "lure": 0
+        },
+        "mode": "calm",
+        "creatures": [
+          {
+            "id": "lumen.r1",
+            "type": "lumen",
+            "position": [
+              38.99667599999994,
+              4,
+              -13.247507000000004
+            ],
+            "heading": 233.13010235415572,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "blind.r2",
+            "type": "blind",
+            "position": [
+              54.55685618064675,
+              -1.2199222598090538,
+              25.01080176251313
+            ],
+            "heading": 324.03948280335544,
+            "mode": "recoil",
+            "identified": false
+          },
+          {
+            "id": "shade.r4",
+            "type": "shade",
+            "position": [
+              110,
+              -1,
+              26
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "lumen.a1",
+            "type": "lumen",
+            "position": [
+              141.3269371051623,
+              6,
+              52.53077484206497
+            ],
+            "heading": 111.8014094863517,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "lumen.a2",
+            "type": "lumen",
+            "position": [
+              178.63109280220957,
+              5,
+              56.63109280220901
+            ],
+            "heading": 135.0000000000012,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "blind.a2",
+            "type": "blind",
+            "position": [
+              166,
+              -2,
+              60
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "identified": false
+          }
+        ],
+        "caption": "",
+        "last": {
+          "damage": 0.18,
+          "events": [
+            "撞击！有东西从黑暗里狠狠撞上艇壳。"
+          ],
+          "lensBlocked": false,
+          "armBlocked": false,
+          "itemsBlocked": [],
+          "clinging": [],
+          "shake": 1,
+          "cues": [
+            "hull.crack"
+          ],
+          "push": [
+            0,
+            0,
+            0
+          ]
+        },
+        "input": {
+          "pod": [
+            52.3,
+            0,
+            21.9
+          ],
+          "heading": 118.12431954395822,
+          "lampOn": true,
+          "lampRange": 26,
+          "lampHalfAngle": 0.72,
+          "pulse": false,
+          "activePowered": true,
+          "speed": 0,
+          "noiseBursts": [],
+          "armOut": false,
+          "gateOpen": false,
+          "extraLumens": 0
+        }
+      },
+      {
+        "t": 18.334299999999875,
+        "old": 0.8200000000000001,
+        "value": 0.6400000000000001,
+        "stack": "Error\n    at PodRun.set [as hull] (eval at evaluate (:311:30), <anonymous>:1:499)\n    at LivingDeckSite.hurt (http://127.0.0.1:5180/src/pod/view/deepsea/living-deck-site.ts?t=1793075799773:392:19)\n    at LivingDeckSite.tick (http://127.0.0.1:5180/src/pod/view/deepsea/living-deck-site.ts?t=1793075799773:1016:31)\n    at PodRun.frame (http://127.0.0.1:5180/src/pod/sim/run.ts?t=1793075630462:1254:32)\n    at frame (http://127.0.0.1:5180/src/pod/view/session.ts?t=1793075799773:369:14)",
+        "pos": [
+          60.03236848457026,
+          0,
+          24.161968490385814
+        ],
+        "threat": null,
+        "fx": {
+          "flash": 0,
+          "spill": 0,
+          "lure": 0
+        },
+        "mode": "calm",
+        "creatures": [
+          {
+            "id": "lumen.r1",
+            "type": "lumen",
+            "position": [
+              35.323999999999906,
+              4,
+              -10.493
+            ],
+            "heading": 233.13010235415516,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "blind.r2",
+            "type": "blind",
+            "position": [
+              59.16605238567576,
+              -0.5096508635549842,
+              26.54205375983449
+            ],
+            "heading": 19.96449689531039,
+            "mode": "recoil",
+            "identified": false
+          },
+          {
+            "id": "shade.r4",
+            "type": "shade",
+            "position": [
+              110,
+              -1,
+              26
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "lumen.a1",
+            "type": "lumen",
+            "position": [
+              145.58942967913052,
+              6,
+              54.23577187165221
+            ],
+            "heading": 111.80140948635182,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "lumen.a2",
+            "type": "lumen",
+            "position": [
+              181.8773104330886,
+              5,
+              59.87731043308559
+            ],
+            "heading": 135.00000000000853,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "blind.a2",
+            "type": "blind",
+            "position": [
+              166,
+              -2,
+              60
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "identified": false
+          }
+        ],
+        "caption": "",
+        "last": {
+          "damage": 0.18,
+          "events": [
+            "撞击！有东西从黑暗里狠狠撞上艇壳。"
+          ],
+          "lensBlocked": false,
+          "armBlocked": false,
+          "itemsBlocked": [],
+          "clinging": [],
+          "shake": 1,
+          "cues": [
+            "hull.crack"
+          ],
+          "push": [
+            0,
+            0,
+            0
+          ]
+        },
+        "input": {
+          "pod": [
+            60.03236848457026,
+            0,
+            24.161968490385814
+          ],
+          "heading": 90.62894146974361,
+          "lampOn": true,
+          "lampRange": 26,
+          "lampHalfAngle": 0.72,
+          "pulse": false,
+          "activePowered": true,
+          "speed": 0.10173902852201945,
+          "noiseBursts": [],
+          "armOut": false,
+          "gateOpen": false,
+          "extraLumens": 0
+        }
+      },
+      {
+        "t": 32.95089999999967,
+        "old": 0.6400000000000001,
+        "value": 0.46000000000000013,
+        "stack": "Error\n    at PodRun.set [as hull] (eval at evaluate (:311:30), <anonymous>:1:499)\n    at LivingDeckSite.hurt (http://127.0.0.1:5180/src/pod/view/deepsea/living-deck-site.ts?t=1793075799773:392:19)\n    at LivingDeckSite.tick (http://127.0.0.1:5180/src/pod/view/deepsea/living-deck-site.ts?t=1793075799773:1016:31)\n    at PodRun.frame (http://127.0.0.1:5180/src/pod/sim/run.ts?t=1793075630462:1254:32)\n    at frame (http://127.0.0.1:5180/src/pod/view/session.ts?t=1793075799773:369:14)",
+        "pos": [
+          60.534563356133695,
+          0,
+          24.163407742927316
+        ],
+        "threat": null,
+        "fx": {
+          "flash": 0,
+          "spill": 0,
+          "lure": 0
+        },
+        "mode": "calm",
+        "creatures": [
+          {
+            "id": "lumen.r1",
+            "type": "lumen",
+            "position": [
+              32.14846767531188,
+              4,
+              -8.148467675311835
+            ],
+            "heading": 44.999999999999886,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "blind.r2",
+            "type": "blind",
+            "position": [
+              59.50635606569375,
+              -0.15225085394655422,
+              26.558255884860383
+            ],
+            "heading": 23.23356120501836,
+            "mode": "recoil",
+            "identified": false
+          },
+          {
+            "id": "shade.r4",
+            "type": "shade",
+            "position": [
+              110,
+              -1,
+              26
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "lumen.a1",
+            "type": "lumen",
+            "position": [
+              150.33934001912877,
+              6,
+              56.13573600765172
+            ],
+            "heading": 111.80140948635074,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "lumen.a2",
+            "type": "lumen",
+            "position": [
+              185.49473437535354,
+              5,
+              63.4947343753492
+            ],
+            "heading": 135.0000000000191,
+            "mode": "idle",
+            "identified": false
+          },
+          {
+            "id": "blind.a2",
+            "type": "blind",
+            "position": [
+              166,
+              -2,
+              60
+            ],
+            "heading": 0,
+            "mode": "idle",
+            "identified": false
+          }
+        ],
+        "caption": "",
+        "last": {
+          "damage": 0.18,
+          "events": [
+            "撞击！有东西从黑暗里狠狠撞上艇壳。"
+          ],
+          "lensBlocked": false,
+          "armBlocked": false,
+          "itemsBlocked": [],
+          "clinging": [],
+          "shake": 1,
+          "cues": [
+            "hull.crack"
+          ],
+          "push": [
+            0,
+            0,
+            0
+          ]
+        },
+        "input": {
+          "pod": [
+            60.534563356133695,
+            0,
+            24.163407742927316
+          ],
+          "heading": 90.12705925347399,
+          "lampOn": true,
+          "lampRange": 26,
+          "lampHalfAngle": 0.72,
+          "pulse": false,
+          "activePowered": true,
+          "speed": 0.006729762247760803,
+          "noiseBursts": [],
+          "armOut": false,
+          "gateOpen": false,
+          "extraLumens": 0
+        }
+      }
+    ],
+    "threat": null,
+    "creatures": [
+      {
+        "id": "lumen.r1",
+        "type": "lumen",
+        "position": [
+          32.849698399146966,
+          4,
+          -8.84969839914673
+        ],
+        "heading": 44.99999999999943,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "blind.r2",
+        "type": "blind",
+        "position": [
+          58.1649670680755,
+          -0.15225085394655422,
+          29.68255093550268
+        ],
+        "heading": 203.23584732538245,
+        "mode": "recoil",
+        "identified": false
+      },
+      {
+        "id": "shade.r4",
+        "type": "shade",
+        "position": [
+          110,
+          -1,
+          26
+        ],
+        "heading": 0,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "lumen.a1",
+        "type": "lumen",
+        "position": [
+          151.26010106871203,
+          6,
+          56.50404042748541
+        ],
+        "heading": 111.80140948634852,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "lumen.a2",
+        "type": "lumen",
+        "position": [
+          186.19596509918878,
+          5,
+          64.19596509918429
+        ],
+        "heading": 135.00000000002217,
+        "mode": "idle",
+        "identified": false
+      },
+      {
+        "id": "blind.a2",
+        "type": "blind",
+        "position": [
+          166,
+          -2,
+          60
+        ],
+        "heading": 0,
+        "mode": "idle",
+        "identified": false
+      }
+    ]
+  }
+}

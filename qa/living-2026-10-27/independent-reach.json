@@ -1,0 +1,291 @@
+{
+  "rows": [
+    {
+      "id": "living.box.probe",
+      "found": {
+        "position": [
+          12.121320343559642,
+          0,
+          9.378679656440358
+        ],
+        "heading": 225,
+        "aimed": {
+          "id": "living.box.probe",
+          "distance": 2.515216214145236
+        },
+        "near": true
+      }
+    },
+    {
+      "id": "living.pipe.intake",
+      "found": null
+    },
+    {
+      "id": "living.box.tools",
+      "found": {
+        "position": [
+          59.5,
+          0,
+          27.5
+        ],
+        "heading": 180,
+        "aimed": {
+          "id": "living.box.tools",
+          "distance": 2.3812421213577375
+        },
+        "near": true
+      }
+    },
+    {
+      "id": "living.box.ballast",
+      "found": {
+        "position": [
+          112.5,
+          0,
+          32.5
+        ],
+        "heading": 90,
+        "aimed": {
+          "id": "living.box.ballast",
+          "distance": 2.3149548701124334
+        },
+        "near": true
+      }
+    },
+    {
+      "id": "living.valve.feed",
+      "found": {
+        "position": [
+          138.5022225211328,
+          0,
+          14.276457135307563
+        ],
+        "heading": 74.99999999999994,
+        "aimed": {
+          "id": "living.valve.feed",
+          "distance": 2.6117714323462122
+        },
+        "near": true
+      }
+    },
+    {
+      "id": "living.survey.lock",
+      "found": {
+        "position": [
+          129.88859285164844,
+          0,
+          37.32707048273345
+        ],
+        "heading": 105.00000000000006,
+        "aimed": {
+          "id": "living.survey.lock",
+          "distance": 2.227300575669431
+        },
+        "near": true
+      }
+    },
+    {
+      "id": "living.uplink.gate",
+      "found": {
+        "position": [
+          188,
+          0,
+          45.6
+        ],
+        "heading": 0,
+        "aimed": {
+          "id": "living.uplink.gate",
+          "distance": 2.8002856932903253
+        },
+        "near": true
+      }
+    }
+  ],
+  "frames": [
+    {
+      "position": [
+        128.5,
+        0,
+        13.5
+      ],
+      "id": "living.photo.sulfur",
+      "name": "含硫供水操作说明",
+      "fill": 0.007937266406943368,
+      "textPx": 5.48016952716403,
+      "figure": null,
+      "facing": 0.9917937206093563,
+      "centred": true,
+      "ok": false,
+      "reason": "含硫供水操作说明只占画面 0.8%（需≥8%）——靠近，或按 + / 滚轮变焦到约 3.2×。",
+      "rect": [
+        -0.11223944639209472,
+        -0.0711200723862091,
+        0.1122394463920946,
+        0.07031445285575455
+      ],
+      "distance": 12.84506228188989
+    },
+    {
+      "position": [
+        128.5,
+        0,
+        17
+      ],
+      "id": "living.photo.sulfur",
+      "name": "含硫供水操作说明",
+      "fill": 0.00779664001528281,
+      "textPx": 5.29277810395196,
+      "figure": null,
+      "facing": 0.9572183865224694,
+      "centred": true,
+      "ok": false,
+      "reason": "含硫供水操作说明只占画面 0.8%（需≥8%）——变焦也不够，必须开得更近。",
+      "rect": [
+        -0.10126155346309926,
+        -0.07263116443870044,
+        0.10784523352408669,
+        0.0765106234031373
+      ],
+      "distance": 12.984822868835417
+    },
+    {
+      "position": [
+        132,
+        0,
+        13.5
+      ],
+      "id": "living.photo.sulfur",
+      "name": "含硫供水操作说明",
+      "fill": 0.014786614203594695,
+      "textPx": 7.422475607622151,
+      "figure": null,
+      "facing": 0.9846232660466404,
+      "centred": true,
+      "ok": false,
+      "reason": "含硫供水操作说明只占画面 1.5%（需≥8%）——靠近，或按 + / 滚轮变焦到约 2.3×。",
+      "rect": [
+        -0.15412879085374137,
+        -0.09695700346653531,
+        0.15412879085374137,
+        0.09491648261856958
+      ],
+      "distance": 9.361924215973456
+    },
+    {
+      "position": [
+        132,
+        0,
+        17
+      ],
+      "id": "living.photo.sulfur",
+      "name": "含硫供水操作说明",
+      "fill": 0.014229358867645555,
+      "textPx": 6.976001394266046,
+      "figure": null,
+      "facing": 0.9232730717195347,
+      "centred": true,
+      "ok": false,
+      "reason": "含硫供水操作说明只占画面 1.4%（需≥8%）——靠近，或按 + / 滚轮变焦到约 2.4×。",
+      "rect": [
+        -0.1279589875917473,
+        -0.10019324937617902,
+        0.14305838766124224,
+        0.10982072267063492
+      ],
+      "distance": 9.55278100529009
+    },
+    {
+      "position": [
+        135,
+        0,
+        13.5
+      ],
+      "id": "living.photo.sulfur",
+      "name": "含硫供水操作说明",
+      "fill": 0.03093672332125769,
+      "textPx": 10.53782601695805,
+      "figure": null,
+      "facing": 0.9673722233802455,
+      "centred": true,
+      "ok": false,
+      "reason": "含硫供水操作说明只占画面 3.1%（需≥8%）——靠近，或按 + / 滚轮变焦到约 1.6×。",
+      "rect": [
+        -0.226220339828511,
+        -0.1398139750628681,
+        0.22622033982851125,
+        0.13369567791271858
+      ],
+      "distance": 6.391058208593482
+    },
+    {
+      "position": [
+        135,
+        0,
+        17
+      ],
+      "id": "living.photo.sulfur",
+      "name": "含硫供水操作说明",
+      "fill": 0.028035773126734224,
+      "textPx": 9.36791974084477,
+      "figure": null,
+      "facing": 0.8521102790944347,
+      "centred": true,
+      "ok": false,
+      "reason": "含硫供水操作说明只占画面 2.8%（需≥8%）——靠近，或按 + / 滚轮变焦到约 1.7×。",
+      "rect": [
+        -0.1569394876726803,
+        -0.14640039812445085,
+        0.19347212731220412,
+        0.1736320657303057
+      ],
+      "distance": 6.6675051507314995
+    },
+    {
+      "position": [
+        137.8,
+        0,
+        13.5
+      ],
+      "id": "living.photo.sulfur",
+      "name": "含硫供水操作说明",
+      "fill": 0.08582937409963282,
+      "textPx": 16.374882400692627,
+      "figure": null,
+      "facing": 0.9045256429962998,
+      "centred": true,
+      "ok": true,
+      "reason": "",
+      "rect": [
+        -0.3974077121974478,
+        -0.22965848424327917,
+        0.3974077121974478,
+        0.20228770837106752
+      ],
+      "distance": 3.6613692828817466
+    },
+    {
+      "position": [
+        137.8,
+        0,
+        17
+      ],
+      "id": "living.photo.sulfur",
+      "name": "含硫供水操作说明",
+      "fill": 0.060465423801984094,
+      "textPx": 12.849240706345288,
+      "figure": null,
+      "facing": 0.6708169707231029,
+      "centred": true,
+      "ok": false,
+      "reason": "含硫供水操作说明只占画面 6.0%（需≥8%）——靠近，或按 + / 滚轮变焦到约 1.3×。",
+      "rect": [
+        -0.16671287216933342,
+        -0.23662616513707163,
+        0.2570295395315642,
+        0.33414911845350886
+      ],
+      "distance": 4.124999992124962
+    }
+  ],
+  "method": "Diagnostic teleports through full hull validator; exact aim ray and near check; no input/arm completion or full traverse"
+}

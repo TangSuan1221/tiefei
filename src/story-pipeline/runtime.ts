@@ -1,4 +1,4 @@
-import { apply, initialState, test, type InputWindow, type Pipeline, type SlotCase, type State, type Tag, type Value, type Write } from './model';
+import { apply, holderNames, initialState, test, type InputWindow, type Pipeline, type SlotCase, type State, type Tag, type Value, type Write } from './model';
 /** 去掉标点和空白后做关键词匹配。 */
 const normalize = (s: string) => s.toLowerCase().replace(/[\s，。！？、,.!?;；:：“”"'‘’（）()…—\-]/g, '');
 
@@ -76,9 +76,29 @@ export class StoryRuntime {
   private misses: Record<string, number> = {};
   constructor(readonly pipeline: Pipeline) { this.state = initialState(pipeline); }
 
-  /** 宿主把客观事实、证据与感知结果写进来；只接受 W/E 层与 K 层中的感知事实 */
+  /** 宿主把客观事实、证据与感知结果写进来；自动重算本关总部收容物配额门禁 */
   sync(values: Record<string, Value>) {
     for (const [key, value] of Object.entries(values)) if (this.pipeline.facts.some(f => f.key === key)) this.state[key] = value;
+    this.recomputeQuota();
+  }
+
+  /** 检查当前关卡收容物拍摄数量是否达到总部硬性配额；未达标则即使章节剧情完成也不可通关 */
+  recomputeQuota(): boolean {
+    const q = this.pipeline.quota;
+    if (!q) return true;
+    const captured = Number(this.state[q.capturedFact] ?? 0);
+    const required = Number(this.state[q.requiredFact] ?? q.required);
+    const met = captured >= required;
+    if (this.pipeline.facts.some(f => f.key === q.gateFact)) this.state[q.gateFact] = met;
+    return met;
+  }
+
+  /** 是否满足本关通关门禁（剧情完成 + 总部收容物拍摄配额达标） */
+  canClearChapter(): boolean {
+    this.recomputeQuota();
+    const lastStage = this.pipeline.stages.at(-1);
+    if (!lastStage) return true;
+    return lastStage.gate.every(g => Boolean(this.state[g]));
   }
 
   window(id: string | null): InputWindow | null { return id ? this.pipeline.windows.find(w => w.id === id) ?? null : null; }
@@ -103,8 +123,9 @@ export class StoryRuntime {
     if (!tag) {
       const misses = (this.misses[w.id] ?? 0) + 1;
       this.misses[w.id] = misses;
+      const speakerName = holderNames[w.speaker] ?? '艾里亚斯';
       // 推进型窗口不让玩家卡在“再说一遍”；其余窗口第一次失败按信号断续处理。
-      if (!w.defaultTag || (misses === 1 && w.advanceOn !== '*')) return { window: w, tag: null, garbled: true, reply: [w.speaker === 'vance' ? '万斯：……你断了，罗温。再说一遍？' : '艾里亚斯：信号断了……再说一遍？'], changed: [], advance: false };
+      if (!w.defaultTag || (misses === 1 && w.advanceOn !== '*')) return { window: w, tag: null, garbled: true, reply: [`${speakerName}：信号断了……再说一遍？`], changed: [], advance: false };
       tag = w.tags.find(t => t.id === w.defaultTag);
       if (!tag) return null;
     }
@@ -158,6 +179,7 @@ export class StoryRuntime {
     }
     if (!Object.values(s.used).every(a => Array.isArray(a) && a.every(x => typeof x === 'string'))) return false;
     this.state = { ...initialState(this.pipeline), ...structuredClone(s.state) };
+    this.recomputeQuota();
     this.used = structuredClone(s.used);
     this.misses = s.misses && typeof s.misses === 'object' ? structuredClone(s.misses) : {};
     return true;

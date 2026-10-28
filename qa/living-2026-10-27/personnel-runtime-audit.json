@@ -1,0 +1,257 @@
+{
+  "result": {
+    "pass": true,
+    "spaces": [
+      "living-space:S",
+      "living-space:C1",
+      "living-space:R1",
+      "living-space:R2",
+      "living-space:J1",
+      "living-space:C2",
+      "living-space:R3",
+      "living-space:C3",
+      "living-space:R4",
+      "living-space:G",
+      "living-space:C4",
+      "living-space:V",
+      "living-space:C5",
+      "living-space:A",
+      "living-space:C6",
+      "living-space:R5",
+      "living-space:C7",
+      "living-space:D",
+      "living-space:C8",
+      "living-space:E"
+    ],
+    "practical": [],
+    "mood": [],
+    "lights": [],
+    "coreColliders": [
+      {
+        "id": "L",
+        "structural": [],
+        "decor": [],
+        "walkable": 0
+      },
+      {
+        "id": "M",
+        "structural": [],
+        "decor": [],
+        "walkable": 0
+      },
+      {
+        "id": "N",
+        "structural": [],
+        "decor": [],
+        "walkable": 0
+      }
+    ],
+    "coreMeshVertices": [],
+    "checkedMeshes": 1468,
+    "objectCount": {
+      "before": 1654,
+      "after": 1654
+    },
+    "photoTargets": [
+      "living.photo.guide",
+      "living.photo.delroy",
+      "living.uplink.gate",
+      "living.photo.sulfur"
+    ],
+    "residual": {
+      "probeShots": {
+        "alex-glass": {
+          "position": [
+            147.6,
+            -1.3,
+            5.2
+          ],
+          "target": [
+            145.5,
+            -1.5,
+            6.1
+          ],
+          "fov": 55
+        },
+        "pipe-bands": {
+          "position": [
+            167,
+            -1.5,
+            -16
+          ],
+          "target": [
+            175.5,
+            -1.5,
+            -20
+          ],
+          "fov": 58
+        },
+        "slime-wall": {
+          "position": [
+            165.5,
+            -1.2,
+            -4
+          ],
+          "target": [
+            170,
+            -1.6,
+            -20
+          ],
+          "fov": 60
+        },
+        "cocoon": {
+          "position": [
+            167.5,
+            -1.6,
+            -11.5
+          ],
+          "target": [
+            170,
+            -2.2,
+            -14
+          ],
+          "fov": 55
+        },
+        "slime-floor": {
+          "position": [
+            165,
+            -1,
+            -6
+          ],
+          "target": [
+            170,
+            -2.9,
+            -16
+          ],
+          "fov": 60
+        },
+        "gate-inner": {
+          "position": [
+            188,
+            -1.2,
+            34
+          ],
+          "target": [
+            188,
+            -1.2,
+            42
+          ],
+          "fov": 58
+        },
+        "security-console": {
+          "position": [
+            74,
+            -0.5,
+            -57
+          ],
+          "target": [
+            76,
+            -1.5,
+            -64.5
+          ],
+          "fov": 55
+        }
+      },
+      "alexRoot": null,
+      "alexLamp": null,
+      "namedNodes": [
+        {
+          "name": "living-shell-C1:living.slime",
+          "type": "Mesh",
+          "children": 0
+        },
+        {
+          "name": "living-shell-C2:living.slime",
+          "type": "Mesh",
+          "children": 0
+        },
+        {
+          "name": "living-shell-C3:living.slime",
+          "type": "Mesh",
+          "children": 0
+        },
+        {
+          "name": "living-shell-C4:living.slime",
+          "type": "Mesh",
+          "children": 0
+        }
+      ]
+    },
+    "forbiddenGlbRequests": []
+  },
+  "glbRequests": [
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/custom-valve/l2-service-valve.glb",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/glass-blast-door.glb",
+      "method": "HEAD"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/security-post.glb",
+      "method": "HEAD"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/manager-office.glb",
+      "method": "HEAD"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/laundry-row.glb",
+      "method": "HEAD"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/ballast-rack.glb",
+      "method": "HEAD"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/atrium-balcony.glb",
+      "method": "HEAD"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/gate-f.glb",
+      "method": "HEAD"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/glass-blast-door.glb",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/security-post.glb",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/manager-office.glb",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/laundry-row.glb",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/ballast-rack.glb",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/atrium-balcony.glb",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/gate-f.glb",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/atrium-balcony.lod1.glb",
+      "method": "HEAD"
+    },
+    {
+      "url": "http://127.0.0.1:5180/assets/deepsea/living/atrium-balcony.lod1.glb",
+      "method": "GET"
+    }
+  ],
+  "blocked": [
+    "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Noto+Serif+SC:wght@300;400;600&display=swap",
+    "http://127.0.0.1:5180/api/video/videos"
+  ],
+  "errors": []
+}

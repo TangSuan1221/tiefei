@@ -1,0 +1,148 @@
+{
+  "result": {
+    "probes": [
+      {
+        "x": 49.9,
+        "z": 5.9,
+        "h": 176.5,
+        "clear": true,
+        "outside": [],
+        "reject": []
+      },
+      {
+        "x": 49.9,
+        "z": 5.9,
+        "h": 177,
+        "clear": true,
+        "outside": [],
+        "reject": []
+      },
+      {
+        "x": 49.9,
+        "z": 5.9,
+        "h": 177.5,
+        "clear": true,
+        "outside": [],
+        "reject": []
+      },
+      {
+        "x": 50.1,
+        "z": 9.1,
+        "h": 176.5,
+        "clear": true,
+        "outside": [],
+        "reject": []
+      },
+      {
+        "x": 50.1,
+        "z": 9.1,
+        "h": 177,
+        "clear": true,
+        "outside": [],
+        "reject": []
+      },
+      {
+        "x": 50.1,
+        "z": 9.1,
+        "h": 177.5,
+        "clear": true,
+        "outside": [],
+        "reject": []
+      }
+    ],
+    "legal": true,
+    "turnLeft": 176.5,
+    "turnRight": 177.5,
+    "pos": [
+      49.9,
+      0,
+      5.9
+    ],
+    "heading": 177,
+    "snapshots": [
+      {
+        "label": "diagnostic start",
+        "pos": [
+          49.9,
+          0,
+          5.9
+        ],
+        "heading": 177,
+        "speed": 0,
+        "feedback": ""
+      },
+      {
+        "label": "J 5.8s reproducer",
+        "pos": [
+          49.9,
+          0,
+          5.9
+        ],
+        "heading": 175.6031479896776,
+        "speed": 0,
+        "feedback": "艇身贴着墙，转不过来。先按住 N 倒车离墙一两米，再转船头。"
+      },
+      {
+        "label": "forward nudge",
+        "pos": [
+          49.95497398826241,
+          0,
+          6.6149642756858515
+        ],
+        "heading": 175.6031479896776,
+        "speed": 0.0580112422690676,
+        "feedback": "艇身贴着墙，转不过来。先按住 N 倒车离墙一两米，再转船头。"
+      },
+      {
+        "label": "turned east",
+        "pos": [
+          50.067767987250676,
+          0,
+          6.769638872847482
+        ],
+        "heading": 88.87915235635273,
+        "speed": 0,
+        "feedback": "艇身贴着墙，转不过来。先按住 N 倒车离墙一两米，再转船头。"
+      },
+      {
+        "label": "at doorway center x",
+        "pos": [
+          53.18818879228076,
+          0,
+          6.654117687389294
+        ],
+        "heading": 87.8566179199089,
+        "speed": 0.09742912309594715,
+        "feedback": "艇身贴着墙，转不过来。先按住 N 倒车离墙一两米，再转船头。"
+      },
+      {
+        "label": "turned south",
+        "pos": [
+          53.46587471716007,
+          0,
+          6.823356324195859
+        ],
+        "heading": 181.09197842015203,
+        "speed": 0,
+        "feedback": "艾里亚斯：入口地板上那个人，你看见了吗？他旁边托盘上有个黄色摄像仪匣。只取匣子，传递口就在旁边。"
+      },
+      {
+        "label": "entered R2",
+        "pos": [
+          53.152222353045204,
+          0,
+          15.336073860590945
+        ],
+        "heading": 182.1186501887954,
+        "speed": 0.11100657965183963,
+        "feedback": "艾里亚斯：入口地板上那个人，你看见了吗？他旁边托盘上有个黄色摄像仪匣。只取匣子，传递口就在旁边。"
+      }
+    ],
+    "pass": true
+  },
+  "blocked": [
+    "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Noto+Serif+SC:wght@300;400;600&display=swap",
+    "http://127.0.0.1:5180/api/video/videos"
+  ],
+  "errors": []
+}

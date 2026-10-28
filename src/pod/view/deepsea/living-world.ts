@@ -1,11 +1,12 @@
 import * as T from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {LIVING_DOORS, LIVING_ITEMS, LIVING_SPACES, livingSolids, livingWalkable, type CreatureType, type Vec3} from '../../content/living-deck-layout';
-import {createAlex} from './living-alex';
+import {buildSurveyFixtures} from './living-survey-fixtures';
 import {cullDetail} from './living-build';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createAtmosphere, livingFlicker, livingFogAt, type LivingFlicker, type LivingHaloSource, type LivingOptics} from './living-atmosphere';
 import {LIVING_ANCHOR_LAMPS} from './living-clutter';
-import {createCreatures} from './living-creatures';
+
 import {buildDressing} from './living-dressing';
 import {loadHeroGlbs} from './living-glb';
 import {buildHeroes} from './living-hero';
@@ -13,7 +14,7 @@ import {createLivingMaterials, lensMaterial, withStaticLights} from './living-ma
 import {LIVING_CURTAIN, LIVING_UPLIGHTS} from './living-wreck';
 import {buildShells} from './living-shells';
 import {livingFontsReady} from './living-signage';
-import {buildSlime} from './living-slime';
+
 
 export {LIVING_GATE_CODE, LIVING_HERO_ANCHORS, type HeroName} from './living-hero';
 
@@ -23,6 +24,7 @@ export interface LivingWorldState {
   probe: 'none' | 'carried' | 'launched' | 'withAlex';
   valves: {heat: boolean; feed: boolean; cool: boolean}; valveTurn: {heat: number; feed: number; cool: number};
   slime: number; gateOpen: number;
+  survey?: {doorOpen: number};
   alex: {identity?:'elias'|'keeper';position: Vec3; heading: number; visible: boolean; pose: 'idle' | 'swim' | 'gesture' | 'type' | 'film'};
   creatures: readonly LivingCreatureVisual[];
 }
@@ -38,6 +40,7 @@ export interface LivingWorld {
   interactables: Map<string, T.Object3D>;
   itemBounds: Map<string, T.Box3>;
   gate: {mesh: T.Object3D; bounds: T.Box3};
+  surveyGate: {mesh: T.Object3D; bounds: T.Box3};
   practicalLights: {position: Vec3; color: string; intensity: number; range: number; space: string; dir: Vec3; flicker: LivingFlicker; seed: number}[];
   /** Visual-only mood lights (one warm shadowed key + cold status lamps per space, plus static-only accents). Not in LIVING_LIGHTS. */
   moodLights: {position: Vec3; color: string; intensity: number; range: number; space: string; dir: Vec3; flicker: LivingFlicker; seed: number; key: boolean; angle?: number; staticOnly?: boolean}[];
@@ -58,25 +61,34 @@ const box3 = (b: {min: Vec3; max: Vec3}) => new T.Box3(new T.Vector3(...b.min), 
 /** Gate F leaf travel at gateOpen = 1 (matches the Blender gate-f export). */
 const GATE_LIFT = 3.6;
 /** Atrium doorways (x, z): C5, C7, C6, gate F. */
-const A_OPENINGS = [[128.5, 42], [110, 68], [162, 82], [188, 42]] as const;
+const A_OPENINGS = [[128.5, 42], [110, 68], [162, 82], [188, 42], [200, 68]] as const;
 const CARGO = ['living.box.battery', 'living.box.tools', 'living.box.probe', 'living.box.ballast'];
 
 export function createLivingWorld(): LivingWorld {
   const root = new T.Group(); root.name = 'living-deck-world';
-  const materials = createLivingMaterials();
+  const materials = createLivingMaterials({survey:true});
   const shells = buildShells(materials);
   const dressing = buildDressing(materials, shells, root);
   const spaceGroups = new Map<string, T.Group>();
   for (const [id, b] of shells.batches) { const g = b.build(root); g.name = `living-space:${id}`; spaceGroups.set(id, g); }
+  const valveFallback=root.getObjectByName('living-valve-r10-fallback');
+  if(valveFallback)spaceGroups.get('A')!.attach(valveFallback);
+  const valveOwned:{dispose():void}[]=[];let valveDisposed=false;
+  const valveReady=new GLTFLoader().loadAsync('/assets/deepsea/living/custom-valve/l2-service-valve.glb').then(g=>{
+    g.scene.name='living-valve-r10-glb';g.scene.position.set(159.6,-3,64.3);
+    g.scene.traverse(o=>{if(o instanceof T.Mesh){o.castShadow=o.receiveShadow=true;valveOwned.push(o.geometry);for(const mat of Array.isArray(o.material)?o.material:[o.material]){if(mat instanceof T.MeshStandardMaterial)withStaticLights(mat,'glb');valveOwned.push(mat);}}});
+    if(valveDisposed){valveOwned.forEach(o=>o.dispose());return;}
+    spaceGroups.get('A')!.add(g.scene);if(valveFallback)valveFallback.visible=false;
+  }).catch(e=>console.warn('L2 valve GLB unavailable; retaining procedural component',e));
   const heroes = buildHeroes(materials, shells, spaceGroups);
   shells.signBatch.build(root, false);
   const detailTiles: T.Mesh[] = [];
   root.traverse(o => { if ((o as T.Mesh).isMesh && o.userData.cullDist) detailTiles.push(o as T.Mesh); });
 
-  const slime = buildSlime(materials, spaceGroups.get('M')!);
-  const creatures = createCreatures(); root.add(creatures.root);
-  const alex = createAlex(materials); root.add(alex.root, alex.lights);
-  root.add(slime.light);
+  // Personnel routes and living creatures exist only in generated footage, not scene geometry.
+  const survey = buildSurveyFixtures(spaceGroups, materials);
+  spaceGroups.get('S')!.attach(heroes.guard);
+  heroes.guard.position.add(new T.Vector3(-66, 0, 73));
   // Layout fixtures (gameplay light table) + visual-only emergency anchors from the clutter pass.
   // Render copies only: wall-hugging sources are moved off the bulkhead and colours saturated (see offWall/vivid).
   const practicalLights: LivingWorld['practicalLights'] = [
@@ -110,6 +122,11 @@ export function createLivingWorld(): LivingWorld {
       const mm = (o as T.Mesh).material;
       for (const x of Array.isArray(mm) ? mm : mm ? [mm] : []) if (x instanceof T.MeshStandardMaterial) withStaticLights(x, 'glb');
     });
+    if(name==='security-post'){
+      const body=scene.getObjectByName('security-diver');
+      if(body){scene.updateMatrixWorld(true);spaceGroups.get('S')!.attach(body);body.position.add(new T.Vector3(-66,0,73));body.rotation.z+=Math.PI/2;body.updateMatrixWorld(true);const bb=new T.Box3().setFromObject(body);body.position.y+=-2.85-bb.min.y;body.position.z-=.25;body.position.x-=.4;heroes.guard.visible=false;}
+      const cargo=heroes.probeCase; cargo.position.set(10,-1.2,11.5);
+    }
     if(name==='manager-office'){
       const oldNote=scene.getObjectByName('code-note');if(oldNote)oldNote.visible=false;
     }
@@ -118,7 +135,7 @@ export function createLivingWorld(): LivingWorld {
       scene.traverse(o => { if ((o as T.Mesh).isMesh && /^(stencils|tablecloth|pendant-lights|plants)/.test(o.name)) o.castShadow = false; });
     } else if (name === 'glass-blast-door') {
       heroes.pane.visible = false;
-      if (tag(scene.getObjectByName('pipe-intake'), 'living.pipe.intake')) hideVisuals(heroes.interactables.get('living.pipe.intake'));
+      const oldPipe=scene.getObjectByName('pipe-intake');if(oldPipe)oldPipe.visible=false;
     } else if (name === 'valve-manifold') {
       for (const k of ['heat', 'feed', 'cool'] as const) {
         const w = tag(scene.getObjectByName(`wheel-${k}`), `living.valve.${k}`);
@@ -138,34 +155,15 @@ export function createLivingWorld(): LivingWorld {
     }
   });
 
-  const colliders = [...livingSolids().map(box3), ...heroes.solids, ...slime.solids];
+  const colliders = [...livingSolids().map(box3), ...heroes.solids, ...survey.solids];
   const decorColliders = [...dressing.solids];
   const walkable = livingWalkable().map(box3);
-  const interactables = new Map<string, T.Object3D>(heroes.interactables);
+  const interactables = new Map<string, T.Object3D>([...heroes.interactables,...survey.interactables]);
   root.updateMatrixWorld(true);
   const itemBounds = new Map<string, T.Box3>();
   for (const it of LIVING_ITEMS) { const o = interactables.get(it.id); if (o) itemBounds.set(it.id, new T.Box3().setFromObject(o)); }
   const photoTargets = new Map<string, T.Object3D>(heroes.photoTargets);
-  photoTargets.set('alex', alex.root);
-  for (const [id, v] of creatures.visuals) photoTargets.set(id, v.root);
-  // Render-side overrides (slime visuals belong to living-slime): the backflow medium is drawn by the
-  // atmosphere snow + volumetric pass, so its additive glow sprites and purple point cloud are hidden;
-  // strongly magenta emissive/glow is remapped to a pale green-cyan fluorescence of equal luminance.
-  // Conditional, so a re-coloured slime palette passes through untouched.
-  const FLUO = new T.Color('#5fd1a8');
-  const demagenta = (c: T.Color) => {
-    if (!(c.r > c.g * 1.5 && c.b > c.g * 1.2)) return false;
-    const l = c.r * .2126 + c.g * .7152 + c.b * .0722;
-    c.copy(FLUO).multiplyScalar(l / (FLUO.r * .2126 + FLUO.g * .7152 + FLUO.b * .0722)); return true;
-  };
-  slime.root.traverse(o => {
-    if (o instanceof T.Sprite || o instanceof T.Points) { o.visible = false; o.userData.hiddenByRender = true; return; }
-    const m = (o as T.Mesh).material as T.Material | undefined;
-    if (m && 'emissive' in m && m.emissive instanceof T.Color && demagenta(m.emissive)) {
-      const c = (m as T.MeshStandardMaterial).color, l = c.r * .2126 + c.g * .7152 + c.b * .0722;
-      c.lerp(new T.Color(l * .8, l * 1.05, l), .75);
-    }
-  });
+  for(const [id,o] of survey.photoTargets) photoTargets.set(id,o);
   // Interior glass reads as a frosted white wall under the coaxial headlamp (opacity .85, light albedo): thin it
   // so the room / sea behind shows and the pane carries reflections instead. Conditional, like demagenta above.
   root.traverse(o => {
@@ -185,9 +183,6 @@ export function createLivingWorld(): LivingWorld {
   });
   const pendants = buildPendantHangers(shells.fixtures, materials.frame);
   (spaceGroups.get('A') ?? root).add(pendants.mesh);
-  const slimeLightBase = slime.light.color.clone();
-  if (demagenta(slimeLightBase)) slime.light.color.copy(slimeLightBase);
-
   const probeShots: LivingWorld['probeShots'] = {
     'alex-glass': {position: [147.6, -1.3, 5.2], target: [145.5, -1.5, 6.1], fov: 55},
     'pipe-bands': {position: [167, -1.5, -16], target: [175.5, -1.5, -20], fov: 58},
@@ -205,7 +200,7 @@ export function createLivingWorld(): LivingWorld {
 
   const world: LivingWorld = {
     root, colliders, decorColliders, walkable, interactables, itemBounds,
-    gate: heroes.gate, practicalLights, moodLights: mood.lights, probeShots, photoTargets, optics: atmosphere.optics,
+    gate: heroes.gate, surveyGate: survey.gate, practicalLights, moodLights: mood.lights, probeShots, photoTargets, optics: atmosphere.optics,
     fogAt(p) { const f = livingFogAt(p, lastSlime); return {color: `#${f.color.getHexString()}`, density: f.density}; },
     update(s, dt) {
       const t = s.time;
@@ -225,12 +220,8 @@ export function createLivingWorld(): LivingWorld {
       if (glbLeaf) glbLeaf.o.position.y = glbLeaf.y0 + lift;
       heroes.guard.position.set(guardBase.x + Math.sin(t * .21) * .03, guardBase.y + Math.sin(t * .33) * .04, guardBase.z);
       heroes.guard.rotation.set(guardRot.x + Math.sin(t * .27) * .03, guardRot.y + Math.sin(t * .17) * .05, guardRot.z);
-      creatures.update(s.creatures, t, dt, s.recording, focus, s.lamp);
-      alex.update(s.alex, t, dt);
-      const nearSlime = focus.x > 140 && focus.x < 204 && focus.z < 44 && focus.z > -42 && (inSpace('L', [focus.x, 0, focus.z]) || inSpace('M', [focus.x, 0, focus.z]) || inSpace('N', [focus.x, 0, focus.z]));
-      slime.update(s.slime, t, dt, nearSlime);
-      slime.light.intensity *= .35;
-      atmosphere.optics.uSlime.value = T.MathUtils.clamp(s.slime, 0, 1);
+      survey.update(s.survey?.doorOpen ?? 0,!s.collected.includes('living.box.probe'));
+      atmosphere.optics.uSlime.value = 0;
       dressing.update(t);
       for (const l of flickerLenses) l.m.emissiveIntensity = l.base * livingFlicker(l.mode, l.seed, t);
       mood.update(t); accents.update(t);
@@ -250,12 +241,16 @@ export function createLivingWorld(): LivingWorld {
         g.visible = !inAlex ? Math.hypot(dx, dz) < 48 && (!hops || hops.has(s.id)) : (s.id === 'G' || s.id === 'A') && Math.hypot(dx, dz) < 30;
         // The atrium (heaviest group) is only reachable by sight through its four openings.
         if (s.id === 'A' && g.visible && !inSpace('A', p, 1)) g.visible = A_OPENINGS.some(([x, z]) => Math.hypot(p[0] - x, p[2] - z) < 34);
+        // A southern G work-face cannot see around the solid corner into A or V.
+        // Keep the real straight sightline through C5, rather than disabling lights.
+        if(inSpace('G',p)){if(s.id==='A'&&(p[0]<124||p[0]>133||p[2]<15))g.visible=false;if(s.id==='V'&&(p[0]<125||p[0]>136||p[2]>0))g.visible=false;}
       }
       cullDetail(detailTiles, focus);
     },
-    ready: Promise.all([materials.ready, glbs.ready, livingFontsReady]).then(() => undefined),
+    ready: Promise.all([materials.ready, glbs.ready, valveReady, livingFontsReady]).then(() => undefined),
     dispose() {
-      pendants.dispose(); glbs.dispose(); creatures.dispose(); alex.dispose(); slime.dispose(); atmosphere.dispose(); mood.dispose(); accents.dispose(); seaWindow.dispose();
+      valveDisposed=true;valveOwned.forEach(o=>o.dispose());
+      pendants.dispose(); glbs.dispose(); survey.dispose(); atmosphere.dispose(); mood.dispose(); accents.dispose(); seaWindow.dispose();
       heroes.dispose(); dressing.dispose(); shells.dispose(); materials.dispose();
       root.removeFromParent();
     },
@@ -286,6 +281,8 @@ function doorHops(p: Vec3) {
   const first = [...seen].flatMap(id => DOOR_LINKS.get(id) ?? []).map(l => l.to).filter(id => !seen.has(id));
   first.forEach(id => seen.add(id));
   for (const id of first) for (const l of DOOR_LINKS.get(id) ?? []) if (Math.hypot(l.at[0] - p[0], l.at[1] - p[2]) < 36) seen.add(l.to);
+  // C8 is a straight 32 m link: its destination must remain visible from the R2 threshold.
+  if(p[0]>50&&p[0]<96&&p[2]>21&&p[2]<31)seen.add('R4');
   return seen;
 }
 
@@ -352,8 +349,10 @@ interface MoodSpec {space: string; p: Vec3; aim: Vec3; color: string; intensity:
  * cold status lamps (unshadowed, short range). Each has its own small fixture so no pool lacks a source.
  */
 const MOOD: MoodSpec[] = [
+  {space:'S',p:[9.2,1.6,12.1],aim:[10,-2,11.5],color:WARM,intensity:7,range:7,key:true,angle:.4},
   {space: 'S', p: [13.1, 21, 3], aim: [7, 13, 8], color: WARM, intensity: 16, range: 14, key: true, angle: .7},
   {space: 'S', p: [.9, 16.5, 12.5], aim: [5, 13, 9], color: CYAN, intensity: 3, range: 6},
+  {space:'C1',p:[19,1.2,4],aim:[22,-1,7],color:TEAL,intensity:12,range:12,key:true,angle:.65},
   {space: 'C1', p: [25, 2.1, 11.1], aim: [28, -3, 6.5], color: WARM, intensity: 14, range: 11, key: true, angle: .75},
   {space: 'C1', p: [45, -1.4, 3.9], aim: [45, -3, 7], color: CYAN, intensity: 3, range: 5},
   {space: 'C1', p: [60.5, 1.4, 11.1], aim: [60, -3, 8], color: TEAL, intensity: 2.5, range: 5},
@@ -377,13 +376,21 @@ const MOOD: MoodSpec[] = [
   {space: 'V', p: [141.1, 1.2, -25.5], aim: [138, -3, -25], color: TEAL, intensity: 3, range: 6},
   {space: 'C5', p: [124.9, 2.1, 30], aim: [129, -3, 32], color: WARM, intensity: 12, range: 10, key: true, angle: .7},
   // Hung from the roof truss beside the fountain statue (not inside it), raking across statue and floor.
-  {space: 'A', p: [154, 8.2, 57], aim: [161, -9, 63], color: WARM, intensity: 40, range: 22, key: true, angle: .45},
+  {space: 'A', p: [154, 8.2, 57], aim: [155, -2, 67], color: WARM, intensity: 34, range: 22, key: true, angle: .45},
   {space: 'A', p: [199.1, -6, 62], aim: [195, -9, 62], color: CYAN, intensity: 4, range: 8},
-  {space: 'A', p: [110.9, -6, 50], aim: [115, -9, 50], color: TEAL, intensity: 4, range: 8},
+  {space: 'A', p: [163, 3, 57], aim: [174, -8, 61], color: '#7ca69a', intensity: 52, range: 25, key: true, angle: .55},
   {space: 'R5', p: [169.2, .4, 106.6], aim: [167, -2.6, 103.6], color: WARM, intensity: 8, range: 7, key: true, angle: .6},
   {space: 'R5', p: [150.9, 0, 89], aim: [154, -2, 90], color: BLUE, intensity: 3, range: 6},
   {space: 'C7', p: [109.1, 2, 65], aim: [108, -3, 68], color: WARM, intensity: 10, range: 9, key: true, angle: .7},
   {space: 'D', p: [90.9, 0, 61], aim: [98, -14, 68], color: WARM, intensity: 20, range: 20, key: true, angle: .6},
+  {space:'R4',p:[115,3.2,28],aim:[118,0,26],color:CYAN,intensity:16,range:15,key:true,angle:.55},
+  {space:'A',p:[174,-4.6,63.5],aim:[175,-6,61],color:WARM,intensity:20,range:16,key:true,angle:.6},
+  {space:'A',p:[170,3,80.8],aim:[166,.5,69],color:TEAL,intensity:26,range:28,key:true,angle:.7},
+  {space:'C8',p:[70,2.3,23],aim:[72,-.8,22.4],color:CYAN,intensity:25,range:17,key:true,angle:.55},
+  {space:'C8',p:[81,1.9,29.9],aim:[82,.2,30.5],color:CYAN,intensity:11,range:15,key:false,angle:.6},
+  {space:'C8',p:[93,2.3,22],aim:[108,0,26],color:CYAN,intensity:14,range:20,key:true,angle:.5},
+  {space: 'C8', p: [78, 2.2, 21.7], aim: [84,-2,26], color: WARM, intensity: 14, range: 14, key:true, angle:.7},
+  {space: 'E', p: [216,1,62], aim: [208,-12,68], color: TEAL, intensity:20, range:22,key:true,angle:.6},
   {space: 'L', p: [143, -.2, -1], aim: [146, -3, 5], color: WARM, intensity: 9, range: 9, key: true, angle: .7},
   // Kept off the cocoon (170, -2.2, -14): its clear-coat shell turns a direct pool into a blown highlight.
   {space: 'M', p: [175.1, -.2, -27], aim: [171, -3, -30], color: WARM, intensity: 5, range: 8, key: true, angle: .7, flicker: 'pulse'},
@@ -406,7 +413,7 @@ function buildMoodLights(groups: Map<string, T.Group>, root: T.Group) {
   const lights: LivingWorld['moodLights'] = [];
   const halos: {position: Vec3; color: string; intensity: number; flicker: LivingFlicker; seed: number; halo: number}[] = [];
   const up = new T.Vector3(0, 1, 0), tmp = new T.Vector3();
-  MOOD.forEach((m, i) => {
+  MOOD.filter(m => !['L','M','N'].includes(m.space)).forEach((m, i) => {
     const s = LIVING_SPACES.find(q => q.id === m.space)!;
     const dir = new T.Vector3(...m.aim).sub(new T.Vector3(...m.p)).normalize();
     const seed = 90 + i * 2.31, flicker = m.flicker ?? 'steady';
