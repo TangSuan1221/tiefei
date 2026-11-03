@@ -1,5 +1,18 @@
 # 视频生成接口探测记录
 
+## 2026-10-29 参考图模式覆盖（客户端已改，代理真实生成待验）
+
+用户指定继续使用现有 `POST /v1/videos`、模型 `minimax-h3-max`、JSON请求与服务端LITELLM_KEY，禁止首尾帧模式。新请求图片采用：
+
+```json
+{"model":"minimax-h3-max","prompt":"Use the attached image as a visual reference, never as a required opening or ending frame.","duration":5,"size":"480p","content":[{"type":"image_url","image_url":{"url":"data:image/png;base64,..."},"role":"reference_image"}]}
+```
+
+依据：[MiniMax官方CLI](https://github.com/MiniMax-AI/cli/blob/main/src/video/v2.ts) 的图片角色区分，以及 [LiteLLM MiniMax适配器](https://github.com/BerriAI/litellm/blob/main/litellm/llms/minimax/videos/transformation.py) 的 `_content_param`：prompt单独传入，content仅放媒体项；input_reference会映射为first_frame，因此不使用该字段。保留用户示例的duration/size参数，未套用其他部署版本的尺寸映射。
+
+验证：固定机位/自拍JSON模拟请求和第三关18段提示词请求通过；禁止first_frame、last_frame、first_frame_image、last_frame_image、input_reference；无付费生成。公开源码只能证明字段语义，不能证明Forgeax当前部署版本；真实代理是否接受content、片尾是否符合要求仍待验。已有影片与已受理任务保留，不删除缓存，不自动重新计费生成。下文旧探测数据只作历史记录。
+
+
 > 2026-09-16 用 curl 实打 `https://llm-proxy.forgeax.com/v1/videos` 得到的结论。
 > 写在这里是因为这个接口的形状决定了 `src/pod/net/video.ts` 的全部结构 ——
 > 后来的人如果想改客户端，先读这一页，别再盲猜一遍。

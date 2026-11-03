@@ -1,6 +1,8 @@
+import { isVideoCall } from './tape-channel';
 import {isHarborOpening,harborOpeningFinished} from './harbor-opening';
 import {videoPolicy,videoContextKey,type VideoContext} from '../content/video-policy';
 import {freshNarrative} from './narrative-memory';
+import type {SubtitleLine} from '../content/video-subtitles';
 /**
  * 一次逃生的全部运行时状态。
  * ============================================================================
@@ -485,6 +487,7 @@ export interface ShotRuntime {
  * 的那条代码路径，顺带让 tools/pod-playthrough.ts 不依赖任何网络。
  */
 export interface FootageRequest {
+  harborCreatureReference?:boolean;
   duration?:5|10;
   allowed?:boolean;
   prefetch?:boolean;
@@ -517,10 +520,14 @@ export interface FootageRequest {
 export interface TapeRecord {
   /** Transmitted copies do not imply receipt or narrative evidence. */
   sentTo?: ('vance' | 'elias')[];
+  /** Remote NPC video call: false until opened on the lab comm tab (drives the incoming-call popup). */
+  callSeen?: boolean;
   testDescription?:string;
   simulationReport?:string[];
   /** Actual successive camera frames; UI plays these as a labelled local backup. */
   sensorFrames?:string[];
+  /** Spoken lines of a story video, shown as game subtitles over playback (VR-116). */
+  subtitles?:SubtitleLine[];
   siteEvidence?:unknown;
   /** Local five-second sensor exposure; never an AI video success flag. */
   sensorEvidence?:boolean;
@@ -632,6 +639,7 @@ export class PodRun {
   openingReceived=false;
   openingScanned=false;
   narrativeMemory=freshNarrative();
+  prologue:import('./prologue').Prologue|null=null;
   storyCaption='';
   storyCaptionLeft=0;
   get openingGuide():string|null {
@@ -733,6 +741,7 @@ export class PodRun {
   heading = 72;
   /** 潜深角，度。正 = 下潜。线框是三维的，竖直缝只看航向对不上 */
   pitch = 0;
+  throttleDragging = false;
   throttle = 0;
   /** 撞了几次 */
   collisions = 0;
@@ -921,6 +930,7 @@ export class PodRun {
   private videoPose(){const p=this.authoredSite?.position;return [p?.x,p?.y,p?.z,this.heading,this.pitch,this.camPan,this.camTilt,this.camZoom,this.lit];}
   private videoKey(c:VideoContext){return 'authored-video-v3:'+videoContextKey(c,this.videoPose());}
   private warmStoryVideo(dt:number){
+    if(this.prologue?.active)return;
     this.videoWarmPoll+=dt;if(this.videoWarmPoll<.5)return;dt=this.videoWarmPoll;this.videoWarmPoll=0;
     if(this.videoWarmBusy||!this.footageSink||!this.powered||this.throttle!==0||this.shot.phase==='exposing'||this.shot.phase==='developing')return;
     const c=this.authoredSite?.videoContext?.();
@@ -1006,7 +1016,7 @@ export class PodRun {
   }
 
   get unanalyzedCount(): number {
-    return this.tapes.filter((t) => !t.analyzed).length;
+    return this.tapes.filter((t) => !isVideoCall(t) && !t.analyzed).length;
   }
 
   get canSurvey(): boolean {
@@ -2040,6 +2050,7 @@ export class PodRun {
 
   setThrottle(n: number): void {
     this.throttle = clamp(Math.round(n), 0, 3);
+    if(this.prologue?.active&&this.prologue.step===2)this.prologue.gears|=1<<this.throttle;
     this.onCue?.('ui.toggle', 0.5);
     if (this.throttle === 0) this.tryCounter({ kind: 'fullstop' });
   }
@@ -2422,9 +2433,9 @@ export class PodRun {
    * A recording made by someone else's camera (e.g. the probe in Elias's hands), delivered over the
    * link. It is already developed; frames must be real renders and it still needs lab analysis.
    */
-  receiveRemoteTape(t:{id:string;siteName:string;frames:string[];siteEvidence:unknown;note?:string;videoResult?:'video'|'prompt';cacheKey?:string}):boolean {
+  receiveRemoteTape(t:{id:string;siteName:string;frames:string[];siteEvidence:unknown;note?:string;videoResult?:'video'|'prompt';cacheKey?:string;subtitles?:SubtitleLine[]}):boolean {
     if(this.phase!=='site'||t.frames.length<3||this.tapes.some(x=>x.id===t.id))return false;
-    this.tapes.push({sensorFrames:t.frames.slice(),siteEvidence:structuredClone(t.siteEvidence),sensorEvidence:true,keyframe:t.frames[0],ready:true,videoResult:t.videoResult??'failed',cacheKey:t.cacheKey,
+    this.tapes.push({sensorFrames:t.frames.slice(),siteEvidence:structuredClone(t.siteEvidence),sensorEvidence:true,keyframe:t.frames[0],ready:true,videoResult:t.videoResult??'failed',cacheKey:t.cacheKey,...(t.subtitles?.length?{subtitles:t.subtitles.map(l=>({...l}))}:{}),callSeen:false,
       id:t.id,legId:this.leg.id,siteName:t.siteName,purpose:'identify',atBreath:this.breaths,fauna:[],caughtThreat:null,creatureMissing:false,analyzed:false,report:[]});
     this.tapeCursor=this.tapes.length-1;
     this.pushLog(t.note??`收到远端录像：${t.siteName}。到分析台播放。`,'system');this.onCue?.('radio.squelch',.4);
@@ -3056,6 +3067,7 @@ export class PodRun {
       const policy=this.shotVideoContext?videoPolicy(this.shotVideoContext):{duration:5 as const,allowed:false};
       sink({
         ...policy,
+        harborCreatureReference:this.authoredSite?.index===0&&!!this.shotVideoContext?.monsters.length,
         keyframe: s.keyframe,
         cacheKey: s.cacheKey,
         legId: s.legId,
@@ -3173,12 +3185,14 @@ export class PodRun {
   }
 
   cycleTape(dir: -1 | 1): void {
-    if (!this.tapes.length) {
+    const reels=this.tapes.map((t,i)=>({t,i})).filter(({t})=>!isVideoCall(t));
+    if (!reels.length) {
       this.pushLog('片盒是空的。先去摄像头拍一卷。', 'system');
       this.onCue?.('ui.error', 0.4);
       return;
     }
-    this.tapeCursor = (this.tapeCursor + dir + this.tapes.length) % this.tapes.length;
+    const current=reels.findIndex(({i})=>i===this.tapeCursor);
+    this.tapeCursor = reels[current<0 ? (dir===1?0:reels.length-1) : (current+dir+reels.length)%reels.length]!.i;
     this.onCue?.('ui.select', 0.4);
     const t = this.selectedTape;
     if (t) this.pushLog(`读片机咬住：${t.siteName} · ${TAPE_PURPOSE_CN[t.purpose]}。`, 'system');
@@ -4391,7 +4405,8 @@ export class PodRun {
   useSupply(id: SupplyId): boolean {
     const def = supply(id);
     if (this.count(id) <= 0) return false;
-    if (def.station && (!this.at || canonicalStation(this.at) !== canonicalStation(def.station))) {
+    const cabinBattery=id==='sup.cell'&&this.at==='lab';
+    if (def.station && !cabinBattery && (!this.at || canonicalStation(this.at) !== canonicalStation(def.station))) {
       this.pushLog(`${def.name}得在${STATIONS[def.station].name}用。`, 'system');
       this.onCue?.('ui.error', 0.5);
       return false;
@@ -4706,6 +4721,24 @@ export class PodRun {
     this.onCue?.('hull.crack',1);this.onShake?.(.55);
     const message=`GM · 怪物入侵：撞击已开始，${t.warningLeft} 秒后执行真实攻击，可造成损伤或死亡。按 Esc 关闭指令台，前往摄像机曝光。此指令不自动生成视频。`;
     this.pushLog(message,'bad');return message;
+  }
+  /** GM fixture: kills live creatures within `radius` m of the pod, plus any abstract encounter in progress. */
+  gmKillMonsters(radius=30):string {
+    if(this.outcome.kind!=='alive')return '请先开始一局存活中的游戏。';
+    if(!(radius>0))return '半径必须是大于0的米数。';
+    const killed=[...(this.authoredSite?.gmKillCreatures?.(radius)??[])];
+    const t=this.threat;
+    if(t&&t.phase!=='repelled'&&t.phase!=='struck'){
+      killed.push(t.known?t.creature.name:t.creature.designation);
+      if(this.lastCombat?.encounter===t.encounter)this.lastCombat.outcome='repelled';
+      t.phase='repelled';t.behavior='investigate';t.warningLeft=0;t.clearAt=this.clock;
+      this.suspicion=0;this.huntRecoveryUntil=this.clock+huntAct(this.legIndex).recovery;this.mode='calm';
+    }
+    const range=Number.isFinite(radius)?`${radius} 米内`:'全图';
+    if(!killed.length)return `GM · ${range}没有存活的怪物。`;
+    this.gmLevelSession=true;
+    const message=`GM · 已杀死${range}的 ${killed.length} 只怪物：${killed.join('、')}。本局转为测试会话，不覆盖正式存档。`;
+    this.pushLog(message,'system');return message;
   }
 
   spawnThreat(id: CreatureId, fuse: number): void {

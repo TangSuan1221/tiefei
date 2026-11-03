@@ -1,6 +1,6 @@
 {
   "pass": true,
-  "cases": 122,
+  "cases": 132,
   "objectiveOrders": 2,
   "method": "Reachable public FSM transitions; synthetic capture fixtures; normal/restored states; repeated-input trust idempotence. No browser/media validation.",
   "rows": [
@@ -289,7 +289,7 @@
       "text": "确认交接",
       "restored": false,
       "nearTransfer": false,
-      "reply": "罗温：确认交接\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "reply": "罗温：确认交接\n艾里亚斯：传递口在竖井出口旁那面墙上，靠过去把匣子放进去，我这边就能接。",
       "state": {
         "shared": false,
         "reported": false,
@@ -303,7 +303,7 @@
       "text": "确认交接",
       "restored": true,
       "nearTransfer": false,
-      "reply": "罗温：确认交接\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "reply": "罗温：确认交接\n艾里亚斯：传递口在竖井出口旁那面墙上，靠过去把匣子放进去，我这边就能接。",
       "state": {
         "shared": false,
         "reported": false,
@@ -345,7 +345,7 @@
       "text": "传递移动摄像仪",
       "restored": false,
       "nearTransfer": false,
-      "reply": "罗温：传递移动摄像仪\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "reply": "罗温：传递移动摄像仪\n艾里亚斯：传递口在竖井出口旁那面墙上，靠过去把匣子放进去，我这边就能接。",
       "state": {
         "shared": false,
         "reported": false,
@@ -359,7 +359,7 @@
       "text": "传递移动摄像仪",
       "restored": true,
       "nearTransfer": false,
-      "reply": "罗温：传递移动摄像仪\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "reply": "罗温：传递移动摄像仪\n艾里亚斯：传递口在竖井出口旁那面墙上，靠过去把匣子放进去，我这边就能接。",
       "state": {
         "shared": false,
         "reported": false,
@@ -401,7 +401,7 @@
       "text": "把摄像仪交给你",
       "restored": false,
       "nearTransfer": false,
-      "reply": "罗温：把摄像仪交给你\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "reply": "罗温：把摄像仪交给你\n艾里亚斯：传递口在竖井出口旁那面墙上，靠过去把匣子放进去，我这边就能接。",
       "state": {
         "shared": false,
         "reported": false,
@@ -415,7 +415,7 @@
       "text": "把摄像仪交给你",
       "restored": true,
       "nearTransfer": false,
-      "reply": "罗温：把摄像仪交给你\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "reply": "罗温：把摄像仪交给你\n艾里亚斯：传递口在竖井出口旁那面墙上，靠过去把匣子放进去，我这边就能接。",
       "state": {
         "shared": false,
         "reported": false,
@@ -457,7 +457,7 @@
       "text": "给你",
       "restored": false,
       "nearTransfer": false,
-      "reply": "罗温：给你\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "reply": "罗温：给你\n艾里亚斯：传递口在竖井出口旁那面墙上，靠过去把匣子放进去，我这边就能接。",
       "state": {
         "shared": false,
         "reported": false,
@@ -471,7 +471,7 @@
       "text": "给你",
       "restored": true,
       "nearTransfer": false,
-      "reply": "罗温：给你\n艾里亚斯：靠近入口的设备传递口，在通话窗口确认交接。我等接收回执。",
+      "reply": "罗温：给你\n艾里亚斯：传递口在竖井出口旁那面墙上，靠过去把匣子放进去，我这边就能接。",
       "state": {
         "shared": false,
         "reported": false,
@@ -1157,7 +1157,7 @@
       "text": "公司这道门的密码是什么",
       "restored": false,
       "nearTransfer": false,
-      "reply": "罗温：公司这道门的密码是什么\n艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。",
+      "reply": "罗温：公司这道门的密码是什么\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
       "state": {
         "shared": true,
         "reported": true,
@@ -1173,7 +1173,7 @@
       "text": "公司这道门的密码是什么",
       "restored": true,
       "nearTransfer": false,
-      "reply": "罗温：公司这道门的密码是什么\n艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。",
+      "reply": "罗温：公司这道门的密码是什么\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
       "state": {
         "shared": true,
         "reported": true,
@@ -1189,7 +1189,7 @@
       "text": "救命，我打不开这道门",
       "restored": false,
       "nearTransfer": false,
-      "reply": "罗温：救命，我打不开这道门\n艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。",
+      "reply": "罗温：救命，我打不开这道门\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
       "state": {
         "shared": true,
         "reported": true,
@@ -1205,7 +1205,167 @@
       "text": "救命，我打不开这道门",
       "restored": true,
       "nearTransfer": false,
-      "reply": "罗温：救命，我打不开这道门\n艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。",
+      "reply": "罗温：救命，我打不开这道门\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "能帮我开一下这扇门吗",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：能帮我开一下这扇门吗\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "能帮我开一下这扇门吗",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：能帮我开一下这扇门吗\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "这扇门要授权，你那边能弄吗",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：这扇门要授权，你那边能弄吗\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "这扇门要授权，你那边能弄吗",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：这扇门要授权，你那边能弄吗\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "1234",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：1234\n艾里亚斯：门锁不认通话里的数字。授权从值班终端直接发到03门锁，你在门旁确认就行。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "1234",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：1234\n艾里亚斯：门锁不认通话里的数字。授权从值班终端直接发到03门锁，你在门旁确认就行。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": false,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "密码是4821",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：密码是4821\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "密码是4821",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：密码是4821\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "0000，开门",
+      "restored": false,
+      "nearTransfer": false,
+      "reply": "罗温：0000，开门\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
+      "state": {
+        "shared": true,
+        "reported": true,
+        "askedCode": true,
+        "trust": 1,
+        "rewarded": [
+          "report"
+        ]
+      }
+    },
+    {
+      "stage": "door",
+      "text": "0000，开门",
+      "restored": true,
+      "nearTransfer": false,
+      "reply": "罗温：0000，开门\n艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。",
       "state": {
         "shared": true,
         "reported": true,

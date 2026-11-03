@@ -1,4 +1,9 @@
-import {isHarborOpening,harborOpeningFinished} from '../../sim/harbor-opening';
+import {Prologue} from '../../sim/prologue';
+import {useHarborLocalVideo} from '../../content/harbor-local-videos';
+import {showHarborDoorPanel} from './harbor-door-panel';
+import {HARBOR_DOOR_CODE} from '../../content/harbor-door-code';
+import {isHarborOpening,harborOpeningFinished,isHarborTaskMedia} from '../../sim/harbor-opening';
+import {labPlaybackRunning} from '../footage';
 import {isNoVideoMode} from '../gm';
 import {HarborSimpleFlow} from '../../sim/harbor-simple-flow';
 import {HarborTaskPlayer} from './harbor-task-player';
@@ -23,7 +28,7 @@ import {HarborPursuit} from '../../sim/harbor-pursuit';
 import {HARBOR_DATUM_DEPTH,coordFields,formatCoords} from '../../sim/site-coords';
 import {HarborRescueDialogue} from '../../sim/harbor-rescue-dialogue';
 import {StoryRuntime} from '../../../story-pipeline/runtime';
-import {level01} from '../../../story-pipeline/level-01';
+import {level01} from '../../../story-pipeline/level-01-legacy';
 import {parseNarrative,plantSeeds,hearSafety,noteInjury,freshNarrative,validNarrative,receiveSafetyEvidence} from '../../sim/narrative-memory';
 
 const CONTACT_NUDGE=25,CONTACT_SILENT=50,PERFORMANCE='\n人物：';
@@ -32,6 +37,8 @@ const windowOf:Record<string,string>={contact:'elias-contact',intro:'elias-warni
  confirmBrief:'elias-confirm',confirm:'elias-confirm',escapeBrief:'elias-escape',escape:'elias-escape',departure:'elias-escape',done:'elias-farewell'};
 
 const PHOTO_STATION_RADIUS=6;
+/** Porthole focus plate names for the facilities the window can lock onto. */
+const HARBOR_TARGET_NAMES:Record<string,string>={'harbor.rescue.observe':'接驳闸机面板','harbor.rescue.power':'配电箱','harbor.edge.A-C':'第一道压力门','harbor.edge.C-B':'第二道压力门'};
 
 /** Formal first chapter: retains the existing A/C approach and B pressure hull. */
 export class HarborRescueSite implements AuthoredSite {
@@ -46,6 +53,10 @@ export class HarborRescueSite implements AuthoredSite {
  readonly simpleFlow=new HarborSimpleFlow(this.rescue);
  private taskPlayer:HarborTaskPlayer;
  private simpleWaypoint='';
+ private kitPending=false;
+ // Opt-in QA telemetry only: no persistence, network, evidence grants or gameplay changes.
+ private readonly photoDiag=typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('harborPhotoDiag')==='1';
+ private photoDiagAt=0;
  private debugNoVideo=false;
  private personnelNear=false;
  private previousOptics:number[]|null=null;
@@ -62,7 +73,7 @@ export class HarborRescueSite implements AuthoredSite {
  constructor(readonly run:PodRun){
   this.taskPlayer=new HarborTaskPlayer(run);
   this.base=new PodExpedition(run,0);this.world=this.base.world;this.position=this.base.position;
-  this.position.set(11,0,10);run.heading=180;run.pitch=0;run.camPan=run.camTilt=0;
+  this.position.set(11,0,10);run.heading=180;run.pitch=0;run.camPan=run.camTilt=0;this.pursuit.awake=!this.simplified;
   this.visual=createHarborRescueWorld(this.world,this.materials);this.world.colliders.push(...this.visual.solids,this.visual.gate.bounds);this.world.decorColliders.push(...this.visual.decor);
   this.world.walkable.push(new T.Box3(new T.Vector3(72,-1,1.6),new T.Vector3(82.2,5.5,26)));
   const self=this;
@@ -80,6 +91,36 @@ export class HarborRescueSite implements AuthoredSite {
     {position:L.lure,name:'03 隔离货仓 · 仓内',detail:'货仓内部。在仓内开启主动脉冲，才能把它引进来。'},
    ]});
   this.world.root.updateMatrixWorld(true);this.syncVisual();
+ }
+ beginPrologue(){
+  this.run.prologue=new Prologue();this.position.set(11,0,-36);
+  this.run.heading=180;this.run.pitch=0;this.run.lamp=false;this.run.throttle=0;
+  this.run.activeSonarEnabled=false;this.run.sonarPulseEnabled=false;
+  this.run.walkTo('nav');this.prologueAnnounced=-1;
+ }
+ private prologueAnnounced=-1;
+ /** Vance's line stays on screen while it is voiced; the instruction overlay waits for storyCaptionLeft to run out. */
+ private prologueVoice:SpeechSynthesisUtterance|null=null;private prologueHold=0;
+ private tickPrologue(dt:number){
+  const p=this.run.prologue;if(!p?.active)return false;
+  this.prologueHold=Math.max(0,this.prologueHold-dt);
+  if(this.prologueVoice&&this.prologueHold>0)this.run.storyCaptionLeft=Math.max(this.run.storyCaptionLeft,.6);
+  const hit=this.aimedInterface();
+  p.tick(dt,{target:sonarDeskState(this.run).target,lamp:this.run.lit,gear:this.run.throttle,gearSettled:!this.run.throttleDragging,speed:this.run.pilot.speed,
+   x:this.position.x,y:this.position.y,z:this.position.z,pitch:this.run.pitch,pitchRate:this.run.pilot.pitchRate,verticalSpeed:this.run.pilot.verticalSpeed,
+   doorReach:hit.door==='harbor.edge.A-C'&&hit.distance<=3.4,
+   doorOpen:this.base.state.opened.includes('harbor.edge.A-C'),armStowed:this.run.arm.phase==='stowed'});
+  if(p.step!==this.prologueAnnounced){
+   this.prologueAnnounced=p.step;
+   const line=p.active?'万斯：'+p.beat[2]:'万斯：门开了，机械臂已收妥。罗温，继续进港。我留在陆地频道，有情况随时联系。';
+   // Reading time when silent; speech can extend it until the utterance ends, capped in case the browser never reports the end.
+   const read=Math.max(3,line.length*.14+1.2);
+   this.run.storyCaption=line;this.run.storyCaptionLeft=p.active?read:20;this.prologueHold=read+8;this.prologueVoice=null;this.run.pushLog(line,'system');
+   if(!isAudioMuted()&&typeof window!=='undefined'&&'speechSynthesis' in window){window.speechSynthesis.cancel();const voice=new SpeechSynthesisUtterance(line);voice.lang='zh-CN';
+    voice.onend=voice.onerror=()=>{if(this.prologueVoice===voice)this.prologueVoice=null;};this.prologueVoice=voice;window.speechSynthesis.speak(voice);}
+  }
+  this.navigationConsole.tick(dt);this.syncVisual();
+  return true;
  }
  get complete(){return (!this.debugNoVideo||isNoVideoMode())&&this.rescue.state.complete;}
  get evidenceReady(){return (!this.debugNoVideo||isNoVideoMode())&&this.rescue.state.departureConfirmed;}
@@ -104,8 +145,9 @@ export class HarborRescueSite implements AuthoredSite {
  get micWindow():string|null{if(this.simplified)return 'elias-action';if(this.rescue.state.failed)return null;if(!this.rescue.state.heard)return this.vanceLost?null:this.vanceFading?'vance-fade':'vance-entry';if(this.farewellTail)return null;return windowOf[this.dialogue.stage]??null;}
  get micTarget(){const id=this.micWindow;return !id?null:id.startsWith('vance')?'万斯':'艾里亚斯';}
  get micReady(){return !!this.micWindow;}
- private npcThreat(){const a=this.pursuit.position,b=this.simplified?new T.Vector3(...L.elias):this.visual.elias.position;if(this.rescue.state.isolated||this.pursuit.inside||a.distanceTo(b)>=3.2)return false;const ray=new T.Ray(a,b.clone().sub(a).normalize());return !this.solids().some(box=>{if(box.containsPoint(a)||box.containsPoint(b))return false;const hit=ray.intersectBox(box,new T.Vector3());return !!hit&&hit.distanceTo(a)<a.distanceTo(b)-.2;});}
- private npcHearsDanger(){return !this.rescue.state.isolated&&!this.pursuit.inside&&this.pursuit.position.distanceTo(new T.Vector3(...L.elias))<5;}
+ private npcThreat(){const a=this.pursuit.position,b=this.simplified?new T.Vector3(...L.elias):this.visual.elias.position;if(!this.pursuit.awake||this.rescue.state.isolated||this.pursuit.inside||a.distanceTo(b)>=3.2)return false;const ray=new T.Ray(a,b.clone().sub(a).normalize());return !this.solids().some(box=>{if(box.containsPoint(a)||box.containsPoint(b))return false;const hit=ray.intersectBox(box,new T.Vector3());return !!hit&&hit.distanceTo(a)<a.distanceTo(b)-.2;});}
+ private npcHearsDanger(){return this.pursuit.awake&&!this.rescue.state.isolated&&!this.pursuit.inside&&this.pursuit.position.distanceTo(new T.Vector3(...L.elias))<5;}
+ gmKillCreatures(radius:number){if(this.pursuit.killed||this.position.distanceTo(this.pursuit.position)>radius)return [];this.pursuit.kill();this.syncVisual();return ['港区爬行生物'];}
  private narrativeSay(text:string,id:string):boolean{
   const intent=parseNarrative(text),m=this.run.narrativeMemory,s=this.rescue.state;
   const seedLines=plantSeeds(m,intent,id.startsWith('vance')?'vance':'elias',text);
@@ -152,14 +194,14 @@ export class HarborRescueSite implements AuthoredSite {
  /** Story videos carry no evidence: receipt (the opening call: finished playback) advances the task without lab analysis. */
  private advanceStoryTask(){
   const id=this.simpleFlow.pending;if(!id||this.rescue.state.failed)return;
-  if(isNoVideoMode()){
+  if(isNoVideoMode()&&!useHarborLocalVideo(id,true)){
    if(!this.simpleFlow.accept(id))return;
    this.debugNoVideo=true;this.run.gmLevelSession=true;this.navigationConsole.replied=this.rescue.state.replied;
    const line='艾里亚斯：'+HARBOR_TASKS[id].line;this.navigationConsole.recordDialogue(line);this.feedback('【GM无视频 · 非真实录像 · 本局禁写正式存档】'+line);
    if(this.evidenceReady)this.run.campaign.record(0,'film');return;
   }
   const tape=this.run.tapes.find(t=>t.id==='harbor.task.'+id);
-  if(!tape||tape.ready===false||tape.videoResult!=='video'||!tape.cacheKey?.startsWith('harbor-task:'+id+':')||isHarborOpening(tape)&&!harborOpeningFinished(tape)||!this.simpleFlow.accept(id))return;
+  if(!tape||!isHarborTaskMedia(tape,id)||isHarborOpening(tape)&&!harborOpeningFinished(tape)||!this.simpleFlow.accept(id))return;
   const line='艾里亚斯：'+HARBOR_TASKS[id].line;tape.analyzed=true;tape.report=['剧情任务录像 · 无需核验',line];
   this.navigationConsole.replied=this.rescue.state.replied;this.navigationConsole.recordDialogue(line);this.feedback(line);
   if(this.evidenceReady)this.run.campaign.record(0,'film');
@@ -187,14 +229,32 @@ export class HarborRescueSite implements AuthoredSite {
   if(this.dialogue.stage==='intro'&&!s.replied){this.rescue.reply();this.navigationConsole.replied=true;}
   return true;
  }
- get objective(){if(this.debugNoVideo&&!isNoVideoMode())return 'GM诊断进度已暂停 · 恢复无视频模式或新开正式游戏';if(this.simplified)return (isNoVideoMode()?'【GM无视频 · 非正式存档】剧情自动推进；怪物底片在分析台按 3 诊断 · ':'')+this.simpleFlow.objective;const s=this.rescue.state;if(s.failed)return '救援失败 · 读取检查点';if(s.complete)return '救援完成 · 坐在操作台按 B 下潜到-1层';
+ get objective(){if(this.debugNoVideo&&!isNoVideoMode())return 'GM诊断进度已暂停 · 恢复无视频模式或新开正式游戏';if(this.simplified)return (isNoVideoMode()?'【GM无视频 · 非正式存档】有预制片需观看，无成片任务文字推进；怪物底片在分析台按 3 诊断 · ':'')+this.simpleFlow.objective;const s=this.rescue.state;if(s.failed)return '救援失败 · 读取检查点';if(s.complete)return '救援完成 · 坐在操作台按 B 下潜到-1层';
   if(this.run.power<.25&&this.zone()!=='power')return `电量低（${Math.round(this.run.power*100)}%）· 先回02配电箱，驶入3米内自动充电`+this.powerGuide();
   if(s.powered&&!s.gateOpen&&!s.isolated&&['lureBrief','lure','closeBrief','close'].includes(this.dialogue.stage))return '货仓闸门已落下 · 回桥头01面板按F重新开闸，再驶入03货舱'+this.guide(new T.Vector3(...L.observe),'01面板');
-  if(this.dialogue.stage!=='contact')return this.dialogue.objective;if(this.dialogue.busy)return '';if(s.heard)return '按住 M 键说话（或在输入框打字），回应艾里亚斯';if(s.signal)return '调谐被动接收机，收听求救载波';return this.entryReached?'穿过维修湾，沿通道驶向主港'+this.doorGuide():`输入万斯坐标 ${formatCoords([11,0,16])}，手动抵达A压力闸前`;}
+  if(this.dialogue.stage!=='contact')return this.dialogue.objective;if(this.dialogue.busy)return '';if(s.heard)return '按住 M 键说话（或在输入框打字），回应艾里亚斯';if(s.signal)return '驶近求救载波，接收机自动收听';return this.entryReached?'穿过维修湾，沿通道驶向主港'+this.doorGuide():`输入万斯坐标 ${formatCoords([11,0,16])}，手动抵达A压力闸前`;}
  readonly coordinateDatum=HARBOR_DATUM_DEPTH;
  get pulseCostScale(){return this.rescue.state.powered?1:1/3;}
- get dialogueChoices(){if(this.simplified)return this.simpleFlow.awaitingReport?(this.rescue.state.isolated?['关住了，可以走','先别走，我再核对一下']:['还没关住，先等','我不确定，等我再拍一次']):['你好，收到','主动声纳怎么关？','我会救你','重试录像'];return this.suggestions.map(x=>x.text);}
+ get dialogueChoices(){if(this.simplified&&!this.simpleFlow.legacy)return this.simpleFlow.awaitingReport?['我已经确认关好了，可以走','请先等我核对']:['你失联很久了，总部不知道你的情况，就派了我下来。','为什么要关闭主动声纳？'];if(this.simplified)return this.simpleFlow.awaitingReport?(this.rescue.state.isolated?['关住了，可以走','先别走，我再核对一下']:['还没关住，先等','我不确定，等我再拍一次']):['你好，收到','主动声纳怎么关？','我会救你','重试录像'];return this.suggestions.map(x=>x.text);}
  chooseDialogue(index:number){if(this.simplified){const text=this.dialogueChoices[index];return !!text&&this.radioSay(text);}const pick=this.suggestions[index];return !!pick&&this.radioSay(pick.text,pick.tag);}
+ get harborActions(){return this.simplified&&!this.simpleFlow.legacy;}
+ get mediaRetryable(){return this.simplified&&this.taskPlayer.retryable;}
+ retryMedia(){const line=this.taskPlayer.retry();this.feedback(line);return line;}
+ harborAction(action:string){
+  if(!this.harborActions)return false;
+  if(action==='retry'){this.feedback(this.taskPlayer.retry());return true;}
+  if(action==='identity'){const ok=this.simpleFlow.identify();this.feedback(ok?'任务身份资料已发送':'先接听求救呼叫');return true;}
+  if(action==='background'){this.radioSay('你失联很久了，总部不知道你的情况，就派了我下来。');return true;}
+  if(action==='hold'){this.rescue.stopDeparture();this.simpleFlow.reportAnswered=false;this.feedback('已通知艾里亚斯留在门后等待');return true;}
+  if(action==='report'){this.feedback(this.simpleFlow.reportEvidence()?'核验结果片已推送 · 艾里亚斯开始通过人员通道':'请先完成当前隔离结果与入仓录像核验，再推送');return true;}
+  if(action==='repair'){
+   if(this.run.arm.phase!=='stowed'||Math.abs(this.run.pilot.speed)>.05){this.feedback('先停稳并收回机械臂');return true;}
+   this.simpleFlow.world.kit=this.simpleFlow.kitStored;
+   if(!this.simpleFlow.finishRepair()){this.feedback('先到02岸电恢复台取出维修工具并收妥');return true;}
+   this.run.hull=1;this.run.leak=0;this.run.flood=0;this.rescue.interact('power',false,true);this.run.power=1;
+   this.feedback('铁鲸维修完成 · 艇况100% · 货舱控制回路恢复');return true;
+  }return false;
+ }
  get hint(){return this.objective;}
  private doorGuide(){
   const next=['harbor.edge.A-C','harbor.edge.C-B'].find(id=>!this.base.state.opened.includes(id)),door=next&&this.world.doors.get(next);if(!door)return '';
@@ -235,7 +295,7 @@ export class HarborRescueSite implements AuthoredSite {
    const id=hit.id?.startsWith('harbor.rescue.')?hit.id:['harbor.edge.A-C','harbor.edge.C-B'].includes(hit.door)?hit.door:'';
    if(!id||hit.distance>8)return [];
    const point=this.camera.getWorldDirection(new T.Vector3()).multiplyScalar(hit.distance).add(this.position);
-   return [{id,bounds:new T.Box3().setFromCenterAndSize(point,new T.Vector3(.08,.08,.08)),reach:3.4,enabled:true,verifiedDistance:hit.distance}];
+   return [{id,bounds:new T.Box3().setFromCenterAndSize(point,new T.Vector3(.08,.08,.08)),reach:3.4,enabled:true,verifiedDistance:hit.distance,label:HARBOR_TARGET_NAMES[id]}];
   });
  }
  private aimVisualRevision=0;
@@ -268,9 +328,10 @@ export class HarborRescueSite implements AuthoredSite {
   const value={id,door,distance:hit?.distance??Infinity};this.aimedCache={key,value};return value;
  }
  private interactionHint(){
-  if(this.facilityArm)return this.facilityArm.done?'本次作业已结束 · F / C 收回机械臂':this.run.arm.phase==='aiming'?'机械臂已伸出 · 对准原目标按 F 操作，C 取消收回':ARM_PHASE_CN[this.run.arm.phase];
+  if(this.facilityArm)return this.facilityArm.done?'作业完成 · 自动收回机械臂':this.run.arm.phase==='aiming'?'机械臂自动操作中 · C 取消收回':ARM_PHASE_CN[this.run.arm.phase];
   const hit=this.aimedInterface();const door=['harbor.edge.A-C','harbor.edge.C-B'].includes(hit.door);if(!door&&!hit.id?.startsWith('harbor.rescue.'))return this.objective;
   const name=door?'压力门':'设施面板';if(hit.distance>3.4)return `${name}距艇 ${hit.distance.toFixed(1)}米 · 缓慢前进至3.4米内，Shift制动后按F`;
+  if(this.simplified&&!this.simpleFlow.legacy&&(door||hit.id==='harbor.rescue.observe'))return `F · ${hit.door==='harbor.edge.C-B'&&!this.base.state.opened.includes(hit.door)?'查看门控面板':'操作门控'}（${hit.distance.toFixed(1)}米）`;
   return `F · 伸出机械臂操作${name}（${hit.distance.toFixed(1)}米） · 需照明与供电`;}
  private apply(result:RescueResult){for(const line of result.events)if(!line.startsWith('艾里亚斯：'))this.feedback(line);if(result.damage){this.run.hull=Math.max(0,this.run.hull-result.damage);this.run.onShake?.(.8);this.run.onCue?.('hull.crack',.8);}}
  private pose(){this.camera.position.copy(this.position);this.camera.rotation.set(-this.run.pitch*Math.PI/180-this.run.camTilt,-this.run.heading*Math.PI/180-this.run.camPan,0,'YXZ');this.camera.fov=64/Math.max(.5,this.run.camZoom);this.camera.updateProjectionMatrix();this.camera.updateMatrixWorld(true);}
@@ -281,6 +342,13 @@ export class HarborRescueSite implements AuthoredSite {
  private syncVisual(recording=false){this.aimVisualRevision++;const s=this.rescue.state;const monster=this.pursuit.position;const e=new T.Vector3(...L.elias);if(s.departing){const progress=s.departureSeconds*(s.injured?.5:1);e.x-=Math.min(1,progress/6)*4;e.z-=Math.max(0,Math.min(1,(progress-6)/4))*2.5;}
   this.visual.update({powered:s.powered,gateOpen:s.gateOpen,bridgeExtended:s.departing||s.departed,monsterPosition:monster.toArray() as [number,number,number],eliasPosition:e.toArray() as [number,number,number],monsterVisible:false,rescued:this.simplified,walking:!this.simplified&&s.departing&&!s.departed,eliasBeat:this.eliasBeat},this.elapsed);this.visual.gate.bounds.min.y=-1.25+this.visual.gate.mesh.position.y;this.visual.gate.bounds.max.y=4.25+this.visual.gate.mesh.position.y;this.world.root.updateMatrixWorld(true);}
  tick(dt:number){if(this.debugNoVideo&&!isNoVideoMode())return;dt=Number.isFinite(dt)?Math.max(0,dt):0;this.elapsed+=dt;
+  if(this.facilityArm&&!this.facilityArm.done&&this.run.arm.phase==='aiming'){
+   this.aimedCache=null;const hit=this.aimedInterface();
+   if(!this.run.lit||!this.run.powered||this.run.shot.viewing||this.run.outcome.kind!=='alive'||hit.distance>3.4||hit.id!==this.facilityArm.id||hit.door!==this.facilityArm.door){
+    this.facilityArm.done=true;this.feedback('操作条件已改变 · 取消作业并自动收臂');this.run.retractArm();
+   }else this.interact();
+  }
+  if(this.tickPrologue(dt))return;
   if(!this.simplified&&!this.started){this.started=true;this.queue('（导航资料附带一段旧留言。）','生活区值班员周岑：这里是生活区值班室。隔离门保持关闭，后来的人请先核对管线记录。','万斯：坐标发你了，在导航台上。过气闸走维修湾那条缝——全队只有你的艇挤得进去。','万斯：缝里开声纳，不然你会亲那面墙。过了门就关——你那块电池的检修单是我签的。……签的时候我没见过电池。岸电在里面。慢点开，罗温。我盯着你的点。');}
   if(!this.simplified&&!this.entryReached&&this.navigationConsole.target&&this.navigationConsole.target.every((v,i)=>Math.abs(v-[11,0,16][i])<.1)&&this.position.distanceTo(new T.Vector3(11,0,16))<=3){this.entryReached=true;this.feedback('万斯：门就在你正前方。门框应力计三天前报过一次撞击。……不是水压。别停，慢慢靠。');}
   if(this.run.power<.1&&this.run.activeSonarEnabled&&!this.rescue.state.powered){this.run.toggleActiveSonar();this.feedback('低压保护：主动声纳自动断电，余电留给推进。被动声纳照常。'+this.powerGuide().slice(3));}
@@ -288,12 +356,14 @@ export class HarborRescueSite implements AuthoredSite {
   if(this.run.power<.03&&!this.run.blackout&&this.elapsed-this.reserveAt>30){this.reserveAt=this.elapsed;this.run.power=.15;this.run.onCue?.('ui.error',.6);
    this.feedback('应急储备接入：仪表和推进保住了，余电只够开回02配电箱。'+this.powerGuide().slice(3));}
   const warned=this.rescue.state.warned,pulse=this.activeNoise,noise=Math.abs(this.run.pilot.speed)>.45||this.audibleBurstLeft>0;this.audibleBurstLeft=Math.max(0,this.audibleBurstLeft-dt);
+  // Chapter one opens without a creature in the water; it arrives with the scripted hull strike.
+  this.pursuit.awake=!this.simplified||this.simpleFlow.impactPlayed;
   const monsterDistance=this.position.distanceTo(this.pursuit.position),audible=this.pursuit.hears(this.position,pulse,noise);
   const personnelApproaching=this.simplified&&this.rescue.state.departing&&!this.rescue.state.departed&&!this.rescue.state.injured&&!this.rescue.state.isolated;
   const wasInside=this.pursuit.inside;
   if(personnelApproaching)this.pursuit.tickPersonnel(dt,new T.Vector3(...L.elias),this.rescue.state.gateOpen,false);
   else this.pursuit.tick(dt,this.position,pulse&&(this.simplified||warned),noise&&(this.simplified||warned),this.rescue.state.gateOpen,this.rescue.state.isolated,this.run.heading);
-  if(personnelApproaching&&wasInside&&!this.pursuit.inside)this.feedback('（水听器：拖行声越过敞开的货仓闸口，转向人员门的门轴声。）可输入“先别走”叫停。');
+  if(personnelApproaching&&wasInside&&!this.pursuit.inside)this.feedback('（水听器：拖行声越过敞开的货仓闸口，转向人员门的门轴声。）可以随时叫他退回门后。');
   const nearPersonnel=personnelApproaching&&!this.pursuit.inside&&this.pursuit.position.distanceTo(new T.Vector3(...L.elias))<7;
   if(nearPersonnel&&!this.personnelNear)this.feedback('艾里亚斯：门外的刮擦声靠过来了！门还卡着——要退回去就现在叫我。');
   this.personnelNear=nearPersonnel;
@@ -302,8 +372,8 @@ export class HarborRescueSite implements AuthoredSite {
   else if(!pulse)this.outsideLureWarned=false;
   // Entry only counts when the pod itself drew the creature in; once inside, it stays counted while the pod withdraws.
   const monsterInside=this.pursuit.inside&&(podInCargo||s0.monsterInside);
-  this.apply(this.rescue.step(dt,{chapterOne:this.simplified,personnelApproaching,npcThreat:this.npcThreat(),monsterInside,monsterDistance,nearB:this.entryReached&&this.position.x>27&&this.position.z>24,zone:this.zone(),activeSonar:audible&&(this.simplified||warned)}));if(!s0.injured&&this.rescue.state.injured){if(this.simplified){const m=this.run.narrativeMemory;m.elias='injured';m.partner='elias';m.trust=Math.max(-3,m.trust-2);const claim=m.claims.at(-1);if(claim&&claim.claim!=='danger')claim.disproved=true;this.feedback('艾里亚斯遇袭退回安保室 · 伤情回传待接收');}else{noteInjury(this.run.narrativeMemory);this.dialogue.interrupt(s0.gateOpen?'lure':'open',['艾里亚斯：我退回门边了。腿动不了，先把它隔开！']);}}this.navigationConsole.tick(dt);this.syncVisual();this.tickThreatBeep(dt);
-  if(this.simplified){this.tickSimple();return;}
+  this.apply(this.rescue.step(dt,{chapterOne:this.simplified,revised:this.simplified&&!this.simpleFlow.legacy,personnelApproaching,npcThreat:this.npcThreat(),monsterInside,monsterDistance,nearB:this.entryReached&&this.position.x>27&&this.position.z>24,zone:this.zone(),activeSonar:audible&&(this.simplified||warned)&&(!this.simplified||this.simpleFlow.threatEnabled&&!this.taskPlayer.waiting&&!(this.simpleFlow.pending&&labPlaybackRunning(this.run)))}));if(!s0.injured&&this.rescue.state.injured){if(this.simplified){const m=this.run.narrativeMemory;m.elias='injured';m.partner='elias';m.trust=Math.max(-3,m.trust-2);const claim=m.claims.at(-1);if(claim&&claim.claim!=='danger')claim.disproved=true;this.simpleFlow.reportAnswered=false;this.feedback('艾里亚斯遇袭退回总调度室 · 伤情回传待接收，需重新隔离');}else{noteInjury(this.run.narrativeMemory);this.dialogue.interrupt(s0.gateOpen?'lure':'open',['艾里亚斯：我退回门边了。腿动不了，先把它隔开！']);}}this.navigationConsole.tick(dt);this.syncVisual();this.tickThreatBeep(dt);
+  if(this.simplified){this.tickSimple(dt);if(this.photoDiag&&this.elapsed>=this.photoDiagAt){this.photoDiagAt=this.elapsed+2;this.logPhotoDiagnostic('observe');}return;}
   this.tickRadio(dt);
   const beat=this.dialogue.tick(dt,this.rescue.state,this.activeNoise);
   if(beat.line!==undefined){this.run.storyCaption=beat.line;this.run.storyCaptionLeft=beat.seconds??0;
@@ -318,12 +388,18 @@ export class HarborRescueSite implements AuthoredSite {
   if(this.dialogue.ambience&&this.dialogue.stage!=='warning'){this.ambienceLeft-=dt;if(this.ambienceLeft<=0){this.ambienceBeat++;this.ambienceLeft=5+(this.ambienceBeat%3)*2;this.run.onCue?.(this.ambienceBeat%2?'creature.skitter':'creature.breath-sync',.30);if(this.ambienceBeat%3===0){this.run.onShake?.(.16);this.run.onCue?.('hull.ping-return',.35);}}}
  }
 
- private tickSimple(){
+ private tickSimple(dt=0){
   const s=this.rescue.state;
-  if(!s.heard){this.rescue.step(.001,{nearB:true,zone:'none',activeSonar:false});this.rescue.listen();this.navigationConsole.heard=true;this.navigationConsole.captured=true;this.navigationConsole.clearPending();}
+  if(!s.heard&&(this.simpleFlow.legacy||this.base.state.opened.includes('harbor.edge.A-C'))){this.rescue.step(.001,{nearB:true,zone:'none',activeSonar:false});this.rescue.listen();this.navigationConsole.heard=true;this.navigationConsole.captured=true;this.navigationConsole.clearPending();}
   this.navigationConsole.replied=this.rescue.state.replied;
+  this.simpleFlow.sync({firstDoor:this.base.state.opened.includes('harbor.edge.A-C'),secondDoor:this.base.state.opened.includes('harbor.edge.C-B'),active:this.activeNoise,atExit:this.position.distanceTo(new T.Vector3(...L.observe))<=4,inCargo:this.podInCargo(),hull:this.run.hull,kit:this.simpleFlow.kitStored});
+  if(this.simpleFlow.tick(dt,this.taskPlayer.waiting||!!this.simpleFlow.pending&&labPlaybackRunning(this.run))){
+   if(this.simpleFlow.impactCount===1)this.pursuit.wake(this.position,this.run.heading);
+   this.run.hull=Math.min(this.run.hull,this.simpleFlow.impactCount===1?.75:.5);this.run.onShake?.(.85);this.run.onCue?.('hull.crack',.9);
+   this.feedback(this.simpleFlow.impactCount===1?'艇壳受到猛烈撞击！':'第二次撞击！艇体受损，完整度50% · 关闭主动声纳电源');
+  }
   const firstTick=!this.started;if(firstTick)this.started=true;
-  if(this.position.x>34&&this.position.z>20&&this.simpleFlow.takeImpact()){this.run.onShake?.(.85);this.run.onCue?.('hull.crack',.9);this.feedback('（艇壳猛地一震，扶手撞上罗温的手腕。）罗温：什么东西撞上来了！');}
+  if(this.position.x>34&&this.position.z>20&&this.simpleFlow.takeImpact()){this.pursuit.wake(this.position,this.run.heading);this.run.onShake?.(.85);this.run.onCue?.('hull.crack',.9);this.feedback('（艇壳猛地一震，扶手撞上罗温的手腕。）罗温：什么东西撞上来了！');}
   this.taskPlayer.tick(this.simpleFlow.pending,this.rescue.state.injured);
   this.advanceStoryTask();
   this.dialogue.stage=s.departureConfirmed?'done':s.departed?'departure':s.departing?'escape':s.isolated?'confirm':s.lureConfirmed?'close':s.gateOpen?'lure':s.powered?'open':s.identified?'power':this.simpleFlow.canPhotograph?'photo':'contact';
@@ -363,8 +439,12 @@ export class HarborRescueSite implements AuthoredSite {
  }
  move(d:number){return this.base.move(d);}turn(d:number){return this.base.turn(d);}moveVertical(d:number){return this.base.moveVertical(d);}
  sonarPulse(_power:0|1|2){} // Emissions, not screen power, attract the creature.
- private facilityArm:{id:string;door:string;done:boolean}|null=null;
+ private closeDoorPanel:(()=>void)|null=null;
+ private doorCodeApproved=false;
+ private facilityArm:{id:string;door:string;done:boolean;approved:boolean}|null=null;
  interact(){
+  if(this.run.prologue?.active&&this.run.prologue.step<11){this.feedback('万斯：先完成航前检查，再操作压力门。');return;}
+  if(document.getElementById('harbor-door-panel'))return;
   const arm=this.run.arm;
   if(this.facilityArm?.done&&arm.phase==='aiming'){this.run.retractArm();return;}
   if(['extending','gripping','hauling','jammed','gone'].includes(arm.phase)){this.feedback(ARM_PHASE_CN[arm.phase]);return;}
@@ -380,26 +460,46 @@ export class HarborRescueSite implements AuthoredSite {
    if(item&&(item.kind==='cache'||item.kind==='pickup')){this.base.interact();return;}
    this.feedback('未对准可操作的门、箱子或设施。');return;
   }
-  if(arm.phase==='stowed'){
-   this.facilityArm={id:hit.id,door:hit.door,done:false};
-   this.base.setExternalArmAnchor(this.ray.ray.at(hit.distance,new T.Vector3()));
-   this.run.pilot.stop();this.run.navDriveEngaged=false;beginExtend(arm);
-   this.run.power=Math.max(0,this.run.power-.01);this.run.addNoise(.2);this.run.onCue?.('arm.pump-start',.85);
-   this.feedback('机械臂伸出中 · 到位后对准原目标，再按 F 操作；C 可取消收回');return;
+  if(this.simplified&&!this.simpleFlow.legacy&&arm.phase==='stowed'&&(hit.door==='harbor.edge.A-C'||hit.door==='harbor.edge.C-B'||hit.id==='harbor.rescue.observe')){
+   this.run.pilot.stop();this.run.navDriveEngaged=false;
+   if(hit.door==='harbor.edge.C-B'&&!this.base.state.opened.includes(hit.door)){
+    // The player tries the lock first; only then does Elias send the code.
+    if(!this.simpleFlow.credential){const first=!this.simpleFlow.codeRequested;this.simpleFlow.requestCode();this.closeDoorPanel=showHarborDoorPanel({locked:true,onClose:()=>{this.closeDoorPanel=null;if(first)this.feedback('门控请求已转发总调度室 · 等待艾里亚斯回应');}});return;}
+    this.closeDoorPanel=showHarborDoorPanel({onClose:()=>{this.closeDoorPanel=null;},submit:code=>{
+     this.aimedCache=null;const now=this.aimedInterface();
+     if(this.run.outcome.kind!=='alive'||!this.run.lit||!this.run.powered||this.run.blackout||this.run.shot.viewing||this.run.arm.phase!=='stowed'||now.door!==hit.door||now.distance>3.4)return '连接中断：请关闭面板，恢复供电并重新靠近门锁。';
+     if(!this.simpleFlow.credential||this.rescue.state.departed)return '门禁授权已不可用。';
+     if(code!==HARBOR_DOOR_CODE)return '密码不匹配 · 核对艾里亚斯的视频后重新拨号';
+     this.startFacilityArm(hit,true);
+     return null;
+    }});return;
+   }
   }
-  if(!this.facilityArm||hit.id!==this.facilityArm.id||hit.door!==this.facilityArm.door){this.feedback('目标已改变，请先按 C 收臂。');return;}
+  if(arm.phase==='stowed'){
+   this.startFacilityArm(hit);return;
+  }
+  if(!this.facilityArm||hit.id!==this.facilityArm.id||hit.door!==this.facilityArm.door){this.feedback('目标已改变，操作取消。');this.run.retractArm();return;}
   beginGrip(arm,'harbor.facility.operation');this.run.addNoise(.1);this.run.onCue?.('arm.claw-wet',.8);
   this.feedback('机械爪正在操作，请等待动作完成。');
  }
+ private startFacilityArm(hit:{id:string;door:string;distance:number},approved=false){
+  this.facilityArm={id:hit.id,door:hit.door,done:false,approved};
+  this.base.setExternalArmAnchor(this.ray.ray.at(hit.distance,new T.Vector3()));
+  this.run.pilot.stop();this.run.navDriveEngaged=false;beginExtend(this.run.arm);
+  this.run.power=Math.max(0,this.run.power-.01);this.run.addNoise(.2);this.run.onCue?.('arm.pump-start',.85);
+  this.feedback('机械臂自动作业：伸出 → 操作 → 收回 · C 可取消');
+ }
  armEvent(kind:'grip'|'stowed',id?:string){
   if(!this.facilityArm)return this.base.armEvent(kind,id);
-  if(kind==='stowed'){this.facilityArm=null;this.base.setExternalArmAnchor(null);return true;}
+  if(kind==='stowed'){if(this.kitPending){this.kitPending=false;this.simpleFlow.kitStored=true;this.feedback('维修工具已收妥 · 到分析台通讯页执行修复铁鲸');}this.facilityArm=null;this.base.setExternalArmAnchor(null);return true;}
   if(id!=='harbor.facility.operation')return false;
   if(this.facilityArm.done)return true;
   this.aimedCache=null;const hit=this.aimedInterface();
   this.facilityArm.done=true;
-  if(!this.run.lit||!this.run.powered||hit.distance>3.4||hit.id!==this.facilityArm.id||hit.door!==this.facilityArm.door){this.feedback('操作中断，未改变设施状态 · F / C 收臂后重试');return true;}
-  this.commitFacility();return true;
+  if(!this.run.lit||!this.run.powered||hit.distance>3.4||hit.id!==this.facilityArm.id||hit.door!==this.facilityArm.door){this.feedback('操作中断，未改变设施状态 · 自动收臂');this.run.retractArm();return true;}
+  this.doorCodeApproved=this.facilityArm.approved;
+  try{this.commitFacility();}finally{this.doorCodeApproved=false;this.run.retractArm();}
+  return true;
  }
  private commitFacility(){
   if(this.debugNoVideo&&!isNoVideoMode()){this.feedback('诊断进度暂停，恢复GM无视频模式后继续。');return;}
@@ -407,11 +507,16 @@ export class HarborRescueSite implements AuthoredSite {
   let {id,door,distance}=this.aimedInterface();
   if(distance>3.4){this.feedback((door||id?.startsWith('harbor.rescue.'))?this.interactionHint():'这里没有可操作的设施。'+this.objective);return;}
   if(id?.startsWith('harbor.rescue.')){
+   // Repair tools come out of the existing 02 shore-power station; no separate crate in the scene.
+   if(id==='harbor.rescue.power'&&this.simplified&&!this.simpleFlow.legacy&&this.simpleFlow.repairBriefSeen&&!this.simpleFlow.repairCompleted&&!this.simpleFlow.kitStored){
+    this.kitPending=true;this.run.power=1;this.run.blackout=false;this.feedback('已从岸电恢复台取出维修工具 · 自动收回，收妥后入库');return;
+   }
    let zone=id.slice('harbor.rescue.'.length) as RescueZone;const s=this.rescue.state,stage=this.dialogue.stage;
    if(this.simplified&&zone==='observe'&&!s.departureConfirmed){
     if(!this.simpleFlow.canHelp){this.feedback('先听完艾里亚斯的背景与货仓诱导录像。');return;}
-    if(s.gateOpen&&!this.simpleFlow.entryAnalyzed){this.feedback('先在03拍清怪物完整入仓，并在分析台核验当前轮次录像。');return;}
+    if(s.gateOpen&&!(this.simpleFlow.legacy?this.simpleFlow.entryAnalyzed:this.simpleFlow.entryCaptured)){this.feedback('先在03停稳拍清怪物完整入仓，再退出货舱落闸；显影期间可以撤离。');return;}
    }
+   if(this.simplified&&!this.simpleFlow.legacy&&zone==='observe'&&s.isolated&&!s.departureConfirmed){this.rescue.reopenCargo();this.feedback('货舱闸门重新打开 · 隔离失效，艾里亚斯尚不知情');this.syncVisual();return;}
    if(zone==='lure'){this.feedback('货舱开关统一在01面板。');return;}
    if(zone==='observe'&&s.departureConfirmed)zone='exit';
    // Facilities answer to their physical preconditions only; the quest stage merely decides whether the dialogue already explains the result.
@@ -427,6 +532,8 @@ export class HarborRescueSite implements AuthoredSite {
   }
   if(this.run.blackout){this.feedback('艇内总闸断开。到分析台点「恢复总闸」，再回来开门。');return;}
   if(this.simplified&&this.rescue.state.departed&&door==='harbor.edge.C-B'){this.feedback('坍塌压住了回港压力门，不能重开。回01确认下潜。');return;}
+  if(this.simplified&&door==='harbor.edge.C-B'&&!this.simpleFlow.credential){this.feedback('第二道门尚未授权 · 接听艾里亚斯并回应求救，接收门禁资料');return;}
+  if(this.simplified&&!this.simpleFlow.legacy&&door==='harbor.edge.C-B'&&!this.base.state.opened.includes(door)&&!this.doorCodeApproved){this.feedback('请通过门控面板核对密码并开门。');return;}
   if(door&&['harbor.edge.A-C','harbor.edge.C-B'].includes(door)){this.entryReached=true;if(!this.base.state.opened.includes(door)){this.base.openPassage(door);this.openedTimes.set(door,this.elapsed);this.feedback((this.run.powered?'压力门正在开启，等待门叶完全让开再通过。':'压力门走港区液压，不吃艇上的电。门叶在让开——里面02配电箱能补电。')+(door==='harbor.edge.A-C'?' 门后通道向右弯，C-B压力门在弯道尽头。':''));}return;}
   this.feedback(door?'该通道保持隔离。沿维修湾前往主港。':'这里没有可操作的设施。'+this.objective);
  }
@@ -445,7 +552,16 @@ export class HarborRescueSite implements AuthoredSite {
   else if(kind==='gate'){if(Math.abs(this.visual.gate.mesh.position.y)>=.08)reason='闸门仍在移动，等待完全关闭。';}
   else if(!atObserve)reason=`请驶回01拍摄位 ${formatCoords(L.observe)} 附近（${PHOTO_STATION_RADIUS}米内）再曝光。`;
   if(this.simplified&&!reason&&kind==='gate'&&!this.visible(new T.Vector3(...L.gate),40))reason='关闭的闸门必须与仓内生物同时进入镜头。';
-  if(this.simplified&&!reason&&(!this.run.lit||!this.visible(this.pursuit.position.clone().add(new T.Vector3(0,.8,0)),40)))reason='请开灯，让当前生物位置进入镜头；空镜头不能作证。';
+  if(this.simplified&&!reason){
+   if(!this.run.lit)reason='照明不足：开启探照灯后再取景。';
+   else {const target=this.pursuit.position.clone().add(new T.Vector3(0,.8,0));
+    if(!this.visible(target,40)){
+     const d=target.distanceTo(this.position),p=target.clone().project(this.camera);
+     reason=d>40||d<.1?'目标超出摄影有效范围。':Math.abs(p.x)>.99||Math.abs(p.y)>.99||p.z>1||p.z< -1
+      ?'目标已出画：参考被动方位转向，调整俯仰再拍摄。':'视线被结构遮挡：移动取景位置后再拍摄。';
+    }
+   }
+  }
   this.syncVisual();
   return {kind,ready:!reason,text:reason||'取景可拍摄 · 曝光后分析新片',detail:`曝光镜头 ${yaw.toFixed(0)}° / 俯仰 ${pitch.toFixed(0)}°`,position:this.position.toArray()};
  }
@@ -463,7 +579,25 @@ export class HarborRescueSite implements AuthoredSite {
    monsters:monsterVisible?['Harbor creature, one individual: pale grey-beige continuous fleshy skin, low elongated body, articulated crawling limbs, closed mouth. Generate this creature in the recorded scene; it is intentionally absent from the environment reference image. It is not a shark or fish.']:[],
    outcome:s.monsterInside&&!s.isolated?'The creature is already inside the cargo enclosure. Show only slow movement within it; do not exit, cross the gate, attack or invent a new event.':s.departed?'Elias has reached the inner safe room.':s.isolated?'Cargo gate already closed; creature remains confined.':s.injured?'Elias is already injured and has retreated; do not replay the attack.':'Record only the present positions; no predicted escape or attack.'};
  }
- captureEvidence(){const a=this.photoAssessment(),beat=this.performance();return this.rescue.capture('rescue-'+(++this.sequence),a.kind,a.ready,`${a.detail}；艇位 ${a.position.map(v=>v.toFixed(1)).join(' / ')}。${a.text}`+(beat.zh?`${PERFORMANCE}${beat.zh}`:''),this.elapsed,this.visible(this.pursuit.position.clone().add(new T.Vector3(0,.8,0)),40));}
+ private logPhotoDiagnostic(event:'observe'|'exposure'){
+  if(!this.photoDiag)return;
+  try{
+   const assessment=this.photoAssessment(),target=this.pursuit.position.clone().add(new T.Vector3(0,.8,0));this.pose();
+   const delta=target.clone().sub(this.position),distance=delta.length(),projected=target.clone().project(this.camera);
+   const ray=new T.Ray(this.position,delta.clone().normalize());
+   const blockers=this.solids().filter(b=>b!==this.visual.gate.bounds&&!b.containsPoint(target)).flatMap(b=>{
+    const hit=ray.intersectBox(b,new T.Vector3());return hit&&hit.distanceTo(this.position)<distance-.3?[{min:b.min.toArray(),max:b.max.toArray(),distance:hit.distanceTo(this.position)}]:[];
+   }).sort((a,b)=>a.distance-b.distance);
+   const yaw=this.run.heading+this.run.camPan*180/Math.PI,azimuth=Math.atan2(delta.x,-delta.z)*180/Math.PI;
+   console.info('[harbor-photo-diag] '+JSON.stringify({event,elapsed:this.elapsed,sequence:this.sequence,assessment,
+    light:{lamp:this.run.lamp,lit:this.run.lit,powered:this.run.powered},activeSonar:this.run.activeSonarEnabled,
+    camera:{position:this.position.toArray(),heading:this.run.heading,yaw,pitch:this.run.pitch+this.run.camTilt*180/Math.PI,zoom:this.run.camZoom,fov:this.camera.fov,aspect:this.camera.aspect},
+    creature:{position:this.pursuit.position.toArray(),visualPosition:this.visual.monster.position.toArray(),target:target.toArray(),inside:this.pursuit.inside,relativeBearing:((azimuth-yaw+540)%360)-180},
+    visibility:{distance,projected:projected.toArray(),outsideX:Math.abs(projected.x)>.99,outsideY:Math.abs(projected.y)>.99,outsideDepth:projected.z>1||projected.z< -1,outsideRange:distance>40||distance<.1,blockers:blockers.slice(0,3)},
+    facts:{monsterInside:this.rescue.state.monsterInside,gateOpen:this.rescue.state.gateOpen,canPhotograph:this.simpleFlow.canPhotograph}}));
+  }catch{ /* Diagnostics must never prevent simulation or exposure. */ }
+ }
+ captureEvidence(){const a=this.photoAssessment(),beat=this.performance();this.logPhotoDiagnostic('exposure');return this.rescue.capture('rescue-'+(++this.sequence),a.kind,a.ready,`${a.detail}；艇位 ${a.position.map(v=>v.toFixed(1)).join(' / ')}。${a.text}`+(beat.zh?`${PERFORMANCE}${beat.zh}`:''),this.elapsed,this.visible(this.pursuit.position.clone().add(new T.Vector3(0,.8,0)),40));}
  commitEvidence(value:unknown){this.rescue.commitCapture(value as RescueEvidence);}
  evidenceStatus(value:unknown){const task=(value as {harborTask?:HarborTaskId}|undefined)?.harborTask;if(task)return {accepted:this.simpleFlow.accepted.includes(task),next:this.objective};const e=value as RescueEvidence|undefined;return {accepted:!!e&&this.rescue.state.analyzed.includes(e.id)&&(e.kind!=='lure'||this.rescue.state.isolated||e.epoch===this.rescue.state.epoch&&this.rescue.state.lureConfirmed),next:this.objective};}
  analyzeEvidence(value:unknown){
@@ -471,7 +605,7 @@ export class HarborRescueSite implements AuthoredSite {
   if(this.simplified){const v=value as {capture:{harborTask?:HarborTaskId;generated?:boolean};media:{playable:boolean;source?:string;mediaId?:string}};
    if(v?.capture?.harborTask){const id=v.capture.harborTask,tape=this.run.tapes.find(t=>t.id===v.media?.mediaId);
     if(this.simpleFlow.accepted.includes(id))return ['剧情任务录像无需核验；收到后已自动登记。','艾里亚斯：'+HARBOR_TASKS[id].line];
-    if(!v.media?.playable||v.media.source!=='generated-video'||!v.capture.generated||!tape||tape.id!=='harbor.task.'+id||!tape.cacheKey?.startsWith('harbor-task:'+id+':')||isHarborOpening(tape)&&!harborOpeningFinished(tape)||!this.simpleFlow.accept(id))return ['任务视频无效、尚未到该阶段或已经核验；未改变进度。'];
+    if(!v.media?.playable||!tape||!isHarborTaskMedia(tape,id)||isHarborOpening(tape)&&!harborOpeningFinished(tape)||!this.simpleFlow.accept(id))return ['任务视频无效、尚未到该阶段或已经核验；未改变进度。'];
     this.navigationConsole.replied=this.rescue.state.replied;const t=HARBOR_TASKS[id];this.navigationConsole.recordDialogue('艾里亚斯：'+t.line);this.feedback('艾里亚斯：'+t.line);return ['艾里亚斯：'+t.line,this.simpleFlow.objective];
    }
    if(v?.media?.source!=='generated-video')return ['首关正式摄影需要已生成的可播放录像；本地帧或GM描述不授予通关证据。'];
@@ -496,7 +630,7 @@ export class HarborRescueSite implements AuthoredSite {
  private trackedThreat=false;
  private get activeNoise(){return this.simplified?this.run.powered&&this.run.activeSonarEnabled:this.run.sonarEmitting;}
  private detectedThreatDistance(){
-  if(this.simplified){const target=this.pursuit.position,d=target.distanceTo(this.position);if(!this.activeNoise||d>24||d<.1)return null;const ray=new T.Ray(this.position,target.clone().sub(this.position).normalize());return this.solids().some(b=>{if(b.containsPoint(target))return false;const hit=ray.intersectBox(b,new T.Vector3());return hit&&hit.distanceTo(this.position)<d-.2;})?null:d;}
+  if(this.simplified){const target=this.pursuit.position,d=target.distanceTo(this.position);if(!this.pursuit.awake||!this.activeNoise||d>24||d<.1)return null;const ray=new T.Ray(this.position,target.clone().sub(this.position).normalize());return this.solids().some(b=>{if(b.containsPoint(target))return false;const hit=ray.intersectBox(b,new T.Vector3());return hit&&hit.distanceTo(this.position)<d-.2;})?null:d;}
   if(!this.rescue.state.warned||this.rescue.state.failed){this.trackedThreat=false;return null;}
   const d=Math.hypot(this.visual.monster.position.x-this.position.x,this.visual.monster.position.z-this.position.z);
   if(d>24){this.trackedThreat=false;return null;}
@@ -524,7 +658,7 @@ export class HarborRescueSite implements AuthoredSite {
  }
  get sonarReadout(){return this.echoSweep<0?undefined:this.base.sonarReadout;}
  drawMap(ctx:CanvasRenderingContext2D,w:number,h:number){this.navigationConsole.draw(ctx,w,h);}
- snapshot(){return {...this.base.snapshot(),debugNoVideo:this.debugNoVideo,simpleFlow:this.simplified?this.simpleFlow.snapshot():undefined,adapter:'harbor-rescue',adapterVersion:1,narrative:structuredClone(this.run.narrativeMemory),heading:this.run.heading,rescue:this.rescue.snapshot(),navigation:this.navigationConsole.snapshot(),sonarDesk:structuredClone(sonarDeskState(this.run)),entryReached:this.entryReached,elapsed:this.elapsed,sequence:this.sequence,dialogue:this.dialogue.snapshot(),story:this.story.snapshot(),radio:{vanceFading:this.vanceFading,vanceLost:this.vanceLost},ambienceLeft:this.ambienceLeft,ambienceBeat:this.ambienceBeat,pursuit:this.pursuit.snapshot()};}
+ snapshot(){return {...this.base.snapshot(),prologue:this.run.prologue?.snapshot(),debugNoVideo:this.debugNoVideo,simpleFlow:this.simplified?this.simpleFlow.snapshot():undefined,adapter:'harbor-rescue',adapterVersion:1,narrative:structuredClone(this.run.narrativeMemory),heading:this.run.heading,rescue:this.rescue.snapshot(),navigation:this.navigationConsole.snapshot(),sonarDesk:structuredClone(sonarDeskState(this.run)),entryReached:this.entryReached,elapsed:this.elapsed,sequence:this.sequence,dialogue:this.dialogue.snapshot(),story:this.story.snapshot(),radio:{vanceFading:this.vanceFading,vanceLost:this.vanceLost},ambienceLeft:this.ambienceLeft,ambienceBeat:this.ambienceBeat,pursuit:this.pursuit.snapshot()};}
  restore(value:unknown){if(value&&typeof value==='object'&&'survey' in value&&(value as {survey?:unknown}).survey!==undefined)return false;const s=value as ReturnType<HarborRescueSite['snapshot']>;if(!s||(s.debugNoVideo!==undefined&&typeof s.debugNoVideo!=='boolean')||(s.debugNoVideo&&!isNoVideoMode())||s.adapter!=='harbor-rescue'||s.adapterVersion!==1||!s.navigation||!s.sonarDesk||!Number.isFinite(s.elapsed)||!Number.isInteger(s.sequence)||s.sequence<0||s.elapsed<0||!Number.isFinite(s.heading)||typeof s.entryReached!=='boolean')return false;if(s.narrative!==undefined&&!validNarrative(s.narrative))return false;const check=new HarborRescue();if(!check.restore(s.rescue))return false;if(!HarborRescueNavigation.validateSnapshot(s.navigation)||s.navigation.heard!==s.rescue.heard||s.navigation.replied!==s.rescue.replied)return false;const d=s.sonarDesk;if(!Array.isArray(d.fields)||d.fields.length!==3||!d.fields.every(x=>typeof x==='string')||!Array.isArray(d.records)||!Number.isFinite(d.frequency)||d.frequency<35||d.frequency>45||!Number.isInteger(d.axis)||d.axis<0||d.axis>2||!['home','result','history'].includes(d.page)||typeof d.message!=='string'||(d.target!==null&&(!Array.isArray(d.target)||d.target.length!==3||!d.target.every(Number.isFinite)))||d.records.some(r=>!r||typeof r.text!=='string'||typeof r.kind!=='string'||!Number.isFinite(r.frequency)||(r.recording!==undefined&&typeof r.recording!=='string'))||(d.selected!==undefined&&(!Number.isInteger(d.selected)||d.selected<0||d.selected>=Math.max(d.records.length,s.navigation.radioRecords?.length??0))))return false;
   if(!Array.isArray(s.position)||s.position.length!==3||!s.position.every(Number.isFinite)||!harborHullClear(new T.Vector3(...s.position),s.heading,this.world.walkable,[...this.world.colliders.filter(b=>b!==this.visual.gate.bounds),...(s.rescue.gateOpen?[]:[this.visual.gate.bounds.clone().set(new T.Vector3(72.3,-1.25,15.7),new T.Vector3(81.7,4.25,16.3))]),...[...this.world.doors].filter(([id])=>!s.state?.opened?.includes(id)).map(([,door])=>door.bounds)]))return false;
   if(s.pursuit!==undefined&&!new HarborPursuit().restore(s.pursuit))return false;
@@ -532,7 +666,9 @@ export class HarborRescueSite implements AuthoredSite {
   const story=new StoryRuntime(level01);if(s.story!==undefined&&!story.restore(s.story))return false;
   if(s.radio!==undefined&&(typeof s.radio?.vanceFading!=='boolean'||typeof s.radio?.vanceLost!=='boolean'))return false;
   const simple=new HarborSimpleFlow(check);if(s.simpleFlow!==undefined&&!simple.restore(s.simpleFlow))return false;
-  if(!this.base.restore(s))return false;this.debugNoVideo=!!s.debugNoVideo;if(this.debugNoVideo)this.run.gmLevelSession=true;this.rescue.restore(s.rescue);this.simplified=s.simpleFlow!==undefined;if(s.simpleFlow)this.simpleFlow.restore(s.simpleFlow);if(s.pursuit)this.pursuit.restore(s.pursuit);else if(s.rescue.monsterInside)this.pursuit.position.set(...L.cargo);this.navigationConsole.restore(s.navigation);Object.assign(sonarDeskState(this.run),structuredClone(d));this.entryReached=s.entryReached;this.elapsed=s.elapsed;this.sequence=s.sequence;
+  if(s.prologue!==undefined&&!Prologue.valid(s.prologue))return false;
+  if(!this.base.restore(s))return false;
+  this.run.prologue=s.prologue?new Prologue():null;if(s.prologue)this.run.prologue!.restore(s.prologue);this.prologueAnnounced=-1;this.debugNoVideo=!!s.debugNoVideo;if(this.debugNoVideo)this.run.gmLevelSession=true;this.rescue.restore(s.rescue);this.simplified=s.simpleFlow!==undefined;if(s.simpleFlow)this.simpleFlow.restore(s.simpleFlow);if(s.pursuit)this.pursuit.restore(s.pursuit);else if(s.rescue.monsterInside)this.pursuit.position.set(...L.cargo);this.navigationConsole.restore(s.navigation);Object.assign(sonarDeskState(this.run),structuredClone(d));this.entryReached=s.entryReached;this.elapsed=s.elapsed;this.sequence=s.sequence;
   if(s.dialogue)this.dialogue.restore(s.dialogue);else {this.dialogue.migrate(s.rescue);this.navigationConsole.clearPending();}
   if(s.story)this.story.restore(s.story);this.run.narrativeMemory=s.narrative?structuredClone(s.narrative):freshNarrative();
   this.vanceLost=s.radio?.vanceLost??s.rescue.heard;this.vanceFading=s.radio?.vanceFading??this.vanceLost;this.contactIdle=0;this.contactNudged=false;
@@ -540,6 +676,6 @@ export class HarborRescueSite implements AuthoredSite {
    this.navigationConsole.setWaypoint(L.lure);const desk=sonarDeskState(this.run);desk.target=[...L.lure];desk.fields=coordFields(L.lure);
   }
   this.ambienceLeft=Number.isFinite(s.ambienceLeft)?Math.max(0,s.ambienceLeft):4;this.ambienceBeat=Number.isInteger(s.ambienceBeat)?Math.max(0,s.ambienceBeat):0;
-  this.run.storyCaption=this.dialogue.currentLine;this.run.storyCaptionLeft=this.dialogue.currentSeconds;this.started=true;this.syncVisual();return true;}
- dispose(){this.taskPlayer.dispose();if(typeof window!=='undefined'&&'speechSynthesis'in window)window.speechSynthesis.cancel();this.visual.dispose();this.base.dispose();this.materials.dispose();this.referenceMaterials.dispose();}
+  this.run.storyCaption=this.dialogue.currentLine;this.run.storyCaptionLeft=this.dialogue.currentSeconds;this.started=true;this.pursuit.awake=!this.simplified||this.simpleFlow.impactPlayed;this.syncVisual();return true;}
+ dispose(){this.run.prologue=null;this.closeDoorPanel?.();this.taskPlayer.dispose();if(typeof window!=='undefined'&&'speechSynthesis'in window)window.speechSynthesis.cancel();this.visual.dispose();this.base.dispose();this.materials.dispose();this.referenceMaterials.dispose();}
 }

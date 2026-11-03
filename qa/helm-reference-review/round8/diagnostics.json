@@ -1,0 +1,222 @@
+{
+  "errors": [],
+  "controls": {
+    "helm.throttle": {
+      "x": 742.573181041557,
+      "y": 476.4317354540952,
+      "hit": "desk:camera:helm.throttle"
+    },
+    "helm.stick": {
+      "x": 662.744949133508,
+      "y": 451.587314298037,
+      "hit": "desk:camera:helm.stick"
+    },
+    "drive.up": {
+      "x": 853.4603774381239,
+      "y": 396.45007100673666,
+      "hit": "desk:camera:drive.up"
+    },
+    "drive.down": {
+      "x": 851.1529053787451,
+      "y": 463.7634647352817,
+      "hit": "desk:camera:drive.down"
+    },
+    "nav.pitchUp": {
+      "x": 950.1063159731648,
+      "y": 395.8526395297262,
+      "hit": "desk:camera:nav.pitchUp"
+    },
+    "nav.pitchDown": {
+      "x": 947.9005435180608,
+      "y": 463.7634647352817,
+      "hit": "desk:camera:nav.pitchDown"
+    },
+    "helm.brake": {
+      "x": 895.125665271538,
+      "y": 559.1999267314709,
+      "hit": "desk:camera:helm.brake"
+    },
+    "camera.lamp": {
+      "x": 1150.524715394221,
+      "y": 395.25556189176274,
+      "hit": "desk:camera:camera.lamp"
+    },
+    "camera.shoot": {
+      "x": 1172.3986460185397,
+      "y": 537.776192800387,
+      "hit": "desk:camera:camera.shoot"
+    },
+    "arm.extend": {
+      "x": 1424.9689000435526,
+      "y": 426.1643129541009,
+      "hit": "desk:camera:arm.extend"
+    },
+    "arm.retract": {
+      "x": 1621.081150137937,
+      "y": 584.3754833566478,
+      "hit": "desk:camera:arm.retract"
+    }
+  },
+  "render": {
+    "frame": 131,
+    "calls": 633,
+    "triangles": 166606,
+    "points": 0,
+    "lines": 0
+  },
+  "memory": {
+    "geometries": 1070,
+    "textures": 71
+  },
+  "shadow": {
+    "before": {
+      "at": 0,
+      "pose": {
+        "thrust": 0,
+        "yaw": 0
+      }
+    },
+    "still": {
+      "at": 0,
+      "pose": {
+        "thrust": 0,
+        "yaw": 0
+      }
+    },
+    "turned": {
+      "at": 3.0669000000000004,
+      "pose": {
+        "thrust": 0,
+        "yaw": 0.5
+      }
+    },
+    "restored": {
+      "at": 3.266999999999999,
+      "pose": {
+        "thrust": 0,
+        "yaw": 0
+      }
+    }
+  },
+  "compact": {
+    "controls": {
+      "helm.throttle": {
+        "x": 538.7708821053232,
+        "y": 397.1632683195026,
+        "hit": "desk:camera:helm.throttle"
+      },
+      "helm.stick": {
+        "x": 472.23167648463016,
+        "y": 376.5099982864174,
+        "hit": "desk:camera:helm.stick"
+      },
+      "drive.up": {
+        "x": 631.126344149004,
+        "y": 330.441863755098,
+        "hit": "desk:camera:drive.up"
+      },
+      "drive.down": {
+        "x": 629.2459641932357,
+        "y": 386.53781023516154,
+        "hit": "desk:camera:drive.down"
+      },
+      "nav.pitchUp": {
+        "x": 711.6642359461063,
+        "y": 329.8829727953951,
+        "hit": "desk:camera:nav.pitchUp"
+      },
+      "nav.pitchDown": {
+        "x": 709.8689784379935,
+        "y": 386.4767145998697,
+        "hit": "desk:camera:nav.pitchDown"
+      },
+      "helm.brake": {
+        "x": 665.9501946994834,
+        "y": 466.0404082312684,
+        "hit": "desk:camera:helm.brake"
+      },
+      "camera.lamp": {
+        "x": 878.6791648723089,
+        "y": 329.2588449226054,
+        "hit": "desk:camera:camera.lamp"
+      },
+      "camera.shoot": {
+        "x": 896.9974176492138,
+        "y": 448.01220540293724,
+        "hit": "desk:camera:camera.shoot"
+      },
+      "arm.extend": {
+        "x": 1107.402124102944,
+        "y": 354.84282570817066,
+        "hit": "desk:camera:arm.extend"
+      },
+      "arm.retract": {
+        "x": 1270.9288061991078,
+        "y": 486.5615947159455,
+        "hit": "desk:camera:arm.retract"
+      }
+    },
+    "render": {
+      "frame": 187,
+      "calls": 608,
+      "triangles": 158950,
+      "points": 0,
+      "lines": 0
+    },
+    "memory": {
+      "geometries": 1070,
+      "textures": 71
+    }
+  },
+  "fit": {
+    "parameters": [
+      1.4659324472205877,
+      -0.7191474855727475,
+      0.9450823681093218,
+      40.17538965971824
+    ],
+    "target": [
+      [
+        99,
+        157
+      ],
+      [
+        956,
+        160
+      ],
+      [
+        1012,
+        481
+      ],
+      [
+        25,
+        481
+      ]
+    ],
+    "projected": [
+      [
+        84.53825682960911,
+        158.88470948443103
+      ],
+      [
+        942.2195608682644,
+        158.88470948443103
+      ],
+      [
+        1007.0687181682524,
+        480.6571840123214
+      ],
+      [
+        20.10479925590306,
+        480.6571840123214
+      ]
+    ],
+    "rmsPixels": 7.5195918888310365,
+    "panelScale": [
+      0.65,
+      0.74,
+      0.65
+    ]
+  },
+  "prologueBypassed": true
+}

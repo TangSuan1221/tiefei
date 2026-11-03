@@ -9,7 +9,7 @@ const js=ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.ESNext,t
 const {composeAbyssMedia,requestVideo,ELIAS_TASK_PLATES,eliasTaskReference}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
 const previous={fetch:globalThis.fetch,window:globalThis.window};const bodies=[];
 const events=new EventTarget();globalThis.window={addEventListener:events.addEventListener.bind(events),removeEventListener:events.removeEventListener.bind(events),setInterval};
-globalThis.fetch=async(_url,init)=>{bodies.push(JSON.parse(init.body));return new Response('{}',{status:400});};
+globalThis.fetch=async(_url,init)=>{const body=JSON.parse(init.body);for(const field of ['first_frame','last_frame','first_frame_image','last_frame_image','input_reference'])assert.equal(Object.hasOwn(body,field),false,field+' must never be submitted');if(body.content){assert.equal(body.content.length,1);assert.equal(body.content[0].type,'image_url');assert.equal(body.content[0].role,'reference_image');}bodies.push(body);return new Response('{}',{status:400});};
 try{
  let segments=0,max=0;
  for(const shot of Object.keys(ELIAS_TASK_PLATES)){
@@ -25,7 +25,7 @@ try{
    const png=fs.readFileSync('public'+part.plate);assert.equal(png.subarray(1,4).toString(),'PNG');
    const frame='data:image/png;base64,'+png.toString('base64');
    await requestVideo(part.prompt,undefined,frame,undefined,part.duration,part.cameraMode);
-   const body=bodies.at(-1);assert.equal(body.first_frame,frame);assert.equal(body.duration,10);
+   const body=bodies.at(-1);assert.equal(body.content[0].image_url.url,frame);assert.equal(body.duration,10);
    assert.ok(body.prompt.length<=3600,part.id+' payload length '+body.prompt.length);
    if(part.cameraMode==='elias-selfie'){assert.match(body.prompt,/ELIAS SELFIE CAMERA/);assert.doesNotMatch(body.prompt,/CAMERA LOCK:|exact opening frame|Animate underwater particles/);}
    else {assert.match(part.id,/VP-31[345]/);assert.match(body.prompt,/CAMERA LOCK:/);}

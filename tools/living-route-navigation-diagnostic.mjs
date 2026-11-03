@@ -12,8 +12,9 @@ try{
  const l=window.__living,r=window.__pod,f=l.survey;window.GM.noVideo(true);r.gmLevelSession=true;r.at='lab';
  const rows=[];const check=(name,pass,detail)=>{rows.push({name,pass,detail});};
  const dest=()=>l.destination();
- check('camera pickup navigation survives pending S01',!!dest(),dest());
- f.operate('body');check('transfer destination before pending suppression',JSON.stringify(dest())==='[12,0,9]',dest());
+ check('pre-call navigation leads out of the entrance shaft',JSON.stringify(dest())==='[16,0,7.5]',dest());
+ f.operate('body');f.tick(0,13);check('incoming first call suppresses navigation',dest()===undefined,{pending:f.pending});
+ f.acceptVideo('L2-S01');check('transfer destination after the first call',JSON.stringify(dest())==='[12,0,9]',dest());
  const old=l.diag.teleport(7,0,7,180);const oldNear=l.nearItem('living.pipe.intake');
  const legal=l.diag.teleport(12,0,9,180),near=l.nearItem('living.pipe.intake');l.radioSay('传递移动摄像仪');
  check('old pose outside transfer reach',old&&!oldNear,{old,oldNear});check('new transfer pose world hull and radio handoff',legal&&near&&f.shared,{legal,near,shared:f.shared,feedback:l.feedbackText});

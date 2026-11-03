@@ -1,0 +1,146 @@
+{
+  "materials": [
+    {
+      "position": [
+        -0.4305,
+        0.018,
+        0.076
+      ],
+      "color": [
+        0.5369133980572586,
+        0.5869326539331747,
+        1.0646664205608802
+      ],
+      "metalness": 0.18,
+      "roughness": 0.76,
+      "env": 0.65,
+      "map": {
+        "src": "http://127.0.0.1:5192/assets/cabin/helm/worn-enamel-albedo-v2.png",
+        "width": 1254,
+        "matrix": [
+          -1,
+          0,
+          0,
+          0,
+          -1,
+          0,
+          1,
+          1,
+          1
+        ],
+        "repeat": [
+          -1,
+          -1
+        ],
+        "center": [
+          0.5,
+          0.5
+        ],
+        "offset": [
+          0,
+          0
+        ],
+        "loaded": {
+          "helmAuthoredAlbedo": true,
+          "loaded": true,
+          "loadState": "loaded"
+        }
+      }
+    },
+    {
+      "position": [
+        0.1405,
+        0.018,
+        0.076
+      ],
+      "color": [
+        0.1354162285566318,
+        0.1501306789763498,
+        0.08929221387205727
+      ],
+      "metalness": 0.18,
+      "roughness": 0.76,
+      "env": 0.65,
+      "map": {
+        "src": "http://127.0.0.1:5192/assets/cabin/helm/worn-enamel-albedo-v2.png",
+        "width": 1254,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          -1,
+          0,
+          0,
+          1,
+          1
+        ],
+        "repeat": [
+          1,
+          -1
+        ],
+        "center": [
+          0.5,
+          0.5
+        ],
+        "offset": [
+          0,
+          0
+        ],
+        "loaded": {
+          "helmAuthoredAlbedo": true,
+          "loaded": true,
+          "loadState": "loaded"
+        }
+      }
+    },
+    {
+      "position": [
+        0.5735,
+        0.018,
+        0.076
+      ],
+      "color": [
+        0.359839864056398,
+        0.3303893779358497,
+        0.28071362464464883
+      ],
+      "metalness": 0.18,
+      "roughness": 0.76,
+      "env": 0.65,
+      "map": {
+        "src": "http://127.0.0.1:5192/assets/cabin/helm/worn-enamel-albedo-v2.png",
+        "width": 1254,
+        "matrix": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1
+        ],
+        "repeat": [
+          1,
+          1
+        ],
+        "center": [
+          0,
+          0
+        ],
+        "offset": [
+          0,
+          0
+        ],
+        "loaded": {
+          "helmAuthoredAlbedo": true,
+          "loaded": true,
+          "loadState": "loaded"
+        }
+      }
+    }
+  ],
+  "errors": []
+}

@@ -14,7 +14,7 @@ try{
  const {LivingSurvey}=await import('/src/pod/sim/living-survey.ts');
  const capture=t=>{const e={survey:true,id:'fixture.'+t,target:t,valid:true,lit:true};f.issue(e);f.commit(e);f.analyze(e);};
  const task=()=>l.tick(.1);
- task();f.operate('body');l.cargo.add('living.box.probe');f.operate('transfer');task();capture(0);capture(1);task();f.say('我听见了');capture('manual');f.operate('valve-s');f.say('含硫支路已关闭');task();f.operate('door');f.say('密码');task();f.enterCode(f.code,true);capture(2);f.operate('reunion');task();
+ task();f.operate('body');l.cargo.add('living.box.probe');f.operate('transfer');task();capture(0);capture(1);task();f.say('我听见了');capture('manual');f.operate('valve-s');f.say('含硫支路已关闭');task();f.operate('door');f.say('密码');task();f.operate('door');capture(2);f.operate('reunion');task();
  const beforeBallast=new LivingSurvey().restore(f.snapshot());check('internally consistent GM fact fixture',beforeBallast,f.snapshot().accepted);
  // Actual loaded world, collision-validated straight paths and turn sweeps.
  const trace=[];const go=(p,h)=>l.diag.teleport(...p,h);

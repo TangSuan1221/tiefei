@@ -2,16 +2,23 @@
   "result": {
     "rows": [
       {
-        "name": "camera pickup navigation survives pending S01",
+        "name": "pre-call navigation leads out of the entrance shaft",
         "pass": true,
         "detail": [
-          7,
+          16,
           0,
-          8
+          7.5
         ]
       },
       {
-        "name": "transfer destination before pending suppression",
+        "name": "incoming first call suppresses navigation",
+        "pass": true,
+        "detail": {
+          "pending": "L2-S01"
+        }
+      },
+      {
+        "name": "transfer destination after the first call",
         "pass": true,
         "detail": [
           12,
@@ -41,7 +48,7 @@
         "name": "pending shared task has no premature photography destination",
         "pass": true,
         "detail": {
-          "pending": "L2-S01",
+          "pending": "L2-S02",
           "destination": null
         }
       },
@@ -66,7 +73,7 @@
         "name": "unanswered distress does not get replaced by ballast",
         "pass": true,
         "detail": {
-          "objective": "【GM无视频】分析台输入“诊断核验任务”或“诊断分析底片”\n自由回复艾里亚斯的求助\n导航坐标 X137.8 Y13.5 DEPTH 1040m\n下一段：防爆玻璃观察廊（G）",
+          "objective": "【GM无视频】剧情自动推进；怪物底片在分析台按 3 诊断\n自由回复艾里亚斯的求助\n导航坐标 X137.8 Y13.5 DEPTH 1040m\n下一段：防爆玻璃观察廊（G）",
           "destination": [
             137.8,
             0,
@@ -78,7 +85,7 @@
         "name": "R4 local ballast destination matches actual box",
         "pass": true,
         "detail": {
-          "objective": "【GM无视频】分析台输入“诊断核验任务”或“诊断分析底片”\n离开压载库前 · 机械臂收妥下潜配重，免得下潜前再折返\n导航坐标 X115.5 Y32.5 DEPTH 1040.6m",
+          "objective": "【GM无视频】剧情自动推进；怪物底片在分析台按 3 诊断\n离开压载库前 · 机械臂收妥下潜配重，免得下潜前再折返\n导航坐标 X115.5 Y32.5 DEPTH 1040.6m",
           "destination": [
             115.5,
             -0.6,
@@ -113,6 +120,7 @@
   },
   "blocked": [
     "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Noto+Serif+SC:wght@300;400;600&display=swap",
+    "http://127.0.0.1:5180/api/video/videos",
     "http://127.0.0.1:5180/api/video/videos"
   ],
   "errors": []

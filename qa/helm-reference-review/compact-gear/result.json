@@ -1,0 +1,261 @@
+{
+  "observations": [
+    {
+      "desired": 1,
+      "events": [
+        {
+          "type": "pointerdown",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 0,
+          "drag": false
+        },
+        {
+          "type": "pointerup",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 1,
+          "drag": true
+        }
+      ],
+      "blocked": false,
+      "at": "camera",
+      "gear": 1,
+      "grip": -0.04999999999999999,
+      "points": {
+        "start": {
+          "x": 799.4137894179835,
+          "y": 503.4175383783446
+        },
+        "end": {
+          "x": 796.4113197620015,
+          "y": 424.93847591089695
+        }
+      }
+    },
+    {
+      "desired": 2,
+      "events": [
+        {
+          "type": "pointerdown",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 0,
+          "drag": false
+        },
+        {
+          "type": "pointerup",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 1,
+          "drag": true
+        },
+        {
+          "type": "pointerdown",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 1,
+          "drag": false
+        },
+        {
+          "type": "pointerup",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 2,
+          "drag": true
+        }
+      ],
+      "blocked": false,
+      "at": "camera",
+      "gear": 2,
+      "grip": 0.04500000000000001,
+      "points": {
+        "start": {
+          "x": 804.4090072257184,
+          "y": 440.9229822778999
+        },
+        "end": {
+          "x": 801.1186308367745,
+          "y": 366.0402600647031
+        }
+      }
+    },
+    {
+      "desired": 3,
+      "events": [
+        {
+          "type": "pointerdown",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 0,
+          "drag": false
+        },
+        {
+          "type": "pointerup",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 1,
+          "drag": true
+        },
+        {
+          "type": "pointerdown",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 1,
+          "drag": false
+        },
+        {
+          "type": "pointerup",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 2,
+          "drag": true
+        },
+        {
+          "type": "pointerdown",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 2,
+          "drag": false
+        },
+        {
+          "type": "pointerup",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 3,
+          "drag": true
+        }
+      ],
+      "blocked": false,
+      "at": "camera",
+      "gear": 3,
+      "grip": 0.14000000000000004,
+      "points": {
+        "start": {
+          "x": 809.1186306430536,
+          "y": 382.04025874582567
+        },
+        "end": {
+          "x": 805.5646716734833,
+          "y": 310.45301406602323
+        }
+      }
+    },
+    {
+      "desired": 0,
+      "events": [
+        {
+          "type": "pointerdown",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 0,
+          "drag": false
+        },
+        {
+          "type": "pointerup",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 1,
+          "drag": true
+        },
+        {
+          "type": "pointerdown",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 1,
+          "drag": false
+        },
+        {
+          "type": "pointerup",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 2,
+          "drag": true
+        },
+        {
+          "type": "pointerdown",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 2,
+          "drag": false
+        },
+        {
+          "type": "pointerup",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 3,
+          "drag": true
+        },
+        {
+          "type": "pointerdown",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 3,
+          "drag": false
+        },
+        {
+          "type": "pointerup",
+          "target": "ui-root",
+          "pick": "desk:camera:helm.throttle",
+          "at": "camera",
+          "blocked": false,
+          "gear": 0,
+          "drag": true
+        }
+      ],
+      "blocked": false,
+      "at": "camera",
+      "gear": 0,
+      "grip": -0.145,
+      "points": {
+        "start": {
+          "x": 813.5646716734675,
+          "y": 326.45301406591204
+        },
+        "end": {
+          "x": 791.4116451901741,
+          "y": 487.40319079668456
+        }
+      }
+    }
+  ],
+  "errors": []
+}

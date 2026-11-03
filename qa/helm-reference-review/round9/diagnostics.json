@@ -1,0 +1,253 @@
+{
+  "errors": [
+    "console: Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR"
+  ],
+  "controls": {
+    "helm.throttle": {
+      "x": 742.5731726550748,
+      "y": 476.43134875180857,
+      "hit": "desk:camera:helm.throttle"
+    },
+    "helm.stick": {
+      "x": 666.2905205114668,
+      "y": 426.87282999281734,
+      "hit": "desk:camera:helm.stick"
+    },
+    "drive.up": {
+      "x": 853.4603687605519,
+      "y": 396.4496749641453,
+      "hit": "desk:camera:drive.up"
+    },
+    "drive.down": {
+      "x": 851.1529004420856,
+      "y": 463.7630770062917,
+      "hit": "desk:camera:drive.down"
+    },
+    "nav.pitchUp": {
+      "x": 950.1063151641621,
+      "y": 395.85224339159294,
+      "hit": "desk:camera:nav.pitchUp"
+    },
+    "nav.pitchDown": {
+      "x": 947.9005429693011,
+      "y": 463.7630770062917,
+      "hit": "desk:camera:nav.pitchDown"
+    },
+    "helm.brake": {
+      "x": 895.1256656491972,
+      "y": 559.1995424606449,
+      "hit": "desk:camera:helm.brake"
+    },
+    "camera.lamp": {
+      "x": 1150.5247310343516,
+      "y": 395.25516565776155,
+      "hit": "desk:camera:camera.lamp"
+    },
+    "camera.shoot": {
+      "x": 1172.3986472221088,
+      "y": 537.7758086035213,
+      "hit": "desk:camera:camera.shoot"
+    },
+    "arm.extend": {
+      "x": 1424.9689305063193,
+      "y": 426.16392118048174,
+      "hit": "desk:camera:arm.extend"
+    },
+    "arm.retract": {
+      "x": 1621.0811373845982,
+      "y": 584.3750983882679,
+      "hit": "desk:camera:arm.retract"
+    }
+  },
+  "render": {
+    "frame": 102,
+    "calls": 633,
+    "triangles": 166606,
+    "points": 0,
+    "lines": 0
+  },
+  "memory": {
+    "geometries": 1070,
+    "textures": 72
+  },
+  "authoredTextures": [
+    {
+      "name": "",
+      "state": "loaded"
+    },
+    {
+      "name": "",
+      "state": "loaded"
+    },
+    {
+      "name": "",
+      "state": "loaded"
+    }
+  ],
+  "shadow": {
+    "before": {
+      "at": 0,
+      "pose": {
+        "thrust": 0,
+        "yaw": 0
+      }
+    },
+    "still": {
+      "at": 0,
+      "pose": {
+        "thrust": 0,
+        "yaw": 0
+      }
+    },
+    "turned": {
+      "at": 3.2808999999999995,
+      "pose": {
+        "thrust": 0,
+        "yaw": 0.5
+      }
+    },
+    "restored": {
+      "at": 3.514200000000002,
+      "pose": {
+        "thrust": 0,
+        "yaw": 0
+      }
+    }
+  },
+  "compact": {
+    "controls": {
+      "helm.throttle": {
+        "x": 538.767163499606,
+        "y": 397.1760247065346,
+        "hit": "desk:camera:helm.throttle"
+      },
+      "helm.stick": {
+        "x": 475.16410081271636,
+        "y": 355.9299175639176,
+        "hit": "desk:camera:helm.stick"
+      },
+      "drive.up": {
+        "x": 631.117928951034,
+        "y": 330.44811962179415,
+        "hit": "desk:camera:drive.up"
+      },
+      "drive.down": {
+        "x": 629.2414974626078,
+        "y": 386.5441983192352,
+        "hit": "desk:camera:drive.down"
+      },
+      "nav.pitchUp": {
+        "x": 711.6557812103551,
+        "y": 329.88355978984146,
+        "hit": "desk:camera:nav.pitchUp"
+      },
+      "nav.pitchDown": {
+        "x": 709.864507207687,
+        "y": 386.4774278189001,
+        "hit": "desk:camera:nav.pitchDown"
+      },
+      "helm.brake": {
+        "x": 665.9513238801592,
+        "y": 466.0442125938855,
+        "hit": "desk:camera:helm.brake"
+      },
+      "camera.lamp": {
+        "x": 878.670665793504,
+        "y": 329.2476761288048,
+        "hit": "desk:camera:camera.lamp"
+      },
+      "camera.shoot": {
+        "x": 896.9972772946298,
+        "y": 447.99974693719366,
+        "hit": "desk:camera:camera.shoot"
+      },
+      "arm.extend": {
+        "x": 1107.3954252554677,
+        "y": 354.8155575778732,
+        "hit": "desk:camera:arm.extend"
+      },
+      "arm.retract": {
+        "x": 1270.9313783181235,
+        "y": 486.52281599975174,
+        "hit": "desk:camera:arm.retract"
+      }
+    },
+    "render": {
+      "frame": 144,
+      "calls": 608,
+      "triangles": 158950,
+      "points": 0,
+      "lines": 0
+    },
+    "memory": {
+      "geometries": 1070,
+      "textures": 72
+    },
+    "authoredTextures": [
+      {
+        "name": "",
+        "state": "loaded"
+      },
+      {
+        "name": "",
+        "state": "loaded"
+      },
+      {
+        "name": "",
+        "state": "loaded"
+      }
+    ]
+  },
+  "fit": {
+    "parameters": [
+      1.4678132685258642,
+      -0.7150601216493655,
+      0.9450296448320978,
+      39.99217258316383,
+      0.11256831492422328
+    ],
+    "target": [
+      [
+        99,
+        157
+      ],
+      [
+        956,
+        160
+      ],
+      [
+        1012,
+        481
+      ],
+      [
+        25,
+        481
+      ]
+    ],
+    "projected": [
+      [
+        93.94203732015103,
+        156.84251761739242
+      ],
+      [
+        951.7774278898089,
+        161.04430702818823
+      ],
+      [
+        1015.1008264131784,
+        484.70003063134516
+      ],
+      [
+        28.267028221249745,
+        476.47058732808944
+      ]
+    ],
+    "rmsPixels": 3.5182183565500775,
+    "panelScale": [
+      0.65,
+      0.74,
+      0.65
+    ]
+  },
+  "prologueBypassed": true
+}

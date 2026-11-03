@@ -1,63 +1,126 @@
-import type {HarborRescue} from './harbor-rescue';
+import {HarborLegacyFlow} from './harbor-legacy-flow';
 import {HARBOR_TASKS,type HarborTaskId} from '../content/harbor-task-videos';
-import {parseNarrative,plantSeeds,type NarrativeMemory} from './narrative-memory';
-const INTRO:HarborTaskId[]=['L1-E01','L1-E04','L1-E05','L1-E06','L1-E02'];
-/** Physical facts remain in HarborRescue; words never manufacture photographic evidence. */
-export class HarborSimpleFlow {
- readonly accepted:HarborTaskId[]=[];
- greeted=false;impactPlayed=false;reportRequested=false;reportAnswered=false;
- private rewarded:string[]=[];
- constructor(readonly rescue:HarborRescue){}
- get pending():HarborTaskId|null {
-  for(const id of INTRO){if(!this.accepted.includes(id)){if(id==='L1-E04'&&!this.greeted||id==='L1-E02'&&!this.impactPlayed)return null;return id;}}
-  const s=this.rescue.state;
-  if((this.reportRequested||s.isolated)&&!this.accepted.includes('L1-E07'))return 'L1-E07';
-  if(s.injured&&!this.accepted.includes('L1-E08'))return 'L1-E08';
-  if(s.departed&&!this.accepted.includes('L1-E03'))return 'L1-E03';return null;
+import type {NarrativeMemory} from './narrative-memory';
+export interface HarborFlowWorld {firstDoor:boolean;secondDoor:boolean;active:boolean;atExit:boolean;inCargo:boolean;hull:number;kit:boolean}
+/** R28 owns sequencing; physical and photographic facts remain in HarborRescue. */
+export class HarborSimpleFlow extends HarborLegacyFlow {
+ legacy=false;
+ world:HarborFlowWorld={firstDoor:false,secondDoor:false,active:true,atExit:false,inCargo:false,hull:1,kit:false};
+ impactCount=0;impactDelay=0;kitStored=false;repairCompleted=false;repairWait=0;backgroundRequested=false;explanationRequested=false;
+ injuryHandled=false;private earlyWarning=false;
+ /** The player has tried the second door; its controller forwards the request to Elias. */
+ codeRequested=false;
+ private warningVariant:HarborTaskId|null=null;
+ private reminderVariant:HarborTaskId|null=null;
+ private has(id:string){return this.accepted.includes(id as HarborTaskId);}
+ get credential(){return this.legacy||this.has('L1-R28-V02-AUTH');}
+ get warningSeen(){return this.legacy||this.has('L1-R28-V03')||this.has('L1-R28-V03-QUIET');}
+ get repairBriefSeen(){return this.has('L1-R28-V04');}
+ get threatEnabled(){return this.legacy||this.impactCount===2&&this.warningSeen;}
+ get entryCaptured(){const s=this.rescue.state;return s.lureConfirmed&&s.captures.some(e=>e.kind==='lure'&&e.visible&&e.creatureVisible!==false&&(e.epoch===s.epoch||s.isolated&&e.epoch===s.epoch-1));}
+ override get entryAnalyzed(){if(this.legacy)return super.entryAnalyzed;const s=this.rescue.state;return this.entryCaptured&&s.captures.some(e=>e.kind==='lure'&&e.visible&&s.analyzed.includes(e.id)&&(e.epoch===s.epoch||s.isolated&&e.epoch===s.epoch-1));}
+ sync(world:HarborFlowWorld){this.world={...world};}
+ override get pending():HarborTaskId|null {
+  if(this.legacy)return super.pending;
+  const s=this.rescue.state;if(s.failed||s.complete||!this.world.firstDoor)return null;
+  if(!this.has('L1-R28-V01'))return 'L1-R28-V01';
+  if(!this.greeted)return null;
+  if(!this.has('L1-R28-V02'))return 'L1-R28-V02';
+  if(!this.has('L1-R28-V02-AUTH'))return this.codeRequested?'L1-R28-V02-AUTH':null;
+  if(!this.has('L1-R28-V02A'))return this.backgroundRequested||this.world.secondDoor?'L1-R28-V02A':null;
+  if(!this.warningSeen)return this.impactCount===2||this.earlyWarning?(this.warningVariant??=this.world.active?'L1-R28-V03':'L1-R28-V03-QUIET'):null;
+  if(this.explanationRequested&&!this.has('L1-R28-V03A'))return 'L1-R28-V03A';
+  if(this.impactCount<2||this.world.active&&!this.repairBriefSeen)return null;
+  if(!this.repairBriefSeen)return 'L1-R28-V04';
+  if(!this.repairCompleted)return this.repairWait>=90&&!this.has('L1-R28-V04R')&&!this.has('L1-R28-V04R-STORED')?(this.reminderVariant??=this.world.kit?'L1-R28-V04R-STORED':'L1-R28-V04R'):null;
+  if(!this.has('L1-R28-V05'))return 'L1-R28-V05';
+  if(s.injured&&!this.injuryHandled&&!this.has('L1-R28-V07R'))return 'L1-R28-V07R';
+  if(s.monsterInside&&!this.world.active&&!this.has('L1-R28-V06'))return 'L1-R28-V06';
+  if(this.entryCaptured&&this.world.atExit&&!this.world.inCargo&&!this.has('L1-R28-V07'))return 'L1-R28-V07';
+  if(s.departed&&s.isolated&&s.verified&&this.entryAnalyzed&&this.reportAnswered&&!this.has('L1-R28-V08')&&!this.has('L1-R28-V08-INJURED'))return s.injured?'L1-R28-V08-INJURED':'L1-R28-V08';
+  return null;
  }
- accept(id:HarborTaskId){if(this.pending!==id||this.rescue.state.failed||id==='L1-E01'&&!this.rescue.state.heard)return false;if(id==='L1-E03'&&!this.rescue.confirmRemoteDeparture(true))return false;this.accepted.push(id);if(id==='L1-E01')this.rescue.reply();return true;}
- takeImpact(){if(!this.accepted.includes('L1-E06')||this.impactPlayed)return false;this.impactPlayed=true;return true;}
- get canPhotograph(){return this.accepted.includes('L1-E01');}
- get canHelp(){return this.accepted.includes('L1-E02');}
- get entryAnalyzed(){const s=this.rescue.state;return s.captures.some(e=>e.kind==='lure'&&e.visible&&e.creatureVisible===true&&e.epoch===s.epoch&&s.analyzed.includes(e.id));}
- get awaitingReport(){return this.accepted.includes('L1-E07')&&!this.reportAnswered;}
- say(raw:string,m:NarrativeMemory,active:boolean,at:number){
+ override accept(id:HarborTaskId){
+  if(this.legacy)return super.accept(id);
+  const pending=this.pending;
+  // A device may change while the selected clip is generating or playing.
+  // Both variants deliver the same stage; never strand a received clip.
+  const family=(value:HarborTaskId|null)=>value?.replace(/-(QUIET|STORED)$/,'');
+  if(pending!==id&&(!pending||family(pending)!==family(id)))return false;
+  if(id.startsWith('L1-R28-V08')&&!this.rescue.confirmRemoteDeparture(true))return false;
+  this.accepted.push(id);if(id==='L1-R28-V01')this.rescue.reply();
+  if(id==='L1-R28-V07R'){this.injuryHandled=true;this.reportAnswered=false;this.rescue.stopDeparture();}return true;
+ }
+ tick(dt:number,mediaBusy=false){
+  if(this.legacy)return 0;let strikes=0;
+  if(this.has('L1-R28-V02A')&&this.impactCount<2){this.impactDelay-=dt;if(this.impactDelay<=0){this.impactCount++;this.impactPlayed=true;this.impactDelay=2;strikes=1;}}
+  if(this.repairBriefSeen&&!this.repairCompleted&&!mediaBusy)this.repairWait+=dt;return strikes;
+ }
+ override takeImpact(){return this.legacy?super.takeImpact():false;}
+ requestCode(){this.codeRequested=true;}
+ finishRepair(){if(!this.repairBriefSeen||!this.world.kit)return false;this.repairCompleted=true;return true;}
+ identify(){if(this.has('L1-R28-V01')){this.greeted=true;return true;}return false;}
+ reportEvidence(){const s=this.rescue.state;if(!this.awaitingReport||!s.verified||!this.entryAnalyzed)return false;this.reportAnswered=this.rescue.requestDeparture();return this.reportAnswered;}
+ override get canPhotograph(){return this.legacy?super.canPhotograph:this.has('L1-R28-V06');}
+ override get canHelp(){return this.legacy?super.canHelp:this.has('L1-R28-V05');}
+ override get awaitingReport(){return this.legacy?super.awaitingReport:this.has('L1-R28-V07')&&!this.reportAnswered;}
+ override say(raw:string,m:NarrativeMemory,active:boolean,at:number){
+  if(this.legacy)return super.say(raw,m,active,at);
   const text=raw.replace(/[\u0000-\u001f]/g,' ').trim().slice(0,240);if(!text)return [];
-  const out=['罗温：'+text],s=this.rescue.state;
-  const respond=(v:string)=>[...out,'艾里亚斯：'+v];
-  if(!this.accepted.includes('L1-E01'))return respond('先收一下我发的接驳岗录像，坐标在里面。我听着。');
-  this.greeted=true;
-  const intent=parseNarrative(text),question=/[?？]|吗|怎么|为什么|什么|谁|哪里/.test(text);
-  out.push(...plantSeeds(m,intent,'elias',text));
-  const reward=(id:string,amount:number)=>{if(!this.rewarded.includes(id)){this.rewarded.push(id);m.trust=Math.max(-3,Math.min(3,m.trust+amount));}};
-  if(intent.order==='hold'||(!question&&!intent.ambiguous&&/没完成|没成功|不确定|没关|等我/.test(text))||/(?:^|[，,。；;！!])\s*(?:先别走|别出来|不要出来|停下|等一下|等等|先等|退回)[^？?]*(?:[，,。；;！!]|$)/.test(text)){
-   this.rescue.stopDeparture();this.reportAnswered=false;m.lastOrder='hold';reward('honest',1);
-   return respond('好，我停下，退回门后等你。'+(/声纳/.test(text)?'主动声纳要在导航台关电；被动接收留着。':/害怕|吓/.test(text)?'先停稳喘口气，不急着动。':'你说没把握，比让我出去试有用。')+'完成隔离后再叫我。');
+  // Elias names himself in V02; before that the caller is unnamed.
+  const reply=(line:string)=>['罗温：'+text,(this.has('L1-R28-V02')?'艾里亚斯：':'呼叫者：')+line];
+  if(!this.has('L1-R28-V01'))return reply('我还在呼叫，先接通这段视频。');this.greeted=true;
+  if(/先别|别出|不要出|等等|等我|先等|停下|退回|不确定|不安全|没(?:有)?(?:关|锁|封|成功|完成)|没好|还没|尚未|未关|不能走|别走|不要走|又开|开着|再开|hold|wait|unsafe|not\s+(?:safe|closed|ready|done)|don't\s+(?:go|leave)|stop/i.test(text)){
+   this.rescue.stopDeparture();this.reportAnswered=false;m.lastOrder='hold';return reply('好，我先留在门后。你确认好了再叫我。');
   }
-  if(/对不起|抱歉|我骗了|我说错/.test(text)){reward('apology',1);return respond(s.injured?'我听到了。伤口我自己压着。后面别替没看清的事打包票。':'先别急着道歉。重新确认，我们还有机会。');}
-  if(/声纳/.test(text)||/^(关上|不关上|关了|不关)[。！!]*$/.test(text))return respond(active?'我还听得见它在响。要关就关导航台的主动声纳电源，打字不会替你按开关。':'响声停了。被动接收别动，我们靠它听外面的方位。');
-  if(/害怕|好怕|吓|救命|撤退|回去|不干了/.test(text))return respond('我也怕。我盯了这扇门八个小时。你先停稳；要退就沿来路退，别闭着眼冲。准备好了再做，坐标还在。');
-  if(/你是谁|调查员|八个小时|8个小时|事故|实验|乌贼/.test(text))return respond('我比你先到，调查还没开始就困住了。乌贼只是猜测；先留住现场录像，事故记录到下面再核对。');
-  if(question||intent.ambiguous)return respond('我看不到你那边，不能替你确认。可以说“还没关住，先等”，或者核实后告诉我“关住了，可以走”。');
-  if(this.awaitingReport){
-   if(!s.powered)return respond('逃生门还没电。我先不动，你去02恢复供电。');
-   this.reportAnswered=true;m.lastOrder='go';
-   if(intent.claim){m.belief=intent.claim;m.beliefSource='罗温的口头报告';m.claims.push({id:m.claims.length+1,claim:intent.claim,at,playerHadThreatEvidence:s.identified,disproved:false});}
-   this.rescue.requestDeparture();
-   return respond(intent.order==='go'?'收到。我开始推内侧逃生门，门轴卡住了，会有响声；我要慢慢推。有变化马上叫停。':'我没听到明确的结果。这里的水在涨，我先试着进旁边值班室；门外有动静我就退。');
+  if(this.has('L1-R28-V02')&&!this.credential&&/门|door/i.test(text))return reply(this.codeRequested?'我在终端上看到你的开门请求了，这就发给你。':'第二道门的门控在你那边。你先到门边看看面板怎么说。');
+  if(!this.has('L1-R28-V02A')&&this.credential){this.backgroundRequested=true;return reply('我给你说说刚到这里时发生的事。');}
+  if(this.impactCount>0&&!this.warningSeen)this.earlyWarning=true;
+  if(this.warningSeen&&/声[纳呐]|声音|追声|sonar|why|什么.*(?:怪物|东西)|(?:怪物|东西).*什么/i.test(text)){this.explanationRequested=true;return reply('我把知道的情况发给你，先留意主动声纳电源。');}
+  if(/对不起|抱歉/.test(text))return reply('我听到了。先确认闸门，后面的事我们慢慢说。');
+  if(/[?？]|吗|如果|等会|将要|准备|打算|应该|可能|似乎/.test(text))return reply('我看不到货舱那边。你是已经确认它在里面，还是还需要我等？');
+  if(this.awaitingReport&&/关|锁|封|妥|完成|成功|搞定|安全|走吧|可以走|出来|closed|safe|done/i.test(text)){
+   this.reportAnswered=this.rescue.requestDeparture();m.lastOrder='go';m.beliefSource='罗温的口头报告';
+   return reply(this.reportAnswered?'收到。我开始推人员闸门，门轴会有声音。有变化马上叫我停下。':'我先留在门后等你完成准备。');
   }
-  if(this.canHelp&&!s.departed&&(intent.order==='go'||/完成|成功|搞定|失败|没办法/.test(text))){this.reportRequested=true;return respond('我给你发一段回传，确认一下再走。');}
-  if(/谢谢|相信|一起|别怕|坚持|救你/.test(text)){reward('support',1);return respond(m.trust<0?'我愿意继续配合。后面每一步，说准一点。':'行。你盯水道，我盯门。咱们一件一件来。');}
-  return respond(s.departed?(m.trust<0?'我会继续走。下次报安全之前，先看片。':'频道留着。到了下一处，我给你回传。'):this.canHelp?'我听着。要我等就直说；操作的事按刚才坐标来。':'听见了，终于有人回话了。先收下一段录像，我把这边的情况告诉你。');
+  if(/怕|吓|撤退|回去|救命/.test(text))return reply('我也怕。你先停稳，别硬闯。我留在门后等你。');
+  return reply(this.awaitingReport?'我没听清你那边的情况。你确认好了再告诉我，也可以把核验的结果片发给我。':'听见了，频道留着。');
  }
- get objective(){if(!this.canPhotograph)return '';const s=this.rescue.state;if(s.complete)return '首关完成 · 操作台按 B 下潜至生活区';if(this.pending==='L1-E07'&&!s.isolated)return '主动报告待确认 · 艾里亚斯回传中；货仓尚未隔离，可先回01 X60 Y27 深度1012m完成关闸';if(this.pending)return '艾里亚斯录像：'+HARBOR_TASKS[this.pending].title+' · 回传中，收到即自动登记，可在分析台播放；失败可输入“重试录像”';if(!this.greeted)return '前往入口接驳点 X11 Y16 深度1012m · 回复艾里亚斯';if(!this.canHelp)return '沿水道前往01接驳岗 X60 Y27 深度1012m · 穿过压力门和维修湾，留意门外动静';if(s.departing&&!s.departed)return '艾里亚斯正在试行人员通道 · 可输入“先别走”叫停';if(this.awaitingReport)return s.isolated?'回答艾里亚斯：隔离完成，可自由报告结果':'货仓尚未隔离 · 先完成诱导，再回01 X60 Y27 深度1012m关闸；也可自由报告或叫停';if(s.departed)return '回01面板用机械臂确认下潜，操作台按 B';if(!s.powered)return '02 X42 Y28 深度1012m · 机械臂恢复供电';if(!s.gateOpen&&!s.isolated)return '01 X60 Y27 深度1012m · 机械臂打开货仓闸门';if(!s.isolated&&!this.entryAnalyzed)return '03 X77 Y7 深度1011m · 主动声纳引入，关声纳、停稳拍摄，分析录像；失败可如实回报';if(!s.isolated)return '关闭主动声纳 · 低速回01，机械臂关闭闸门，再报告结果';if(!s.verified)return '拍摄关闭的闸门与仓内生物，分析隔离结果；也可先口头回复';return '确认行动结果后回复艾里亚斯，开始撤离';}
- snapshot(){return {version:2 as const,accepted:[...this.accepted],greeted:this.greeted,impactPlayed:this.impactPlayed,reportRequested:this.reportRequested,reportAnswered:this.reportAnswered,rewarded:[...this.rewarded]};}
- restore(value:unknown):boolean{
-  const legacy=value as {version?:number;accepted?:HarborTaskId[]};
-  if(legacy?.version===1){const a=legacy.accepted,s=this.rescue.state;if(!Array.isArray(a)||a.length>3||a.some((x,i)=>x!==(['L1-E01','L1-E02','L1-E03'] as const)[i])||a.length>0&&!s.replied||a.length>1&&!s.identified||a.length>2&&!s.departureConfirmed)return false;const accepted:HarborTaskId[]=a.length>1?[...INTRO]:a.length?['L1-E01']:[];if(a.length===3)accepted.push('L1-E07','L1-E03');return this.restore({version:2,accepted,greeted:a.length>0,impactPlayed:a.length>1,reportRequested:a.length===3,reportAnswered:a.length===3,rewarded:[]});}
-  const v=value as ReturnType<HarborSimpleFlow['snapshot']>;if(!v||v.version!==2||!Array.isArray(v.accepted)||new Set(v.accepted).size!==v.accepted.length||v.accepted.some(x=>!(x in HARBOR_TASKS))||!['greeted','impactPlayed','reportRequested','reportAnswered'].every(k=>typeof (v as any)[k]==='boolean')||!Array.isArray(v.rewarded)||v.rewarded.some(x=>!['apology','honest','support'].includes(x))||new Set(v.rewarded).size!==v.rewarded.length)return false;
-  const s=this.rescue.state,head=v.accepted.filter(x=>INTRO.includes(x));if(head.some((x,i)=>x!==INTRO[i])||v.accepted.slice(0,head.length).some((x,i)=>x!==head[i])||v.accepted.length>head.length&&head.length!==INTRO.length)return false;
-  if(head.length>0&&!s.replied||head.length>1&&!v.greeted||v.impactPlayed&&!head.includes('L1-E06')||head.includes('L1-E02')&&!v.impactPlayed||v.reportAnswered&&(!v.accepted.includes('L1-E07')||!s.departing)||v.accepted.includes('L1-E08')&&!s.injured||v.accepted.includes('L1-E03')&&(!s.departureConfirmed||!v.accepted.includes('L1-E07')||s.injured&&!v.accepted.includes('L1-E08')))return false;
-  this.accepted.splice(0,this.accepted.length,...v.accepted);this.greeted=v.greeted;this.impactPlayed=v.impactPlayed;this.reportRequested=v.reportRequested;this.reportAnswered=v.reportAnswered;this.rewarded=[...v.rewarded];return true;
+ override get objective(){
+  if(this.legacy)return super.objective;const s=this.rescue.state;
+  if(s.complete)return '首关完成 · 操作台按 B 下潜至生活区深度1040米';
+  if(!this.world.firstDoor)return '打开第一道压力门 · 入口X11 Y16 深度1012米 · 对准门靠近至3.4米内，按F一次开门';
+  // Objectives only restate videos already watched; an unwatched call shows who is calling, never what it says. Elias names himself in V02.
+  if(this.pending)return (this.has('L1-R28-V02')?'艾里亚斯来电':'收到视频呼叫')+' · 分析台【通讯】接听并完整播放；失败可点“重新接收”';
+  if(!this.greeted)return '回应求救呼叫 · 自由通话或在分析台【通讯】发送任务身份资料';
+  if(!this.credential)return '前往第二道压力门 · 沿维修弯道到门边，对准门锁靠近至3.4米内按F查看门控';
+  if(!this.has('L1-R28-V02A'))return '第二道门密码已接收 · 回到门边按F，在门控面板拨好密码并解锁';
+  if(!this.warningSeen)return '艇壳受到撞击';
+  if(this.impactCount<2)return '艇壳受到撞击 · 关闭主动声纳电源';
+  if(!this.repairBriefSeen)return '立即关闭主动声纳电源'+(this.has('L1-R28-V03A')?' · 通电会持续发声':'');
+  if(!this.repairCompleted)return this.world.kit?'维修工具已收妥 · 在分析台【通讯】执行修复铁鲸':'前往X42 Y28 深度1012米岸电恢复台 · 对准恢复台按F，机械臂取出维修工具并自动收回';
+  if(s.departed)return this.has('L1-R28-V08')||this.has('L1-R28-V08-INJURED')?'前往下潜控制点X60 Y27 深度1012米 · 操作01确认，按B下潜至生活区1040米':'艾里亚斯已离开总调度室 · 等待他的回传';
+  if(s.departing)return '艾里亚斯正在经过人员通道 · 危险变化时随时叫停';
+  if(s.isolated&&!s.verified)return '拍摄关闭的闸门与仓内目标，在分析台核验隔离结果 · 控制点X60 Y27 深度1012米';
+  if(s.isolated&&!this.entryAnalyzed)return '在分析台核验入仓录像 · 上传资料将封存等待上行';
+  if(this.awaitingReport&&s.isolated)return '确认隔离结果后自由报告，或在通讯页推送核验结果片';
+  if(!s.gateOpen&&!s.isolated)return '总任务：封闭货舱 · 控制点X60 Y27 深度1012米\n当前步骤：先打开货舱闸门，再潜入X77 Y7 深度1011米';
+  if(!this.entryCaptured)return '总任务：封闭货舱 · 关闸点X60 Y27 深度1012米\n当前步骤：潜入X77 Y7 深度1011米，开主动声纳诱导；它靠近后立即关电'+(this.canPhotograph?'、停稳摄影':'');
+  return '第三任务：悄悄退出货舱，回X60 Y27 深度1012米，在01控制台关闸 · 显影期间可以撤离';
+ }
+ override snapshot():any{return this.legacy?super.snapshot():{version:3,accepted:[...this.accepted],greeted:this.greeted,impactCount:this.impactCount,impactDelay:this.impactDelay,kitStored:this.kitStored,repairCompleted:this.repairCompleted,repairWait:this.repairWait,backgroundRequested:this.backgroundRequested,explanationRequested:this.explanationRequested,injuryHandled:this.injuryHandled,codeRequested:this.codeRequested,reportAnswered:this.reportAnswered,earlyWarning:this.earlyWarning,warningVariant:this.warningVariant,reminderVariant:this.reminderVariant};}
+ override restore(value:unknown){
+  const v=value as ReturnType<HarborSimpleFlow['snapshot']>;
+  if(v?.version!==3){const ok=super.restore(value);if(ok)this.legacy=true;return ok;}
+  if(!Array.isArray(v.accepted)||new Set(v.accepted).size!==v.accepted.length||v.accepted.some((id:string)=>!id.startsWith('L1-R28-')||!(id in HARBOR_TASKS)))return false;
+  for(const k of ['greeted','kitStored','repairCompleted','backgroundRequested','explanationRequested','injuryHandled','reportAnswered','earlyWarning'])if(typeof v[k]!=='boolean')return false;
+  // Saves from before 2026-11-03 lack codeRequested: the player tries the door again.
+  if(v.codeRequested!==undefined&&typeof v.codeRequested!=='boolean')return false;
+  if(!Number.isInteger(v.impactCount)||v.impactCount<0||v.impactCount>2||!Number.isFinite(v.impactDelay)||!Number.isFinite(v.repairWait)||v.repairWait<0)return false;
+  if(v.warningVariant!=null&&!['L1-R28-V03','L1-R28-V03-QUIET'].includes(v.warningVariant)||v.reminderVariant!=null&&!['L1-R28-V04R','L1-R28-V04R-STORED'].includes(v.reminderVariant))return false;
+  const has=(id:string)=>v.accepted.includes(id);
+  if(v.accepted.length&&!has('L1-R28-V01')||v.impactCount&&!has('L1-R28-V02A')||v.repairCompleted&&!has('L1-R28-V04')||has('L1-R28-V05')&&!v.repairCompleted||v.reportAnswered&&!has('L1-R28-V07')||v.injuryHandled&&!this.rescue.state.injured)return false;
+  this.warningVariant=v.warningVariant??null;this.reminderVariant=v.reminderVariant??null;this.codeRequested=v.codeRequested??false;
+  this.legacy=false;this.accepted.splice(0,this.accepted.length,...v.accepted);for(const k of ['greeted','impactCount','impactDelay','kitStored','repairCompleted','repairWait','backgroundRequested','explanationRequested','injuryHandled','reportAnswered','earlyWarning'] as const)(this as any)[k]=v[k];this.impactPlayed=v.impactCount>0;return true;
  }
 }

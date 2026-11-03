@@ -48,5 +48,11 @@ for(let seed=1;seed<=24;seed++){
  const shut=new HarborPursuit(rng(seed+200));
  run(shut,40,cargoPod,true,false,false);
  assert.ok(!shut.inside&&Math.abs(shut.position.x-77)<.5&&shut.position.z>16.3,'closed gate stops it at the doorway');
+
+ const dormant=new HarborPursuit(rng(seed+300));dormant.awake=false;const parked=dormant.position.clone(),opening=new Vector3(11,0,10);
+ run(dormant,60,opening,true,true);
+ assert.ok(dormant.position.equals(parked)&&!dormant.hunting&&!dormant.hears(opening,true,true),'a dormant creature ignores the opening pulse and never approaches');
+ const strike=new Vector3(40,0,24);dormant.wake(strike,180);
+ assert.ok(dormant.awake&&dormant.position.distanceTo(strike)<3&&!dormant.hunting,'first contact surfaces it beside the struck hull, searching rather than hunting');
 }
-console.log('PASS harbor pursuit: roaming, short engine range, walled route through the gate, hull prowl, cargo search, outside-pulse rejection, return to patrol');
+console.log('PASS harbor pursuit: dormant opening, first-contact wake, roaming, short engine range, walled route through the gate, hull prowl, cargo search, outside-pulse rejection, return to patrol');

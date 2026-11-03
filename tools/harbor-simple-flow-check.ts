@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {HarborRescue} from '../src/pod/sim/harbor-rescue';
-import {HarborSimpleFlow} from '../src/pod/sim/harbor-simple-flow';
+import {HarborLegacyFlow as HarborSimpleFlow} from '../src/pod/sim/harbor-legacy-flow';
 import {freshNarrative} from '../src/pod/sim/narrative-memory';
 import {livingStory,livingTapeLines} from '../src/pod/sim/living-story';
 import {HARBOR_TASKS,harborTaskPrompt,HARBOR_TASK_REFERENCE} from '../src/pod/content/harbor-task-videos';

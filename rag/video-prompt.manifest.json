@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-video-prompts",
-  "revision": "2026-10-24-harbor-simple",
+  "revision": "2026-10-30-cctv-playback",
   "scope": "main-harbor-design",
   "documents": [
     {
@@ -64,6 +64,14 @@
     "src/pod/sim/harbor-simple-flow.ts",
     "src/pod/view/deepsea/harbor-task-player.ts",
     "tools/harbor-simple-flow-check.ts",
-    "tools/harbor-simple-browser-check.mjs"
+    "tools/harbor-simple-browser-check.mjs",
+    "src/pod/content/video-subtitles.ts",
+    "src/pod/view/video-subtitles.ts",
+    "tools/video-subtitle-check.ts",
+    "src/pod/content/living-task-videos.ts",
+    "src/pod/view/deepsea/living-task-player.ts",
+    "src/pod/view/cctv-signal.ts",
+    "docs/cctv-signal-2026-10-30.md",
+    "tools/cctv-signal-check.mjs"
   ]
 }

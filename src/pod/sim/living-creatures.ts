@@ -104,7 +104,9 @@ interface Mob {spawn:Spawn;space:string;pos:V;heading:number;mode:CreatureMode;n
  alert:number}
 type Dynamic=Omit<Mob,'spawn'>&{id:string};
 export type LivingCreatureProfile='legacy'|'survey';
-export interface LivingCreaturesSnapshot {version:1;profile?:LivingCreatureProfile;identified:CreatureType[];extra:number;mobs:Dynamic[]}
+export interface LivingCreaturesSnapshot {version:1;profile?:LivingCreatureProfile;identified:CreatureType[];extra:number;mobs:Dynamic[];
+ /** Spawn ids removed by the GM kill command; absent in ordinary saves. */
+ killed?:string[]}
 
 const spawnOf=(id:string,type:CreatureType,space:string,home:Vec3,patrol:readonly Vec3[]):Spawn=>{
  const s=SPACES.get(space)!;
@@ -122,12 +124,20 @@ export class LivingCreatures {
  private mobs:Mob[];
  private identified=new Set<CreatureType>();
  private extra=0;
+ private killed=new Set<string>();
  constructor(private readonly random:()=>number=Math.random,readonly profile:LivingCreatureProfile='legacy'){
   this.mobs=(profile==='survey'?SURVEY_BASE:BASE).map(fresh);
   if(profile==='survey')for(const m of this.mobs)if(m.spawn.type==='blind'&&m.spawn.sleeper)this.nap(m);
  }
  get views():readonly CreatureView[]{return this.mobs.map(m=>({id:m.spawn.id,type:m.spawn.type,position:[...m.pos] as Vec3,heading:m.heading,mode:m.mode,identified:this.identified.has(m.spawn.type)}));}
  get extraLumens(){return this.extra;}
+ /** GM test fixture: removes every creature within `radius` m of `pod`, permanently for this save; returns their ids. */
+ gmKill(pod:Vec3,radius:number):string[]{
+  const dead=this.mobs.filter(m=>dist(m.pos,pod)<=radius);
+  for(const m of dead)this.killed.add(m.spawn.id);
+  this.mobs=this.mobs.filter(m=>!this.killed.has(m.spawn.id));
+  return dead.map(m=>m.spawn.id);
+ }
  markIdentified(type:CreatureType){if(type in MODES)this.identified.add(type);}
  addLumen(){if(this.extra>=EXTRA.length)return;this.mobs.push(fresh(EXTRA[this.extra]!));this.extra++;}
  blockers():{min:Vec3;max:Vec3}[]{
@@ -398,12 +408,14 @@ export class LivingCreatures {
   if(m.spawn.covers.length)this.go(m,m.spawn.home,m.spawn.space,T.speed*.5,dt);else this.patrol(m,T.speed*.4,dt);
  }
  snapshot():LivingCreaturesSnapshot{
-  return structuredClone({version:1 as const,profile:this.profile,identified:[...this.identified],extra:this.extra,mobs:this.mobs.map(({spawn,...rest})=>({id:spawn.id,...rest}))});
+  return structuredClone({version:1 as const,profile:this.profile,identified:[...this.identified],extra:this.extra,mobs:this.mobs.map(({spawn,...rest})=>({id:spawn.id,...rest})),...(this.killed.size?{killed:[...this.killed]}:{})});
  }
  restore(value:unknown):boolean{
   if(!value||typeof value!=='object')return false;const s=value as LivingCreaturesSnapshot;
   if((s.profile??'legacy')!==this.profile||s.version!==1||!Array.isArray(s.identified)||!s.identified.every(t=>t in MODES)||!Number.isInteger(s.extra)||s.extra<0||s.extra>EXTRA.length||!Array.isArray(s.mobs))return false;
-  const spawns=[...(this.profile==='survey'?SURVEY_BASE:BASE),...EXTRA.slice(0,s.extra)];if(s.mobs.length!==spawns.length)return false;
+  if(s.killed!==undefined&&!(Array.isArray(s.killed)&&s.killed.every(id=>typeof id==='string')))return false;
+  const killed=new Set(s.killed??[]);
+  const spawns=[...(this.profile==='survey'?SURVEY_BASE:BASE),...EXTRA.slice(0,s.extra)].filter(sp=>!killed.has(sp.id));if(s.mobs.length!==spawns.length)return false;
   const space=(v:unknown,nullable:boolean)=>v===null?nullable:typeof v==='string'&&SPACES.has(v);
   const mobs:Mob[]=[];
   for(let i=0;i<spawns.length;i++){
@@ -417,7 +429,7 @@ export class LivingCreatures {
    if(d.alert!==undefined&&!(finite(d.alert)&&d.alert>=0))return false;
    const {id:_,...rest}=d;mobs.push({spawn,...structuredClone(rest),alert:d.alert??0});
   }
-  this.mobs=mobs;this.extra=s.extra;this.identified=new Set(s.identified);return true;
+  this.mobs=mobs;this.extra=s.extra;this.identified=new Set(s.identified);this.killed=killed;return true;
  }
 }
 

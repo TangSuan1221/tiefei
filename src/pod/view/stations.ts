@@ -1,4 +1,5 @@
 import { drawLabDesk, labDeskAction, labDeskState } from './lab-desk';
+import { commUi, incomingCall } from './comm-desk';
 import { terminalFeedback } from './tactical-diagnostics';
 import { drawSonarDesk, sonarAction } from './sonar-desk';
 ﻿/**
@@ -28,8 +29,9 @@ import {
   wrenchChance,
 } from '../sim/manipulator';
 import { PodRun, type CameraDriveAction } from '../sim/run';
-import { drawCameraFeed, drawPortholeReadouts } from './creature';
-import { drawLabRecording } from './footage';
+import { drawCameraFeed } from './creature';
+import { drawPortholeHud } from './porthole-hud';
+import { drawLabRecording, expandLabRecording } from './footage';
 import { isNoVideoMode, revealPrompt } from './gm';
 import { drawHoloMap } from './wire';
 import {
@@ -745,9 +747,8 @@ export function drawObservationWindow(ctx:CanvasRenderingContext2D,run:PodRun,hi
   const shade=ctx.createRadialGradient(512,300,170,512,330,610);
   shade.addColorStop(0,'rgba(0,8,11,0)');shade.addColorStop(1,'rgba(0,5,8,.85)');
   ctx.fillStyle=shade;ctx.fillRect(0,0,1024,720);ctx.restore();
-  if(!run.shot.viewing)run.authoredSite?.drawWindowLocks?.(ctx,1024,720);
-  else run.authoredSite?.resetWindowFocus?.();
-  drawPortholeReadouts(ctx,1024,720,run);
+  if(run.shot.viewing)run.authoredSite?.resetWindowFocus?.();
+  drawPortholeHud(ctx,1024,720,run);
   if(!run.shot.viewing&&run.movementBlocked){
     // Hull contact annunciator, kept below the optical working area.
     ctx.save();ctx.strokeStyle='rgba(218,164,102,.85)';ctx.lineWidth=1;
@@ -1809,6 +1810,13 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
         {id:'station:life',key:'2',label:'前往维护'},
         run.blackout?{id:'lab.restoreBus',key:'1',label:'恢复总闸'}:null,
       ]);
+      if(tab==='comm'){
+        const call=incomingCall(run),active=commUi(run).active;
+        return filterControls([
+          active?{id:'lab.comm.hangup',key:'2',label:'挂断'}:{id:'lab.comm.answer',key:'1',label:'接听视频通讯',state:call&&run.powered?'normal':'disabled'},
+          !active&&run.authoredSite?.mediaRetryable?{id:'lab.comm.retry',key:'3',label:'重新接收',state:run.powered?'normal':'disabled'}:null,
+        ]);
+      }
       if(tab==='cargo')return filterControls([
         {id:'lab.cargoPrev',key:'1',label:'上一页'},
         {id:'lab.cargoNext',key:'2',label:'下一页'},
@@ -1933,6 +1941,8 @@ function filterControls(list: (Control | null)[]): Control[] {
 export function performControl(run: PodRun, actionId: string): boolean {
   if(run.at==='lab'&&(actionId.startsWith('lab.')||actionId==='station:life'))terminalFeedback(run,actionId);
   if(actionId.startsWith('lab.tab:')||actionId.startsWith('lab.select:'))evidenceReadouts.delete(run);
+  // A call always starts playing, whatever pause state an earlier viewing of that reel left.
+  if(actionId==='lab.comm.answer'||actionId==='lab.answerCall'||actionId.startsWith('lab.comm.open:'))localPlaybackStates.delete(run);
   if(actionId.startsWith('lab.')&&run.at==='lab'&&labDeskAction(run,actionId))return true;
   if(actionId.startsWith('sonar.'))return run.at==='nav' && sonarAction(run,actionId);
   if(actionId==='nav.thrust'&&run.at==='nav'&&run.authoredSite?.navigationConsole){run.navDriveEngaged=!run.navDriveEngaged;if(!run.navDriveEngaged)run.pilot.stop();return true;}
@@ -2112,7 +2122,7 @@ export function performControl(run: PodRun, actionId: string): boolean {
       return true;
     }
     case 'lab.expand':
-      if(run.selectedTape?.ready)run.labVideoExpanded=!run.labVideoExpanded;
+      expandLabRecording(run);
       return true;
     case 'lab.localPlayback': {
       const playback=localPlaybackFor(run);playback.paused=!playback.paused;

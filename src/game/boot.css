@@ -574,3 +574,185 @@ canvas {
   -webkit-user-select: text;
   cursor: text;
 }
+
+/* Photo-aligned title: the original artwork remains intact at every aspect ratio. */
+.title-screen.crt-opening {
+  position:relative; display:block; width:min(100vw,178.640777vh);
+  height:auto; aspect-ratio:2944 / 1648; max-width:none;
+  gap:0; isolation:isolate; animation:crt-arrive .65s ease-out both;
+}
+.opening-art {display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;}
+body:has(.crt-opening) {background:#000;}
+body:has(.crt-opening) #visor, body:has(.crt-opening) #bg-canvas {display:none;}
+.crt-menu {position:absolute;inset:0;}
+.crt-hit {
+  position:absolute;left:15.9%;width:18.3%;height:8.4%;border:0;padding:0;
+  background:transparent;cursor:pointer;outline:none;
+  transform:skewY(-8deg);-webkit-tap-highlight-color:transparent;
+}
+.crt-start {top:52.2%;}
+.crt-load {top:60.9%;}
+.crt-settings {top:69.6%;}
+.crt-hit::before {
+  content:'';position:absolute;inset:0;opacity:0;
+  background:rgba(100,255,80,.13);
+  backdrop-filter:invert(1) grayscale(1) sepia(1) saturate(4) hue-rotate(55deg);
+  -webkit-backdrop-filter:invert(1) grayscale(1) sepia(1) saturate(4) hue-rotate(55deg);
+  box-shadow:0 0 10px #a0ff7270,0 0 26px #62ff5138,inset 0 0 12px #b8ff8b80;
+  transition:opacity 100ms linear;
+}
+.crt-hit.selected::before,.crt-hit:focus-visible::before {opacity:1;}
+.crt-hit:active::before {filter:brightness(1.25);}
+.crt-hit:disabled {cursor:not-allowed;background:rgba(0,18,8,.58);}
+.crt-hit:focus-visible {outline:1px solid #c4ff9f;outline-offset:4px;}
+.crt-scanlines {
+  position:absolute;inset:0;pointer-events:none;opacity:.14;
+  background:repeating-linear-gradient(0deg,transparent 0 2px,#001805 2px 3px);
+  animation:crt-scan 12s linear infinite;
+}
+/* One glass-only signal layer shared by the menu and loading screen.
+   Artwork, housing and button hit areas remain stationary. */
+.crt-signal {
+  position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;
+  clip-path:polygon(8.1% 31%,8.5% 28%,10% 25.4%,13% 24%,20% 23.6%,30% 25%,36.5% 27.5%,38.5% 30%,39.3% 35%,40.6% 69%,40.2% 74%,38.8% 77%,34% 79.4%,24% 82%,15% 84%,12% 82%,10.5% 78%);
+  backdrop-filter:brightness(1);
+  animation:crt-phosphor 6.7s linear infinite;
+}
+.crt-roll {position:absolute;inset:-30% 0 0;pointer-events:none;
+  background:linear-gradient(to bottom,transparent,rgba(168,255,164,.035) 45%,rgba(197,255,180,.075) 75%,rgba(0,15,5,.07) 88%,transparent);
+  height:20%;animation:crt-roll 9s linear infinite;}
+.crt-sync {position:absolute;left:0;right:0;top:42%;height:.65%;opacity:0;
+  background:linear-gradient(to bottom,#baffaa12,transparent);
+  backdrop-filter:blur(.45px) brightness(1.12);
+  animation:crt-sync 13.7s steps(1,end) infinite;}
+@keyframes crt-phosphor {
+  0%,100% {backdrop-filter:brightness(1);}
+  18% {backdrop-filter:brightness(.985);}
+  40% {backdrop-filter:brightness(1.018);}
+  41% {backdrop-filter:brightness(.992);}
+  43%,70% {backdrop-filter:brightness(1.008);}
+  88% {backdrop-filter:brightness(.98);}
+}
+@keyframes crt-roll {from {transform:translateY(0);}to {transform:translateY(700%);}}
+@keyframes crt-sync {
+  0%,63%,64.5%,100% {opacity:0;top:42%;}
+  63.3% {opacity:.65;top:42%;}
+  63.8% {opacity:.35;top:42.3%;}
+  64.1% {opacity:.5;top:61%;}
+}
+.crt-still .crt-signal,.crt-still .crt-signal * {animation:none;}
+.crt-still .crt-roll,.crt-still .crt-sync {display:none;}
+@media(prefers-reduced-motion:reduce) {
+  .crt-signal,.crt-signal * {animation:none!important;}
+  .crt-roll,.crt-sync {display:none;}
+}
+.crt-help {position:absolute;bottom:4%;right:4%;max-width:49%;color:#9acf9b;
+  font:clamp(9px,1vw,14px)/1.7 var(--mono);letter-spacing:.12em;text-align:right;
+  text-shadow:0 0 8px #7cff6b80;}
+.sr-only {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+.crt-options {position:fixed;inset:0;margin:auto;width:min(390px,90vw);padding:28px;
+  background:#041209;color:#b0ff9b;border:1px solid #7cb975;box-shadow:0 0 35px #3dff3e25;
+  font-family:var(--mono);}
+.crt-options::backdrop {background:#000a;backdrop-filter:blur(5px);}
+.crt-options h2 {font-size:18px;margin-bottom:22px;letter-spacing:.2em;}
+.crt-options label {display:block;margin-bottom:24px;font-size:14px;}
+.crt-options input {accent-color:#a5ff88;}
+.crt-options button {display:block;width:100%;padding:12px;margin-top:8px;text-align:left;
+  font:inherit;color:inherit;border:1px solid #4d7853;background:transparent;cursor:pointer;}
+.crt-options button:hover:not(:disabled),.crt-options button:focus-visible {background:#aeff88;color:#06220c;outline:none;}
+.crt-options button:disabled {opacity:.35;cursor:not-allowed;}
+.crt-still .crt-scanlines {animation:none;}
+@keyframes crt-scan {from {background-position:0 0;}to {background-position:0 30px;}}
+@keyframes crt-arrive {from {opacity:0;}to {opacity:1;}}
+@media(prefers-reduced-motion:reduce) {.crt-opening,.crt-scanlines {animation:none!important;}.crt-hit::before {transition:none;}}
+
+/* Loading stays above session construction, which replaces ui-root. */
+.crt-loading-overlay {position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#000;--load-progress:8%;}
+.crt-loading-stage {position:relative;width:min(100vw,178.640777vh);aspect-ratio:2944 / 1648;}
+.crt-loading-panel {position:absolute;left:12%;top:51%;width:27%;height:28%;padding:3% 2%;
+  transform:skewY(-8deg);color:#d8ffc2;background:transparent;isolation:isolate;
+  border-radius:8% 6% 18% 14%;display:flex;flex-direction:column;justify-content:center;
+  font-family:var(--mono);text-shadow:0 0 7px #6cff75;}
+.crt-loading-panel::before {content:'';position:absolute;inset:-5%;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse at 30% 30%,#03451c,#023117 60%,#022a16);
+  mask-image:linear-gradient(to right,transparent,#000 9% 91%,transparent),linear-gradient(to bottom,transparent,#000 10% 87%,transparent);
+  mask-composite:intersect;}
+.crt-loading-panel::after {content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:repeating-linear-gradient(0deg,#00190518 0 1px,transparent 1px 3px);
+  mask-image:radial-gradient(ellipse,#000 40%,transparent 72%);}
+.crt-loading-title {font-size:clamp(12px,2vw,32px);font-weight:700;letter-spacing:.16em;}
+.loading-dots {animation:loading-pulse 1.4s steps(3,end) infinite;}
+.pixel-ocean {height:clamp(28px,4.8vw,84px);position:relative;overflow:hidden;}
+.pixel-sub-travel {position:absolute;left:0;bottom:12%;width:24%;height:65%;animation:sub-cruise 3.8s linear infinite;}
+.pixel-sub {width:100%;height:100%;filter:drop-shadow(0 0 3px #83ff74);}
+.pixel-bubbles {position:absolute;right:96%;top:35%;white-space:nowrap;font-size:clamp(10px,1.6vw,23px);animation:loading-pulse .8s steps(2) infinite;}
+.crt-loading-track {height:clamp(12px,2.2vw,34px);padding:4px;border:2px solid #91ff84;box-shadow:0 0 8px #7eff7966,inset 0 0 7px #7eff7944;}
+.crt-loading-fill {height:100%;width:var(--load-progress);background:repeating-linear-gradient(90deg,#a1ff89 0 7px,#73d476 7px 9px);box-shadow:0 0 8px #9aff7e;transition:width .3s ease-out;}
+.crt-loading-status {font-size:clamp(9px,1vw,16px);line-height:1.5;margin-top:6%;letter-spacing:.08em;}
+.crt-loading-back {position:relative;z-index:1;background:#a5ff88;color:#052810;border:0;padding:8px;cursor:pointer;margin-top:8px;font:inherit;}
+.loading-failed .pixel-sub-travel,.loading-failed .loading-dots {animation-play-state:paused;}
+@keyframes sub-cruise {from {left:-25%;}to {left:105%;}}
+@keyframes loading-pulse {0%,100%{opacity:.45;}50%{opacity:1;}}
+.crt-still .pixel-sub-travel,.crt-still .loading-dots,.crt-still .pixel-bubbles {animation:none;left:38%;}
+@media(prefers-reduced-motion:reduce) {.pixel-sub-travel,.loading-dots,.pixel-bubbles {animation:none;left:38%;}.crt-loading-fill {transition:none;}}
+
+/* Preserve the photographed housing, support and contact shadows together.
+   Blend only in the room beyond the CRT, never along its metal silhouette. */
+.title-screen.crt-opening,.crt-loading-stage {width:min(100vw,177.777778vh);aspect-ratio:16 / 9;}
+.opening-video {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;
+  filter:blur(1.2px) brightness(.88) sepia(.16) saturate(1.15);
+  background:#000 url('/assets/title/opening-background-poster.jpg') center/contain no-repeat;}
+.opening-crt-cutout {position:absolute;inset:0;width:100%;height:100%;object-fit:fill;
+  mask-image:linear-gradient(to right,#000 46%,rgba(0,0,0,.97) 49%,rgba(0,0,0,.75) 54%,rgba(0,0,0,.3) 61%,transparent 69%);
+  pointer-events:none;}
+
+/* First-chapter door instrument: a green-phosphor CRT terminal with mechanical
+   digit rollers (2026-11-03), so the code is dialled without a keyboard. */
+#harbor-door-panel{--ph:#9dffbf;--ph-dim:rgba(130,236,172,.55);--ph-glow:rgba(52,255,140,.55);--warn:#f0bf78;
+ position:fixed;inset:0;margin:auto;box-sizing:border-box;width:min(820px,96vw);max-height:94vh;overflow:auto;padding:clamp(10px,2vw,22px);
+ border:0;border-radius:26px;background:linear-gradient(#2b2a26,#1a1916 60%,#24221d);color:var(--ph);
+ box-shadow:inset 0 2px 0 #4a4740,inset 0 -3px 6px #0008,0 0 70px #000;font-family:var(--door-pixel,monospace);text-align:center}
+#harbor-door-panel::backdrop{background:#000c}
+#harbor-door-panel .door-glass{position:relative;overflow:hidden;border-radius:38px/30px;padding:clamp(18px,3.5vw,38px) clamp(14px,4vw,46px);
+ background:radial-gradient(ellipse at 50% 45%,#06321a,#03200f 62%,#010b05);box-shadow:inset 0 0 42px #000,inset 0 0 6px #6cff7540;
+ text-shadow:0 0 6px var(--ph-glow)}
+#harbor-door-panel .door-glass::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+ background:repeating-linear-gradient(0deg,#00140a40 0 1px,transparent 1px 3px);animation:crt-scan 12s linear infinite}
+#harbor-door-panel .door-glass::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:3;border-radius:inherit;
+ background:radial-gradient(ellipse at 30% 18%,#c8ffd812,transparent 40%),radial-gradient(ellipse,transparent 58%,#000a)}
+#harbor-door-panel header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:1px solid var(--ph-dim);padding-bottom:10px;
+ font:24px var(--door-pixel,monospace);letter-spacing:.12em;color:var(--ph-dim)}
+#harbor-door-panel header b{font-weight:400;color:var(--ph);letter-spacing:.4em}
+#harbor-door-panel.door-locked header b,#harbor-door-panel.door-locked #harbor-door-status{color:var(--warn);text-shadow:0 0 7px #f0a04880}
+#harbor-door-panel .door-title{font-size:24px;margin:22px 0 6px;letter-spacing:.1em}
+#harbor-door-panel .door-hint{font-size:12px;color:var(--ph-dim);margin:0 0 18px;letter-spacing:.08em}
+#harbor-door-panel .door-wheels{display:flex;justify-content:center;gap:clamp(4px,1.2vw,12px);padding:12px;border-block:1px dashed var(--ph-dim)}
+#harbor-door-panel .door-wheel{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 1 72px;min-width:0}
+#harbor-door-panel .door-step{width:100%;padding:2px 0;background:transparent;border:1px solid #3d7a52;color:var(--ph);cursor:pointer;
+ font:12px var(--door-mono,monospace);text-shadow:inherit;touch-action:manipulation}
+#harbor-door-panel .door-step:hover:not(:disabled){background:#9dffbf22}
+#harbor-door-panel .door-step:active:not(:disabled){background:var(--ph);color:#03200f}
+#harbor-door-panel .door-drum{position:relative;width:100%;height:clamp(96px,16vw,138px);display:flex;flex-direction:column;justify-content:center;
+ border:2px solid #4f9a68;background:linear-gradient(#000 0,#021a0c 22%,#063a1f 50%,#021a0c 78%,#000 100%);cursor:ns-resize;touch-action:none;user-select:none;
+ font-family:var(--door-mono,monospace);line-height:1;outline:none}
+#harbor-door-panel .door-drum::after{content:'';position:absolute;left:-2px;right:-2px;top:50%;height:46%;transform:translateY(-50%);pointer-events:none;
+ border-block:1px solid var(--ph-dim)}
+#harbor-door-panel .door-drum:focus-visible,#harbor-door-panel .door-drum:hover{border-color:var(--ph);box-shadow:0 0 10px var(--ph-glow),inset 0 0 8px #6cff7540}
+#harbor-door-panel .door-prev,#harbor-door-panel .door-next{font-size:clamp(18px,3vw,28px);opacity:.28}
+#harbor-door-panel .door-cur{font-size:clamp(42px,8vw,72px);margin:2px 0;text-shadow:0 0 10px var(--ph-glow),0 0 2px #fff}
+#harbor-door-panel .door-drum.roll-up span{animation:door-roll-up .12s steps(3,end)}
+#harbor-door-panel .door-drum.roll-down span{animation:door-roll-down .12s steps(3,end)}
+@keyframes door-roll-up{from{transform:translateY(30%)}to{transform:none}}
+@keyframes door-roll-down{from{transform:translateY(-30%)}to{transform:none}}
+#harbor-door-panel.door-locked .door-drum{cursor:not-allowed;border-color:#3a5c45}
+#harbor-door-panel.door-locked .door-cur{color:var(--ph-dim);text-shadow:none}
+#harbor-door-panel .door-step:disabled{opacity:.3;cursor:not-allowed}
+#harbor-door-status{min-height:30px;font-size:14px;margin:18px 0 8px;letter-spacing:.06em}
+#harbor-door-status.door-error{color:#ff8a7a;text-shadow:0 0 7px #ff503c90;animation:door-blink .5s steps(2,end) 3}
+@keyframes door-blink{50%{opacity:.25}}
+#harbor-door-panel footer{display:flex;gap:18px;justify-content:center;margin-top:12px}
+#harbor-door-panel footer button{min-width:132px;padding:10px 22px;background:transparent;border:1px solid var(--ph-dim);color:var(--ph);cursor:pointer;
+ font:16px var(--door-pixel,monospace);letter-spacing:.12em;text-shadow:inherit}
+#harbor-door-panel footer button[type=submit]{border:2px solid var(--ph)}
+#harbor-door-panel footer button:hover,#harbor-door-panel footer button:focus-visible{background:var(--ph);color:#03200f;text-shadow:none;outline:none}
+@media(prefers-reduced-motion:reduce){#harbor-door-panel .door-glass::before,#harbor-door-panel .door-drum span,#harbor-door-status.door-error{animation:none!important}}

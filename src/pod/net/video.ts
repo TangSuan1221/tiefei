@@ -34,6 +34,7 @@
 
 /** 默认走 vite dev proxy。它等价于上游的 /v1 */
 import {isLocalNoVideoMode} from './no-video-mode';
+import {loadVideoReference,type VideoReference} from './video-references';
 import {lockVideoCamera} from '../content/fixed-camera';
 const API_BASE = (import.meta.env.VITE_VIDEO_API_BASE as string | undefined) ?? '/api/video';
 /** 直连模式的 key。留空就不发 Authorization 头，由代理去补 */
@@ -146,7 +147,7 @@ const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
  * 因为调用方（view/footage.ts）对每一种失败都有一句对应的游戏内台词，
  * 而 try/catch 里区分不出「key 不对」和「断网」。
  */
-export async function requestVideo(prompt: string, signal?: AbortSignal, keyframe?: string, progress?: (status: string) => void, duration:5|10=5, cameraMode:'fixed'|'elias-selfie'='fixed'): Promise<VideoResult> {
+export async function requestVideo(prompt: string, signal?: AbortSignal, keyframe?: string, progress?: (status: string) => void, duration:5|10=5, cameraMode:'fixed'|'elias-selfie'='fixed', continuation?:{resumeId?:string;onSubmitted?:(id:string)=>void;onTerminalFailure?:()=>void}, references:readonly VideoReference[]=[]): Promise<VideoResult> {
   prompt = lockVideoCamera(prompt,cameraMode);
   if (!VIDEO_ENABLED || isLocalNoVideoMode()) return { ok: false, fail: { kind: 'disabled' } };
 
@@ -157,15 +158,21 @@ export async function requestVideo(prompt: string, signal?: AbortSignal, keyfram
   // 照样发是为了将来它被修好的那一天，但客户端不能依赖它 ——
   // 降到游戏分辨率的活全在 view/footage.ts 里干。
   let job: VideoJob;
+  if(continuation?.resumeId){job={id:continuation.resumeId,status:'queued'};}
+  else {
   try {
     if(cameraMode==='elias-selfie'&&!keyframe)throw new Error('Elias task reference is required');
+    if(references.length&&!keyframe)throw new Error('Primary shot reference is required');
+    const extra=await Promise.all(references.map(async ref=>({type:'image_url',image_url:{url:await loadVideoReference(ref.url,signal)},role:'reference_image'})));
+    if(extra.length)prompt+='\nREFERENCE MAP: Image 1 is the primary shot/task reference. '+references.map((ref,i)=>`Image ${i+2}: ${ref.description}`).join(' ')+' Never reproduce a reference sheet, collage or labels. Current shot facts take precedence over incidental objects in references.';
     let body: BodyInit = JSON.stringify({ model: MODEL, prompt, duration, size: '480p' });
     if (keyframe) {
       const match = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(keyframe);
       if (!match) throw new Error('Invalid shutter keyframe');
       body = JSON.stringify({ model: MODEL,
-        prompt: (cameraMode==='elias-selfie'?'Use the attached Elias task image as the character, equipment and location reference. Reframe it as his arm-length selfie as instructed; preserve task evidence and the dry or flooded state. Do not copy its external observer viewpoint. ':prompt.includes('ENVIRONMENT_ONLY_REFERENCE:')?'Use the attached image as an environment and camera reference, not an exact opening frame. Add only the described generated creatures; preserve the architecture, camera and lighting. ':'Use the attached image as the exact opening frame. Preserve its camera position, framing, architecture and lighting. Animate underwater particles and the described events without changing location. ') + prompt,
-        duration, size: '480p', first_frame: keyframe });
+        prompt: (cameraMode==='elias-selfie'?'Use the attached Elias task image as the character, equipment and location reference. Reframe it as his arm-length selfie as instructed; preserve task evidence and the dry or flooded state. Do not copy its external observer viewpoint. ':prompt.includes('ENVIRONMENT_ONLY_REFERENCE:')?'Use the attached image as an environment and camera reference, not an exact opening frame. Add only the described generated creatures; preserve the architecture, camera and lighting. ':'Use the attached image as an environment and camera reference. Preserve its camera position, framing, architecture and lighting. Animate underwater particles and the described events without changing location. ') + 'Do not reproduce the reference sheet as an opening or ending frame. ' + prompt,
+        // Explicit reference role: input_reference is mapped to first_frame by LiteLLM.
+        duration, size: '480p', content: [{ type: 'image_url', image_url: { url: keyframe }, role: 'reference_image' }, ...extra] });
     }
     const res = await guardedVideoFetch(`${API_BASE}/videos`, {
       method: 'POST',
@@ -181,15 +188,18 @@ export async function requestVideo(prompt: string, signal?: AbortSignal, keyfram
     if (e instanceof DOMException && e.name === 'AbortError') throw e;
     return { ok: false, fail: { kind: 'network', detail: String(e) } };
   }
+  }
 
   if (!job.id) return { ok: false, fail: { kind: 'generate', detail: '响应里没有 job id' } };
-  progress?.('任务已受理 · 排队 / 生成中');
+  continuation?.onSubmitted?.(job.id);
+  progress?.(continuation?.resumeId?'继续接收已有任务 · 查询生成状态':'任务已受理 · 排队 / 生成中');
 
   // ── 2. 轮询 ────────────────────────────────────────────────────────────
   await sleep(FIRST_POLL_DELAY, signal);
   while (job.status !== 'completed') {
     if (Date.now() > deadline) return { ok: false, fail: { kind: 'timeout' } };
     if (job.status === 'failed' || job.error) {
+      continuation?.onTerminalFailure?.();
       const detail = job.error?.message ?? 'status=failed';
       return { ok: false, fail: { kind: isFilterRejection(detail) ? 'filtered' : 'generate', detail } };
     }

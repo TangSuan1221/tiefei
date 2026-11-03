@@ -1,6 +1,7 @@
 import {abyssalVideoAuthorized} from '../../net/abyssal-video-authorization';
 import type {AbyssalLabSite} from './abyssal-lab-site';
 import {composeAbyssMedia} from '../../content/abyssal-media';
+import {dialogueSubtitles} from '../../content/video-subtitles';
 import {requestVideo,fetchVideoContent,VIDEO_ENABLED,failureLine} from '../../net/video';
 import {installRemotePlaylist,hasRemotePlaylist} from '../footage';
 import {isNoVideoMode} from '../gm';
@@ -29,6 +30,7 @@ export class AbyssalMediaPlayer {
  }
  private report(shotId:string,message:string){this.progress.set(shotId,message);this.site.run.videoStatus=message;}
 
+ get retryable(){return this.failed.size>0&&!this.busy;}
  retry(){
   if(!abyssalVideoAuthorized()||!VIDEO_ENABLED||isNoVideoMode())return {ok:false,message:'录像生成未启用，未提交重试任务。'};
   if(this.busy)return {ok:false,message:'当前录像仍在处理，请查看分析台状态；没有重复提交。'};
@@ -46,11 +48,11 @@ export class AbyssalMediaPlayer {
   const tape=this.site.run.selectedTape,key=tape?.cacheKey;
   if(tape&&!this.busy&&!this.disposed&&VIDEO_ENABLED&&abyssalVideoAuthorized()&&key?.startsWith('abyss:')&&!hasRemotePlaylist(key)&&!this.failed.has(key)){
    const ids=read()[key];
-   if(ids?.length){this.busy=true;void Promise.all(ids.map(async id=>{const r=await fetchVideoContent(id,this.abort.signal);if(!r.ok)throw Error('已保存录像暂不可下载');return r.blob;})).then(blobs=>this.disposed||isNoVideoMode()?undefined:installRemotePlaylist(key,tape.legId,blobs)).catch(error=>{if(isNoVideoMode()||this.disposed)return;this.failed.set(key,String(error));this.site.run.videoStatus='已保存录像下载失败；输入“重试录像”再试';}).finally(()=>{this.busy=false;});return;}
+   if(ids?.length){this.busy=true;void Promise.all(ids.map(async id=>{const r=await fetchVideoContent(id,this.abort.signal);if(!r.ok)throw Error('已保存录像暂不可下载');return r.blob;})).then(blobs=>this.disposed||isNoVideoMode()?undefined:installRemotePlaylist(key,tape.legId,blobs)).catch(error=>{if(isNoVideoMode()||this.disposed)return;this.failed.set(key,String(error));this.site.run.videoStatus='已保存录像下载失败；在分析台【通讯】点击“重新接收”再试';}).finally(()=>{this.busy=false;});return;}
   }
   if(this.busy||this.disposed||!VIDEO_ENABLED||isNoVideoMode()||!abyssalVideoAuthorized())return;
   const request=this.site.pendingMedia.find(r=>r.kind==='elias'&&!this.failed.has(r.shotId));if(!request)return;
-  this.busy=true;this.activeShot=request.shotId;this.report(request.shotId,`${request.shotId} · 正在准备地点首帧`);void this.deliver(request.shotId).catch(error=>{if(isNoVideoMode()||this.disposed)return;this.failed.set(request.shotId,String(error));this.site.run.videoStatus=String(error);this.site.run.pushLog(`录像 ${request.shotId} 未完成：${String(error)}。在通话窗输入“重试录像”可继续，已完成的片段会优先复用。`,'system');}).finally(()=>{this.busy=false;this.activeShot=null;});
+  this.busy=true;this.activeShot=request.shotId;this.report(request.shotId,`${request.shotId} · 正在准备地点首帧`);void this.deliver(request.shotId).catch(error=>{if(isNoVideoMode()||this.disposed)return;this.failed.set(request.shotId,String(error));this.site.run.videoStatus=String(error);this.site.run.pushLog(`录像 ${request.shotId} 未完成：${String(error)}。在分析台【通讯】点击“重新接收”可继续，已完成的片段会优先复用。`,'system');}).finally(()=>{this.busy=false;this.activeShot=null;});
  }
  private deliverDebug(shotId:string){
   const request=this.site.pendingMedia.find(r=>r.shotId===shotId),frozen=new StoryRuntime(this.site.story.pipeline);
@@ -90,7 +92,7 @@ export class AbyssalMediaPlayer {
   this.report(shotId,`${shotId} · 正在解码并校验录像`);
   const samples=await installRemotePlaylist(key,site.run.leg.id,blobs);
   if(this.disposed||isNoVideoMode())return;
-  site.run.receiveRemoteTape({id:'abyss.remote.'+shotId,siteName:site.story.pipeline.shots.find(s=>s.id===shotId)?.title??shotId,frames:samples,siteEvidence:{shotId,generated:true},videoResult:'video',cacheKey:key,note:`艾里亚斯传回${parts.length}段录像。到分析台播放并核验。`});
+  site.run.receiveRemoteTape({id:'abyss.remote.'+shotId,siteName:site.story.pipeline.shots.find(s=>s.id===shotId)?.title??shotId,frames:samples,siteEvidence:{shotId,generated:true},videoResult:'video',cacheKey:key,subtitles:frozen.performance(shotId).flatMap(p=>p.hit?.dialogue?dialogueSubtitles(p.hit.dialogue):[]),note:`艾里亚斯传回${parts.length}段录像。到分析台播放并核验。`});
   site.deliverMedia(shotId,key);site.run.videoStatus='艾里亚斯录像已收到';
  }
  dispose(){this.disposed=true;this.abort.abort();}

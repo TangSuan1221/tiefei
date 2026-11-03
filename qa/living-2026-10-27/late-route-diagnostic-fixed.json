@@ -33,10 +33,10 @@
       "label": "unknown code not leaked",
       "lines": [
         "罗温：请给我密码",
-        "艾里亚斯：我看见人员侧值班终端了。等我发视频，一次性密码会附在回传里。"
+        "艾里亚斯：我看见人员侧值班终端了。我给03门锁下发一次性授权，录像回传给你；收到以后，你到门旁确认。"
       ],
       "leaked": false,
-      "guessedCodeAccepted": false
+      "typedCodeUnlocked": false
     },
     {
       "label": "missing playlist rejection",
@@ -75,7 +75,7 @@
       "analyzed": true,
       "status": {
         "accepted": true,
-        "next": "南廊03门 X128.5 Y36 · 查看门锁、向艾里亚斯求密码、门旁输入\n导航坐标 X128.5 Y36 DEPTH 1040m\n下一段：宿舍外廊（C1）"
+        "next": "南廊03门 X128.5 Y36 · 授权已下发，到门锁旁按 F 确认开门\n导航坐标 X128.5 Y36 DEPTH 1040m\n下一段：宿舍外廊（C1）"
       },
       "power": 0.8649999999999999
     },
@@ -85,5 +85,7 @@
       "codeSeen": true
     }
   ],
-  "errors": []
+  "errors": [
+    "console: Failed to load resource: net::ERR_FAILED"
+  ]
 }

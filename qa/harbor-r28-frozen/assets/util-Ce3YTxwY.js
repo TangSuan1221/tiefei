@@ -1,0 +1,2 @@
+const c=(t,s,o)=>t<s?s:t>o?o:t,a=t=>c(t,0,1),e=(t,s,o)=>t+(s-t)*o,p=t=>{const s=a(t);return s*s*(3-2*s)},r=t=>{const s=a(t);return s*s*s*(s*(s*6-15)+10)},h=(t,s,o,n)=>e(t,s,1-Math.exp(-o*n)),m=(t,s=6)=>{const o=t-Math.floor(t);return Math.exp(-s*o)*Math.sin(Math.PI*o*2)+Math.exp(-s*3*o)*.4};function x(t){return`${t.toFixed(0)} m`}export{c as a,r as b,a as c,h as d,x as f,e as l,m as p,p as s};
+//# sourceMappingURL=util-Ce3YTxwY.js.map

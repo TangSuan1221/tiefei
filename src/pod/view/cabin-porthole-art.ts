@@ -58,19 +58,24 @@ export function buildPortholeArt(group:THREE.Group,screen:THREE.Mesh,w:number,h:
   const apronY=-ry-.096;
   const apron=new THREE.Mesh(new THREE.BoxGeometry(w+.16,.12,.013),steel);
   apron.position.set(0,apronY,-.047);apron.receiveShadow=true;group.add(apron);
-  const redLens=new THREE.MeshPhysicalMaterial({color:0x4e0c05,emissive:0xcf2108,emissiveIntensity:.31,roughness:.19,metalness:.08,clearcoat:1,clearcoatRoughness:.12});
+  const redLens=new THREE.MeshPhysicalMaterial({color:0x690e08,emissive:0xcf2108,emissiveIntensity:.38,roughness:.19,metalness:0,clearcoat:1,clearcoatRoughness:.12,transparent:true,opacity:.76,depthWrite:false});
+  const lampCore=new THREE.MeshStandardMaterial({color:0x4f0902,emissive:0xff0a02,emissiveIntensity:2.0,roughness:.5});
   for(const side of [-1,1]){
-    const lampX=side*(rx+.025),lampY=apronY+.038;
+    const lampX=side*(rx+.025)*.90+(side<0?-.019:.024),lampY=apronY+.050;
+    const fixture=new THREE.Group();fixture.position.set(lampX,lampY,.004);fixture.scale.setScalar(.8);group.add(fixture);
     const base=new THREE.Mesh(new THREE.CylinderGeometry(.018,.022,.010,20),lip);
-    base.position.set(lampX,lampY-.023,.004);group.add(base);
+    base.position.set(0,-.023,0);fixture.add(base);
     const lens=new THREE.Mesh(new THREE.CapsuleGeometry(.012,.025,5,16),redLens);
-    lens.position.set(lampX,lampY,.004);group.add(lens);
+    lens.name=side<0?'helm-port-warning-lens':'helm-starboard-warning-lens';
+    lens.position.set(0,0,0);fixture.add(lens);
+    const core=new THREE.Mesh(new THREE.CapsuleGeometry(.004,.022,4,12),lampCore);
+    core.position.set(0,0,0);fixture.add(core);
     for(const dx of [-.012,.012]){
       const guard=new THREE.Mesh(new THREE.CylinderGeometry(.0016,.0016,.045,6),lip);
-      guard.position.set(lampX+dx,lampY,.011);group.add(guard);
+      guard.position.set(dx,0,.007);fixture.add(guard);
     }
     const cap=new THREE.Mesh(new THREE.CylinderGeometry(.014,.014,.003,16),lip);
-    cap.position.set(lampX,lampY+.023,.004);group.add(cap);
+    cap.position.set(0,.023,0);fixture.add(cap);
     const glow=new THREE.PointLight(0xff3518,.055,.31,2);
     glow.position.set(lampX,lampY,.035);group.add(glow);
   }

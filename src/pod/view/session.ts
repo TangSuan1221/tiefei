@@ -14,7 +14,11 @@ import { stationForKey, type StationId } from '../types';
 import { PodRun } from '../sim/run';
 import { PodView } from './present';
 import { performControl, stationControls } from './stations';
-import { MIC_HOLD_MS, passiveUi, sonarAction, sonarDeskState } from './sonar-desk';
+import { HarborRescueSite } from './deepsea/harbor-rescue-site';
+import { sonarAction } from './sonar-desk';
+import { sonarDeskState } from './sonar-desk';
+import { labDeskAction, labDeskState } from './lab-desk';
+import { commUi } from './comm-desk';
 import { PushToTalk, RadioTransmit } from './radio-transmit';
 import { bindGm, closeGmConsole, closePromptPanel, isGmConsoleOpen } from './gm';
 import { installFootageSink } from './footage';
@@ -69,6 +73,7 @@ export async function startPodSession(resume: boolean): Promise<void> {
   const view = new PodView(run, outCanvas);
   const startLevel=new URLSearchParams(location.search).get('level');
   if(!saved&&!living&&!abyssal){if(startLevel==='3')run.beginAbyssalLab();else if(startLevel==='2')run.beginLivingDeck();else run.beginHarborApproach();run.power=1;run.hull=1;run.activeSonarEnabled=startLevel!=='2';run.sonarPulseEnabled=startLevel!=='2'&&startLevel!=='3';}
+  if(!resume&&!['2','3'].includes(startLevel??'')&&run.authoredSite instanceof HarborRescueSite)run.authoredSite.beginPrologue();
   if(abyssal){if(!restoreAbyssalSave(run,abyssal)){window.alert('第三关存档恢复失败，原文件保留。');return;}run.pushLog('−2层研究所进度已恢复。','system');}
   if(living){
     try{if(!restoreLivingSave(run,living))throw new Error('第二关恢复接口未就绪或存档与当前关卡版本不匹配。');}
@@ -159,7 +164,7 @@ export class PodSession {
   private walkedInCabin=false;
   private dragLook = false;
   private heldPilot:string|null=null;
-  private stickDrag:{x:number;y:number}|null=null;
+  private stickDrag:{x:number;y:number;throttle?:boolean}|null=null;
   private canvas = document.getElementById('post-canvas') as HTMLCanvasElement;
 
   private centerHit():string|null {
@@ -229,12 +234,13 @@ export class PodSession {
     window.addEventListener('beforeunload',this.saveCheckpoint);
     this.wireSpatialAudio();
     document.getElementById('cabin-interact')?.addEventListener('click',()=>{if(this.view.cabin.consoleInReach())this.enterConsole();else if(!this.run.at&&!this.syncInputBlock()&&this.run.outcome.kind==='alive'){void this.view.unlockAudio();this.run.walkTo('camera');this.keys.clear();}});
+    document.getElementById('comm-alert')?.addEventListener('click',()=>{if(this.syncInputBlock()||this.run.outcome.kind!=='alive')return;void this.view.unlockAudio();if(document.pointerLockElement)document.exitPointerLock();this.keys.clear();this.releaseStick();this.openComm();});
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('pointerdown', this.onPointer);
     window.addEventListener('pointermove', this.onMove);
-    window.addEventListener('pointerup', () => { this.dragLook = false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick();this.releaseMic(true); });
-    window.addEventListener('pointercancel', () => {this.dragLook=false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick();this.releaseMic(false);});
+    window.addEventListener('pointerup', () => { this.dragLook = false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick(); });
+    window.addEventListener('pointercancel', () => {this.dragLook=false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick();});
     window.addEventListener('contextmenu', e => {
       if((e.target===this.canvas || e.target===document.getElementById('ui-root'))) e.preventDefault();
     });
@@ -281,7 +287,7 @@ export class PodSession {
     this.applyHeld(dt);
     this.run.frame(dt);
     this.view.frame(dt, this.run);
-    if(this.tx.open&&(this.run.at!=='nav'||this.run.outcome.kind!=='alive'))this.tx.close();
+    if(this.tx.open&&(this.run.at!=='lab'||this.run.outcome.kind!=='alive'))this.tx.close();
     if(now>=this.saveAt){this.saveAt=now+15000;this.saveCheckpoint();}
     if((this.run.at || this.run.outcome.kind!=='alive' || this.blurred || isGmConsoleOpen()) && document.pointerLockElement===this.canvas) {
       document.exitPointerLock();this.keys.clear();
@@ -305,7 +311,7 @@ export class PodSession {
     const active = document.activeElement as HTMLElement | null;
     const editing = !!active?.closest('input, textarea, select, [contenteditable="true"]');
     const blocked = this.blurred || document.hidden || editing || isGmConsoleOpen()
-      || !!document.querySelector('.gm-prompt, #campaign-journal');
+      || !!document.querySelector('.gm-prompt, #campaign-journal, #harbor-door-panel');
     this.run.driveInputBlocked = blocked;
     if (blocked || this.run.outcome.kind !== 'alive') this.keys.clear();
     return blocked;
@@ -315,7 +321,6 @@ export class PodSession {
     this.run.navDriveEngaged=false;
     this.releaseStick();
     this.blurred = true;
-    this.releaseMic(false);
     this.dragLook = false;
     this.heldPilot=null;
     this.keys.clear();
@@ -385,7 +390,18 @@ export class PodSession {
     void this.view.unlockAudio();
     const key = interactKey?'e':facilityKey?'f':e.key.toLowerCase();
     if (isGmConsoleOpen()) return;
-    if((this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab')&&key==='m'){e.preventDefault();const back=this.run.at;if(this.run.at!=='nav')this.run.walkTo('nav');this.openTransmit(false,back);return;}
+    if((this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab')&&key==='m'){e.preventDefault();const back=this.run.at;this.openComm();this.openTransmit(false,back);return;}
+    // During coordinate instruction, hardware digits must not switch stations or engage drive.
+    if(this.run.prologue?.active&&this.run.prologue.step===0&&this.run.at){
+      const digit=/^[0-9.\-]$/.test(key);
+      if(digit||['backspace','delete','tab','enter'].includes(key)){
+        e.preventDefault();
+        const desk=sonarDeskState(this.run);
+        sonarAction(this.run,digit?'sonar.key.'+key:key==='tab'?'sonar.axis.'+((desk.axis+1)%3):key==='enter'?'sonar.save':key==='delete'?'sonar.key.clear':'sonar.key.del');
+        return;
+      }
+    }
+    if(this.run.at&&['camera','nav','lab'].includes(this.run.at)&&['x','z'].includes(key)){e.preventDefault();performControl(this.run,key==='x'?'nav.thrUp':'nav.thrDown');return;}
     this.keys.add(key);
     // E activates one shared cockpit. Clicking a side screen must not disable F.
     if(this.run.at && ['camera','nav','lab'].includes(this.run.at) && key==='f'){e.preventDefault();this.run.authoredSite?.interact();return;}
@@ -501,8 +517,8 @@ export class PodSession {
     }
     const id = this.deskAction(picked);
     if(id?.startsWith('sonar.tune.'))this.sonarDrag=true;
-    if(id==='sonar.mic'){if(this.run.at!=='nav')this.run.walkTo('nav');this.openTransmit(false);return;}
-    if(id==='helm.stick'){this.stickDrag={x:e.clientX,y:e.clientY};return;}
+    if(id==='lab.comm.talk'){this.openComm();this.openTransmit(false);return;}
+    if(id==='helm.stick'||id==='helm.throttle'){this.stickDrag={x:e.clientX,y:e.clientY,throttle:id==='helm.throttle'};this.run.throttleDragging=id==='helm.throttle';return;}
     if(id==='helm.brake'){this.heldPilot='helm.brake';return;}
     if(id==='nav.thrust'){this.toggleNavDrive();return;}
     if(id==='nav.pitchUp'||id==='nav.pitchDown'){this.heldPilot=id;return;}
@@ -526,8 +542,18 @@ export class PodSession {
     if(this.dragLook){this.look(e);return;}
     if(this.stickDrag){
       const input=this.view.cabin.helmInput;
+      if(this.stickDrag.throttle){
+        // A latched gear selector, not a second spring-return thrust joystick.
+        const gear=this.view.throttleGearAt(e.clientX,e.clientY);
+        if(gear===null)return;
+        if(gear!==this.run.throttle){
+          const direction=Math.sign(gear-this.run.throttle);
+          while(this.run.throttle!==gear)this.run.setThrottle(this.run.throttle+direction);
+        }
+        return;
+      }
       const axis=(v:number)=>{const a=Math.abs(v);return a<8?0:Math.sign(v)*Math.min(1,(a-8)/110);};
-      input.yaw=axis(e.clientX-this.stickDrag.x);
+      input.yaw=this.stickDrag.throttle?0:axis(e.clientX-this.stickDrag.x);
       input.thrust=axis(this.stickDrag.y-e.clientY);return;
     }
     if(!this.run.at && document.pointerLockElement===this.canvas) {
@@ -541,21 +567,11 @@ export class PodSession {
     }
   };
 
-  private micHeld=false;
-  private releaseMic(send:boolean):void {
-    if(!this.micHeld)return;
-    this.micHeld=false;
-    if(!send||this.run.at!=='nav'){this.ptt.abort();sonarAction(this.run,'sonar.mic.cancel');return;}
-    if(this.run.authoredSite?.radioSay){
-      const since=passiveUi(this.run).micSince,held=since===null?0:performance.now()-since;
-      sonarAction(this.run,'sonar.mic.cancel');
-      if(held<MIC_HOLD_MS){this.ptt.abort();sonarDeskState(this.run).message='按住麦克风说话，松开后输入';this.view.audio.cue('ui.error',{gain:.4});return;}
-      const voice=this.ptt.listening;
-      if(this.openTransmit(voice)){if(voice)this.ptt.stop();}else this.ptt.abort();
-      return;
-    }
-    const ok=performControl(this.run,'sonar.mic.up');
-    this.view.audio.cue(ok?'ui.select':'ui.error',{gain:.4});
+  /** Calls and the microphone live on the lab's comm tab; the popup, M and the talk button all land there. */
+  private openComm():void {
+    if(this.run.at!=='lab')this.run.walkTo('lab');
+    labDeskState(this.run).tab='comm';
+    this.view.cabin.focusLab();
   }
   private readonly tx=new RadioTransmit();
   private readonly ptt=(()=>{const p=new PushToTalk();p.onText=t=>this.tx.setTranscript(t);p.onEnd=()=>this.tx.setTranscribing(false);return p;})();
@@ -568,15 +584,14 @@ export class PodSession {
   private openTransmit(transcribing:boolean,back?:StationId):boolean {
     const site=this.run.authoredSite;
     if(this.tx.open)return true;
-    // Deck two: M borrows the nav seat only for the call. Staying there after it would make the
-    // habitual "2" (camera from the aisle) power the active sonar, a continuous noise source.
-    const restore=()=>{if(site?.index===1&&back&&back!=='nav'&&this.run.at==='nav'&&this.run.outcome.kind==='alive')this.run.walkTo(back);};
+    // Deck two: M borrows the lab seat only for the call, then returns to the station it came from.
+    const restore=()=>{if(site?.index===1&&back&&back!=='lab'&&this.run.at==='lab'&&this.run.outcome.kind==='alive')this.run.walkTo(back);};
     const target=site?.micTarget??'开放频道';
     if(document.pointerLockElement)document.exitPointerLock();
     this.keys.clear();this.releaseStick();this.heldPilot=null;
-    const ui=passiveUi(this.run),choices:string[]=site?.index===2?[...(site.dialogueChoices??[])]:[];
-    const prefill='';ui.tab='main';ui.editing=true;ui.draft='';
-    const done=(ok:boolean)=>{this.ptt.abort();if(ok)ui.choice=null;sonarDeskState(this.run).message=ok?'已发言':'';this.view.audio.cue(ok?'ui.select':'ui.error',{gain:.4});};
+    const ui=commUi(this.run),choices:string[]=site?.index===2?[...(site.dialogueChoices??[])]:[];
+    const prefill='';ui.editing=true;ui.draft='';
+    const done=(ok:boolean)=>{this.ptt.abort();sonarDeskState(this.run).message=ok?'已发言':'';this.view.audio.cue(ok?'ui.select':'ui.error',{gain:.4});};
     this.tx.show({target,choices,prefill,transcribing,
       onDraft:text=>{ui.draft=text;},
       onSend:text=>{ui.editing=false;ui.spoken=text;ui.draft='';this.run.pushLog('罗温：'+text,'system');const s=this.run.authoredSite;if(s?.radioSay&&s.micTarget&&s.micReady!==false)s.radioSay(text);done(true);restore();},
@@ -587,7 +602,7 @@ export class PodSession {
     return true;
   }
   private releaseStick():void {
-    this.stickDrag=null;this.view.cabin.helmInput.thrust=0;this.view.cabin.helmInput.yaw=0;
+    this.stickDrag=null;this.run.throttleDragging=false;this.view.cabin.helmInput.thrust=0;this.view.cabin.helmInput.yaw=0;
   }
   private toggleNavDrive():void {
     if(this.run.driveBlock){this.run.pushLog(this.run.driveBlock,'system');this.run.navDriveEngaged=false;return;}

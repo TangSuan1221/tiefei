@@ -1,5 +1,5 @@
 import type {PodRun} from '../../sim/run';
-import {LIVING_TASKS,LIVING_TASK_REFERENCE,livingTaskPrompt,type LivingTaskId} from '../../content/living-task-videos';
+import {LIVING_TASKS,LIVING_TASK_REFERENCE,livingTaskPrompt,livingTaskSubtitles,type LivingTaskId} from '../../content/living-task-videos';
 import {requestVideo,fetchVideoContent,VIDEO_ENABLED,failureLine} from '../../net/video';
 import {installRemotePlaylist,hasRemotePlaylist} from '../footage';
 import {isNoVideoMode} from '../gm';
@@ -27,16 +27,23 @@ export class LivingTaskPlayer {
  private busy=false;private disposed=false;private failed=false;private abort=new AbortController();
  /** Task the world state currently asks for, and the one being generated; a mismatch means the request went stale. */
  private wanted:LivingTaskId|null=null;private inflight:LivingTaskId|null=null;private superseded=false;
+ /** Calls the world will ask for next are generated quietly ahead of time, so they ring the moment they are due; never delivered until wanted. */
+ private prefetchAbort=new AbortController();private prefetches=new Map<string,Promise<void>>();private readied=new Map<string,Blob>();
  constructor(private run:PodRun){}
  retry(){this.failed=false;return '已排队重试；已有生成任务优先下载，不重复提交。';}
- tick(id:LivingTaskId|null,code:string,injured=false){
+ get retryable(){return this.failed&&!this.busy;}
+ tick(id:LivingTaskId|null,code:string,injured=false,upcoming:readonly LivingTaskId[]=[]){
   if(this.disposed)return;
   this.wanted=id;
-  if(isNoVideoMode()){this.abort.abort();this.run.videoStatus='GM无视频诊断：剧情任务按文字自动推进，不授正式媒体证据、不保存正式进度';return;}
+  if(isNoVideoMode()){this.abort.abort();this.prefetchAbort.abort();this.run.videoStatus='GM无视频诊断：剧情任务按文字自动推进，不授正式媒体证据、不保存正式进度';return;}
   // Player actions can overtake a request (camera handed over before S01 lands, valve reported before S04): drop it rather than deliver a stale order.
   if(this.busy&&this.inflight&&this.inflight!==id&&!this.superseded){this.superseded=true;this.abort.abort();this.run.videoStatus='现场进展已变化 · 作废旧任务录像，按当前状态重新请求';return;}
   if(this.abort.signal.aborted&&!this.busy)this.abort=new AbortController();
   if(!VIDEO_ENABLED){this.run.videoStatus='正式任务视频未启用，无备用影片；可显式开启GM无视频模式进行隔离诊断';return;}
+  if(this.prefetchAbort.signal.aborted&&!this.prefetches.size)this.prefetchAbort=new AbortController();
+  // One background generation at a time, likeliest call first.
+  const next=this.prefetches.size?undefined:upcoming.find(u=>!this.prefetches.has(u+':'+injured)&&!this.readiedFor(u,injured));
+  if(next)this.prefetch(next,code,injured);
   if(this.busy||this.failed)return;
   const selected=this.run.selectedTape;
   if(selected?.cacheKey?.startsWith('living-task:')&&!hasRemotePlaylist(selected.cacheKey)){
@@ -45,18 +52,38 @@ export class LivingTaskPlayer {
   if(!id||this.run.tapes.some(t=>t.id==='living.task.'+id))return;
   this.inflight=id;this.start(()=>this.deliver(id,code,injured));
  }
- private start(work:()=>Promise<void>){this.busy=true;void work().catch(e=>{if(this.disposed||isNoVideoMode()||this.superseded)return;this.failed=true;this.run.videoStatus='任务录像未完成：'+String(e)+'；输入“重试录像”';this.run.pushLog(this.run.videoStatus,'system');}).finally(()=>{this.busy=false;this.inflight=null;this.superseded=false;});}
+ private start(work:()=>Promise<void>){this.busy=true;void work().catch(e=>{if(this.disposed||isNoVideoMode()||this.superseded)return;this.failed=true;this.run.videoStatus='任务录像未完成：'+String(e)+'；在通讯页点击“重新接收”';this.run.pushLog(this.run.videoStatus,'system');}).finally(()=>{this.busy=false;this.inflight=null;this.superseded=false;});}
+ private readiedFor(id:LivingTaskId,injured:boolean){for(const k of this.readied.keys())if(k.startsWith(id+':'+injured+':'))return true;return false;}
+ private async source(id:LivingTaskId,code:string,injured:boolean,signal:AbortSignal){
+  const response=await fetch(LIVING_TASK_REFERENCE,{signal});if(!response.ok||!response.headers.get('content-type')?.startsWith('image/'))throw Error('缺少艾里亚斯任务参考图');
+  const frame=await livingSealedReference(await response.blob());
+  const prompt=livingTaskPrompt(id,code,injured);return {frame,prompt,key:'living-task:'+id+':'+hash(prompt+frame)};
+ }
+ /** Silent: no status line, no failure state. A failed prefetch is simply requested again when the call is due. */
+ private prefetch(id:LivingTaskId,code:string,injured:boolean){
+  const tag=id+':'+injured,signal=this.prefetchAbort.signal;
+  const work=(async()=>{
+   const {frame,prompt,key}=await this.source(id,code,injured,signal),saved=read();
+   const r=saved[key]?await fetchVideoContent(saved[key],signal):await requestVideo(prompt,signal,frame,()=>{},10,'elias-selfie');
+   if(!r.ok||this.disposed)return;
+   if(!saved[key])remember(key,r.videoId);
+   this.readied.set(tag+':'+key,r.blob);
+  })().catch(()=>{}).finally(()=>{this.prefetches.delete(tag);});
+  this.prefetches.set(tag,work);
+ }
  private async deliver(id:LivingTaskId,code:string,injured:boolean){
-  this.run.videoStatus='艾里亚斯 · 准备角色任务参考图';
-  const response=await fetch(LIVING_TASK_REFERENCE,{signal:this.abort.signal});if(!response.ok||!response.headers.get('content-type')?.startsWith('image/'))throw Error('缺少艾里亚斯任务参考图');
-  const blob=await response.blob();const frame=await livingSealedReference(blob);
-  const prompt=livingTaskPrompt(id,code,injured),key='living-task:'+id+':'+hash(prompt+frame),saved=read();let video:Blob;
-  if(saved[key]){const r=await fetchVideoContent(saved[key],this.abort.signal);if(!r.ok)throw Error('已有录像暂不可下载；稍后重试');video=r.blob;}
+  this.run.videoStatus='艾里亚斯 · 视频通话接入中';
+  // A matching background generation is already paid for: wait for it instead of submitting a duplicate.
+  await this.prefetches.get(id+':'+injured);
+  const {frame,prompt,key}=await this.source(id,code,injured,this.abort.signal),saved=read();let video:Blob;
+  const ready=this.readied.get(id+':'+injured+':'+key);
+  if(ready){video=ready;this.readied.delete(id+':'+injured+':'+key);}
+  else if(saved[key]){const r=await fetchVideoContent(saved[key],this.abort.signal);if(!r.ok)throw Error('已有录像暂不可下载；稍后重试');video=r.blob;}
   else {const r=await requestVideo(prompt,this.abort.signal,frame,s=>{this.run.videoStatus=s;},10,'elias-selfie');if(!r.ok)throw Error(failureLine(r.fail));remember(key,r.videoId);video=r.blob;}
   if(this.disposed||isNoVideoMode()||this.wanted!==id)return;
   const frames=await installRemotePlaylist(key,this.run.leg.id,[video]);if(this.disposed||isNoVideoMode()||this.wanted!==id)return;
-  if(this.run.receiveRemoteTape({id:'living.task.'+id,siteName:'艾里亚斯 · '+LIVING_TASKS[id].title,frames,siteEvidence:{livingTask:id,generated:true,...(id==='L2-S06'?{code}: {})},videoResult:'video',cacheKey:key,note:'收到艾里亚斯自拍视频 · 已自动登记，可到分析台播放'}))this.run.videoStatus='艾里亚斯任务录像已收到';
+  if(this.run.receiveRemoteTape({id:'living.task.'+id,siteName:'艾里亚斯 · '+LIVING_TASKS[id].title,frames,siteEvidence:{livingTask:id,generated:true,...(id==='L2-S06'?{code}: {})},videoResult:'video',cacheKey:key,subtitles:livingTaskSubtitles(id,code),note:'收到艾里亚斯自拍视频 · 已自动登记，可到分析台播放'}))this.run.videoStatus='艾里亚斯任务录像已收到';
  }
- dispose(){this.disposed=true;this.abort.abort();}
+ dispose(){this.disposed=true;this.abort.abort();this.prefetchAbort.abort();}
 }
 

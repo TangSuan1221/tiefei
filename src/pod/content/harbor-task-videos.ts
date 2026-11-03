@@ -1,6 +1,10 @@
+import {HARBOR_REFERENCES} from './harbor-video-references';
 import {lockVideoCamera} from './fixed-camera';
+import {HARBOR_R28_TASKS} from './harbor-r28-videos';
+import {subtitleLines} from './video-subtitles';
 const place='a dry harbor security room, closed personnel door behind him';
 export const HARBOR_TASKS = {
+ ...HARBOR_R28_TASKS,
 
  'L1-E01': {title:'接驳岗呼叫',line:'接驳岗呼叫，X11，Y16，深度1012米。收到请回复。这是你先到的入口接驳点，不是我的位置。穿过压力门和维修湾，才到主港。我是艾里亚斯，比你先到的调查员。八个小时了，我还以为不会有人来了。先把主动声纳关掉，快。',speech:'坐标是入口，不是我这儿。收到请回复。八个小时了……先关主动声纳，快。',place,action:'He checks his wrist clock, leans toward the lens with relief, then urgently gestures for quiet.',target:[11,0,16]},
  'L1-E04': {title:'声纳警告',line:'这座基地养过不少海洋实验生物。事故以后，实验舱还能不能关住它们，没人知道。被动声纳留着听；主动声纳一通电就持续发声，能测地形，也可能把东西招来。你需要它的时候再开。',speech:'实验舱还关不关得住它们，我不知道。被动留着听，主动声纳要小心用。',place,action:'He lowers his voice and listens at the closed door without opening it.',target:[11,0,16]},
@@ -12,13 +16,18 @@ export const HARBOR_TASKS = {
  'L1-E03': {title:'安全区回执',line:'我进值班室了，门锁上了。回港通道塌了，你别折返。从01下潜到生活区，我沿人员通道慢慢走。到生活区末端的密码闸门再碰头。频道留着。',speech:'我到值班室了。你从零一下潜，我走人员通道。生活区的密码闸门见。',place:'a dry harbor duty-room refuge, latched personnel door behind him',action:'He checks the closed door latch, then looks into the camera. He has actually reached safety.',target:[60,0,27]}
 } as const;
 export type HarborTaskId=keyof typeof HARBOR_TASKS;
-export const HARBOR_TASK_REFERENCE='/assets/harbor/elias-task-reference.png';
-export function harborTaskPrompt(id:HarborTaskId,injured=false){const t=HARBOR_TASKS[id];return lockVideoCamera([
- 'REFERENCE: Attached image is the Elias character design sheet, not the opening composition. Use exactly one helmeted Elias; discard sheet layout, labels, white background and all unhelmeted views.',
+/** Elias names himself in V02; calls before that come from an unknown source. */
+export const harborCaller=(id:HarborTaskId)=>id==='L1-R28-V01'||id==='L1-R28-V02'||id==='L1-E01'?'未知来源':'艾里亚斯';
+/** Subtitles are the exact SPEECH text the model voices (VR-116). */
+export const harborTaskSubtitles=(id:HarborTaskId)=>subtitleLines('艾里亚斯',HARBOR_TASKS[id].speech);
+export const HARBOR_TASK_REFERENCE=HARBOR_REFERENCES.story;
+export function harborSpeechParts(id:HarborTaskId){const text=HARBOR_TASKS[id].speech;if(!id.startsWith('L1-R28-'))return [text];const parts:string[]=[];let part='';for(const clause of text.match(/[^，。！？；…]+[，。！？；…]*/g)??[text]){if(part.length+clause.length>36&&part){parts.push(part);part='';}part+=clause;}if(part)parts.push(part);return parts;}
+export function harborTaskPrompt(id:HarborTaskId,injured=false,part?:number){const t=HARBOR_TASKS[id];return lockVideoCamera([
+ 'REFERENCE: Primary image is the Elias story portrait; additional images define his character equipment and dispatch room, not an exact opening composition. Use exactly one helmeted Elias; discard sheet layout, labels, white background and all unhelmeted views.',
  'IDENTITY: Worn yellow diving helmet, opaque dark visor, black diving drysuit, tan harness. Helmet stays sealed; no visible face or body anomaly.',
  'LOCATION: '+t.place+'. Dry floor, breathable air, normal gravity; no underwater particles or bubbles around Elias.',
  'ACTION: '+t.action+(injured?' Preserve a minor shoulder injury and guarded arm movement; he can walk.':' No injury unless explicitly described in ACTION.'),
- 'SPEECH: Speak this brief Mandarin message naturally: '+t.speech,
+ 'SPEECH: Speak this Mandarin message naturally, without omitting or paraphrasing any words: '+(part===undefined?t.speech:harborSpeechParts(id)[part]),
  'MESSAGE: No subtitles or text generated in the picture; the game displays the exact task and coordinates separately.',
  'No other characters, creature, hidden identity reveal, space setting or cinematic cut.'
  ].join('\n'),'elias-selfie');}

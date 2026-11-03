@@ -1,0 +1,71 @@
+{
+  "errors": [],
+  "controls": {
+    "helm.throttle": {
+      "x": 742.6955995474989,
+      "y": 475.25074542110366,
+      "hit": "desk:camera:helm.throttle"
+    },
+    "helm.stick": {
+      "x": 664.4088556852831,
+      "y": 436.08688289559865,
+      "hit": "desk:camera:helm.stick"
+    },
+    "drive.up": {
+      "x": 853.3447824073487,
+      "y": 410.14987450974735,
+      "hit": "desk:camera:drive.up"
+    },
+    "drive.down": {
+      "x": 850.17927520185,
+      "y": 470.4160464615168,
+      "hit": "desk:camera:drive.down"
+    },
+    "nav.pitchUp": {
+      "x": 956.7254977054888,
+      "y": 410.14987450974735,
+      "hit": "desk:camera:nav.pitchUp"
+    },
+    "nav.pitchDown": {
+      "x": 956.6283110807585,
+      "y": 470.4160464615168,
+      "hit": "desk:camera:nav.pitchDown"
+    },
+    "helm.brake": {
+      "x": 901.0828577868148,
+      "y": 556.1573978973597,
+      "hit": "desk:camera:helm.brake"
+    },
+    "camera.lamp": {
+      "x": 1162.9020769562728,
+      "y": 404.31379253593747,
+      "hit": "desk:camera:camera.lamp"
+    },
+    "camera.shoot": {
+      "x": 1176.9609166907337,
+      "y": 544.6033580448454,
+      "hit": "desk:camera:camera.shoot"
+    },
+    "arm.extend": {
+      "x": 1429.9046640861957,
+      "y": 431.6586073475295,
+      "hit": "desk:camera:arm.extend"
+    },
+    "arm.retract": {
+      "x": 1540.3853059973806,
+      "y": 570.3099386554475,
+      "hit": "desk:camera:arm.retract"
+    }
+  },
+  "render": {
+    "frame": 314,
+    "calls": 629,
+    "triangles": 165730,
+    "points": 0,
+    "lines": 0
+  },
+  "memory": {
+    "geometries": 1066,
+    "textures": 70
+  }
+}

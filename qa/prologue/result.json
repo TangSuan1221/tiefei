@@ -1,0 +1,31 @@
+{
+  "before": {
+    "step": 10,
+    "position": [
+      11,
+      -0.1360035507801524,
+      -35.734716712438164
+    ],
+    "pitch": 0.1789008824806449,
+    "gear": 1,
+    "arm": "stowed",
+    "pending": null,
+    "opened": []
+  },
+  "final": {
+    "step": 12,
+    "position": [
+      11,
+      -0.30185247712480606,
+      17.380799004276504
+    ],
+    "pitch": 0.1789008824806449,
+    "gear": 1,
+    "arm": "stowed",
+    "pending": "L1-R28-V01",
+    "opened": [
+      "harbor.edge.A-C"
+    ]
+  },
+  "errors": []
+}

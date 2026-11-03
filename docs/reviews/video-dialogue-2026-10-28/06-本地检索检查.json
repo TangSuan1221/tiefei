@@ -1,0 +1,14 @@
+[
+  {
+    "command": "node tools/level-rag.mjs query 所有视频 台词 字幕 人物初识 坐标入口 八小时 Panacea 自由输入",
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": "Stale sources: src/pod/view/stations.ts, src/pod/sim/run.ts, src/pod/view/sonar-desk.ts, src/pod/view/cabin-three.ts, src/pod/view/deepsea/harbor-rescue-site.ts, src/pod/view/deepsea/harbor-rescue-navigation.ts, src/pod/sim/harbor-pursuit.ts, src/pod/view/session.ts, src/pod/view/lab-desk.ts, src/pod/view/deepsea/living-deck-site.ts, src/pod/view/footage.ts, docs/video-prompts/generation-standard.md, docs/video-prompts/structured-prompt-standard.md, src/pod/view/cabin-passive-controls.ts, src/pod/view/radio-transmit.ts, src/pod/view/deepsea/abyssal-media-player.ts, src/pod/content/harbor-task-videos.ts, src/pod/view/deepsea/harbor-task-player.ts, docs/level-02-survey-production-2026-10-27.md, src/pod/content/living-task-videos.ts, src/pod/view/deepsea/living-task-player.ts, tools/living-survey-check.ts, src/pod/view/present.ts, src/pod/view/gm.ts, src/pod/sim/living-creatures.ts, docs/video-prompts/level-03-abyssal-lab.md, tools/living-survey-intent-regression.ts. Review code facts and metrics, then rebuild; rebuilding alone does not verify semantics.\n"
+  },
+  {
+    "command": "node tools/level-rag.mjs check",
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": "Stale sources: src/pod/view/stations.ts, src/pod/sim/run.ts, src/pod/view/sonar-desk.ts, src/pod/view/cabin-three.ts, src/pod/view/deepsea/harbor-rescue-site.ts, src/pod/view/deepsea/harbor-rescue-navigation.ts, src/pod/sim/harbor-pursuit.ts, src/pod/view/session.ts, src/pod/view/lab-desk.ts, src/pod/view/deepsea/living-deck-site.ts, src/pod/view/footage.ts, docs/video-prompts/generation-standard.md, docs/video-prompts/structured-prompt-standard.md, src/pod/view/cabin-passive-controls.ts, src/pod/view/radio-transmit.ts, src/pod/view/deepsea/abyssal-media-player.ts, src/pod/content/harbor-task-videos.ts, src/pod/view/deepsea/harbor-task-player.ts, docs/level-02-survey-production-2026-10-27.md, src/pod/content/living-task-videos.ts, src/pod/view/deepsea/living-task-player.ts, tools/living-survey-check.ts, src/pod/view/present.ts, src/pod/view/gm.ts, src/pod/sim/living-creatures.ts, docs/video-prompts/level-03-abyssal-lab.md, tools/living-survey-intent-regression.ts. Review code facts and metrics, then rebuild; rebuilding alone does not verify semantics.\n"
+  }
+]

@@ -1,5 +1,5 @@
 import type { PodRun } from '../sim/run';
-import { cjk, mono } from '@/ui/typography';
+import { crtFont as cjk, crtFont as mono } from './crt-hud';
 
 const feedback = new WeakMap<PodRun, { id: string; until: number }>();
 const samples = new WeakMap<PodRun, { at: number; power: number; rate: number | null }>();

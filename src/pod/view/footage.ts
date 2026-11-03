@@ -1,4 +1,8 @@
-import {isHarborOpening,harborOpeningOpened,harborOpeningFinished,finishHarborCall} from '../sim/harbor-opening';
+import {useHarborLocalVideo} from '../content/harbor-local-videos';
+import {HARBOR_CREATURE_REFERENCES,HARBOR_REFERENCE_REVISION} from '../content/harbor-video-references';
+import { isVideoCall, commUi } from './comm-desk';
+import { labDeskState } from './lab-desk';
+import {isHarborOpening,harborOpeningOpened,finishHarborCall} from '../sim/harbor-opening';
 import {abyssalVideoAuthorized} from '../net/abyssal-video-authorization';
 /**
  * 冲出来的那卷片子。
@@ -7,9 +11,8 @@ import {abyssalVideoAuthorized} from '../net/abyssal-video-authorization';
  *
  *   1. **缓存 + 冲洗**。把 sim 层扔出来的 FootageRequest 接住，查缓存，
  *      没有就去 net/video.ts 生成，拿到 mp4 之后装进一个 <video> 里。
- *   2. **降质**。生成出来的是一段干净的 768p 视频。直接画到摄像头屏上
- *      会和整部作品的美术彻底打架 —— 太干净、太亮、色域太宽，而且模型
- *      随时可能给你来一片海水绿。这里把它压成「舱外那台坏摄像机拍到的」。
+ *   2. **监控信号**。普通与放大播放共用保色CCTV后处理：柔化、色度拖边、
+ *      暗部噪声与微弱时序扰动；不修改原片，字幕在信号处理后绘制。
  *
  * 缓存是这个文件存在的一半理由：**每次生成计费 $0.345**。所以
  *   内存 Map   —— 同一段第二次看不花钱，也不花时间；
@@ -17,15 +20,18 @@ import {abyssalVideoAuthorized} from '../net/abyssal-video-authorization';
  *     刷新页面之后 blob 没了但 id 还在，于是 F5 也不会重新计费。
  */
 
-import { clamp01 } from '@/core/util';
-import { valueNoise2 } from '@/core/rng';
 import { PALETTE, rgba } from '@/render/palette';
 import { cjk, mono } from '@/ui/typography';
 import type { FootageRequest, PodRun, TapeRecord } from '../sim/run';
 import { armOut } from '../sim/manipulator';
 import { failureLine, fetchVideoContent, requestVideo, VIDEO_ENABLED } from '../net/video';
-import { remapFootagePixels } from './degrade';
+import { drawCctvSignal } from './cctv-signal';
 import { isNoVideoMode, openPromptPanel, promptFor, storePrompt } from './gm';
+import { isAudioMuted, onAudioMute } from '@/audio/mute';
+import { timeSubtitles, type SubtitleLine } from '../content/video-subtitles';
+import { harborTaskSubtitles, HARBOR_TASKS, type HarborTaskId } from '../content/harbor-task-videos';
+import { livingTaskSubtitles, LIVING_TASKS, type LivingTaskId } from '../content/living-task-videos';
+import { drawVideoSubtitle } from './video-subtitles';
 
 /** sessionStorage 里那张「航段 → job id」的表 */
 const STORE_KEY = 'ironlung.footage.v2';
@@ -37,16 +43,49 @@ interface Reel {
   legId: string;
   url: string;
   video: HTMLVideoElement;
+  /** 原声里有人声的起止秒数；分析完成前为 undefined，没有音轨或分析失败为 null */
+  voice?: { start: number; end: number } | null;
+}
+
+/**
+ * 找出原声里说话的大致起止，用来把字幕铺在真正有声音的区间里。
+ * 不做逐字对齐：只取第一个和最后一个超过阈值的 50ms 窗口（阈值 -35 dBFS 或峰值的 12%）。
+ */
+async function voiceSpan(blob: Blob): Promise<{ start: number; end: number } | null> {
+  try {
+    const audio = await new OfflineAudioContext(1, 1, 22050).decodeAudioData(await blob.arrayBuffer());
+    const data = audio.getChannelData(0), win = Math.max(1, Math.round(audio.sampleRate * 0.05));
+    const rms: number[] = [];
+    for (let i = 0; i < data.length; i += win) {
+      let sum = 0;
+      const end = Math.min(data.length, i + win);
+      for (let j = i; j < end; j++) sum += data[j]! * data[j]!;
+      rms.push(Math.sqrt(sum / (end - i)));
+    }
+    const threshold = Math.max(0.0178, Math.max(...rms) * 0.12);
+    const first = rms.findIndex(v => v > threshold), last = rms.length - 1 - [...rms].reverse().findIndex(v => v > threshold);
+    if (first < 0 || last <= first) return null;
+    return { start: first * 0.05, end: Math.min(audio.duration, (last + 1) * 0.05) };
+  } catch {
+    return null; // 没有音轨或浏览器解不开音频：字幕退回按片长铺开
+  }
 }
 
 /** 已经冲好的片子。键是 leg.id */
 const REELS = new Map<string, Reel>();
 const REMOTE_PLAYLISTS = new Map<string,{reels:Reel[];index:number}>();
 export function pauseHarborCallAway(run:PodRun){
-  const tape=run.tapes.find(isHarborOpening);
-  if(tape&&(run.at!=='lab'||!run.powered||run.selectedTape!==tape))REMOTE_PLAYLISTS.get(tape.cacheKey??'')?.reels.forEach(r=>r.video.pause());
+  for(const tape of run.tapes.filter(isHarborOpening))if(run.at!=='lab'||!run.powered||run.selectedTape!==tape)REMOTE_PLAYLISTS.get(tape.cacheKey??'')?.reels.forEach(r=>r.video.pause());
 }
 export const hasRemotePlaylist=(key:string)=>REMOTE_PLAYLISTS.has(key);
+function selectedReels(run:PodRun):Reel[]{
+  const tape=run.selectedTape;if(!tape)return [];
+  const playlist=REMOTE_PLAYLISTS.get(tape.cacheKey??''),reel=REELS.get(tape.cacheKey??tape.legId);
+  return playlist?playlist.reels:reel?[reel]:[];
+}
+/** Whether the selected archive's video is audibly running; drives the comm tab's receive waveform. */
+export function labPlaybackRunning(run:PodRun):boolean{return selectedReels(run).some(r=>r.video.readyState>=2&&!r.video.paused&&!r.video.ended);}
+export function pauseLabPlayback(run:PodRun){selectedReels(run).forEach(r=>r.video.pause());}
 
 /** Decode every authored segment before publishing a remote tape. No repeated stills. */
 export async function installRemotePlaylist(key:string,legId:string,blobs:Blob[]):Promise<string[]> {
@@ -56,6 +95,7 @@ export async function installRemotePlaylist(key:string,legId:string,blobs:Blob[]
       const reel=await decodeReel(legId,blob,false);
       if(!reel||!Number.isFinite(reel.video.duration)||reel.video.duration<=0)throw Error('远端录像无法解码');
       reels.push(reel);reel.video.pause();reel.video.loop=false;
+      void voiceSpan(blob).then(span=>{reel.voice=span;});
       const canvas=document.createElement('canvas');canvas.width=768;canvas.height=Math.round(768*reel.video.videoHeight/reel.video.videoWidth);
       const ctx=canvas.getContext('2d')!;
       for(const fraction of [.1,.5,.9]){
@@ -68,6 +108,53 @@ export async function installRemotePlaylist(key:string,legId:string,blobs:Blob[]
     REMOTE_PLAYLISTS.set(key,{reels,index:0});return frames;
   }catch(error){for(const r of reels){r.video.pause();URL.revokeObjectURL(r.url);}throw error;}
 }
+// ============================================================================
+// 原声播放（VR-116）
+// ============================================================================
+//
+// 剧情视频带模型生成的原声（艾里亚斯的话），不再静音；只跟随全局静音开关。
+// 只有当前画在屏上的那一卷出声：超过 SHOWN_GRACE 毫秒没被画到就暂停，
+// 免得离开分析台后片子还在后台循环出声。
+
+const SHOWN_GRACE = 300;
+const shownAt = new Map<HTMLVideoElement, number>();
+let sweeper = 0;
+
+function allVideos(): HTMLVideoElement[] {
+  return [...REELS.values(), ...[...REMOTE_PLAYLISTS.values()].flatMap(p => p.reels)].map(r => r.video);
+}
+onAudioMute(muted => { for (const v of allVideos()) v.muted = muted; });
+
+/** 浏览器拦下有声自动播放时先静音播放，下一次点击或按键再恢复声音。 */
+const waitingForGesture = new Set<HTMLVideoElement>();
+function unmuteOnGesture(): void {
+  for (const v of waitingForGesture) v.muted = isAudioMuted();
+  waitingForGesture.clear();
+}
+function playAudible(video: HTMLVideoElement): void {
+  if (!waitingForGesture.has(video)) video.muted = isAudioMuted();
+  void video.play().catch((error: unknown) => {
+    if ((error as { name?: string })?.name !== 'NotAllowedError' || video.muted) return;
+    video.muted = true;
+    if (!waitingForGesture.size) {
+      window.addEventListener('pointerdown', unmuteOnGesture, { once: true, capture: true });
+      window.addEventListener('keydown', unmuteOnGesture, { once: true, capture: true });
+    }
+    waitingForGesture.add(video);
+    void video.play().catch(() => { /* 画面靠 drawImage 取帧，暂停着也能取到当前帧 */ });
+  });
+}
+/** 这一帧把 video 画上屏了：需要时开始播放，并登记给暂停巡检。 */
+function present(video: HTMLVideoElement, play = true): void {
+  shownAt.set(video, performance.now());
+  if (play && video.paused && !video.ended) playAudible(video);
+  if (!sweeper) sweeper = window.setInterval(() => {
+    const now = performance.now();
+    for (const [v, at] of shownAt) if (now - at > SHOWN_GRACE) { v.pause(); shownAt.delete(v); }
+    if (!shownAt.size) { clearInterval(sweeper); sweeper = 0; }
+  }, 150);
+}
+
 /** 正在冲的航段，挡住重复请求 */
 const INFLIGHT = new Map<string,Promise<void>>();
 
@@ -101,8 +188,8 @@ function decodeReel(legId: string, blob: Blob, creatureMissing: boolean): Promis
   return new Promise((resolve) => {
     const url = URL.createObjectURL(blob);
     const video = document.createElement('video');
-    video.muted = true;          // 本作的声音全是 WebAudio 合成的，片子不许出声
-    video.loop = true;
+    video.muted = isAudioMuted(); // 剧情视频保留原声；真正开播放由 present() 在画上屏时决定
+    video.loop = false;
     video.playsInline = true;
     video.preload = 'auto';
     video.src = url;
@@ -116,9 +203,7 @@ function decodeReel(legId: string, blob: Blob, creatureMissing: boolean): Promis
         resolve(null);
         return;
       }
-      void video.play().catch(() => {
-        /* 自动播放策略。画面靠 drawImage 取帧，暂停着也能取到第一帧 */
-      });
+      // 不在这里自动播放：有声片子只在画上屏时才放（present），解码完成即可取到第一帧。
       resolve({ legId, url, video, creatureMissing });
     };
 
@@ -182,7 +267,10 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
     req.settle(req.token, false);
     return;
   }
-  const { legId, token, settle, cacheKey } = req;
+  const { legId, token, settle } = req;
+  const cacheKey=req.cacheKey;
+  // Preserve the playback key; version only the persisted remote lookup below.
+  const remoteKey=cacheKey+(req.harborCreatureReference?':'+HARBOR_REFERENCE_REVISION:'');
   if(req.allowed===false){settle(token,false,'附近没有怪物；保留机载录像，未提交视频生成。');return;}
   const status=(text:string)=>{if(!req.prefetch&&run.shot.token===token)run.videoStatus=text;};
 
@@ -205,7 +293,7 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
 
   try {
     // 2. sessionStorage 里有 id：只取片，不生成。取片不计费。
-    const known = loadIdMap()[cacheKey];
+    const known = loadIdMap()[remoteKey];
     let result = known?.videoId ? await fetchVideoContent(known.videoId) : null;
     let creatureMissing = result?.ok ? known?.creatureMissing ?? false : false;
 
@@ -218,7 +306,7 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
       }
       result = await requestVideo(req.prompt, undefined, req.keyframe, status => {
         if (!req.prefetch&&run.shot.token === token) run.videoStatus = status;
-      }, req.duration??5);
+      }, req.duration??5,'fixed',undefined,req.harborCreatureReference?HARBOR_CREATURE_REFERENCES:[]);
     }
 
     // 3b. 被内容审核拦了：拿不含怪物的那一版再试一次。
@@ -259,7 +347,7 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
     }
     if(req.prefetch)reel.video.pause();
     REELS.set(cacheKey, reel);
-    saveId(cacheKey, result.videoId, creatureMissing);
+    saveId(remoteKey, result.videoId, creatureMissing);
     // State-dependent reels must not accumulate unbounded video/blob allocations.
     if (REELS.size > 12) {
       const oldest = REELS.keys().next().value!;
@@ -287,14 +375,34 @@ export function readyReel(run: PodRun): HTMLVideoElement | null {
   if (!reel) return null;
   // 视频还没解到第一帧的话画出来是全黑，不如先让程序化画面顶着。
   if (reel.video.readyState < 2) return null;
-  if(reel.video.paused)void reel.video.play().catch(()=>{});
+  present(reel.video);
   return reel.video;
 }
 
+/** 录像的字幕原文。旧存档没有 subtitles 字段时，按任务ID从同一份台词表还原。 */
+function tapeSubtitles(tape:TapeRecord):readonly SubtitleLine[] {
+  if(tape.subtitles?.length)return tape.subtitles;
+  const e=tape.siteEvidence as {harborTask?:string;livingTask?:string;code?:string}|undefined;
+  if(e?.harborTask&&e.harborTask in HARBOR_TASKS)return harborTaskSubtitles(e.harborTask as HarborTaskId);
+  if(e?.livingTask&&e.livingTask in LIVING_TASKS)return livingTaskSubtitles(e.livingTask as LivingTaskId,e.code??'');
+  return [];
+}
+
+const reelOffset=(reels:readonly Reel[],reel:Reel)=>reels.slice(0,Math.max(0,reels.indexOf(reel))).reduce((sum,r)=>sum+r.video.duration,0);
+/** 整卷（多段合计）时间轴上的字幕；有人声区间时只铺在人声里。 */
+function subtitleCues(tape:TapeRecord,reels:readonly Reel[]){
+  const lines=tapeSubtitles(tape);if(!lines.length)return [];
+  const total=reels.reduce((sum,r)=>sum+r.video.duration,0);
+  const spans=reels.flatMap(r=>r.voice?[{start:reelOffset(reels,r)+r.voice.start,end:reelOffset(reels,r)+r.voice.end}]:[]);
+  return timeSubtitles(lines,total,spans.length?{start:spans[0]!.start,end:spans.at(-1)!.end}:undefined);
+}
+
+const playbackControls=new WeakMap<PodRun,{paused:boolean}>();
 const LAB_FRAMES=new Map<string,HTMLImageElement>();
 /** Playback belongs to the analysis bench and follows the selected archive, not the current shot. */
 const sensorReels=new WeakMap<TapeRecord,HTMLImageElement[]>();
 export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:number,h:number, localPlayback?:{time:number;paused:boolean}):string {
+  if(localPlayback)playbackControls.set(run,localPlayback);
   const tape=run.selectedTape;
   const notice=(title:string,detail:string)=>{
     ctx.fillStyle='#03080b';ctx.fillRect(0,0,w,h);ctx.fillStyle='#e4b981';ctx.font=cjk(Math.max(14,h*.065),500);
@@ -302,30 +410,38 @@ export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:numbe
     ctx.fillText(detail,w*.05,h*.55,w*.9);return title;
   };
   if(!tape||!tape.ready)return notice('视频生成中 · 尚未收到录像',run.videoStatus);
+  if(tape.cacheKey?.startsWith('harbor-fixed:')&&!useHarborLocalVideo(tape.id.slice('harbor.task.'.length),isNoVideoMode())){const blocked=REMOTE_PLAYLISTS.get(tape.cacheKey);blocked?.reels.forEach(r=>r.video.pause());return notice('预制片仅供无视频模式使用','普通模式等待正常生成录像');}
+  if(isVideoCall(tape)&&(run.at!=='lab'||labDeskState(run).tab!=='comm'||commUi(run).active!==tape.id))return notice('视频通讯','请在【通讯】页接听或回看');
   // Local evidence can be ready before the remote job. Do not present its frame loop as the requested movie.
   if(run.shot.phase==='developing' && tape.id===`tape.${run.shot.token}` && !run.shot.pendingResult && !isNoVideoMode() && VIDEO_ENABLED)
     return notice('MiniMax 视频生成中',run.videoStatus);
-  const opening=isHarborOpening(tape)&&!tape.analyzed;
-  if(opening&&(!harborOpeningOpened(tape)||run.at!=='lab'))return notice('接驳岗有呼叫','点击接听后播放');
+  const opening=isHarborOpening(tape)&&(!tape.analyzed||run.authoredSite?.evidenceStatus?.(tape.siteEvidence)?.accepted===false);
+  if(opening&&(!harborOpeningOpened(tape)||run.at!=='lab'))return notice('接驳岗有呼叫','到【通讯】页签接听后播放');
   const playlist=REMOTE_PLAYLISTS.get(tape.cacheKey??'');
-  if(opening&&playlist?.reels[playlist.index]?.video.ended&&run.at==='lab'&&run.powered){
+  if(opening&&playlist&&playlist.index===playlist.reels.length-1&&playlist.reels[playlist.index]?.video.ended&&run.at==='lab'&&run.powered){
     finishHarborCall(tape);run.analyzeTape();
-    return notice('通信结束','首个任务已收到');
+
   }
-  if(opening&&harborOpeningFinished(tape))return notice('通信结束','首个任务已收到');
-  if(playlist?.reels[playlist.index]?.video.ended){playlist.index=(playlist.index+1)%playlist.reels.length;playlist.reels[playlist.index].video.currentTime=0;}
+
+  if(playlist?.reels[playlist.index]?.video.ended&&playlist.index<playlist.reels.length-1){playlist.index++;playlist.reels[playlist.index].video.currentTime=0;}
   const reel=playlist?.reels[playlist.index]??REELS.get(tape.cacheKey??tape.legId);
   if(reel&&reel.video.readyState>=2){
     if(localPlayback?.paused)reel.video.pause();
-    else if(reel.video.paused)void reel.video.play().catch(()=>{});
+    present(reel.video,!localPlayback?.paused);
+    const cues=subtitleCues(tape,playlist?.reels??[reel]),offset=reelOffset(playlist?.reels??[reel],reel);
+    const elapsed=offset+reel.video.currentTime;
     if(run.labVideoExpanded){
       const scale=Math.min(w/reel.video.videoWidth,h/reel.video.videoHeight);
       const vw=reel.video.videoWidth*scale,vh=reel.video.videoHeight*scale;
       ctx.fillStyle='#020406';ctx.fillRect(0,0,w,h);
-      ctx.drawImage(reel.video,(w-vw)/2,(h-vh)/2,vw,vh);
-      return '原始录像 · 等比放大';
+      drawCctvSignal(ctx,w,h,reel.video,{time:performance.now()/1000,corruption:reel.video.ended?1:0});
+      drawVideoSubtitle(ctx,cues,elapsed,(w-vw)/2,(h-vh)/2,vw,vh);
+      return '监控录像 · 等比放大';
     }
-    drawFootageFrame(ctx,w,h,reel.video,{time:reel.video.currentTime,corruption:0,light:1});
+    drawFootageFrame(ctx,w,h,reel.video,{time:performance.now()/1000,corruption:reel.video.ended?1:0,light:1});
+    const subtitleScale=Math.min(w/reel.video.videoWidth,h/reel.video.videoHeight);
+    const subtitleW=reel.video.videoWidth*subtitleScale,subtitleH=reel.video.videoHeight*subtitleScale;
+    drawVideoSubtitle(ctx,cues,elapsed,(w-subtitleW)/2,(h-subtitleH)/2,subtitleW,subtitleH);
     return '录像回放 · 远端生成';
   }
   if(tape.sensorFrames&&tape.sensorFrames.length>=3){
@@ -350,96 +466,11 @@ export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:numbe
 // 降质
 // ============================================================================
 
-/**
- * 摄像头屏上那卷片子的取景宽度。
- *
- * 和 pano.ts 用的是同一套理由：故意在一块很小的缓冲上取帧再放大。
- * 一来每帧要做的逐像素调色只有两万次而不是两百万次，二来这台摄像机
- * 本来就该是糊的 —— 欠采样在这里不是瑕疵，是画风。
- */
-const BUF_MAX_W = 208;
-
-let buf: HTMLCanvasElement | null = null;
-let bufCtx: CanvasRenderingContext2D | null = null;
-let bufW = 0;
-let bufH = 0;
-
-export interface FootageDrawOptions {
-  time: number;
-  /** 叙事污染 0..1。越高，磁带跑偏和丢帧越凶 */
-  corruption: number;
-  /** 探照灯总量 0..1。关灯看片子也该更暗 —— 那台监视器在同一块电池上 */
-  light: number;
-}
-
-/**
- * 把 <video> 的当前帧画进摄像头屏。
- *
- * 只负责「画面本身」。海雪、深度雾、视频雪花、取景器（REC / 时间码 /
- * 方位刻度）那几层仍然由 view/creature.ts 叠在上面 —— 那几层是这台摄像机
- * 的身份证，换了片源也不能换。
- */
-export function drawFootageFrame(
-  ctx: CanvasRenderingContext2D,
-  w: number,
-  h: number,
-  video: HTMLVideoElement,
-  opts: FootageDrawOptions,
-): void {
-  const tw = Math.max(64, Math.min(BUF_MAX_W, Math.round(w / 2.6)));
-  const th = Math.max(36, Math.round((tw * h) / Math.max(1, w)));
-  if (!buf || !bufCtx || bufW !== tw || bufH !== th) {
-    buf = document.createElement('canvas');
-    buf.width = tw;
-    buf.height = th;
-    bufCtx = buf.getContext('2d', { willReadFrequently: true });
-    bufW = tw;
-    bufH = th;
-  }
-  if (!bufCtx) return;
-
-  // 1. 把 768p 的帧压到两百来像素宽。生成的片子是 16:9，摄像头屏不是，
-  //    所以按「盖满」裁切而不是拉伸 —— 拉伸会让人脸和管子都变胖。
-  const vw = video.videoWidth || 16;
-  const vh = video.videoHeight || 9;
-  const scale = Math.max(tw / vw, th / vh);
-  const dw = vw * scale;
-  const dh = vh * scale;
-  bufCtx.drawImage(video, (tw - dw) / 2, (th - dh) / 2, dw, dh);
-
-  // 2. 逐像素过调色表。这一步是四色约束的执行点，不是风格选项 ——
-  //    实拍验证过模型会无视提示词里的 "no teal" 交回来一片青绿海水。
-  //    变换本身在 ./degrade.ts，那个文件不碰 DOM，好让离线工具用同一份。
-  const img = bufCtx.getImageData(0, 0, tw, th);
-  const light = clamp01(opts.light);
-  const corr = clamp01(opts.corruption);
-  // 关灯的时候这块屏也暗下来，但不能到零 —— 片子是拍好的，不是实时的，
-  // 所以它不该因为现在关了灯就消失。留一个底。
-  // Recorded footage has its own monitor gain, independent of the live lamp.
-  remapFootagePixels(img.data, 1);
-  bufCtx.putImageData(img, 0, 0);
-
-  // 3. 放大回屏幕。逐行横向抖动 = 磁带跑偏，和 pano.ts 里同一个手法：
-  //    整块贴上去太稳，稳就不像一台泡在 1300 米水里的机器。
-  ctx.save();
-  ctx.imageSmoothingEnabled = true;
-  const rows = 14;
-  const rowH = th / rows;
-  for (let i = 0; i < rows; i++) {
-    const sy = i * rowH;
-    const jitter =
-      (valueNoise2(i * 1.7, opts.time * 2.3, 13) - 0.5) * w * (0.004 + corr * 0.05);
-    const dy = (sy / th) * h;
-    ctx.drawImage(buf, 0, sy, tw, rowH + 0.5, jitter, dy, w, (rowH / th) * h + 1);
-  }
-  ctx.restore();
-
-  // 4. 丢帧：污染高的时候整屏偶尔黑一下。生成的片子帧率是稳的，
-  //    而这台机器不该是稳的。
-  if (corr > 0.35 && valueNoise2(opts.time * 9, 3, 29) > 0.93) {
-    ctx.fillStyle = `rgba(3,5,9,${0.35 + corr * 0.4})`;
-    ctx.fillRect(0, 0, w, h);
-  }
+/** Playback monitor options; recorded exposure is independent of the current lamp. */
+export interface FootageDrawOptions { time:number; corruption:number; light:number }
+/** Shared colour-preserving signal for normal and expanded playback. */
+export function drawFootageFrame(ctx:CanvasRenderingContext2D,w:number,h:number,video:HTMLVideoElement,opts:FootageDrawOptions):void {
+ drawCctvSignal(ctx,w,h,video,{time:opts.time,corruption:opts.corruption});
 }
 
 /**
@@ -490,4 +521,27 @@ export function drawPromptFrame(
   const flicker = 0.04 + Math.sin(time * 7.2) * 0.02;
   ctx.fillStyle = `rgba(6,10,16,${flicker})`;
   ctx.fillRect(0, 0, w, h);
+}
+
+/** Only an explicit player action rewinds a completed archive. */
+export function replayLabRecording(run:PodRun){
+ run.labPlaybackPauseRequested=false;const controls=playbackControls.get(run);if(controls)controls.paused=false;
+ const tape=run.selectedTape;if(!tape||!run.powered)return;
+ if(isVideoCall(tape)&&(run.at!=='lab'||labDeskState(run).tab!=='comm'||commUi(run).active!==tape.id))return;
+ const playlist=REMOTE_PLAYLISTS.get(tape.cacheKey??'');
+ for(const reel of selectedReels(run)){reel.video.pause();reel.video.currentTime=0;}
+ if(playlist)playlist.index=0;
+ const first=selectedReels(run)[0];if(first)playAudible(first.video);
+}
+/** Keep queued calls from replacing a playing or still-decoding call. */
+export function labCallInProgress(run:PodRun):boolean {
+ if(!commUi(run).active||run.at!=='lab')return false;
+ const reels=selectedReels(run);
+ return !reels.length||reels.some(reel=>!reel.video.ended);
+}
+/** Expand within the physical analysis CRT; never create a viewport overlay. */
+export function expandLabRecording(run:PodRun){
+ if(document.getElementById('harbor-door-panel')||!run.selectedTape?.ready||!run.powered||run.at!=='lab')return;
+ if(isVideoCall(run.selectedTape)&&commUi(run).active!==run.selectedTape.id)return;
+ run.labVideoExpanded=true;
 }

@@ -133,7 +133,7 @@ export function buildSurveyFixtures(groups:Map<string,T.Group>,m:LivingMaterials
  label('R4',[116.95,.4,26],-Math.PI/2,1.5,.7,['压载蓄能器','BALLAST EQUIPMENT']);
  // Short transfer receiver; no personnel corridor is built behind the bulkhead.
  box('S',[12.0,-.5,12.8],[1.3,1.5,.6],m.indSteel);
- label('S',[12.0,.5,12.45],Math.PI,1.8,.6,['设备转交口','通话窗：传递摄像仪']);
+ label('S',[12.0,.5,12.45],Math.PI,1.8,.6,['设备转交口','EQUIPMENT TRANSFER']);
  
  label('C8',[79,1.5,30.65],Math.PI,4,.65,['压载库 → 供水检修','02 / WATER SERVICE']);
  for(let y=-6;y>-56;y-=8){label('E',[200.36,y,68],Math.PI/2,2,.7,[`${1040-y} m`,'DESCENT']);box('E',[217.5,y,68],[.16,.13,2.2],m.bandYellow);}

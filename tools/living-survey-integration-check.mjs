@@ -10,7 +10,7 @@ try{await startNew(page);report=await page.evaluate(async()=>{
  const dark={survey:true,id:'dark',target:0,valid:true,lit:false};s.issue(dark);s.commit(dark);check('dark_capture_rejected',!s.analyze(dark)&&s.photos.length===0);
  const fabricated={survey:true,id:'fabricated',target:0,valid:true,lit:true};check('unissued_capture_rejected',!s.analyze(fabricated));
  const prev=JSON.stringify(l.survey.snapshot());l.analyzeEvidence({capture:{livingTask:'L2-S01',generated:true},media:{playable:true,source:'generated-video',mediaId:'fake'}});check('fabricated_task_media_rejected',JSON.stringify(l.survey.snapshot())===prev);
- check('remote_code_rejected',!s.enterCode(s.code,false));
+ check('typed_code_cannot_unlock',(s.say(s.code),!s.unlocked)&&typeof s.enterCode==='undefined');
  check('scene_personnel_absent',!l.world.root.getObjectByName('living.personnel'),l.world.root.children.map(o=>o.name));
  const inv0=r.stowedCount('sup.plate');l.armObject='living.box.tools';l.pendingCargo='living.box.tools';l.armEvent('stowed');const inv1=r.stowedCount('sup.plate');l.armObject='living.box.tools';l.pendingCargo='living.box.tools';l.armEvent('stowed');const inv2=r.stowedCount('sup.plate');check('repair_awarded_once',inv1===inv0+2&&inv2===inv1,{inv0,inv1,inv2,note:'direct arm callback injection, not physical pickup'});
  return {results,position:l.diag.state().pos,errors:[],method:'Runtime diagnostic integration; direct state/callback mutations; no physical playthrough; API blocked'};

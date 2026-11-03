@@ -1,0 +1,51 @@
+{
+  "errors": [],
+  "controls": {
+    "helm.throttle": {
+      "x": 1069.219332519912,
+      "y": 489.43818847815703,
+      "hit": null
+    },
+    "helm.stick": {
+      "x": 676.9072088679779,
+      "y": 453.4531867215441,
+      "hit": "desk:camera:helm.stick"
+    },
+    "helm.brake": {
+      "x": 911.3182626017074,
+      "y": 546.9529732420408,
+      "hit": "desk:camera:helm.brake"
+    },
+    "camera.lamp": {
+      "x": 1180.7264392295433,
+      "y": 411.2432066559391,
+      "hit": "desk:camera:camera.lamp"
+    },
+    "camera.shoot": {
+      "x": 1192.481345969015,
+      "y": 541.219974178049,
+      "hit": "desk:camera:camera.shoot"
+    },
+    "arm.extend": {
+      "x": 1450.5435265600038,
+      "y": 440.2589820657723,
+      "hit": "desk:camera:arm.extend"
+    },
+    "arm.retract": {
+      "x": 1530.3356027005455,
+      "y": 568.0433868276673,
+      "hit": "desk:camera:arm.retract"
+    }
+  },
+  "render": {
+    "frame": 348,
+    "calls": 625,
+    "triangles": 163694,
+    "points": 0,
+    "lines": 0
+  },
+  "memory": {
+    "geometries": 1062,
+    "textures": 66
+  }
+}

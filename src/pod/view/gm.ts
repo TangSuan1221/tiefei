@@ -60,7 +60,7 @@ function setNoVideo(on: boolean): string {
   if (run) {
     run.pushLog(
       on
-        ? 'GM · 无视频模式已开。第一、二关剧情任务视频以文字自动推进；怪物底片在分析台按 3“诊断底片”；第三关使用合成调试片。首次诊断授证后转为测试局，不覆盖正式存档。不再提交或下载视频；已提交任务的费用无法撤销。'
+        ? 'GM · 无视频模式已开。第一关前两片始终用预制片，其余已有预制片需观看，无成片任务及第二关以文字推进；怪物底片在分析台按 3“诊断底片”；第三关使用合成调试片。首次诊断授证后转为测试局，不覆盖正式存档。不再提交或下载视频；已提交任务的费用无法撤销。'
         : 'GM · 无视频模式已关。拍摄按原开关走视频接口。',
       'system',
     );
@@ -78,6 +78,8 @@ const HELP = [
   '  第三关首次合成/分析后成为测试局，不覆盖正式存档；关闭GM不能把合成证据当正式通关。',
   '  怪物入侵 [秒数]     立即进入撞击预警；默认120秒后真实攻击（15–300秒）',
   '                       航行中会进入当前关卡；手动曝光才提交视频生成',
+  '  杀死怪物 [半径|全部]  杀死潜艇周围的怪物；默认30米，并结束进行中的遭遇',
+  '                       本局转为测试会话，不覆盖正式存档；依赖该怪物的关卡步骤可能无法继续',
   '  不断电 [开|关]       持续满电，屏蔽断电；默认切换',
   '  电量/艇壳/氧气/进水/滤芯 0—100   设置百分比',
   '  补满电量 / 修复艇壳 / 补充氧气 / 排水 / 全面整备',
@@ -146,6 +148,12 @@ export function executeGm(raw: string): string {
     if(result.startsWith('GM · 怪物入侵：'))closeGmConsole();
     return result;
   }
+  if(['杀死怪物','杀怪','清怪'].includes(name)||name.toLowerCase()==='kill'){
+    const radius=!arg?30:['全部','all'].includes(arg)?Infinity:Number(arg);
+    const run=hook?.run();
+    const result=!(radius>0)?'用法：杀死怪物 / 杀死怪物 50 / 杀死怪物 全部':run?run.gmKillMonsters(radius):'请先开始游戏。';
+    echo(result);syncBadge();return result;
+  }
 
   if (name === '无视频模式' || /^no-?video$/i.test(name) || name === 'novideo' || name === 'prompt') {
     if (arg === '开' || arg === 'on' || arg === '1' || arg === 'true') return setNoVideo(true);
@@ -169,6 +177,7 @@ function ensureGmApi(): void {
       不断电: (on?:boolean)=>executeGm('不断电'+(on===undefined?'':on?' 开':' 关')),
       潜艇状态: ()=>executeGm('潜艇状态'),
       怪物入侵: (seconds=120) => executeGm(`怪物入侵 ${seconds}`),
+      杀死怪物: (radius?: number) => executeGm(radius === undefined ? '杀死怪物' : `杀死怪物 ${Number.isFinite(radius) ? radius : '全部'}`),
       进入关卡: (level:number) => executeGm(`进入关卡 ${level}`),
     },
   );
@@ -295,7 +304,7 @@ function ensureConsole(): HTMLElement {
   box.innerHTML = `
     <header>GM 测试菜单 · Esc / F10 收起</header>
     <div class="gm-actions"><button type="button" data-gm="静音" aria-pressed="false">静音：关</button></div>
-    <div class="gm-actions"><button type="button" data-gm="怪物入侵">怪物入侵</button><button type="button" data-gm="无视频模式">切换无视频模式</button><button type="button" data-close>收起</button></div>
+    <div class="gm-actions"><button type="button" data-gm="怪物入侵">怪物入侵</button><button type="button" data-gm="杀死怪物">杀死周围怪物</button><button type="button" data-gm="无视频模式">切换无视频模式</button><button type="button" data-close>收起</button></div>
     <div class="gm-actions"><button type="button" data-gm="不断电">不断电：关</button><button type="button" data-gm="补满电量">补满电量</button><button type="button" data-gm="修复艇壳">修复艇壳</button><button type="button" data-gm="补充氧气">补充氧气</button><button type="button" data-gm="排水">排水</button><button type="button" data-gm="全面整备">全面整备</button><button type="button" data-gm="潜艇状态">潜艇状态</button><button type="button" data-gm="help">指令帮助</button></div>
     <div class="gm-levels">${Array.from({length:7},(_,i)=>`<button type="button" data-gm="进入关卡 ${i+1}">第${i+1}关 · ${createExpedition(i).name}</button>`).join('')}</div>
     <div class="gm-log"><div>选关会重置目标关卡机关，保留艇体资源；测试会话不覆盖正式存档。不会自动请求视频。</div></div>

@@ -27,10 +27,11 @@ export interface NavigationConsole {
  drawActive?(ctx:CanvasRenderingContext2D,w:number,h:number,panel?:boolean):void;
  drawWaypointPanel?(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number):void;
  /** Active waypoint in a few short lines, for small physical screens. */
- waypointBrief?():{title:string;lines:string[]};
+ waypointBrief?():{title:string;lines:string[];photoStatus?:string};
  /** Waypoint marker hit circles in the coordinates last given to `drawActive`. */
  readonly markerHits?:readonly {index:number;x:number;y:number;r:number}[];
  selectWaypoint?(index:number):boolean;
+ deleteSelectedWaypoint?():boolean;
  readonly target?:readonly number[]|null;
  readonly screenAction?:string;
  controls():Control[];
@@ -47,6 +48,12 @@ export interface AuthoredSite {
   readonly objective?:string;
   readonly dialogueChoices?:readonly string[];
   chooseDialogue?(index:number):boolean;
+  readonly harborActions?:boolean;
+  harborAction?(action:string):boolean;
+  /** True while an NPC video failed to arrive and waits for a manual retry on the comm tab. */
+  readonly mediaRetryable?:boolean;
+  /** Re-requests failed NPC media; returns the line shown to the player. */
+  retryMedia?():string;
   /** Free-text radio line through the passive-sonar microphone. */
   radioSay?(text:string):boolean;
   receiveTape?(recipient:'vance'|'elias',tapeId:string):boolean;
@@ -76,6 +83,8 @@ export interface AuthoredSite {
   readonly managesThreats?:boolean;
   readonly spatialThreat?:boolean;
   weaponResponse?(weapon:string):void;
+  /** GM test fixture: kills every live creature within `radius` m of the pod; returns what died. */
+  gmKillCreatures?(radius:number):string[];
   readonly noiseFloor?:number;
   /** Multiplier on the periodic active-sonar drain (default 1). */
   readonly pulseCostScale?:number;

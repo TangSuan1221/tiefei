@@ -1,7 +1,8 @@
 import {Box3,PerspectiveCamera,Ray,Vector3} from 'three';
+import {CRT_FONT,PHOSPHOR,fineStroke,phosphorText} from './crt-hud';
 
-export interface WindowTarget {id:string;bounds:Box3;reach:number;enabled:boolean;verifiedDistance?:number}
-export interface WindowLock {rect:[number,number,number,number];kind:'obstacle'|'target';focused:boolean;id?:string;distance?:number}
+export interface WindowTarget {id:string;bounds:Box3;reach:number;enabled:boolean;verifiedDistance?:number;label?:string}
+export interface WindowLock {rect:[number,number,number,number];kind:'obstacle'|'target';focused:boolean;id?:string;distance?:number;label?:string}
 
 // Scratch storage is private to this synchronous projection; only scalar rects
 // escape. Reuse eight world corners and their camera-space depths per box.
@@ -44,7 +45,7 @@ export function collectWindowLocks(camera:PerspectiveCamera,solids:readonly Box3
   selected=t;closest=distance;
  }
  if(!selected)return [];
- const rect=windowRect(selected.bounds,camera);return rect?[{id:selected.id,rect,kind:'target',focused:closest<=Math.min(selected.reach,3.4),distance:closest}]:[];
+ const rect=windowRect(selected.bounds,camera);return rect?[{id:selected.id,rect,kind:'target',focused:closest<=Math.min(selected.reach,3.4),distance:closest,...(selected.label?{label:selected.label}:{})}]:[];
 }
 
 /** Visual acquisition only; never delays or authorizes the actual interaction. */
@@ -64,25 +65,44 @@ export class WindowLocks {
   const origin=camera.getWorldPosition(new Vector3());
   const close=available.filter(t=>t.enabled&&t.bounds.distanceToPoint(origin)<=8);
   const lock=close.length?collectWindowLocks(camera,solids(),close)[0]:undefined;
-  const progress=this.focus.update(lock?.focused?lock.id:undefined,performance.now());if(!lock)return;
-  ctx.save();
-  // Compact camera-focus brackets, not a bounding box around a door or entire room.
-  const eased=1-Math.pow(1-progress,3);
-  const size=h*(.09+(1-eased)*.035),x=w/2-size/2,y=h/2-size/2,n=size*.15;
-  ctx.strokeStyle=progress===1?'rgba(205,222,200,.82)':'rgba(192,206,204,.52)';
-  ctx.lineWidth=Math.max(.8,h/720);ctx.lineCap='butt';ctx.lineJoin='miter';
-  // A faint offset shadow separates the etched line from bright metal without an outline.
-  ctx.shadowColor='rgba(5,14,16,.45)';ctx.shadowBlur=1;ctx.shadowOffsetY=1;
-  ctx.beginPath();for(const [px,py,sx,sy]of [[x,y,1,1],[x+size,y,-1,1],[x,y+size,1,-1],[x+size,y+size,-1,-1]]){ctx.moveTo(px,py+sy*n);ctx.lineTo(px,py);ctx.lineTo(px+sx*n,py);}
-  ctx.stroke();
-  // Acquisition fills a small split index; settled geometry carries the state without text.
-  ctx.globalAlpha=.35+.45*eased;ctx.beginPath();
-  const indexY=y+size+h*.014,span=h*.013*eased;
-  ctx.moveTo(w/2-2-span,indexY);ctx.lineTo(w/2-2,indexY);
-  ctx.moveTo(w/2+2,indexY);ctx.lineTo(w/2+2+span,indexY);ctx.stroke();
-  ctx.globalAlpha=1;ctx.font=`${h*.022}px "Consolas",monospace`;
-  ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#c3d6b3';
-  ctx.shadowColor='rgba(0,0,0,.95)';ctx.shadowBlur=2;ctx.shadowOffsetY=1;
-  ctx.fillText(`${lock.distance!.toFixed(1)} m`,x+size+h*.018,h/2);ctx.restore();
+  const progress=this.focus.update(lock?.focused?lock.id:undefined,performance.now());
+  const eased=1-Math.pow(1-progress,3),s=h/720,cx=w/2,cy=h/2;
+  ctx.save();ctx.lineCap='butt';
+  // The only standing instrument: paired side arcs and a split crosshair.
+  // They settle inward and brighten as a reachable target is acquired.
+  const scale=1.14-.14*eased,alpha=lock?.62+.3*eased:.45;
+  const r1=88*s*scale,r2=104*s*scale;
+  ctx.beginPath();
+  for(const a of [0,Math.PI])for(const [r,spread] of [[r1,.62],[r2,.74]] as const){
+   ctx.moveTo(cx+Math.cos(a-spread)*r,cy+Math.sin(a-spread)*r);ctx.arc(cx,cy,r,a-spread,a+spread);
+  }
+  for(const side of [-1,1]){ctx.moveTo(cx+side*12*s,cy);ctx.lineTo(cx+side*r2,cy);}
+  fineStroke(ctx,alpha,s);
+  if(!lock){ctx.restore();return;}
+  // Name plate under the reticle: hazard-hatched strip, name, then a pale range bar.
+  const name=lock.label??'',range=`${lock.distance!.toFixed(1)} m`;
+  let nameSize=24*s;ctx.font=`${nameSize}px ${CRT_FONT.pixel}`;
+  const maxW=w*.6;let nameW=ctx.measureText(name).width;
+  if(nameW>maxW-24*s){nameSize*=(maxW-24*s)/nameW;ctx.font=`${nameSize}px ${CRT_FONT.pixel}`;nameW=ctx.measureText(name).width;}
+  const tw=Math.min(maxW,Math.max(220*s,nameW+32*s)),x=cx-tw/2;
+  let y=cy+r2+26*s;
+  const hatch=7*s;
+  ctx.save();ctx.beginPath();ctx.rect(x,y,tw,hatch);ctx.clip();
+  ctx.fillStyle='rgba(0,6,3,.7)';ctx.fillRect(x,y,tw,hatch);
+  ctx.strokeStyle=`rgba(226,236,229,${.45+.45*eased})`;ctx.lineWidth=1.6*s;ctx.beginPath();
+  // The hatch fills left to right while focus settles.
+  const fill=lock.focused?tw*eased:0;
+  for(let hx=x-hatch;hx<x+Math.max(fill,tw*.18);hx+=5*s){ctx.moveTo(hx,y+hatch);ctx.lineTo(hx+hatch,y);}
+  ctx.stroke();ctx.restore();
+  y+=hatch;
+  if(name){
+   const nh=30*s;ctx.fillStyle='rgba(0,6,3,.72)';ctx.fillRect(x,y,tw,nh);
+   ctx.textAlign='center';ctx.textBaseline='middle';
+   phosphorText(ctx,name,cx,y+nh/2+s,PHOSPHOR.tagInk);y+=nh;
+  }
+  const bh=24*s;ctx.fillStyle='rgba(226,236,229,.9)';ctx.fillRect(x,y+2*s,tw,bh);
+  ctx.font=`${21*s}px ${CRT_FONT.mono}`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='#18231c';ctx.fillText(range,cx,y+2*s+bh/2+s);
+  ctx.restore();
  }
 }

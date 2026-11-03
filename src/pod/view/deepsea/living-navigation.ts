@@ -84,6 +84,15 @@ export class LivingNavigation implements NavigationConsole {
     if (!this.waypoints.some(w => this.same(w, value))) { this.waypoints.push([...value]); if (this.waypoints.length > 8) this.waypoints.shift(); }
     this.target = [...value]; return true;
   }
+  deleteSelectedWaypoint(): boolean {
+    const index = this.target ? this.waypoints.findIndex(w => this.same(w, this.target!)) : -1;
+    if (index < 0) return false;
+    this.waypoints.splice(index, 1);
+    const next = this.waypoints[Math.min(index, this.waypoints.length - 1)];
+    this.target = next ? [...next] : null;
+    this.markerHits = [];
+    return true;
+  }
   selectWaypoint(index: number) { const w = this.waypoints[index]; if (!w) return false; this.target = [...w]; return true; }
   analyzeSignal() {
     const c = this.passiveFocus.contact;
@@ -194,6 +203,7 @@ export class LivingNavigation implements NavigationConsole {
     const relative = ((m.a * 180 / Math.PI + 540) % 360) - 180, depthDelta = t[1]! - this.host.position.y;
     const arrived = m.distance <= 2.5 && Math.abs(depthDelta) <= 1;
     return { title: `◆${this.waypoints.findIndex(v => this.same(v, t)) + 1} ${info.name}`, lines: [
+      formatCoords(t, this.host.datum),
       `距离 ${m.distance.toFixed(1)} m`,
       arrived ? '已到达 · Shift 制动' : Math.abs(relative) < 3 ? '艇首已对准' : `${relative < 0 ? '左转' : '右转'} ${Math.abs(relative).toFixed(0)}°`,
       Math.abs(depthDelta) > 1 ? `${depthDelta > 0 ? '上浮' : '下潜'} ${Math.abs(depthDelta).toFixed(1)} m` : m.outside ? '超出量程' : '深度吻合',

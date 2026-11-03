@@ -1,0 +1,14 @@
+{
+  "result": {
+    "video": [
+      1280,
+      720,
+      9.874621
+    ],
+    "pausedStable": true,
+    "litFraction": 0.7811179698216735,
+    "cutMax": 6,
+    "meanMs": 0.03666666746139526
+  },
+  "errors": []
+}

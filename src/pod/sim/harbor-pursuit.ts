@@ -47,6 +47,14 @@ export class HarborPursuit {
  private sniffLeft=0;
  private orbit=0;
  private orbitDir=1;
+ private awakeFlag=true;
+ /** GM kill: permanently dormant and parked far outside the harbor, so no distance check can reach it. Saved. */
+ private dead=false;
+ /** Dormant until the story's first strike: silent, motionless, deaf to the pod. Owned by the site, not saved. */
+ get awake(){return this.awakeFlag&&!this.dead;}
+ set awake(on:boolean){this.awakeFlag=on;}
+ get killed(){return this.dead;}
+ kill(){this.dead=true;this.mode='roam';this.heard=null;this.goal=null;this.position.set(0,-500,0);}
  constructor(private readonly random:()=>number=Math.random){
   this.position=new Vector3(...ROAM_POINTS[Math.floor(random()*ROAM_POINTS.length)]!);
   this.pause=1+random()*3;
@@ -58,12 +66,13 @@ export class HarborPursuit {
   * so only another active pulse can draw it back out; engine wash and knocks are ignored there.
   */
  hears(player:Vector3,pulse:boolean,noise:boolean){
+  if(!this.awake)return false;
   if(pulse)return true;
   return noise&&!this.inside&&Math.hypot(player.x-this.position.x,player.z-this.position.z)<=PURSUIT_NOISE_RANGE;
  }
  /** `pulse` is an active sonar emission; `noise` is engine wash or a knock, audible only nearby. */
  tick(dt:number,player:Vector3,pulse:boolean,noise:boolean,gateOpen:boolean,isolated:boolean,heading=0){
-  if(isolated)return;
+  if(isolated||!this.awake)return;
   const audible=this.hears(player,pulse,noise);
   if(audible){
    if(this.mode!=='hunt')this.orbitDir=this.random()<.5?-1:1;
@@ -74,9 +83,16 @@ export class HarborPursuit {
  }
  /** Personnel door motor is a distinct acoustic source. Travel uses the same cargo gate route; never teleport. */
  tickPersonnel(dt:number,target:Vector3,gateOpen:boolean,isolated:boolean){
-  if(isolated||!Number.isFinite(dt)||dt<=0)return;
+  if(isolated||!this.awake||!Number.isFinite(dt)||dt<=0)return;
   this.heard=target.clone();this.mode='hunt';this.goal=null;this.pause=0;
   let left=Math.min(dt,1);while(left>0){const d=Math.min(left,.025);left-=d;this.advance(target,HUNT_SPEED*d,gateOpen,false);}
+ }
+ /** First contact: it surfaces against the hull it just struck, then searches there like any lost sound. */
+ wake(hull:Vector3,heading=0){
+  if(this.awake||this.dead)return;this.awake=true;
+  const h=heading*Math.PI/180,r=HARBOR_HULL.width/2+PURSUIT_HULL_GAP+.3;
+  this.position.set(hull.x+Math.cos(h)*r,-.8,hull.z+Math.sin(h)*r);
+  this.heard=hull.clone().setY(-.5);this.heardHeading=heading;this.mode='sniff';this.sniffLeft=SNIFF_SECONDS;this.goal=null;this.pause=1+this.random();
  }
  private step(dt:number,gateOpen:boolean){
   if(this.mode==='hunt'&&this.heard){
@@ -142,7 +158,7 @@ export class HarborPursuit {
   for(const c of DETOURS){if(crossesWalls(this.position,c)||crossesWalls(c,goal))continue;const d=this.position.distanceTo(c)+c.distanceTo(goal);if(d<cost){cost=d;best=c;}}
   return best??GATE_FRONT;
  }
- snapshot(){return {position:this.position.toArray(),heard:this.heard?.toArray()??null,heardHeading:this.heardHeading,mode:this.mode,goal:this.goal?.toArray()??null,pause:this.pause,sniffLeft:this.sniffLeft,orbitDir:this.orbitDir};}
+ snapshot(){return {position:this.position.toArray(),heard:this.heard?.toArray()??null,heardHeading:this.heardHeading,mode:this.mode,goal:this.goal?.toArray()??null,pause:this.pause,sniffLeft:this.sniffLeft,orbitDir:this.orbitDir,...(this.dead?{dead:true}:{})};}
  restore(s:Partial<ReturnType<HarborPursuit['snapshot']>>&{position:number[]}){
   const valid=(a:unknown):a is number[]=>Array.isArray(a)&&a.length===3&&a.every(Number.isFinite);
   if(!s||!valid(s.position)||(s.heard!=null&&!valid(s.heard)))return false;
@@ -151,6 +167,6 @@ export class HarborPursuit {
   this.mode=s.mode==='hunt'||s.mode==='sniff'||s.mode==='roam'?s.mode:(this.heard?'sniff':'roam');
   this.goal=valid(s.goal)?new Vector3().fromArray(s.goal):null;
   this.pause=Number.isFinite(s.pause)?s.pause!:0;this.sniffLeft=Number.isFinite(s.sniffLeft)?s.sniffLeft!:SNIFF_SECONDS;
-  this.orbitDir=s.orbitDir===-1?-1:1;return true;
+  this.orbitDir=s.orbitDir===-1?-1:1;this.dead=s.dead===true;return true;
  }
 }

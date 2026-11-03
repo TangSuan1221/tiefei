@@ -1,3 +1,4 @@
+// Legacy palette probe only. Runtime CCTV playback uses cctv-signal.ts (2026-10-30).
 /**
  * 生成画面的四色约束。
  * ============================================================================

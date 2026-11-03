@@ -1,3 +1,4 @@
+import { crtFont, TERMINAL_INK } from './crt-hud';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { PodRun } from '../sim/run';
@@ -7,9 +8,8 @@ import { drawStationView, drawStationScreen, drawObservationWindow, drawDrivingS
 import { createReferenceMaterials } from './deepsea/reference-materials';
 import { addCabinDressing } from './cabin-dressing';
 import { buildCrtHousing } from './cabin-crt-art';
-import { buildPassiveControls } from './cabin-passive-controls';
 import { buildActiveControls } from './cabin-active-controls';
-import { drawCompactSonarDesk, sonarDeskState } from './sonar-desk';
+import { sonarDeskState } from './sonar-desk';
 import { COORD_AXES } from '../sim/site-coords';
 import { buildNavigationKeyboard } from './cabin-navigation-keyboard';
 import { buildIndustrialHelm } from './cabin-helm';
@@ -37,16 +37,21 @@ export class CabinThree {
   private helmLook=0;
   private manualLook=false;
   private deviceZoom: 'nav'|'lab'|null=null;
+  private lessonFocused=false;
   get zoomedDevice(){return this.deviceZoom;}
   closeDeviceZoom(){this.deviceZoom=null;this.manualLook=false;}
   deviceClick():boolean {
     if(!this.isConsole(this.focused))return false;
+    // The tutorial already positions the eye at the device. Consume neither
+    // field selection nor keypad presses as another request to enter its view.
+    if(this.lessonFocused)return false;
     let obj:THREE.Object3D|null=this.ray.intersectObjects(this.scene.children,true)[0]?.object??null;
     let side: 'nav'|'lab'|null=null;
     while(obj){if(obj.userData.deviceSide){side=obj.userData.deviceSide;break;}obj=obj.parent;}
     if(this.deviceZoom){if(side===this.deviceZoom)return false;this.deviceZoom=null;this.manualLook=false;return true;}
     if(side){this.deviceZoom=side;this.manualLook=false;return true;}return false;
   }
+  focusLab():void {this.deviceZoom='lab';this.manualLook=false;}
   private isConsole(id:StationId|null){return !!id&&['camera','nav','lab'].includes(id);}
   consoleInReach(){return this.eye.z<.65&&Math.cos(this.yaw)>.25;}
   private storyLamps:THREE.MeshStandardMaterial[]=[];
@@ -56,10 +61,12 @@ export class CabinThree {
   private impactStrength=0;
   impact(amount:number){this.impactAge=0;this.impactStrength=Math.min(1,Math.max(amount,this.impactStrength*.4));}
   private updateNavigationKeyboard:((run:PodRun)=>void)|undefined;
-  private updatePassiveControls:((run:PodRun)=>void)|undefined;
   private updateActiveControls:((run:PodRun,hovered?:string)=>void)|undefined;
   private helmKeys:THREE.Mesh[]=[];
   private helmLabels:THREE.Texture[]=[];
+  private helmTaskLight:THREE.SpotLight|undefined;
+  private helmShadowPose={thrust:NaN,yaw:NaN,throttle:NaN};
+  private helmShadowAt=-Infinity;
   private portholeTextures:THREE.Texture[]=[];
 
   turn(dx:number,dy:number) {
@@ -139,6 +146,8 @@ export class CabinThree {
     consoleSpill.position.set(0,.65,-.8);this.scene.add(consoleSpill);
     this.lamp.position.set(-0.12, 1.94, -.88);
     this.lamp.castShadow = true;
+    this.lamp.shadow.autoUpdate = false;
+    this.lamp.shadow.needsUpdate = true;
     this.lamp.shadow.mapSize.set(2048, 2048);
     this.lamp.shadow.bias = -0.001;
     this.scene.add(this.lamp);
@@ -189,6 +198,16 @@ export class CabinThree {
 
   private buildHelm() {
     buildIndustrialHelm(this.scene, this.helmStick, this.helmKeys, this.helmLabels);
+    this.helmTaskLight=this.scene.getObjectByName('helm-task-light') as THREE.SpotLight|undefined;
+    // A low, local bounce reveals the rubbed folded edge without lifting the
+    // exposure of the painted panels, optical feed, or neighboring CRTs.
+    const helmPanel=this.scene.getObjectByName('helm-reference-panel');
+    if(helmPanel) {
+      const frontBounce=new THREE.PointLight(0xcdd3c2,.055 * .85 * .85,.70 * .85,2);
+      frontBounce.name='helm-front-bounce';
+      frontBounce.position.set(.05,-.32,.32);
+      helmPanel.add(frontBounce);
+    }
     this.updateNavigationKeyboard=buildNavigationKeyboard(this.scene,this.helmLabels);
   }
 
@@ -226,20 +245,19 @@ export class CabinThree {
     this.box(s,[.43,.12,.44],[.17,.43,1.67],m.rubber,.05);
     this.box(s,[.40,.52,.09],[.17,.74,1.89],m.rubber,.045);
     this.box(s,[.06,.45,.06],[.17,.20,1.67],m.steel);
-    // Six equipment faces. The manipulator repeater retains the merged camera controls.
-    this.terminal('life',[-.94,1.12,.72],Math.PI/2,.74,.65);
-    this.terminal('radio',[-.94,1.29,1.48],Math.PI/2,.55,.48);
+    // Only the forward optical, sonar and analysis stations have physical screens.
     // Separate port instruments from the optical aperture: neither glass nor
     // its text safe area sits behind the repeater housing.
-    this.terminal('camera',[0,1.48,-1.57],0,.88,.78);
-    // 两套声纳共用这块左舷仪表：被动阵列常开，主动换能器需单独通电。
-    // 它紧挨摄像台左侧，玩家无需转身去舱尾找声纳。
-    // Flat passive CRT: glass and its 1024×672 canvas share the same ~1.52:1 ratio, top edge level with the old 0.25 m screen.
-    this.terminal('nav',[-.60,1.27,-1.43],.55,.32,.32*672/1024,false,672);
-    this.terminal('nav',[-.60,1.60,-1.43],.55,.32,.26,true);
+    // Match the reference's visible apron above the desk: the flange and its
+    // red fixtures must clear the rear edge of the control panels.
+    this.terminal('camera',[0,1.54,-1.57],0,.88,.78);
+    // 左舷只保留主动声纳仪表（需单独通电），紧挨摄像台左侧。被动阵列不再有舱内实体屏；
+    // 通话与视频通讯在分析台【通讯】页签。
+    // 驾驶视角（座位 0,1.36,-.62，FOV65）下整块声纳屏须落在舷窗外框与画面左缘之间：
+    // 缩小并向操作员侧偏转，驾驶时无需转头即可读图。
+    this.terminal('nav',[-.53,1.46,-1.42],.42,.30,.24,true);
     this.terminal('lab',[.72,1.45,-1.35],-.12,.54,.43);
 
-    this.terminal('salvage',[.94,1.12,.72],-Math.PI/2,.63,.47);
     // Tank rack, taped supply crate, film magazines and electrical service boxes.
     for(let i=0;i<3;i++) {
       const tank=new THREE.Mesh(new THREE.CapsuleGeometry(.09,.42,6,12),m.yellow);
@@ -265,9 +283,8 @@ export class CabinThree {
     if(id==='nav'||id==='lab')group.userData.deviceSide=id;
     this.scene.add(group);
     const m=this.materials;
-    const passive=id==='nav'&&!repeater,active=id==='nav'&&repeater;
-    if(id!=='camera')this.portholeTextures.push(...buildCrtHousing(group,w,h,!passive&&!active));
-    if(passive){const controls=buildPassiveControls(group,w,h);this.portholeTextures.push(...controls.textures);this.updatePassiveControls=controls.update;}
+    const active=id==='nav'&&repeater;
+    if(id!=='camera')this.portholeTextures.push(...buildCrtHousing(group,w,h,!active));
     if(active){const controls=buildActiveControls(group,w,h);this.portholeTextures.push(...controls.textures);this.updateActiveControls=controls.update;}
     const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=canvasHeight;
     const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
@@ -312,22 +329,53 @@ export class CabinThree {
     }
     if(target&&this.manualLook)look.copy(pos).add(new THREE.Vector3(-Math.sin(this.yaw)*Math.cos(this.pitch),Math.sin(this.pitch),-Math.cos(this.yaw)*Math.cos(this.pitch)));
     if(this.deviceZoom==='nav'){
-      // Frame both stacked sonar screens head-on along their own normal, with
-      // the XYZ keypad below them still inside the shot.
-      const navs=this.screens.filter(s=>s.id==='nav');
-      look.set(0,0,0);for(const s of navs)look.add(s.mesh.getWorldPosition(new THREE.Vector3()));look.divideScalar(navs.length);
-      look.y-=.12;
-      pos.copy(look).addScaledVector(new THREE.Vector3(0,0,1).applyQuaternion(navs[0]!.group.quaternion),Math.max(.94,.70/this.camera.aspect));
+      // Frame the active sonar screen head-on along its own normal, with the
+      // XYZ keypad below it still inside the shot (same framing centre as before).
+      const nav=this.screens.find(s=>s.id==='nav')!;
+      nav.mesh.getWorldPosition(look);
+      look.y-=.17;
+      pos.copy(look).addScaledVector(new THREE.Vector3(0,0,1).applyQuaternion(nav.group.quaternion),Math.max(.94,.70/this.camera.aspect));
     }
     if(this.deviceZoom==='lab'){pos.set(.64,1.45,-.57);look.set(.72,1.45,-1.35);}
+    const lesson=run.prologue?.active?run.prologue:null;
+    const focus=lesson?.beat[1];
+    // Each introduction releases the camera; switching on the lamp ends its cut-in immediately.
+    const lessonFocus=!!lesson&&this.isConsole(run.at)&&lesson.focusActive;
+    this.lessonFocused=lessonFocus;
+    if(lessonFocus){
+      this.deviceZoom=null;this.manualLook=false;pos.set(0,1.36,-.62);
+      if(focus==='nav'){
+        const nav=this.screens.find(s=>s.id==='nav')!;nav.mesh.getWorldPosition(look);look.y-=.17;
+        pos.copy(look).addScaledVector(new THREE.Vector3(0,0,1).applyQuaternion(nav.group.quaternion),Math.max(.94,.70/this.camera.aspect));
+      }else if(focus==='window')look.set(0,1.35,-1.57);
+      else {
+        let control:THREE.Object3D|undefined=this.helmKeys.find(k=>k.userData.control===focus);
+        if(!control)this.scene.traverse(o=>{if(!control&&o.userData.control===focus)control=o;});
+        if(control)control.getWorldPosition(look);else look.set(.03,.94,-1.38);
+      }
+    }
     const k=1-Math.exp(-view.dt*7);
-    const focusFov=this.deviceZoom==='lab'?46:this.deviceZoom?60:this.isConsole(run.at)?65:67;
+    const focusFov=lessonFocus?(focus==='nav'?60:focus==='window'?65:48):this.deviceZoom==='lab'?46:this.deviceZoom?60:this.isConsole(run.at)?65:67;
     this.camera.fov+=(focusFov-this.camera.fov)*k;
     this.camera.updateProjectionMatrix();
     this.camera.position.lerp(pos,k);this.look.lerp(look,k);
     this.camera.lookAt(this.look);
     this.helmStick.rotation.y=this.helmInput.yaw*.26;
     this.helmStick.position.y=this.helmInput.thrust*.13;
+    const throttleGrip=this.scene.getObjectByName('helm-throttle-grip');
+    if(throttleGrip)throttleGrip.position.y=-.145+run.throttle*.095;
+    // Only the small helm light needs a new shadow when its controls move.
+    // Cache stationary frames and cap motion updates at 15 Hz.
+    if(this.helmTaskLight && view.time-this.helmShadowAt>=1/15 &&
+       (!Number.isFinite(this.helmShadowPose.thrust) ||
+        Math.abs(this.helmShadowPose.thrust-this.helmInput.thrust)>.005 ||
+        Math.abs(this.helmShadowPose.yaw-this.helmInput.yaw)>.005 ||
+        this.helmShadowPose.throttle!==run.throttle)) {
+      this.helmTaskLight.shadow.needsUpdate=true;
+      this.renderer.shadowMap.needsUpdate=true;
+      this.helmShadowPose={...this.helmInput,throttle:run.throttle};
+      this.helmShadowAt=view.time;
+    }
     const hoveredControl=view.hovered?.replace(/^desk:[^:]+:/,'');
     for(const key of this.helmKeys) {
       const material=key.material as THREE.MeshStandardMaterial;
@@ -349,7 +397,6 @@ export class CabinThree {
     });
     this.flood.position.y=.015+run.flood*.65+Math.sin(view.time*1.7)*run.flood*.006;
     this.updateNavigationKeyboard?.(run);
-    this.updatePassiveControls?.(run);
     this.updateActiveControls?.(run,hoveredControl);
     this.frame++;
     for(const [index,screen] of this.screens.entries()) {
@@ -377,10 +424,18 @@ export class CabinThree {
           const px=SONAR_W+14,pw=1024-px-10;
           c.fillStyle='#06140f';c.fillRect(px-8,4,pw+14,SONAR_H-8);c.strokeStyle='#2f5a3a';c.lineWidth=2;c.strokeRect(px-8,4,pw+14,SONAR_H-8);
           c.save();c.translate(px,0);c.scale(1,1/ASPECT);c.textAlign='left';c.textBaseline='alphabetic';
-          const text=(value:string,x:number,y:number,size:number,color:string,bold=true)=>{c.font=`${bold?'bold ':''}${size}px "Microsoft YaHei",monospace`;c.fillStyle=color;c.fillText(value,x,y,pw-x);};
+          const text=(value:string,x:number,y:number,size:number,color:string,bold=true)=>{c.font=crtFont(size,400);c.fillStyle=color;c.fillText(value,x,y,pw-x);};
           const brief=nav?.waypointBrief?.();
-          if(brief){text(brief.title,0,58,40,'#63fff1');brief.lines.forEach((line,i)=>text(line,0,110+i*48,36,'#d8f5ea'));}
+          if(brief){text(brief.title,0,58,40,'#63fff1');brief.lines.forEach((line,i)=>text(line,0,110+i*48,36,TERMINAL_INK.text));}
+          const passive=nav?.passiveContacts?.find(contact=>contact.kind==='unknown');
+          if(passive){text('被动监听 · 未知声源',0,340,28,TERMINAL_INK.text);text('大致方位：'+passive.bearing,0,388,34,TERMINAL_INK.bright);text('相对艇首 · 不提供距离',0,430,26,TERMINAL_INK.text);}
+          if(brief?.photoStatus){const rows=brief.photoStatus.match(/.{1,11}/gu)??[];rows.slice(0,5).forEach((row,i)=>text(row,0,490+i*36,27,TERMINAL_INK.text,false));}
           c.restore();
+          if(nav?.target&&nav.deleteSelectedWaypoint){
+            c.fillStyle='#47302a';c.fillRect(px,558,pw,42);c.strokeStyle='#b48b70';c.strokeRect(px,558,pw,42);
+            c.font=crtFont(28);c.textAlign='center';c.textBaseline='middle';c.fillStyle='#ffe1ba';c.fillText('删除当前坐标点',px+pw/2,579,pw-12);
+            screen.hits.add({id:'sonar.deleteWaypoint',x:px,y:558,w:pw,h:42});
+          }
           const input=sonarDeskState(run);c.fillStyle='#10180e';c.fillRect(0,SONAR_H,1024,720-SONAR_H);c.textAlign='left';c.textBaseline='middle';
           input.fields.forEach((value,i)=>{const x=14+i*336,y=SONAR_H+10;c.strokeStyle=input.axis===i?'#d9d59c':'#526447';c.lineWidth=3;c.strokeRect(x,y,324,96);c.fillStyle=input.axis===i?'#fff0b0':'#b9d296';c.font='bold 58px monospace';c.fillText(COORD_AXES[i]+' '+(value||'_'),x+14,y+50,300);screen.hits.add({id:'sonar.axis.'+i,x,y,w:324,h:96});});
         }else{
@@ -390,7 +445,6 @@ export class CabinThree {
           else{c.strokeStyle='#315134';c.lineWidth=1;for(let y=135;y<540;y+=8){c.beginPath();c.moveTo(55,y);c.lineTo(970,y);c.stroke();}}
         }
       }
-      else if(screen.id==='nav')drawCompactSonarDesk(c,run,screen.hits,view.time,ch);
       else if(screen.id==='camera') drawObservationWindow(c,run,screen.hits,view,screen===target);
       else if(screen===target || screen.id==='lab') drawStationView(c,run,screen.id,0,0,1024,720,screen.hits,view);
       else {
@@ -455,6 +509,14 @@ export class CabinThree {
     ctx.drawImage(this.renderer.domElement,0,0,w,h);
   }
 
+  throttleGearAt(x:number,y:number,w:number,h:number):number|null {
+    const track=this.scene.getObjectByName('helm-throttle');if(!track)return null;
+    this.ray.setFromCamera(new THREE.Vector2(x/w*2-1,1-y/h*2),this.pickingCamera);
+    const localRay=this.ray.ray.clone().applyMatrix4(track.matrixWorld.clone().invert());
+    const point=localRay.intersectPlane(new THREE.Plane(new THREE.Vector3(0,0,1),-.104),new THREE.Vector3());
+    return point?THREE.MathUtils.clamp(Math.round((point.y+.145)/.095),0,3):null;
+  }
+
   pick(x:number,y:number,w:number,h:number):string|null {
     this.ray.setFromCamera(new THREE.Vector2(x/w*2-1,1-y/h*2),this.pickingCamera);
     // First solid surface wins, so screens cannot be clicked through a cabinet.
@@ -462,13 +524,6 @@ export class CabinThree {
     if(hit && this.isConsole(this.focused)) {
       let object:THREE.Object3D|null=hit.object;
       while(object){
-        if(object.userData.control==='sonar.slider'){
-          // Range is in the CRT group's local X; the hit position along it is the frequency.
-          let root:THREE.Object3D|null=object;while(root&&!root.userData.deviceSide)root=root.parent;
-          const [x0,length]=object.userData.sliderRange as [number,number];
-          const x=(root??object).worldToLocal(hit.point.clone()).x;
-          return 'desk:nav:sonar.tune.'+Math.round(THREE.MathUtils.clamp((x-x0)/length,0,1)*100);
-        }
         if(object.userData.control)return 'desk:'+(object.userData.station||'camera')+':'+object.userData.control;object=object.parent;
       }
     }

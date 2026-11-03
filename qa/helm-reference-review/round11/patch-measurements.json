@@ -1,0 +1,126 @@
+{
+  "reference.png": {
+    "left_panel": {
+      "median_rgb": [
+        51.0,
+        64.0,
+        50.0
+      ],
+      "median_luma": 60.5,
+      "luma_p10": 39.4,
+      "luma_p90": 85.2
+    },
+    "middle_panel": {
+      "median_rgb": [
+        65.0,
+        77.0,
+        56.0
+      ],
+      "median_luma": 73.4,
+      "luma_p10": 47.5,
+      "luma_p90": 101.8
+    },
+    "front_lip": {
+      "median_rgb": [
+        99.0,
+        103.0,
+        80.0
+      ],
+      "median_luma": 100.3,
+      "luma_p10": 71.8,
+      "luma_p90": 128.8
+    },
+    "shutter_cap": {
+      "median_rgb": [
+        121.0,
+        115.0,
+        85.0
+      ],
+      "median_luma": 114.5,
+      "luma_p10": 110.6,
+      "luma_p90": 121.4
+    },
+    "red_lamp": {
+      "median_rgb": [
+        146,
+        9,
+        10
+      ],
+      "median_luma": 36.9,
+      "luma_p10": 13.8,
+      "luma_p90": 91.2
+    },
+    "amber_lamp": {
+      "median_rgb": [
+        205,
+        179,
+        115
+      ],
+      "median_luma": 178.3,
+      "luma_p10": 62.6,
+      "luma_p90": 243.0
+    }
+  },
+  "reference-angle.png": {
+    "left_panel": {
+      "median_rgb": [
+        49.0,
+        62.0,
+        50.0
+      ],
+      "median_luma": 58.7,
+      "luma_p10": 48.1,
+      "luma_p90": 87.6
+    },
+    "middle_panel": {
+      "median_rgb": [
+        74.0,
+        89.0,
+        72.0
+      ],
+      "median_luma": 84.6,
+      "luma_p10": 55.9,
+      "luma_p90": 100.7
+    },
+    "front_lip": {
+      "median_rgb": [
+        52.0,
+        61.0,
+        47.0
+      ],
+      "median_luma": 58.1,
+      "luma_p10": 47.5,
+      "luma_p90": 71.1
+    },
+    "shutter_cap": {
+      "median_rgb": [
+        123.0,
+        123.0,
+        84.0
+      ],
+      "median_luma": 120.2,
+      "luma_p10": 114.9,
+      "luma_p90": 125.8
+    },
+    "red_lamp": {
+      "median_rgb": [
+        31,
+        3,
+        5
+      ],
+      "median_luma": 9.2,
+      "luma_p10": 7.6,
+      "luma_p90": 11.6
+    },
+    "amber_lamp": {
+      "median_rgb": [
+        88,
+        103,
+        79
+      ],
+      "median_luma": 98.9,
+      "luma_p10": 72.7,
+      "luma_p90": 178.1
+    }
+  }
+}

@@ -1,3 +1,0 @@
-tools/living-survey-check.ts(12,91): error TS2339: Property 'enterCode' does not exist on type 'LivingSurvey'.
-tools/living-survey-check.ts(12,124): error TS2339: Property 'enterCode' does not exist on type 'LivingSurvey'.
-tools/living-survey-check.ts(12,157): error TS2339: Property 'enterCode' does not exist on type 'LivingSurvey'.

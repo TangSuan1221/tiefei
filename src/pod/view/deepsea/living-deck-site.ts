@@ -206,6 +206,8 @@ export class LivingDeckSite implements AuthoredSite {
  get complete(){return (!this.debugNoVideo||isNoVideoMode())&&this.survey.complete;}
  get micTarget(){return '艾里亚斯';}
  get micReady(){return true;}
+ get mediaRetryable(){return this.taskPlayer.retryable;}
+ retryMedia(){const line=this.taskPlayer.retry();this.feedback(line);return line;}
  private get activeNoise(){return this.run.powered&&this.run.activeSonarEnabled;}
  private nearItem(id:string,range=REACH){const item=ITEMS.get(id);return !!item&&this.boxBounds(id).distanceToPoint(this.position)<=range&&this.segmentClear(this.position,v3(item.position),this.boxBounds(id));}
  private diagnosticSay(text:string){
@@ -223,7 +225,7 @@ export class LivingDeckSite implements AuthoredSite {
   if(this.debugNoVideo&&!isNoVideoMode()){this.feedback('含诊断进度：恢复GM无视频模式或新开正式游戏。');return false;}
   if(/重试.*录像|重试.*视频/.test(t)){this.feedback(this.taskPlayer.retry());return true;}
   for(const line of this.survey.say(t,{nearTransfer:this.nearItem('living.pipe.intake')})){
-   const hint=line.includes('靠近入口的设备传递口')?this.stageTargetHint():null;
+   const hint=line.includes('传递口在竖井出口旁')?this.stageTargetHint():null;
    const spoken=hint?line+'\n罗温：'+hint:line;
    this.navigationConsole.recordDialogue(spoken);this.feedback(spoken);
   }
@@ -253,6 +255,8 @@ export class LivingDeckSite implements AuthoredSite {
  private get needsGuidePhoto(){return this.s.stage==='code'&&this.s.codeVerified&&!this.s.guideVerified;}
  private destination():Vec3|undefined{
   const f=this.survey;
+  if(!f.shared&&!f.called)return [16,0,7.5];
+  if(!f.shared&&f.pending)return undefined;
   if(!f.camera)return [7,0,8];
   if(!f.shared)return [12,0,9];
   if(f.pending)return undefined;
@@ -742,8 +746,8 @@ export class LivingDeckSite implements AuthoredSite {
   const pod=this.vec();
   if(!this.ended){
    if(this.debugNoVideo&&!isNoVideoMode())return;
-   this.feedback(this.survey.tick(dt));this.refresh();
-   this.taskPlayer.tick(this.survey.pending,this.survey.code,this.run.narrativeMemory.elias==='injured');
+   this.feedback(this.survey.tick(dt,pod[0]));this.refresh();
+   this.taskPlayer.tick(this.survey.pending,this.survey.code,this.run.narrativeMemory.elias==='injured',this.survey.upcoming);
    this.advanceStoryTask();
    if(livingSpaceAt(pod)==='E'&&pod[1]<LIVING_SURVEY_EXIT_Y){this.feedback(this.survey.operate('exit',true));this.refresh();}
    const cr=this.creatures.tick(dt,{pod,heading:this.run.heading,lampOn:this.lit(),lampRange:LAMP_RANGE,lampHalfAngle:LAMP_HALF_ANGLE,pulse:this.pendingPulse,activePowered:this.activeNoise,
@@ -782,6 +786,7 @@ export class LivingDeckSite implements AuthoredSite {
   this.threatBeepLeft-=dt;
   if(this.threatBeepLeft<=0){this.run.onCue?.('sonar.threat',.4);this.threatBeepLeft=.18+1.42*Math.min(1,near/SONAR_RANGE);}
  }
+ gmKillCreatures(radius:number){return this.creatures.gmKill(this.vec(),radius);}
  private threatContacts(){
   const solids=this.solids(this.position,SONAR_RANGE+4,false);
   return this.creatures.views.filter(c=>c.type!=='swarm').map(c=>({c,distance:v3(c.position).distanceTo(this.position)})).filter(({c,distance})=>{
@@ -1041,7 +1046,7 @@ export class LivingDeckSite implements AuthoredSite {
  }
  /** Close to the current stage's physical target but not aimed at it: name its side relative to the bow and the turn key. */
  private stageTargetHint(){
-  const s=this.s,f=this.survey,id=!f.camera?'living.box.probe':!f.shared?'living.pipe.intake':f.helpReplied&&!f.valve?'living.valve.feed':f.clearSeen&&!f.unlocked?'living.survey.lock':f.photos.length===3&&!f.reunion?'living.uplink.gate':f.reunion&&!f.ballast?'living.box.ballast':null;
+  const s=this.s,f=this.survey,id=!f.camera?'living.box.probe':!f.shared?(f.called?'living.pipe.intake':null):f.helpReplied&&!f.valve?'living.valve.feed':f.clearSeen&&!f.unlocked?'living.survey.lock':f.photos.length===3&&!f.reunion?'living.uplink.gate':f.reunion&&!f.ballast?'living.box.ballast':null;
   const item=id?ITEMS.get(id):undefined;if(!item||(item.kind==='box'&&s.collected.includes(item.id)))return null;
   const c=item.kind==='box'?this.boxBounds(item.id).getCenter(new T.Vector3()):v3(item.position),dx=c.x-this.position.x,dz=c.z-this.position.z,d=Math.hypot(dx,dz);
   if(d>(livingSpaceAt(this.vec())===item.space?30:14))return null;
@@ -1068,7 +1073,7 @@ export class LivingDeckSite implements AuthoredSite {
   this.pose();this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
   this.windowLocks.draw(ctx,w,h,this.camera,()=>this.solids(undefined,14,false),()=>LIVING_ITEMS
    .filter(i=>i.kind!=='box'||!this.s.collected.includes(i.id))
-   .map(i=>({id:i.id,bounds:this.boxBounds(i.id),reach:i.kind==='uplink'?UPLINK_REACH:REACH,enabled:i.kind!=='photo'&&(i.kind!=='pipe'||this.s.probe==='carried')})));
+   .map(i=>({id:i.id,bounds:this.boxBounds(i.id),reach:i.kind==='uplink'?UPLINK_REACH:REACH,enabled:i.kind!=='photo'&&(i.kind!=='pipe'||this.s.probe==='carried'),label:i.name})));
  }
  private drawSonarBase(ctx:CanvasRenderingContext2D,w:number,h:number,time:number,dedicated:boolean){
   const size=dedicated?Math.min(w,h/.93):Math.min(w*(this.run.lit?.28:.40),h*.66),x=dedicated?0:w-size-w*.025,y=dedicated?0:h*.22;

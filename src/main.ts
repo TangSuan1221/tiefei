@@ -1,9 +1,6 @@
 import {hasAbyssalSave} from './pod/sim/abyssal-save';
 import './game/boot.css';
-import { TitleBackground } from './game/titlebg';
 import { SaveManager } from './game/save';
-import { seedToCoords } from './core/rng';
-import { formatDepth } from './core/util';
 import { installGmApi } from './pod/view/gm';
 import { hasHarborSave } from './pod/sim/harbor-save';
 import { hasLivingSave } from './pod/sim/living-save';
@@ -15,8 +12,6 @@ installGmApi();
  * 动态加载真正的游戏会话（代码分割，标题画面的首屏因此非常轻）。
  */
 
-const bg = new TitleBackground(document.getElementById('bg-canvas') as HTMLCanvasElement);
-bg.start();
 
 const save = new SaveManager();
 const meta = save.loadMeta();
@@ -27,99 +22,79 @@ const hasCheckpointRecord = (()=>{try{return ['ironlung.harbor.v1','ironlung.liv
 const uiRoot = document.getElementById('ui-root') as HTMLDivElement;
 
 // 每次启动生成一个新种子，但玩家可以在"深度坐标"里输入旧的
-const bootSeed = (Date.now() ^ (performance.now() * 1000)) >>> 0;
 const livingEntry = new URLSearchParams(location.search).get('level') === '2';
 
+function openingLayers(): string {
+  return `<video class="opening-video" autoplay muted loop playsinline preload="auto" poster="/assets/title/opening-background-poster.jpg" aria-hidden="true"><source src="/assets/title/opening-background.mp4" type="video/mp4" /></video>
+    <img class="opening-art opening-crt-cutout" src="/assets/title/opening.png" alt="IRON WHALE 深潜器操作终端" draggable="false" />`;
+}
+function playOpeningVideo(): void {
+  const video = document.querySelector<HTMLVideoElement>('.opening-video');
+  if (video) { video.muted = true; void video.play().catch(() => { /* Poster remains available if autoplay is blocked. */ }); }
+}
+document.addEventListener('visibilitychange', () => {
+  const video = document.querySelector<HTMLVideoElement>('.opening-video');
+  if (document.hidden) video?.pause(); else playOpeningVideo();
+});
 renderTitle();
 
 function renderTitle(): void {
-  const cycles = meta.cyclesPlayed;
-  const endings = meta.endingsSeen.length;
-
   uiRoot.innerHTML = `
-    <div class="title-screen">
-      <div>
-        <div class="title-mark">公司事故调查组 · 深潜器 KYRIE-9</div>
-        <h1 class="title-cn">铁肺迷城</h1>
-        <div class="title-en">Ironlung&nbsp;Maze</div>
-        <p class="title-tag">
-          ${livingEntry
-            ? `<span>接驳港之后，你独自沿竖井下到 -1 层宿舍区。</span>
-          <span>取回摄像仪，与艾里亚斯分头调查声源。带好修补材料，取得下潜许可后到 F 闸门会合。</span>`
-            : `<span>你受公司委派，下潜调查接驳港事故。</span>
-          <span>核对救生舱，找回撤离记录，确认下行通道。</span>`}
-          <span>声纳引路。实体快门曝光。冲洗后的影像，在分析台核验。</span>
-        </p>
-      </div>
-      <nav class="menu" id="menu"></nav>
-    </div>
-  `;
-
-  const menu = document.getElementById('menu') as HTMLElement;
-  const items: { id: string; label: string; sub: string; disabled?: boolean }[] = [
-    hasRun || hasCheckpointRecord
-      ? { id: 'continue', label: '继续下潜', sub: hasRun?'恢复上次的呼吸':'检查已有记录 · 可能为旧版存档' }
-      : { id: 'continue', label: '继续下潜', sub: '无记录', disabled: true },
-    { id: 'new', label: '开始事故调查', sub: livingEntry ? '正式游戏 · 第二关 · -1 层宿舍区' : '正式游戏 · 接驳港' },
-    { id: 'expedition', label: '设施探索预览', sub: '独立测试场景 · 非正式剧情入口' },
-    { id: 'seed', label: '输入深度坐标', sub: '指定种子' },
-    { id: 'archive', label: '档案', sub: `${endings}/8 结局 · ${meta.knowledgeUnlocked.length} 条知识`, disabled: cycles === 0 },
-    { id: 'options', label: '设置', sub: '' },
-  ];
-
-  menu.innerHTML = items
-    .map(
-      (it, i) => `
-      <button class="menu-item" data-id="${it.id}" data-idx="${String(i + 1).padStart(2, '0')}"
-              ${it.disabled ? 'disabled' : ''}>
-        <span>${it.label}</span>
-        <span class="sub">${it.sub}</span>
-      </button>`,
-    )
-    .join('');
-
-  menu.querySelectorAll<HTMLButtonElement>('.menu-item').forEach((btn) => {
-    btn.addEventListener('mouseenter', () => bg.pulse());
-    btn.addEventListener('click', () => onMenu(btn.dataset.id!));
-  });
-
-  renderCorners();
-}
-
-function renderCorners(): void {
-  document.querySelectorAll('.corner, .boot-log').forEach((n) => n.remove());
-
-  const tl = el('div', 'corner corner-tl');
-  tl.innerHTML = `
-    <span class="corner-row">舷外压力 <span class="hot">341.2 bar</span></span>
-    <span class="corner-row">舱内含氧 <span class="hot">17.4%</span></span>
-    <span class="corner-row">船体完整度 <span class="warn">0.61</span></span>`;
-
-  const tr = el('div', 'corner corner-tr');
-  tr.innerHTML = `
-    <span class="corner-row">坐标 ${seedToCoords(bootSeed)}</span>
-    <span class="corner-row">当前深度 <span class="depth-readout" id="depth">—</span></span>
-    <span class="corner-row">轮回 #${String(meta.cyclesPlayed + 1).padStart(3, '0')}</span>`;
-
-  const bl = el('div', 'corner corner-bl');
-  bl.innerHTML = `<span class="corner-row">公司事故调查组 · 现场证据须核验</span>`;
-
-  const br = el('div', 'corner corner-br');
-  br.innerHTML = `<span class="corner-row">v0.1.0 · 垂直切片</span>`;
-
-  document.body.append(tl, tr, bl, br);
-
-  // 深度读数持续下沉，让标题画面不是一张静止的图
-  const depthEl = document.getElementById('depth')!;
-  const tickDepth = () => {
-    depthEl.textContent = formatDepth(bg.depth);
-    requestAnimationFrame(tickDepth);
+    <div class="title-screen crt-opening">
+      ${openingLayers()}
+      <nav class="crt-menu" aria-label="主菜单">
+        <button class="crt-hit crt-start selected" data-id="new" aria-label="开始事故调查"><span class="sr-only">START · 开始事故调查</span></button>
+        <button class="crt-hit crt-load" data-id="continue" aria-label="继续下潜" ${hasRun || hasCheckpointRecord ? '' : 'disabled'}><span class="sr-only">LOAD · 继续下潜</span></button>
+        <button class="crt-hit crt-settings" data-id="options" aria-label="设置"><span class="sr-only">SETTINGS · 设置</span></button>
+      </nav>
+      ${crtSignalLayers()}
+      <p class="crt-help" aria-live="polite">${livingEntry ? '第二关 · 生活区' : '接驳港 · 事故调查'} / ↑ ↓ 选择 · ENTER 确认${hasRun || hasCheckpointRecord ? '' : ' / 暂无存档'}</p>
+      <dialog class="crt-options" aria-label="终端设置">
+        <h2>终端设置</h2>
+        <label><input type="checkbox" id="crt-motion" checked /> 屏幕扫描效果</label>
+        <button data-action="seed">指定调查种子</button>
+        <button data-action="expedition">设施探索预览</button>
+        <button data-action="archive" ${meta.cyclesPlayed ? '' : 'disabled'}>查看档案</button>
+        <button data-action="close">返回 / ESC</button>
+      </dialog>
+    </div>`;
+  const screen = uiRoot.querySelector<HTMLElement>('.crt-opening')!;
+  const buttons = [...screen.querySelectorAll<HTMLButtonElement>('.crt-hit:not(:disabled)')];
+  const select = (button: HTMLButtonElement) => {
+    buttons.forEach(b => b.classList.toggle('selected', b === button));
   };
-  tickDepth();
+  buttons.forEach(button => {
+    button.addEventListener('mouseenter', () => select(button));
+    button.addEventListener('focus', () => select(button));
+    button.addEventListener('click', () => {
+      if (button.dataset.id === 'options') screen.querySelector<HTMLDialogElement>('dialog')!.showModal();
+      else void onMenu(button.dataset.id!);
+    });
+  });
+  screen.addEventListener('keydown', event => {
+    if ((event.target as HTMLElement).closest('dialog')) return;
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const current = buttons.findIndex(b => b.classList.contains('selected'));
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
+      : (current + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
+    buttons[next].focus({preventScroll:true});
+  });
+  const dialog = screen.querySelector<HTMLDialogElement>('dialog')!;
+  dialog.querySelectorAll<HTMLButtonElement>('[data-action]').forEach(button => {
+    button.addEventListener('click', () => {
+      dialog.close();
+      if (button.dataset.action !== 'close') void onMenu(button.dataset.action!);
+    });
+  });
+  screen.querySelector<HTMLInputElement>('#crt-motion')!.addEventListener('change', event => {
+    screen.classList.toggle('crt-still', !(event.target as HTMLInputElement).checked);
+  });
+  buttons[0].focus({preventScroll:true});
+  playOpeningVideo();
 }
 
 async function onMenu(id: string): Promise<void> {
-  bg.pulse();
   switch (id) {
     case 'expedition':
       location.href = '/expedition.html';
@@ -150,38 +125,70 @@ async function onMenu(id: string): Promise<void> {
   }
 }
 
+let enteringGame = false;
+function crtSignalLayers(): string {
+  return '<div class="crt-signal" aria-hidden="true"><div class="crt-scanlines"></div><div class="crt-roll"></div><div class="crt-sync"></div></div>';
+}
 async function enterGame(resume: boolean): Promise<void> {
-  const log = showBootLog([]);
-  const steps: [string, () => Promise<unknown>][] = [
-    ['加载生命支持模拟', () => import('./game/session')],
-  ];
-  document.querySelector('.title-screen')?.classList.add('fade-out');
-
-  for (const [label, fn] of steps) {
-    appendLog(log, `${label} …`, 'pending');
-    try {
-      const mod = (await fn()) as { startSession?: (resume: boolean) => Promise<void> };
-      replaceLastLog(log, `${label} … 就绪`, 'ok');
-      if (mod.startSession) {
-        bg.stop();
-        await mod.startSession(resume);
-        return;
-      }
-    } catch (err) {
-      // 内容自检（重复节点 id、悬空引用、房间/道具覆盖不全）会在这里抛出。
-      // 这是有意的快速失败，但报错必须说清是什么坏了 —— 早先这里吞掉了真实
-      // 原因，只留下一句"仍在整合中"，排查时完全没有指向性。
-      const msg = err instanceof Error ? err.message : String(err);
-      // Session setup removes title decorations; retain a visible failure even
-      // when construction throws after it has detached this boot log.
-      if(!log.isConnected)document.body.append(log);
-      replaceLastLog(log, `${label} … 失败`, 'bad');
-      appendLog(log, msg, 'bad');
-      appendLog(log, resume?'原存档未修改。请核对上方原因；旧版路线可保留记录并开始新游戏。':'这是一个内容或装配错误，不是缺失模块。详情见浏览器控制台。', 'pending');
-      console.error('[boot] 会话启动失败', err);
-      document.querySelector('.title-screen')?.classList.remove('fade-out');
-      return;
-    }
+  if (enteringGame) return;
+  enteringGame = true;
+  document.querySelector('.boot-log')?.remove();
+  const currentVideo = document.querySelector<HTMLVideoElement>('.opening-video');
+  const loading = document.createElement('div');
+  loading.className = 'crt-loading-overlay';
+  loading.innerHTML = `<div class="crt-loading-stage">
+    ${openingLayers()}
+    <section class="crt-loading-panel" aria-label="正在加载游戏" aria-busy="true">
+      <div class="crt-loading-title">LOADING<span class="loading-dots">...</span></div>
+      <div class="pixel-ocean" aria-hidden="true"><div class="pixel-sub-travel">
+        <svg class="pixel-sub" viewBox="0 0 64 28" shape-rendering="crispEdges">
+          <g fill="currentColor"><path d="M28 2h12v3h-8v5h-4zM24 8h14v5H24zM12 12h36v3h6v3h4v5h-7v3H16v-3h-6V12zM7 14h4v10H7zM3 11h4v6H3zM3 22h4v6H3z"/></g>
+          <path fill="#06351b" d="M21 16h5v5h-5zM32 16h5v5h-5zM43 16h5v5h-5z"/>
+        </svg><span class="pixel-bubbles">· · ·</span></div></div>
+      <div class="crt-loading-track" role="progressbar" aria-label="启动阶段" aria-valuemin="0" aria-valuemax="100" aria-valuenow="8"><div class="crt-loading-fill"></div></div>
+      <p class="crt-loading-status" role="status">连接生命支持系统</p>
+    </section>${crtSignalLayers()}</div>`;
+  if (document.querySelector('.crt-opening.crt-still')) loading.classList.add('crt-still');
+  if (currentVideo) loading.querySelector('.opening-video')!.replaceWith(currentVideo);
+  document.body.append(loading);
+  playOpeningVideo();
+  const loadingStarted = performance.now();
+  const status = loading.querySelector<HTMLElement>('.crt-loading-status')!;
+  const progress = (value: number, label: string) => {
+    loading.style.setProperty('--load-progress', `${value}%`);
+    loading.querySelector('[role="progressbar"]')!.setAttribute('aria-valuenow', String(value));
+    status.textContent = label;
+  };
+  // Yield a painted frame before module parsing / scene construction.
+  const paint = () => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  try {
+    progress(8, '连接生命支持系统');
+    await paint();
+    const mod = await import('./game/session');
+    progress(30, '加载驾驶舱与下潜系统');
+    await paint();
+    await import('./pod/view/session');
+    progress(72, resume ? '恢复航行记录' : '初始化调查航程');
+    // Keep the boot animation readable on a warm cache, before simulation starts.
+    await new Promise(resolve => setTimeout(resolve, Math.max(0, 1100 - (performance.now() - loadingStarted))));
+    await paint();
+    await mod.startSession(resume);
+    progress(100, '系统就绪');
+    await paint();
+    currentVideo?.pause();
+    loading.remove();
+  } catch (err) {
+    console.error('[boot] 会话启动失败', err);
+    loading.querySelector('section')!.setAttribute('aria-busy', 'false');
+    loading.classList.add('loading-failed');
+    status.textContent = `加载失败：${err instanceof Error ? err.message : String(err)}。原存档保留。`;
+    const back = document.createElement('button');
+    back.className = 'crt-loading-back';
+    back.textContent = '返回开局界面';
+    back.onclick = () => location.reload();
+    loading.querySelector('section')!.append(back);
+    back.focus();
+    enteringGame = false;
   }
 }
 

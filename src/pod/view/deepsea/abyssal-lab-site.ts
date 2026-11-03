@@ -60,7 +60,7 @@ export class AbyssalLabSite implements AuthoredSite {
    const delivered=this.deliveredMedia.has(shot)&&this.run.tapes.some(t=>t.ready!==false&&t.videoResult==='video'&&!t.creatureMissing&&(t.siteEvidence as {shotId?:string})?.shotId===shot);
    if(delivered)return `艾里亚斯第${number}卷已收到 · 在分析台选择该卷，完整看片并分析`;
    const media=this.media.status(shot);
-   if(media.phase==='failed')return `艾里亚斯第${number}卷未完成 · 按 M 输入“重试录像” · ${media.message.slice(0,70)}`;
+   if(media.phase==='failed')return `艾里亚斯第${number}卷未完成 · 到分析台【通讯】点击“重新接收” · ${media.message.slice(0,70)}`;
    if(media.phase==='generating')return `艾里亚斯第${number}卷处理中 · ${media.message} · 可先检查附近补给`;
    if(media.phase==='disabled')return `第${number}卷尚未取得 · ${media.message} · 可先查看附近补给`;
    if(shot==='L3-E01')return '等待艾里亚斯第1卷录像 · 可先靠近白色医疗箱，用机械臂取回宁神剂';
@@ -72,6 +72,8 @@ export class AbyssalLabSite implements AuthoredSite {
  get noiseFloor(){return this.story.state['alarm.state']==='on'&&abyssSpaceAt(this.vec())==='C'?.45:0;}
  get micTarget(){return this.nearWindow()?'艾里亚斯 · 文字发送 / 录像回复':'艇内终端（宁神剂 / 录像重试）';}
  get micReady(){return true;}
+ get mediaRetryable(){return this.media.retryable;}
+ retryMedia(){const result=this.media.retry();this.event(result.message);return result.message;}
  get dialogueChoices(){const id=this.inputWindow();return id?this.story.suggestions(id).map(s=>s.text):[...(Number(this.story.state['pod.sedatives'])>0?['使用宁神剂']:[]),...(this.pendingMedia.length?['重试录像']:[])];}
  chooseDialogue(index:number){const text=this.dialogueChoices[index];return !!text&&this.radioSay(text);}
  private nearWindow(){return ABYSS_WINDOWS.find(w=>V(w.pod).distanceTo(this.position)<=w.radius);}
@@ -134,7 +136,7 @@ export class AbyssalLabSite implements AuthoredSite {
   if(zone==='P'&&this.fakeMessageShown&&this.position.y<-12)this.story.sync({'san.fakeObeyed':true});
   const press=V(spiralPoint(ABYSS_GATES.find(g=>g.id==='press')!.t));press.y=this.position.y;const cycle=Math.floor(this.time/10);if(zone==='P'&&this.pressClosed&&this.position.distanceTo(press)<3&&this.pressHitCycle!==cycle){this.pressHitCycle=cycle;this.run.hull=Math.max(.05,this.run.hull-.05);this.event('冲压机落下，艇壳受压。每10秒有3秒完全抬升窗口；等它抬起再通过。');}
   if(zone==='C'){this.story.sync({'pit.depth':this.position.y<-45?'floor':this.position.y<-10?'cages':'rim'});if(this.story.state['alarm.state']==='on')this.run.vitals.restore({san:-dt*.06});}
-  if(this.pendingMedia.length&&this.time-this.lastMediaHint>45){this.lastMediaHint=this.time;const request=this.pendingMedia[0],status=this.media.status(request.shotId);this.event(`${request.shotId} · ${status.message}${status.phase==='failed'?'。按 M 输入“重试录像”可再试。':'。未收到录像前不授予剧情证据。'}`);}
+  if(this.pendingMedia.length&&this.time-this.lastMediaHint>45){this.lastMediaHint=this.time;const request=this.pendingMedia[0],status=this.media.status(request.shotId);this.event(`${request.shotId} · ${status.message}${status.phase==='failed'?'。到分析台【通讯】点击“重新接收”可再试。':'。未收到录像前不授予剧情证据。'}`);}
   this.world.setFocus(this.vec());this.world.update({time:this.time,collected:this.collected,sluiceOpen:!!this.story.state['sluice.open'],drainOpen:!!this.story.state['drain.open']&&this.story.recomputeQuota(),pressOpen:!this.pressClosed,alarmOn:this.story.state['alarm.state']==='on'},dt);
   if(zone==='D'&&this.position.y<ABYSS_EXIT_Y&&this.story.canClearChapter()&&this.story.state['drain.open']&&this.analyzed.includes('L3-E11'))this.ended=true;
  }
@@ -143,7 +145,7 @@ export class AbyssalLabSite implements AuthoredSite {
  drawDrivingSonar(ctx:CanvasRenderingContext2D,w:number,h:number){ctx.fillStyle='#061619';ctx.fillRect(0,0,w,h);if(!this.run.activeSonarEnabled||this.run.power<=0){ctx.fillStyle='#92a9a5';ctx.fillText('主动声纳未通电',15,25);return;}const k=Math.min(w,h)/52,cx=w/2,cy=h/2,a=this.run.heading*Math.PI/180;ctx.fillStyle='#527a73';for(const p of this.sonarSamples){const x=p.x-this.position.x,z=p.z-this.position.z;ctx.fillRect(cx+(x*Math.cos(a)+z*Math.sin(a))*k,cy+(-x*Math.sin(a)+z*Math.cos(a))*k,2,2);}ctx.fillStyle='#d5e4a5';ctx.beginPath();ctx.moveTo(cx,cy-8);ctx.lineTo(cx-5,cy+6);ctx.lineTo(cx+5,cy+6);ctx.fill();ctx.font='16px sans-serif';ctx.fillText(this.lastSonar<0?'尚无回波 · 开启脉冲扫描':'历史回波 · ±24m',12,h-15);}
  drawMap(ctx:CanvasRenderingContext2D,w:number,h:number){this.drawDrivingSonar(ctx,w,h);}
  resetWindowFocus(){this.locks.reset();}
- drawWindowLocks(ctx:CanvasRenderingContext2D,w:number,h:number){const target=this.aim(8);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();this.locks.draw(ctx,w,h,this.camera,()=>this.world.colliders,()=>target?[{id:target.id,bounds:target.bounds,reach:3.4,enabled:true,verifiedDistance:target.distance}]:[]);}
+ drawWindowLocks(ctx:CanvasRenderingContext2D,w:number,h:number){const target=this.aim(8);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();this.locks.draw(ctx,w,h,this.camera,()=>this.world.colliders,()=>target?[{id:target.id,bounds:target.bounds,reach:3.4,enabled:true,verifiedDistance:target.distance,label:ABYSS_ITEMS.find(i=>i.id===target.id)?.name}]:[]);}
  drawInteraction(ctx:CanvasRenderingContext2D,w:number,h:number){const aim=this.aim();if(this.time<this.aimHelpUntil){ctx.save();ctx.strokeStyle='rgba(225,235,207,.8)';ctx.lineWidth=Math.max(1,h/650);ctx.beginPath();ctx.moveTo(w/2-7,h/2);ctx.lineTo(w/2+7,h/2);ctx.moveTo(w/2,h/2-7);ctx.lineTo(w/2,h/2+7);ctx.stroke();ctx.restore();}if(!aim&&this.time>=this.feedbackUntil)return;ctx.fillStyle='rgba(0,9,12,.8)';ctx.fillRect(0,h-45,w,45);ctx.fillStyle='#c9e0b5';ctx.font=`${Math.max(12,h*.035)}px sans-serif`;ctx.fillText((aim?.hint??this.feedback).slice(0,70),12,h-18,w-24);}
  snapshot(){return {adapter:'abyssal-lab',debugNoVideo:this.debugEvidence,adapterVersion:1,index:2,position:this.vec(),heading:this.run.heading,elapsed:this.time,acousticPressure:this.acousticPressure,eelHitAt:this.eelHitAt,fakeMessageShown:this.fakeMessageShown,navigation:this.navigationConsole.snapshot(),collected:[...this.collected],analyzed:[...this.analyzed],story:this.story.snapshot(),delivered:[...this.deliveredMedia],pending:structuredClone(this.pendingMedia),ended:this.ended};}
  restore(value:unknown){

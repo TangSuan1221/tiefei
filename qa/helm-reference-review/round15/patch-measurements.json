@@ -1,0 +1,166 @@
+{
+  "reference.png": {
+    "left_panel": {
+      "median_rgb": [
+        51.0,
+        64.0,
+        50.0
+      ],
+      "median_luma": 60.5,
+      "luma_p10": 39.4,
+      "luma_p90": 85.2
+    },
+    "middle_panel": {
+      "median_rgb": [
+        65.0,
+        77.0,
+        56.0
+      ],
+      "median_luma": 73.4,
+      "luma_p10": 47.5,
+      "luma_p90": 101.8
+    },
+    "front_lip": {
+      "median_rgb": [
+        99.0,
+        103.0,
+        80.0
+      ],
+      "median_luma": 100.3,
+      "luma_p10": 71.8,
+      "luma_p90": 128.8
+    },
+    "shutter_cap": {
+      "median_rgb": [
+        121.0,
+        115.0,
+        85.0
+      ],
+      "median_luma": 114.5,
+      "luma_p10": 110.6,
+      "luma_p90": 121.4
+    },
+    "red_lamp": {
+      "median_rgb": [
+        146,
+        9,
+        10
+      ],
+      "median_luma": 36.9,
+      "luma_p10": 13.8,
+      "luma_p90": 91.2
+    },
+    "amber_lamp": {
+      "median_rgb": [
+        205,
+        179,
+        115
+      ],
+      "median_luma": 178.3,
+      "luma_p10": 62.6,
+      "luma_p90": 243.0
+    },
+    "red_lamp_core": {
+      "median_rgb": [
+        164.5,
+        18.0,
+        17.0
+      ],
+      "median_luma": 46.5,
+      "luma_p10": 30.6,
+      "luma_p90": 103.2
+    },
+    "amber_lamp_core": {
+      "median_rgb": [
+        255.0,
+        248.0,
+        168.0
+      ],
+      "median_luma": 243.4,
+      "luma_p10": 231.9,
+      "luma_p90": 249.2
+    }
+  },
+  "reference-angle.png": {
+    "left_panel": {
+      "median_rgb": [
+        48.0,
+        61.0,
+        49.0
+      ],
+      "median_luma": 57.6,
+      "luma_p10": 46.8,
+      "luma_p90": 86.2
+    },
+    "middle_panel": {
+      "median_rgb": [
+        69.0,
+        82.0,
+        70.0
+      ],
+      "median_luma": 78.2,
+      "luma_p10": 43.8,
+      "luma_p90": 90.7
+    },
+    "front_lip": {
+      "median_rgb": [
+        108.0,
+        110.0,
+        87.0
+      ],
+      "median_luma": 108.1,
+      "luma_p10": 91.6,
+      "luma_p90": 118.9
+    },
+    "shutter_cap": {
+      "median_rgb": [
+        120.0,
+        115.0,
+        82.0
+      ],
+      "median_luma": 113.6,
+      "luma_p10": 107.7,
+      "luma_p90": 117.4
+    },
+    "red_lamp": {
+      "median_rgb": [
+        105,
+        4,
+        6
+      ],
+      "median_luma": 25.2,
+      "luma_p10": 4.1,
+      "luma_p90": 73.0
+    },
+    "amber_lamp": {
+      "median_rgb": [
+        136,
+        147,
+        147
+      ],
+      "median_luma": 144.2,
+      "luma_p10": 76.5,
+      "luma_p90": 203.2
+    },
+    "red_lamp_core": {
+      "median_rgb": [
+        116.0,
+        27.5,
+        15.5
+      ],
+      "median_luma": 45.4,
+      "luma_p10": 25.1,
+      "luma_p90": 93.1
+    },
+    "amber_lamp_core": {
+      "median_rgb": [
+        203.5,
+        203.0,
+        192.0
+      ],
+      "median_luma": 202.6,
+      "luma_p10": 200.3,
+      "luma_p90": 203.6
+    }
+  }
+}

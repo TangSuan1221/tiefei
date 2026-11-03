@@ -1,0 +1,650 @@
+{
+  "errors": [],
+  "stationary": [
+    {
+      "shadow": false,
+      "ms": 2.100000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.299999952316284,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.1999999284744263,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.3000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.3000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.799999952316284,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.4000000953674316,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.3000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.1999999284744263,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.3000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.100000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.600000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.3000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.600000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.100000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 3,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.700000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.600000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.1999999284744263,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.100000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.4000000953674316,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.100000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.100000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.399999976158142,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.399999976158142,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 3.100000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.600000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.1999999284744263,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.399999976158142,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.1999999284744263,
+      "calls": 629,
+      "triangles": 165730
+    }
+  ],
+  "moving": [
+    {
+      "shadow": false,
+      "ms": 2.299999952316284,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.399999976158142,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.600000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.8000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": true,
+      "ms": 4,
+      "calls": 1705,
+      "triangles": 540012
+    },
+    {
+      "shadow": false,
+      "ms": 2.299999952316284,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.799999952316284,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": true,
+      "ms": 4.100000023841858,
+      "calls": 1704,
+      "triangles": 539572
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.399999976158142,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.100000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.100000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": true,
+      "ms": 4.199999928474426,
+      "calls": 1705,
+      "triangles": 540012
+    },
+    {
+      "shadow": false,
+      "ms": 2.600000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5999999046325684,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.3000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": true,
+      "ms": 4.100000023841858,
+      "calls": 1705,
+      "triangles": 540012
+    },
+    {
+      "shadow": false,
+      "ms": 2.399999976158142,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.299999952316284,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.1999999284744263,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": true,
+      "ms": 4.600000023841858,
+      "calls": 1703,
+      "triangles": 537660
+    },
+    {
+      "shadow": false,
+      "ms": 2.600000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.299999952316284,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.399999976158142,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": true,
+      "ms": 5.5,
+      "calls": 1702,
+      "triangles": 537148
+    },
+    {
+      "shadow": false,
+      "ms": 2.700000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.600000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.100000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.8000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": true,
+      "ms": 3.899999976158142,
+      "calls": 1702,
+      "triangles": 537148
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.0999999046325684,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.4000000953674316,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.3000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": true,
+      "ms": 4.700000047683716,
+      "calls": 1702,
+      "triangles": 537148
+    },
+    {
+      "shadow": false,
+      "ms": 2.3000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.4000000953674316,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": true,
+      "ms": 4.100000023841858,
+      "calls": 1705,
+      "triangles": 540012
+    },
+    {
+      "shadow": false,
+      "ms": 2,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.100000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.5,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.3000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": true,
+      "ms": 4.100000023841858,
+      "calls": 1705,
+      "triangles": 540012
+    },
+    {
+      "shadow": false,
+      "ms": 2.1999999284744263,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.600000023841858,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.299999952316284,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.6999999284744263,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.3000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": true,
+      "ms": 4.200000047683716,
+      "calls": 1704,
+      "triangles": 539572
+    },
+    {
+      "shadow": false,
+      "ms": 2.399999976158142,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.200000047683716,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.3000000715255737,
+      "calls": 629,
+      "triangles": 165730
+    },
+    {
+      "shadow": false,
+      "ms": 2.700000047683716,
+      "calls": 629,
+      "triangles": 165730
+    }
+  ],
+  "note": "CPU submission wall time only; not GPU timer, FPS benchmark or isolated model cost."
+}

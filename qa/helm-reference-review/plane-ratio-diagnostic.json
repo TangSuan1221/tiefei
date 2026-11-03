@@ -1,0 +1,47 @@
+{
+  "corners": [
+    [
+      99.0,
+      157.0
+    ],
+    [
+      956.0,
+      160.0
+    ],
+    [
+      1012.0,
+      481.0
+    ],
+    [
+      25.0,
+      481.0
+    ]
+  ],
+  "arm": {
+    "normalizedRadii": [
+      0.04024820005328311,
+      0.08994417276872668
+    ],
+    "impliedPhysicalWidthDepth": 2.234737768388472,
+    "impliedScaleY": 0.9045804069699671,
+    "normalizedCenter": [
+      0.8676706539470099,
+      0.4043061122094873
+    ]
+  },
+  "silverGuard": {
+    "normalizedRadii": [
+      0.05967398741639526,
+      0.14065019930152167
+    ],
+    "impliedPhysicalWidthDepth": 2.3569767228740344,
+    "impliedScaleY": 0.8576665099751334,
+    "normalizedCenter": [
+      0.3158676821154739,
+      0.77917428829517
+    ]
+  },
+  "currentPhysicalWidthDepth": 2.731756756756757,
+  "currentScaleY": 0.74,
+  "limitations": "Manual axis-aligned ellipse bounds. Arm plane closest to face; elevated torus guard less reliable due thickness/parallax. Reference image lens distortion and ellipse tilt unknown."
+}

@@ -8,7 +8,7 @@ const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.
 const {requestVideo}=await import('data:text/javascript;base64,'+Buffer.from(compiled).toString('base64'));
 const originalFetch=globalThis.fetch,originalWindow=globalThis.window;const bodies=[];
 const events=new EventTarget();globalThis.window={addEventListener:events.addEventListener.bind(events),removeEventListener:events.removeEventListener.bind(events),setInterval};
-globalThis.fetch=async(_url,init)=>{bodies.push(JSON.parse(init.body));return new Response('{"error":{"message":"local test"}}',{status:400});};
+globalThis.fetch=async(_url,init)=>{const body=JSON.parse(init.body);for(const field of ['first_frame','last_frame','first_frame_image','last_frame_image','input_reference'])assert.equal(Object.hasOwn(body,field),false,field+' must never be submitted');if(body.content){assert.equal(body.content.length,1);assert.equal(body.content[0].type,'image_url');assert.equal(body.content[0].role,'reference_image');}bodies.push(body);return new Response('{"error":{"message":"local test"}}',{status:400});};
 try{
  await requestVideo('A creature moves in a fixed harbor.',undefined,'data:image/png;base64,AAAA');
  await requestVideo('Only silt moves.');
@@ -16,9 +16,9 @@ try{
  for(const body of bodies){assert.match(body.prompt,/CAMERA LOCK:/);assert.match(body.prompt,/No pan, tilt, roll, dolly, tracking, orbit, zoom/);assert.match(body.prompt,/impact jolt/);assert.equal(body.prompt.split('CAMERA LOCK:').length-1,1);}
  const count=bodies.length;
  await requestVideo('Elias gives a task.',undefined,'data:image/png;base64,BBBB',undefined,10,'elias-selfie');
- const selfie=bodies.at(-1);assert.match(selfie.prompt,/ELIAS SELFIE CAMERA/);assert.doesNotMatch(selfie.prompt,/CAMERA LOCK:|exact opening frame/);assert.equal(selfie.first_frame,'data:image/png;base64,BBBB');
+ const selfie=bodies.at(-1);assert.match(selfie.prompt,/ELIAS SELFIE CAMERA/);assert.doesNotMatch(selfie.prompt,/CAMERA LOCK:|exact opening frame/);assert.equal(selfie.content[0].image_url.url,'data:image/png;base64,BBBB');
  await requestVideo('Elias gives a task.',undefined,undefined,undefined,10,'elias-selfie');assert.equal(bodies.length,count+1,'missing task reference must not submit');
- assert.equal(bodies[0].first_frame,'data:image/png;base64,AAAA');
+ assert.equal(bodies[0].content[0].image_url.url,'data:image/png;base64,AAAA');
  assert(!readFileSync('src/pod/content/footage.ts','utf8').includes('drifting a few degrees'));
  assert(!readFileSync('src/pod/content/footage-director.ts','utf8').includes('One short camera jolt'));
  console.log('PASS: fixed player camera, explicit Elias selfie, task reference payload, missing-reference rejection; fetch mocked, zero external requests.');

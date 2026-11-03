@@ -958,7 +958,7 @@ function drawPositionReadout(ctx:CanvasRenderingContext2D,w:number,h:number,run:
   ctx.restore();
 }
 
-/** Live window instruments only; never colour or modify the exterior feed. */
+/** Heading tape, pitch and X/Y/DEPTH over the live window; never colours the exterior feed. */
 export function drawPortholeReadouts(ctx:CanvasRenderingContext2D,w:number,h:number,run:PodRun):void {
   if(!run.powered || run.shot.viewing || !run.authoredSite?.diegeticGuidance)return;
   ctx.save();ctx.shadowColor='#182a0d';ctx.shadowBlur=3;
@@ -975,7 +975,7 @@ function drawViewfinder(
   time: number,
   aim: number,
 ): void {
-  // Live porthole instruments are drawn separately by drawPortholeReadouts.
+  // Live porthole instruments are drawn separately by porthole-hud.ts.
   // Avoid duplicating the camera recording viewfinder over those readouts.
   if (!run.powered || run.authoredSite?.diegeticGuidance) return;
   ctx.save();

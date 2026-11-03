@@ -30,8 +30,8 @@ try {
  assert.ok(result.different);assert.ok(result.bytes>10000);assert.deepEqual(errors,[]);
  if(result.enabled){
    assert.match(submitted.headers['content-type'],/application\/json/);
-   assert.match(JSON.parse(submitted.body).first_frame,/^data:image\/png;base64,/);
-   assert.match(submitted.body,/exact opening frame/);assert.ok(result.failed);
+   assert.match(JSON.parse(submitted.body).content[0].image_url.url,/^data:image\/png;base64,/);
+   assert.equal(JSON.parse(submitted.body).content[0].role,"reference_image");assert.doesNotMatch(submitted.body,/"(?:first_frame|last_frame|input_reference)"|as the exact opening frame/);assert.ok(result.failed);
  } else console.log('Video disabled: network payload check skipped');
- console.log('PASS live shutter snapshot, frozen during steering, duplicate capture rejected; first_frame JSON verified when video enabled; no paid request',result);
+ console.log('PASS live shutter snapshot, frozen during steering, duplicate capture rejected; reference_image JSON verified when video enabled; no paid request',result);
 } finally {await browser.close();}

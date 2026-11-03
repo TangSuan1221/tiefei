@@ -5,7 +5,8 @@ import type { PodRun } from '../sim/run';
 
 /** Dedicated physical coordinate console; each cap routes to the existing nav action. */
 export function buildNavigationKeyboard(scene:THREE.Scene,textures:THREE.Texture[]){
- const root=new THREE.Group();root.name='navigation-keyboard';root.userData.deviceSide='nav';root.position.set(-.60+Math.sin(.55)*.08,1.02,-1.43+Math.cos(.55)*.08);root.rotation.order='YXZ';root.rotation.set(-.78,.55,0);root.scale.setScalar(.88);scene.add(root);
+ // Match the navigation CRT's yaw so the key rows sit level in its close-up.
+ const root=new THREE.Group();root.name='navigation-keyboard';root.userData.deviceSide='nav';root.position.set(-.60+Math.sin(.55)*.08,1.02,-1.43+Math.cos(.55)*.08);root.rotation.order='YXZ';root.rotation.set(-.78,.12,0);root.scale.setScalar(.88);scene.add(root);
  const metal=new THREE.MeshStandardMaterial({color:0xb4b2a0,roughness:.92,metalness:.35});
  const cap=new THREE.MeshStandardMaterial({color:0x3f443a,roughness:.87,metalness:.05});
  const box=(w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material)=>{const o=new THREE.Mesh(new RoundedBoxGeometry(w,h,d,2,.003),mat);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;root.add(o);return o;};

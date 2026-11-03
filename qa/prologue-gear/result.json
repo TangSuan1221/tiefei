@@ -1,0 +1,329 @@
+{
+  "observations": [
+    {
+      "id": "sonar.axis.1",
+      "point": {
+        "x": 54.92776128540014,
+        "y": 540.6831255107078
+      },
+      "fields": [
+        "",
+        "",
+        ""
+      ],
+      "axis": 0,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.axis.1",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.axis.1",
+      "point": {
+        "x": 799.9849444643089,
+        "y": 461.5638092683308
+      },
+      "fields": [
+        "",
+        "",
+        ""
+      ],
+      "axis": 1,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.axis.1",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.1",
+      "point": {
+        "x": 831.0507550353433,
+        "y": 609.8213717053301
+      },
+      "fields": [
+        "",
+        "1",
+        ""
+      ],
+      "axis": 1,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.1",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.6",
+      "point": {
+        "x": 925.8648878115338,
+        "y": 641.4122555716334
+      },
+      "fields": [
+        "",
+        "16",
+        ""
+      ],
+      "axis": 1,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.6",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.axis.0",
+      "point": {
+        "x": 653.0808630629735,
+        "y": 461.56236045525054
+      },
+      "fields": [
+        "",
+        "16",
+        ""
+      ],
+      "axis": 0,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.axis.0",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.1",
+      "point": {
+        "x": 831.050995403972,
+        "y": 609.8213442570116
+      },
+      "fields": [
+        "1",
+        "16",
+        ""
+      ],
+      "axis": 0,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.1",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.1",
+      "point": {
+        "x": 831.0509954062388,
+        "y": 609.8213442567527
+      },
+      "fields": [
+        "11",
+        "16",
+        ""
+      ],
+      "axis": 0,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.1",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.axis.2",
+      "point": {
+        "x": 946.9191368188815,
+        "y": 461.56236044414374
+      },
+      "fields": [
+        "11",
+        "16",
+        ""
+      ],
+      "axis": 2,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.axis.2",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.1",
+      "point": {
+        "x": 831.0509954062878,
+        "y": 609.8213442567472
+      },
+      "fields": [
+        "11",
+        "16",
+        "1"
+      ],
+      "axis": 2,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.1",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.0",
+      "point": {
+        "x": 884.6167214838907,
+        "y": 711.3637291054603
+      },
+      "fields": [
+        "11",
+        "16",
+        "10"
+      ],
+      "axis": 2,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.0",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.1",
+      "point": {
+        "x": 831.0509954062878,
+        "y": 609.8213442567472
+      },
+      "fields": [
+        "11",
+        "16",
+        "101"
+      ],
+      "axis": 2,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.1",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.2",
+      "point": {
+        "x": 876.4278187326992,
+        "y": 609.821344256747
+      },
+      "fields": [
+        "11",
+        "16",
+        "1012"
+      ],
+      "axis": 2,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.2",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.save",
+      "point": {
+        "x": 998.5550053743976,
+        "y": 675.1819025738575
+      },
+      "fields": [
+        "11",
+        "16",
+        "1012"
+      ],
+      "axis": 2,
+      "step": 1,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.save",
+          "focused": false,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "camera.lamp",
+      "point": {
+        "x": 796.3282544660328,
+        "y": 451.5326069774454
+      },
+      "fields": [
+        "11",
+        "16",
+        "1012"
+      ],
+      "axis": 2,
+      "step": 1,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:camera:camera.lamp",
+          "focused": true,
+          "at": "camera"
+        }
+      ]
+    },
+    {
+      "high": {
+        "gear": 3,
+        "step": 2,
+        "speed": 0,
+        "grip": 0.14000000000000004
+      }
+    },
+    {
+      "low": {
+        "gear": 1,
+        "step": 3,
+        "speed": 0,
+        "grip": -0.04999999999999999
+      }
+    }
+  ],
+  "errors": []
+}

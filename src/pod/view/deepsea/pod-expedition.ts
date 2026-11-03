@@ -28,6 +28,11 @@ import {harborGuide,harborGuideMedia,type HarborGuide} from '../../sim/harbor-gu
 import {newHarborProgress,captureHarborEvidence,resolveHarborEvidence,analyzeHarborEvidence,grantHarborEvent,syncHarborInventory,harborObjective,HARBOR_PHOTO_TARGET,type HarborProgress,type HarborResult} from '../../sim/harbor-progress';
 
 const LIVE_SEARCHLIGHT_GAIN=6,LIVE_SEARCHLIGHT_SCATTER=.065;
+// Live camera auto-iris: centre-weighted, highlight-priority metering on a sparse
+// grid of the finished frame. The lamp is tuned for long throw, so a pale surface
+// at arm's reach clips to flat white unless the iris closes. The grid covers only
+// the lamp's hot spot, so self-lit fixtures at the edge of view cannot close it.
+const IRIS_MIN=.1,IRIS_CLOSE=205,IRIS_OPEN=170,IRIS_GRID=7,IRIS_FIELD=.5;
 
 // One context for all seven chapters, not one WebGL context per room/screen.
 let shared:ReturnType<typeof createShared>|null=null;
@@ -57,6 +62,8 @@ export class PodExpedition implements AuthoredSite {
  private water:ReturnType<typeof createReferenceWater>;
  private ray=new T.Raycaster();private bounds=new Map<string,T.Box3>();
  private width=0;private height=0;private target:{id:string;door:boolean}|null=null;
+ /** Live-view iris, 1 = fully open; scales only the pilot's searchlight in live optics. */
+ iris=1;private meteredAt=-1;private meterPixel=new Uint8Array(4);private meterLuma:number[]=[];
  private openedAt=new Map<string,number>();private epoch=0;private wedgeHintAt=-99;private backoffAt=-99;
  private interactionFeedback='';private feedbackUntil=0;
  private guide:HarborGuide|null=null;private guideLeft=0;private guideIdle=0;private guideReminded=false;
@@ -481,6 +488,21 @@ export class PodExpedition implements AuthoredSite {
   ctx.restore();
  }
  copyRenderedFrame(ctx:CanvasRenderingContext2D,w:number,h:number){ctx.drawImage(this.resources.renderer.domElement,0,0,w,h);}
+ /** Reads a sparse grid over the centre of the just-rendered frame and steps the iris ~10 times a second; it holds inside the deadband. */
+ private meterIris(time:number){
+  if(time>=this.meteredAt&&time-this.meteredAt<.1)return;this.meteredAt=time;
+  const gl=this.resources.renderer.getContext(),W=gl.drawingBufferWidth,H=gl.drawingBufferHeight,side=Math.min(W,H)*IRIS_FIELD;
+  const luma=this.meterLuma;luma.length=0;
+  for(let j=0;j<IRIS_GRID;j++)for(let i=0;i<IRIS_GRID;i++){
+   const x=Math.round(W/2+((i+.5)/IRIS_GRID-.5)*side),y=Math.round(H/2+((j+.5)/IRIS_GRID-.5)*side);
+   gl.readPixels(x,y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,this.meterPixel);
+   const p=this.meterPixel;luma.push(.2126*p[0]!+.7152*p[1]!+.0722*p[2]!);
+  }
+  // Close quickly against glare, reopen over about two seconds like a real camera.
+  luma.sort((a,b)=>a-b);const p85=luma[Math.floor(luma.length*.85)]!;
+  if(p85>IRIS_CLOSE)this.iris=Math.max(IRIS_MIN,this.iris*.86);
+  else if(p85<IRIS_OPEN)this.iris=Math.min(1,this.iris*1.12);
+ }
  draw(ctx:CanvasRenderingContext2D,w:number,h:number,time:number,recording=true){
   this.epoch=time;this.pose();this.world.update(this.state,time);
   this.salvageArm.update(this.run.arm,time,this.armAnchor?this.camera.worldToLocal(this.armAnchor.clone()):undefined,this.armNormal.clone().transformDirection(this.camera.matrixWorldInverse));
@@ -513,13 +535,14 @@ export class PodExpedition implements AuthoredSite {
   // Reduce actual scene illumination, including imported practical lights,
   // rather than obscuring the finished image with a black canvas overlay.
   const liveOptics=this.index===0&&!recording;
+  if(!liveOptics||!this.run.lit)this.iris=1;
   const exposure=renderer.toneMappingExposure,environment=this.scene.environmentIntensity,decay=this.lamp.decay;
   const lightState:Array<[T.Light,number]>=[];
   if(liveOptics){
    // Practical and ambient light are crushed to near-black, but the player's
    // searchlight is compensated for the lowered exposure so that switching it
    // on still reveals nearby steel in live view.
-   this.scene.traverse(object=>{if(object instanceof T.Light){lightState.push([object,object.intensity]);object.intensity*=object===this.lamp||object===this.fill?LIVE_SEARCHLIGHT_GAIN:.065;}});
+   this.scene.traverse(object=>{if(object instanceof T.Light){lightState.push([object,object.intensity]);object.intensity*=object===this.lamp||object===this.fill?LIVE_SEARCHLIGHT_GAIN*this.iris:.065;}});
    this.scene.environmentIntensity=environment*.035;
    // Match the living deck's pushed live sensor and longer lamp throw. This
    // reveals nearby architecture; recorded-only subjects remain adapter-owned.
@@ -528,8 +551,10 @@ export class PodExpedition implements AuthoredSite {
   }
   try{
    this.atmosphere.update(time,this.camera,this.lamp);
-   this.water.update(this.run.lit?(liveOptics?LIVE_SEARCHLIGHT_SCATTER:this.index===0?.055:.5):0);
-   this.composer.render();ctx.drawImage(renderer.domElement,0,0,w,h);
+   this.water.update(this.run.lit?(liveOptics?LIVE_SEARCHLIGHT_SCATTER*this.iris:this.index===0?.055:.5):0);
+   this.composer.render();
+   if(liveOptics&&this.run.lit)this.meterIris(time);
+   ctx.drawImage(renderer.domElement,0,0,w,h);
   }finally{
    // One shared renderer serves live view, captured frames and other scenes.
    // Restore every temporary value even if a rendering/canvas operation fails.

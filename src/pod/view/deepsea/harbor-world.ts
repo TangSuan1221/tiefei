@@ -97,6 +97,13 @@ export function createHarborWorld(level:ExpeditionLevel, materials:ReferenceMate
     'harbor.item.shortcut':[6,14],
   };
   const volumes:Volume[]=rooms.map(r=>({x0:r.x-r.width/2,x1:r.x+r.width/2,z0:r.z-r.depth/2,z1:r.z+r.depth/2,y0:r.floor,y1:r.top}));
+  // Pre-entry corridor is part of the shell union, so the old rear wall opens physically.
+  volumes.push({x0:5,x1:17,y0:-3,y1:4,z0:-44,z1:4});
+  for(let z=-40;z<0;z+=8){
+    light('harbor.room.A',[6,3.6,z],'#e78863',9,10);
+    box([5.08,.2,z],[.12,.18,2],amber,'decor');
+    box([16.92,.2,z],[.12,.18,2],amber,'decor');
+  }
   const paths=level.edges.map(e=>{
     const a=byId.get(e.from)!,b=byId.get(e.to)!;if(!a||!b)throw new Error(`Harbor missing edge endpoint ${e.id}`);
     const data=e as typeof e&{path?:V[]};

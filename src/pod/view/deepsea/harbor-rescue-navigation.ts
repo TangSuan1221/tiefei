@@ -29,7 +29,7 @@ export interface HarborRescueNavigationHost {
   /** Facilities whose coordinates get a name and description on the nav screen. */
   readonly waypointCatalog?: readonly {position:HarborCoordinates;name:string;detail:string}[];
   /** Unregistered acoustic source; only its sound reaches the passive array. */
-  readonly monster?: {readonly position:{x:number;y:number;z:number};readonly hunting:boolean};
+  readonly monster?: {readonly position:{x:number;y:number;z:number};readonly hunting:boolean;readonly awake?:boolean};
 }
 
 /** Horizontal metres within which the distress carrier condenses into a lockable band. */
@@ -73,7 +73,7 @@ export class HarborRescueNavigation implements NavigationConsole {
         :{id:'voice',kind:'scatter',label:'散乱载波',form:'离散噪点 · 无法收拢',frequency:head.frequency,width:2.2,intensity:.5,bearing:this.bearingLabel});
     }
     const m=this.host.monster;
-    if(m){const d=this.horizontalDistance(m.position);if(d<MONSTER_RANGE){
+    if(m&&m.awake!==false){const d=this.horizontalDistance(m.position);if(d<MONSTER_RANGE){
       const near=1-d/MONSTER_RANGE;
       out.push({id:'unknown',kind:'unknown',label:'???',form:'低频宽带 · 不规则横向刮擦',frequency:36.3+.25*Math.sin(t*.13),width:.6,intensity:Math.min(.9,.22+near*.7+(m.hunting?.15:0)),bearing:this.bearingTo(m.position.x,m.position.z)});
     }}
@@ -109,7 +109,8 @@ export class HarborRescueNavigation implements NavigationConsole {
     this.playbackLeft=Math.max(0,this.playbackLeft-dt);
     if(this.host.signalAvailable&&!this.heard&&!this.radioQueue.some(r=>r.initial))this.enqueueRadio('艾里亚斯：（录音。每隔九十秒，残余蓄电池让一台泵空转三秒，录音就卡在这三秒里）……泵站七，艾里亚斯，修泵的。一个人，断桥对面。……听见请回。小声。',true);
     const next=this.radioQueue[0];
-    if(!next||this.playbackLeft>0||!this.voiceClear||Math.abs(this.frequency-next.frequency)>.32){this.tuneLock=0;return;}
+    // No in-cabin tuner any more: a clear carrier is received on its own once it has held for LOCK_SECONDS.
+    if(!next||this.playbackLeft>0||!this.voiceClear){this.tuneLock=0;return;}
     this.tuneLock+=dt;if(this.tuneLock<LOCK_SECONDS)return;this.tuneLock=0;
     this.radioQueue.shift();this.radioRecords.push({text:next.text,frequency:next.frequency,at:this.clock,kind:'voice'});
     this.playbackLeft=Math.max(7,Math.min(28,next.text.length*.16));
@@ -220,7 +221,7 @@ export class HarborRescueNavigation implements NavigationConsole {
     if(caption){
       ctx.fillStyle = '#abcaba';ctx.font = `${Math.max(11, h * .075)}px "Microsoft YaHei"`;
       const scatter=this.passiveContacts.some(c=>c.kind==='scatter');
-      ctx.fillText(scatter?'载波散乱 · 向声源方位接近':this.pendingRadioCount ? `新录音 ${this.pendingRadioCount} · 调频自动接收` : '被动接收常开 · 暂无清晰载波', 8, h - 8);
+      ctx.fillText(scatter?'载波散乱 · 向声源方位接近':this.pendingRadioCount ? `新录音 ${this.pendingRadioCount} · 自动接收` : '被动接收常开 · 暂无清晰载波', 8, h - 8);
     }
     ctx.restore();
   }
@@ -231,6 +232,15 @@ export class HarborRescueNavigation implements NavigationConsole {
     if (known) return { name: known.name, detail: known.detail };
     const n = this.waypoints.findIndex(w => this.same(w, v)) + 1;
     return { name: `自定义航点 ${n || this.waypoints.length + 1}`, detail: '未登记设施 · 仅作惯导参考，不代表回波或障碍。' };
+  }
+  deleteSelectedWaypoint(): boolean {
+    const index = this.target ? this.waypoints.findIndex(w => this.same(w, this.target!)) : -1;
+    if (index < 0) return false;
+    this.waypoints.splice(index, 1);
+    const next = this.waypoints[Math.min(index, this.waypoints.length - 1)];
+    this.target = next ? [...next] : null;
+    this.markerHits = [];
+    return true;
   }
   selectWaypoint(index: number) {
     const w = this.waypoints[index];if (!w) return false;
@@ -315,7 +325,8 @@ export class HarborRescueNavigation implements NavigationConsole {
     const photoTarget = this.replied && [this.host.photoCoordinates, [77, 1, 7]].some(p => p.every((v, i) => Math.abs(v - t[i]!) < .1));
     const arrived = (m.distance <= 2.5 && Math.abs(depthDelta) <= 1) || !!this.host.targetReached?.(t);
     const guidance = photoTarget && arrived ? this.host.photoGuidance?.() : undefined;
-    return { title: `◆${this.waypoints.findIndex(v => this.same(v, t)) + 1} ${info.name}`, lines: [
+    return { title: `◆${this.waypoints.findIndex(v => this.same(v, t)) + 1} ${info.name}`, photoStatus:guidance?.text, lines: [
+      formatCoords(t),
       `距离 ${m.distance.toFixed(1)} m`,
       arrived ? (guidance ? (guidance.ready ? '目标在画内 · 可曝光' : '已到拍摄区') : '已到达 · Shift 制动') : Math.abs(relative) < 3 ? '艇首已对准' : `${relative < 0 ? '左转' : '右转'} ${Math.abs(relative).toFixed(0)}°`,
       Math.abs(depthDelta) > 1 ? `${depthDelta > 0 ? '上浮' : '下潜'} ${Math.abs(depthDelta).toFixed(1)} m` : m.outside ? '超出量程' : '深度吻合',

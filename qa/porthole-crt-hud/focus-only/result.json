@@ -1,0 +1,33 @@
+{
+  "rows": [
+    {
+      "name": "door-2.7m",
+      "x": 41,
+      "z": 23.6,
+      "heading": 0,
+      "iris": 0.40456723513599996
+    },
+    {
+      "name": "door-5.8m",
+      "x": 41,
+      "z": 26.7,
+      "heading": 0,
+      "iris": 0.29921792710658557
+    },
+    {
+      "name": "harbor-long",
+      "x": 41,
+      "z": 26.7,
+      "heading": 90,
+      "iris": 1
+    },
+    {
+      "name": "harbor-back",
+      "x": 41,
+      "z": 26.7,
+      "heading": 180,
+      "iris": 1
+    }
+  ],
+  "errors": []
+}

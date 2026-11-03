@@ -1,0 +1,269 @@
+{
+  "observations": [
+    {
+      "id": "sonar.axis.1",
+      "point": {
+        "x": 799.9999999999997,
+        "y": 461.5623604441431
+      },
+      "fields": [
+        "",
+        "",
+        ""
+      ],
+      "axis": 1,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.axis.1",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.1",
+      "point": {
+        "x": 831.0509954062879,
+        "y": 609.8213442567467
+      },
+      "fields": [
+        "",
+        "1",
+        ""
+      ],
+      "axis": 1,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.1",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.6",
+      "point": {
+        "x": 925.8648929979902,
+        "y": 641.41225496519
+      },
+      "fields": [
+        "",
+        "16",
+        ""
+      ],
+      "axis": 1,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.6",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.axis.0",
+      "point": {
+        "x": 653.0808631811173,
+        "y": 461.5623604441432
+      },
+      "fields": [
+        "",
+        "16",
+        ""
+      ],
+      "axis": 0,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.axis.0",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.1",
+      "point": {
+        "x": 831.0509954062879,
+        "y": 609.8213442567467
+      },
+      "fields": [
+        "1",
+        "16",
+        ""
+      ],
+      "axis": 0,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.1",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.1",
+      "point": {
+        "x": 831.0509954062879,
+        "y": 609.8213442567467
+      },
+      "fields": [
+        "11",
+        "16",
+        ""
+      ],
+      "axis": 0,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.1",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.axis.2",
+      "point": {
+        "x": 946.9191368188824,
+        "y": 461.5623604441432
+      },
+      "fields": [
+        "11",
+        "16",
+        ""
+      ],
+      "axis": 2,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.axis.2",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.1",
+      "point": {
+        "x": 831.0509954062879,
+        "y": 609.8213442567467
+      },
+      "fields": [
+        "11",
+        "16",
+        "1"
+      ],
+      "axis": 2,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.1",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.0",
+      "point": {
+        "x": 884.6167214838907,
+        "y": 711.3637291054596
+      },
+      "fields": [
+        "11",
+        "16",
+        "10"
+      ],
+      "axis": 2,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.0",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.1",
+      "point": {
+        "x": 831.0509954062879,
+        "y": 609.8213442567467
+      },
+      "fields": [
+        "11",
+        "16",
+        "101"
+      ],
+      "axis": 2,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.1",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.key.2",
+      "point": {
+        "x": 876.4278187326992,
+        "y": 609.8213442567468
+      },
+      "fields": [
+        "11",
+        "16",
+        "1012"
+      ],
+      "axis": 2,
+      "step": 0,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.key.2",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    },
+    {
+      "id": "sonar.save",
+      "point": {
+        "x": 998.5550053743974,
+        "y": 675.1819025738571
+      },
+      "fields": [
+        "11",
+        "16",
+        "1012"
+      ],
+      "axis": 2,
+      "step": 1,
+      "events": [
+        {
+          "target": "ui-root",
+          "pick": "desk:nav:sonar.save",
+          "focused": true,
+          "at": "nav"
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

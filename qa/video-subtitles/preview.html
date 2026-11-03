@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>VR-116 字幕版式预览</title>
+<body style="background:#07130f;color:#b7e5c4;font-family:sans-serif">
+<p>分析台录像窗：小窗 646×207 与放大 968×369（终端逻辑像素）。样片 qa/living-2026-10-27/formal-S01.mp4，原声播放需先点击页面。</p>
+<canvas id="small" width="646" height="207"></canvas><br>
+<canvas id="large" width="968" height="369"></canvas>
+<script type="module">
+import {drawVideoSubtitle} from '/src/pod/view/video-subtitles.ts';
+import {livingTaskSubtitles} from '/src/pod/content/living-task-videos.ts';
+import {timeSubtitles} from '/src/pod/content/video-subtitles.ts';
+const video=document.createElement('video');video.src='/qa/living-2026-10-27/formal-S01.mp4';video.loop=true;video.muted=true;
+window.previewVideo=video;
+const lines=livingTaskSubtitles('L2-S01','');
+function draw(id){const c=document.getElementById(id),ctx=c.getContext('2d'),w=c.width,h=c.height;
+ ctx.fillStyle='#020406';ctx.fillRect(0,0,w,h);
+ if(video.readyState>=2){const s=Math.min(w/video.videoWidth,h/video.videoHeight),vw=video.videoWidth*s,vh=video.videoHeight*s;ctx.drawImage(video,(w-vw)/2,(h-vh)/2,vw,vh);
+ const cues=timeSubtitles(lines,video.duration,{start:1.6,end:9.6});drawVideoSubtitle(ctx,cues,video.currentTime,(w-vw)/2,(h-vh)/2,vw,vh);}
+}
+function loop(){draw('small');draw('large');requestAnimationFrame(loop);}
+video.addEventListener('loadeddata',()=>{video.play();loop();});
+document.addEventListener('click',()=>{video.muted=false;});
+</script>

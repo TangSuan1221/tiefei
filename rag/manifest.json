@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-level-metrics",
-  "revision": "2026-10-27-free-input-met-044",
+  "revision": "2026-11-03-prologue-physical-teaching",
   "defaultRuntimeProfile": "main-authored",
   "documents": [
     {
@@ -11,6 +11,21 @@
     }
   ],
   "evidenceFiles": [
+    "docs/helm-reference-art-2026-11-03.md",
+    "src/pod/view/cabin-helm-materials.ts",
+    "src/pod/view/cabin-porthole-art.ts",
+    "public/assets/cabin/helm/README.md",
+    "tools/helm-reference-review.mjs",
+    "tools/helm-shadow-profile.mjs",
+    "docs/level-01-production-2026-10-28.md",
+    "src/pod/content/harbor-r28-videos.ts",
+    "src/pod/sim/harbor-legacy-flow.ts",
+    "src/story-pipeline/level-01-legacy.ts",
+    "tools/harbor-r28-check.ts",
+    "tools/harbor-video-resume-check.mjs",
+    "tools/harbor-r28-kit-check.mjs",
+    "tools/harbor-r28-impact-check.mjs",
+    "docs/level-01-pipeline-revision-2026-10-28.md",
     "tools/decor-collision-channel-check.ts",
     "src/pod/view/deepsea/expedition-world.ts",
     "docs/level-02-living-deck-design.md",
@@ -135,7 +150,7 @@
     "docs/video-prompts/generation-audit-2026-10-11.md",
     "docs/narrative-causal-branches-2026-10-11.md",
     "docs/video-prompts/structured-prompt-standard.md",
-    "src/pod/view/cabin-passive-controls.ts",
+    "src/pod/view/comm-desk.ts",
     "tools/sonar-hardware-preview.mjs",
     "src/pod/view/cabin-helm.ts",
     "tools/harbor-water-clarity-preview.mjs",
@@ -210,6 +225,26 @@
     "tools/living-survey-encounters-check.ts",
     "tools/living-survey-world-browser-check.mjs",
     "src/pod/sim/harbor-opening.ts",
-    "tools/harbor-opening-call-check.mjs"
+    "tools/harbor-opening-call-check.mjs",
+    "tools/harbor-r28-photo-diagnostic.mjs",
+    "tools/harbor-cargo-battery-check.mjs",
+    "docs/video-api-probe.md",
+    "src/pod/view/cctv-signal.ts",
+    "docs/cctv-signal-2026-10-30.md",
+    "tools/cctv-signal-check.mjs",
+    "docs/story-video-playback-2026-11-02.md",
+    "tools/story-video-local-check.mjs",
+    "src/pod/content/harbor-video-references.ts",
+    "src/pod/net/video-references.ts",
+    "tools/harbor-video-references-check.mjs",
+    "docs/harbor-video-references-2026-11-02.md",
+    "docs/prologue-production-2026-11-03.md",
+    "src/pod/sim/prologue.ts",
+    "src/pod/view/prologue-overlay.ts",
+    "tools/prologue-check.ts",
+    "tools/prologue-browser-check.mjs",
+    "tools/prologue-save-check.mjs",
+    "tools/prologue-pointer-check.mjs",
+    "tools/prologue-gear-check.mjs"
   ]
 }

@@ -1,11 +1,11 @@
 {
-  "version": 2,
+  "version": 3,
   "status": "REQUIRED",
   "referenceRequiredForEveryGeneration": true,
   "allowTextOnlyFallback": false,
   "captureMoment": "trigger-snapshot",
   "mimeType": "image/png",
-  "providerImageField": "first_frame",
+  "providerImageField": "content[].image_url.url",
   "routes": {
     "player-capture": {
       "anchor": "player",
@@ -71,5 +71,13 @@
     "imageHash",
     "prompt",
     "duration"
+  ],
+  "providerImageRole": "reference_image",
+  "forbiddenProviderImageFields": [
+    "first_frame",
+    "last_frame",
+    "first_frame_image",
+    "last_frame_image",
+    "input_reference"
   ]
 }

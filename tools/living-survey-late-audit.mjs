@@ -15,7 +15,7 @@ try{
   note('closed but not reported',{pending:s.pending,reported:s.reported,clearSeen:s.clearSeen});
   s.say('含硫支路已关闭');note('report preempts reminder',{pending:s.pending});s.acceptVideo('L2-S05');
   note('ask before door',{lines:s.say('请给我密码'),askedCode:s.askedCode});s.operate('door');
-  const before=s.say('请给我密码');note('unknown code not leaked',{lines:before,leaked:before.join('').includes(s.code),guessedCodeAccepted:s.enterCode(s.code,true)});
+  const before=s.say('请给我密码');note('unknown code not leaked',{lines:before,leaked:before.join('').includes(s.code),typedCodeUnlocked:(s.say(s.code),s.unlocked)});
   r.at='lab';r.power=1;
   const tape={id:'living.task.L2-S06',legId:r.leg.id,siteName:'SYNTHETIC missing playlist',siteEvidence:{livingTask:'L2-S06',generated:true,code:s.code},videoResult:'video',cacheKey:'living-task:L2-S06:synthetic-missing',ready:true,analyzed:false,report:[],fauna:[],sensorFrames:[]};
   r.tapes.push(tape);r.tapeCursor=r.tapes.length-1;const powerBefore=r.power;r.analyzeTape();

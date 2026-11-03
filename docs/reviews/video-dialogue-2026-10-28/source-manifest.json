@@ -1,0 +1,247 @@
+[
+  {
+    "source": "src/pod/content/harbor-task-videos.ts",
+    "bytes": 6017,
+    "sha256": "bc0f0404465afa362a3faf9b54e46a9913dbb079299290149f9a3b1bfb6a3347"
+  },
+  {
+    "source": "src/pod/content/living-task-videos.ts",
+    "bytes": 6641,
+    "sha256": "2757d98d2d8ff87e84baac1c89f7b06b19be12ac10f76c03a01452da6bbd4ac3"
+  },
+  {
+    "source": "src/pod/content/abyssal-media.ts",
+    "bytes": 2335,
+    "sha256": "da15eadc512a2115622b3771d0707c49a0c7e996879d05c1cd5932157f3a4f78"
+  },
+  {
+    "source": "src/pod/content/video-subtitles.ts",
+    "bytes": 4307,
+    "sha256": "fefd395b8bddcc229bbdb2dc4147efe2029cf3b26db67825622fc7405de5eb48"
+  },
+  {
+    "source": "src/pod/content/fixed-camera.ts",
+    "bytes": 938,
+    "sha256": "13f4dbe1e37ea72bf4bdb4445b6bacc55ce013ff65a92b5910f5220575baa147"
+  },
+  {
+    "source": "src/pod/content/elias-video-atoms.ts",
+    "bytes": 1709,
+    "sha256": "99831ff3bf8932878af0d85ed364e5d031092f7bd59a6f6e36bc5b39b94bdf1e"
+  },
+  {
+    "source": "src/pod/content/footage.ts",
+    "bytes": 13088,
+    "sha256": "3f845b0ba759f1e003b57160fd29a270076ab5c5ccd31061a684571f846e11c5"
+  },
+  {
+    "source": "src/pod/content/footage-director.ts",
+    "bytes": 8073,
+    "sha256": "e830197ff4efbea3a547241b544abeafb20e360b084054f7863840c27c9b667b"
+  },
+  {
+    "source": "src/pod/content/video-policy.ts",
+    "bytes": 1977,
+    "sha256": "3328e41ce962c9d90503244df2f1c5b6f46aec57090cef2418a3451256170354"
+  },
+  {
+    "source": "src/pod/sim/harbor-simple-flow.ts",
+    "bytes": 9765,
+    "sha256": "a0764ad0b9fe75a5d51fe98cf85aa98a1a559e042c7b023e44903fe284aa4a61"
+  },
+  {
+    "source": "src/pod/sim/harbor-opening.ts",
+    "bytes": 599,
+    "sha256": "a8bc0a8ff362404068796a87cab9b64eda10f6114f72c39dac7f3ee5f08c3513"
+  },
+  {
+    "source": "src/pod/sim/harbor-rescue-dialogue.ts",
+    "bytes": 14700,
+    "sha256": "456f3067d67caa80c5e93fbddc908853c5b3a46d4597bd0243badfb54100a245"
+  },
+  {
+    "source": "src/pod/sim/living-survey.ts",
+    "bytes": 18919,
+    "sha256": "298eb7a76186cc4a4f90a01d854d3609b46abbb3ae4a63509f73034a0f8e9535"
+  },
+  {
+    "source": "src/pod/sim/narrative-memory.ts",
+    "bytes": 8935,
+    "sha256": "fc9bdb89811c7113e4f77062a28f22480b53c1bdef41515e8c1db2f1812191fb"
+  },
+  {
+    "source": "src/pod/view/deepsea/harbor-task-player.ts",
+    "bytes": 4197,
+    "sha256": "566d9fc6a8731cfb4fd245a5838e51b600fe95a4761d13fba7514579bac92403"
+  },
+  {
+    "source": "src/pod/view/deepsea/living-task-player.ts",
+    "bytes": 7973,
+    "sha256": "06abfbaf1200eb366dbfc785d23b05236ce5283f43f8b5be484db2c222ae71eb"
+  },
+  {
+    "source": "src/pod/view/deepsea/abyssal-media-player.ts",
+    "bytes": 8751,
+    "sha256": "fad05f20fe1e5a8da9b9bf18eb9d6ac388bda718e920bab5d82040b67a323e99"
+  },
+  {
+    "source": "src/pod/view/deepsea/harbor-rescue-site.ts",
+    "bytes": 63865,
+    "sha256": "851ff7082d322de52c9486f93ec7a1c6ac6572a4ae2e9044cd457d417de27e1d"
+  },
+  {
+    "source": "src/pod/view/deepsea/living-deck-site.ts",
+    "bytes": 95064,
+    "sha256": "845f3a74131df61321aba263267b0e7c5050e53e9cd314f1b9100147867ac915"
+  },
+  {
+    "source": "src/pod/view/deepsea/abyssal-lab-site.ts",
+    "bytes": 34370,
+    "sha256": "59feaaafaea67bc176e97222600d0465f1b232bbb2441214e5fc0f5ec13eb6f8"
+  },
+  {
+    "source": "src/pod/view/footage.ts",
+    "bytes": 29388,
+    "sha256": "1bfabf4e9a047ac46cfdd09a511b998a515dd8ca2917f8571c2fbc551a4d40b8"
+  },
+  {
+    "source": "src/pod/view/video-subtitles.ts",
+    "bytes": 2326,
+    "sha256": "e990c6e4ceef82806f8b8cb15882227503654a0a544e3288e44f7364503348a5"
+  },
+  {
+    "source": "src/pod/view/present.ts",
+    "bytes": 22115,
+    "sha256": "a92d4845628405c18bcfe58362fff17782148ccedbf463d679ea28cc05ae98a4"
+  },
+  {
+    "source": "src/story-pipeline/runtime.ts",
+    "bytes": 9563,
+    "sha256": "e92cef0abdc949337b262326e6d503c1735804d4dcbac6bdb7837a501360a3b3"
+  },
+  {
+    "source": "src/story-pipeline/model.ts",
+    "bytes": 17682,
+    "sha256": "5116aefc3d61313cfce3b65132592eeb7d870ff82d67598c25c868966dd02f6c"
+  },
+  {
+    "source": "src/story-pipeline/level-01.ts",
+    "bytes": 63626,
+    "sha256": "442e4110668f04a9519f909b6748ce56ab34b79a345fa1d658124bd6135d34ec"
+  },
+  {
+    "source": "src/story-pipeline/level-02.ts",
+    "bytes": 44408,
+    "sha256": "1e1f066779e16e7723d15fc59a08641e96eb0b5dc05237ddea1222255ca8a82f"
+  },
+  {
+    "source": "src/story-pipeline/level-03.ts",
+    "bytes": 54779,
+    "sha256": "af8ff02cf420291468f854fa0b905189b5df3918e6005022dbb46f10c68e9e91"
+  },
+  {
+    "source": "src/story-pipeline/level-04.ts",
+    "bytes": 31238,
+    "sha256": "8c41e8a69e81257fd3d5c6a07224aa2735472b9dc975f1787a4cae2fd5f7f154"
+  },
+  {
+    "source": "src/story-pipeline/level-05.ts",
+    "bytes": 31838,
+    "sha256": "278967faacb2daeafb6804bcd3c32417df08e8e474dc7bff804d5dda5b7803cd"
+  },
+  {
+    "source": "docs/level-metrics.md",
+    "bytes": 130761,
+    "sha256": "1aa4472fff4612bfc617e820932af7b0d46965af88fef0442dc3eb62ede5b17b"
+  },
+  {
+    "source": "docs/level-01-production-2026-10-26.md",
+    "bytes": 8889,
+    "sha256": "0956f250c8cc5ebf96664bcff958970d0c0af5517001fad57e72e51d58f02dac"
+  },
+  {
+    "source": "docs/level-01-simple-production-2026-10-24.md",
+    "bytes": 8857,
+    "sha256": "a4b075743a8d11b1a6b14ed4241678361f25b785cf27cbcb8e16a004d80ac4da"
+  },
+  {
+    "source": "docs/level-02-survey-production-2026-10-27.md",
+    "bytes": 49752,
+    "sha256": "ceb2641570996413e4089fe80751132ff4c739ab85997aa1dbb0d659d72efc0d"
+  },
+  {
+    "source": "docs/level-03-elias-tapes.md",
+    "bytes": 11562,
+    "sha256": "4edbaed5e068f5935e1a0b46fbe68547f809b4a1ac7449cc019287908f84f72c"
+  },
+  {
+    "source": "docs/level-03-abyssal-lab-design.md",
+    "bytes": 31333,
+    "sha256": "d218aca34c67728e078a16dd5fead7e13fdd3395f9d17dc95cc5f0131b35fa56"
+  },
+  {
+    "source": "docs/level-03-production-2026-10-24.md",
+    "bytes": 22672,
+    "sha256": "caac85b78c0898bb2bd3beeebf501632300e349f207c064a280d1b3479f4d4fb"
+  },
+  {
+    "source": "docs/story-split-route-2026-09-30.md",
+    "bytes": 40710,
+    "sha256": "fcb4048e994863bedb163d07643d8a7bce5e093c9f6f756510c51cfd24dc593f"
+  },
+  {
+    "source": "docs/story-alternate-scenes.md",
+    "bytes": 11468,
+    "sha256": "8945dc6aea730ecc87fec52018f8775ad86f2a28421e4a10d28fbe9a11e72d24"
+  },
+  {
+    "source": "docs/story-branch-design-2026-09-30.md",
+    "bytes": 15386,
+    "sha256": "09c55edc5eff6db2f9527cd9c4be644668189e167da5422f9e7152a50fd33dfa"
+  },
+  {
+    "source": "docs/story-panacea-audit.md",
+    "bytes": 10492,
+    "sha256": "03fce554009fca314da04379277a4937009d33115b5c4e2b569cec9d5b2845ec"
+  },
+  {
+    "source": "docs/drafts/chapter-02-survey-reference/README.md",
+    "bytes": 1236,
+    "sha256": "28195bff736cc959369bf420c5b1458926deed9aeee7580333958d295d5c9d5a"
+  },
+  {
+    "source": "docs/drafts/chapter-02-survey-reference/survey-video-source.txt",
+    "bytes": 9209,
+    "sha256": "636357eb5aad0a9ed683736c93c0d60db1c97948d5eba300f83f37427b348be7"
+  },
+  {
+    "source": "docs/video-prompts/generation-audit-2026-10-11.md",
+    "bytes": 5205,
+    "sha256": "f0857e737027fd7b87bf69bd140366af1148fc543da9e7c213eed6981e37b0d3"
+  },
+  {
+    "source": "docs/video-prompts/generation-standard.md",
+    "bytes": 5494,
+    "sha256": "2e95abf0c054ccd8916a65e93c88ed3935932b38a195631f8da14f6ab63e9271"
+  },
+  {
+    "source": "docs/video-prompts/level-01-harbor-rescue.md",
+    "bytes": 26239,
+    "sha256": "a46f2b811b61e26aa9d1797b604590c2e292739ae041b456328e7ade74cb7f66"
+  },
+  {
+    "source": "docs/video-prompts/level-03-abyssal-lab.md",
+    "bytes": 38189,
+    "sha256": "fc9533c12b29848b13b3675491a90a11f7a90eb1a8563e88e6fac07bfb4585e5"
+  },
+  {
+    "source": "docs/video-prompts/runtime-reference-contract.md",
+    "bytes": 6495,
+    "sha256": "86ffbfefbdbedee3566ef68fd04200739124310f5a9a8142f3e9767f0768aefb"
+  },
+  {
+    "source": "docs/video-prompts/structured-prompt-standard.md",
+    "bytes": 20665,
+    "sha256": "f3ae72a2e681bc06eb022ded230c782eeab5c36ace389d216de391d487f892ec"
+  }
+]

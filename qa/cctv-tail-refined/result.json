@@ -1,0 +1,15 @@
+{
+  "result": {
+    "animated": true,
+    "video": [
+      1920,
+      1080,
+      15.072
+    ],
+    "pausedStable": true,
+    "litFraction": 0.8894787379972565,
+    "cutMax": 2,
+    "meanMs": 0.12333333492279053
+  },
+  "errors": []
+}
