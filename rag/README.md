@@ -49,4 +49,4 @@ node tools/video-prompt-rag.mjs compose PT-010 --base PT-003 --json
 node tools/video-prompt-rag.mjs check
 ```
 
-`compose` 输出主提示词与审核备用提示词（去掉怪物外形，只留痕迹），校验槽位取值、长度≤2200、无中文、无残留占位符。状态：模板库 REQUIRED；运行时 `buildFootagePrompt` 尚未读取本库（NOT_IMPLEMENTED）。
+`compose` 输出主提示词与审核备用提示词（去掉怪物外形，只留痕迹），校验槽位取值、长度≤2200、无中文、无残留占位符。状态：模板库 REQUIRED；运行时 `buildFootagePrompt` 尚未读取本库（NOT_IMPLEMENTED）。主游戏首关/第二关的怪物外观由 `src/pod/content/video-creatures.ts` 文字档案注入（VR-110），怪物全部由视频生成、参考帧不含生物模型；改外观时须同步该文件、叙事库 harbor 档案与 VR-110。

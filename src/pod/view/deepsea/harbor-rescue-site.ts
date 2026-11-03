@@ -30,6 +30,7 @@ import {HarborRescueDialogue} from '../../sim/harbor-rescue-dialogue';
 import {StoryRuntime} from '../../../story-pipeline/runtime';
 import {level01} from '../../../story-pipeline/level-01-legacy';
 import {parseNarrative,plantSeeds,hearSafety,noteInjury,freshNarrative,validNarrative,receiveSafetyEvidence} from '../../sim/narrative-memory';
+import {videoCreatureSubject} from '../../content/video-creatures';
 
 const CONTACT_NUDGE=25,CONTACT_SILENT=50,PERFORMANCE='\n人物：';
 const windowOf:Record<string,string>={contact:'elias-contact',intro:'elias-warning',stop:'elias-warning',warning:'elias-warning',photo:'elias-wait',report:'elias-report',
@@ -574,9 +575,9 @@ export class HarborRescueSite implements AuthoredSite {
   const humanVisible=!this.simplified&&this.visible(this.visual.elias.position.clone().add(new T.Vector3(0,1,0)),40);
   const story=a.ready&&((this.simplified&&monsterVisible)||humanVisible||a.kind==='gate'&&this.visible(new T.Vector3(...L.gate),40)||a.kind==='lure'&&monsterVisible);
   return {generatedMonsters:true,story,settled:story&&(s.departed?!s.departureConfirmed:s.isolated&&!s.verified&&!s.departing),prefetchKey:JSON.stringify([s.epoch,s.isolated,s.departed,s.injured,this.run.narrativeMemory]),stateKey:JSON.stringify([s.epoch,s.isolated,s.departed,s.injured,this.run.narrativeMemory,s.powered,s.gateOpen,this.visual.gate.mesh.position.y,this.base.state.opened,monsterVisible?this.pursuit.position.toArray():null,this.visual.elias.position.toArray()]),nearestMonster:this.position.distanceTo(this.pursuit.position),
-   scene:'Flooded industrial harbor, broken partition bridge and cargo isolation grille. Preserve the current camera image.',
+   scene:'Fully submerged deep-sea industrial harbor in dark water, no air or water surface; broken partition bridge and cargo isolation grille. Preserve the current camera image.',
    actors:humanVisible?['Elias: adult human survivor in the exact work diving gear shown in the first frame; '+(s.injured?'injured, supporting his leg, alive':'alive, uninjured')]:[],
-   monsters:monsterVisible?['Harbor creature, one individual: pale grey-beige continuous fleshy skin, low elongated body, articulated crawling limbs, closed mouth. Generate this creature in the recorded scene; it is intentionally absent from the environment reference image. It is not a shark or fish.']:[],
+   monsters:monsterVisible?[videoCreatureSubject('harbor','Harbor creature, exactly one individual')]:[],
    outcome:s.monsterInside&&!s.isolated?'The creature is already inside the cargo enclosure. Show only slow movement within it; do not exit, cross the gate, attack or invent a new event.':s.departed?'Elias has reached the inner safe room.':s.isolated?'Cargo gate already closed; creature remains confined.':s.injured?'Elias is already injured and has retreated; do not replay the attack.':'Record only the present positions; no predicted escape or attack.'};
  }
  private logPhotoDiagnostic(event:'observe'|'exposure'){

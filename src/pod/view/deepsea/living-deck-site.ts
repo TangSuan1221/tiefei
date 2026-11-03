@@ -24,6 +24,7 @@ import {drawSonarOwnship,sonarHeading} from '../sonar-ownship';
 import {sonarDeskState} from '../sonar-desk';
 import {layoutCJK} from '@/ui/typography';
 import {formatCoords} from '../../sim/site-coords';
+import {videoCreatureSubject} from '../../content/video-creatures';
 import {LivingSurvey,type SurveyCapture} from '../../sim/living-survey';
 import {LivingTaskPlayer} from './living-task-player';
 import {LIVING_TASKS,livingTaskLine,type LivingTaskId} from '../../content/living-task-videos';
@@ -660,12 +661,11 @@ export class LivingDeckSite implements AuthoredSite {
  }
  videoContext(){
   const seen=this.computeSeen();
-  const anatomy:Record<string,string>={blind:'Native eyeless deep-sea hunter with a broad armored head and lateral sensory pits, 3 metres long',shade:'Pale translucent native deep-sea eel with a narrow jaw, 3.5 metres long',lumen:'Nonaggressive Panacea-adapted human silhouette, drifts without attacking',swarm:'Small ordinary glass fish'};
   return {story:seen.targets.includes('living.photo.sulfur'),settled:false,generatedMonsters:true,
    prefetchKey:JSON.stringify([this.survey.unlocked,this.survey.valve]),stateKey:JSON.stringify([seen.creatureIds,this.vec(),this.run.heading,this.run.camPan,this.survey.valve]),
    nearestMonster:this.creatures.views.reduce((d,c)=>Math.min(d,this.position.distanceTo(v3(c.position))),Infinity),
    scene:'Flooded living deck. Preserve the supplied image architecture, camera and lights. Only the described evidence animal may be added in its stated position.',actors:[],
-   monsters:seen.creatureIds.map(id=>{const c=this.creatures.views.find(c=>c.id===id)!;const q=v3(c.position).project(this.camera);return anatomy[c.type]+'. Target '+id+' at image '+Math.round((q.x+1)*50)+'% from left, '+Math.round((1-q.y)*50)+'% from top, '+this.position.distanceTo(v3(c.position)).toFixed(1)+' metres from camera. Preserve actual current behavior '+c.mode+'.';}),
+   monsters:seen.creatureIds.map(id=>{const c=this.creatures.views.find(c=>c.id===id)!;const q=v3(c.position).project(this.camera);return videoCreatureSubject(c.type,'One individual ['+id+']')+'. Target '+id+' at image '+Math.round((q.x+1)*50)+'% from left, '+Math.round((1-q.y)*50)+'% from top, '+this.position.distanceTo(v3(c.position)).toFixed(1)+' metres from camera. Preserve actual current behavior '+c.mode+'.';}),
    outcome:'Record the present state only. Do not open doors, reveal Elias, fabricate documents, or predict attacks.'};
  }
  captureEvidence(){

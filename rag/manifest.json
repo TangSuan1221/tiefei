@@ -141,6 +141,7 @@
     "tools/harbor-narrative-browser-check.mjs",
     "docs/video-policy-2026-10-11.md",
     "src/pod/content/video-policy.ts",
+    "src/pod/content/video-creatures.ts",
     "src/pod/content/footage.ts",
     "src/pod/net/video.ts",
     "src/pod/view/footage.ts",
