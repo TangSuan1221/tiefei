@@ -1,8 +1,6 @@
 import { drawPrologue } from './prologue-overlay';
 import { AbyssalLabSite } from './deepsea/abyssal-lab-site';
 import { drawTacticalObjective } from './tactical-objective';
-import { CommAlert } from './comm-desk';
-import { labDeskState } from './lab-desk';
 import { HarborRescueSite } from './deepsea/harbor-rescue-site';
 import { LivingDeckSite } from './deepsea/living-deck-site';
 /**
@@ -84,7 +82,6 @@ export class PodView {
   private lastSweep = 0;
   private zoomVisual = 0;
   private readonly consolePrompt=document.createElement('button');
-  private readonly commAlert:CommAlert;
   private sceneOffset = { x: 0, y: 0 };
 
   constructor(run: PodRun, out: HTMLCanvasElement) {
@@ -95,7 +92,6 @@ export class PodView {
     this.consolePrompt.style.cssText='position:fixed;left:50%;bottom:16%;transform:translateX(-50%);z-index:20;pointer-events:auto;padding:12px 20px;border:1px solid #d4bb82;border-radius:4px;background:#101d1ef2;color:#f0ddab;font:600 16px Microsoft YaHei,sans-serif;cursor:pointer;white-space:nowrap;max-width:94vw';
     this.consolePrompt.hidden=true;
     document.getElementById('ui-root')!.append(this.consolePrompt);
-    this.commAlert=new CommAlert(document.getElementById('ui-root')!);
     this.pipeline = new PostPipeline(out);
     this.audio.attachBreath(this.breath);
 
@@ -313,7 +309,6 @@ export class PodView {
     this.consolePrompt.hidden=!alive||!!run.at;
     const promptText=this.cabin.consoleInReach()?'E · 操作左侧 / 中间 / 右侧设备':'2 · 回驾驶台（右键拖动环视 · WASD 走动）';
     if(this.consolePrompt.textContent!==promptText)this.consolePrompt.textContent=promptText;
-    this.commAlert.update(run,run.at==='lab'&&labDeskState(run).tab==='comm');
     const ctx = this.hctx;
     const w = this.hud.width;
     const h = this.hud.height;

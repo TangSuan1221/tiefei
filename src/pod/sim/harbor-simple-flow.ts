@@ -10,6 +10,7 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
  injuryHandled=false;private earlyWarning=false;
  /** The player has tried the second door; its controller forwards the request to Elias. */
  codeRequested=false;
+ codeAsked=false;
  private warningVariant:HarborTaskId|null=null;
  private reminderVariant:HarborTaskId|null=null;
  private has(id:string){return this.accepted.includes(id as HarborTaskId);}
@@ -26,7 +27,7 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
   if(!this.has('L1-R28-V01'))return 'L1-R28-V01';
   if(!this.greeted)return null;
   if(!this.has('L1-R28-V02'))return 'L1-R28-V02';
-  if(!this.has('L1-R28-V02-AUTH'))return this.codeRequested?'L1-R28-V02-AUTH':null;
+  if(!this.has('L1-R28-V02-AUTH'))return this.codeRequested&&this.codeAsked?'L1-R28-V02-AUTH':null;
   if(!this.has('L1-R28-V02A'))return this.backgroundRequested||this.world.secondDoor?'L1-R28-V02A':null;
   if(!this.warningSeen)return this.impactCount===2||this.earlyWarning?(this.warningVariant??=this.world.active?'L1-R28-V03':'L1-R28-V03-QUIET'):null;
   if(this.explanationRequested&&!this.has('L1-R28-V03A'))return 'L1-R28-V03A';
@@ -57,7 +58,7 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
   if(this.repairBriefSeen&&!this.repairCompleted&&!mediaBusy)this.repairWait+=dt;return strikes;
  }
  override takeImpact(){return this.legacy?super.takeImpact():false;}
- requestCode(){this.codeRequested=true;}
+ requestCode(){if(!this.codeRequested)this.codeAsked=false;this.codeRequested=true;}
  finishRepair(){if(!this.repairBriefSeen||!this.world.kit)return false;this.repairCompleted=true;return true;}
  identify(){if(this.has('L1-R28-V01')){this.greeted=true;return true;}return false;}
  reportEvidence(){const s=this.rescue.state;if(!this.awaitingReport||!s.verified||!this.entryAnalyzed)return false;this.reportAnswered=this.rescue.requestDeparture();return this.reportAnswered;}
@@ -73,7 +74,7 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
   if(/先别|别出|不要出|等等|等我|先等|停下|退回|不确定|不安全|没(?:有)?(?:关|锁|封|成功|完成)|没好|还没|尚未|未关|不能走|别走|不要走|又开|开着|再开|hold|wait|unsafe|not\s+(?:safe|closed|ready|done)|don't\s+(?:go|leave)|stop/i.test(text)){
    this.rescue.stopDeparture();this.reportAnswered=false;m.lastOrder='hold';return reply('好，我先留在门后。你确认好了再叫我。');
   }
-  if(this.has('L1-R28-V02')&&!this.credential&&/门|door/i.test(text))return reply(this.codeRequested?'我在终端上看到你的开门请求了，这就发给你。':'第二道门的门控在你那边。你先到门边看看面板怎么说。');
+  if(this.has('L1-R28-V02')&&!this.credential&&/密码|口令|通行码|数字|怎么.*(?:开|进|过)|门|password|code|door/i.test(text)){if(this.codeRequested)this.codeAsked=true;return reply(this.codeRequested?'我在终端上看到你的开门请求了，这就发给你。':'第二道门的门控在你那边。你先到门边看看面板怎么说。');}
   if(!this.has('L1-R28-V02A')&&this.credential){this.backgroundRequested=true;return reply('我给你说说刚到这里时发生的事。');}
   if(this.impactCount>0&&!this.warningSeen)this.earlyWarning=true;
   if(this.warningSeen&&/声[纳呐]|声音|追声|sonar|why|什么.*(?:怪物|东西)|(?:怪物|东西).*什么/i.test(text)){this.explanationRequested=true;return reply('我把知道的情况发给你，先留意主动声纳电源。');}
@@ -93,6 +94,7 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
   // Objectives only restate videos already watched; an unwatched call shows who is calling, never what it says. Elias names himself in V02.
   if(this.pending)return (this.has('L1-R28-V02')?'艾里亚斯来电':'收到视频呼叫')+' · 分析台【通讯】接听并完整播放；失败可点“重新接收”';
   if(!this.greeted)return '回应求救呼叫 · 自由通话或在分析台【通讯】发送任务身份资料';
+  if(!this.credential&&!this.codeAsked&&this.codeRequested)return '向艾里亚斯询问密码';
   if(!this.credential)return '前往第二道压力门 · 沿维修弯道到门边，对准门锁靠近至3.4米内按F查看门控';
   if(!this.has('L1-R28-V02A'))return '第二道门密码已接收 · 回到门边按F，在门控面板拨好密码并解锁';
   if(!this.warningSeen)return '艇壳受到撞击';
@@ -108,19 +110,20 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
   if(!this.entryCaptured)return '总任务：封闭货舱 · 关闸点X60 Y27 深度1012米\n当前步骤：潜入X77 Y7 深度1011米，开主动声纳诱导；它靠近后立即关电'+(this.canPhotograph?'、停稳摄影':'');
   return '第三任务：悄悄退出货舱，回X60 Y27 深度1012米，在01控制台关闸 · 显影期间可以撤离';
  }
- override snapshot():any{return this.legacy?super.snapshot():{version:3,accepted:[...this.accepted],greeted:this.greeted,impactCount:this.impactCount,impactDelay:this.impactDelay,kitStored:this.kitStored,repairCompleted:this.repairCompleted,repairWait:this.repairWait,backgroundRequested:this.backgroundRequested,explanationRequested:this.explanationRequested,injuryHandled:this.injuryHandled,codeRequested:this.codeRequested,reportAnswered:this.reportAnswered,earlyWarning:this.earlyWarning,warningVariant:this.warningVariant,reminderVariant:this.reminderVariant};}
+ override snapshot():any{return this.legacy?super.snapshot():{version:3,accepted:[...this.accepted],greeted:this.greeted,impactCount:this.impactCount,impactDelay:this.impactDelay,kitStored:this.kitStored,repairCompleted:this.repairCompleted,repairWait:this.repairWait,backgroundRequested:this.backgroundRequested,explanationRequested:this.explanationRequested,injuryHandled:this.injuryHandled,codeRequested:this.codeRequested,codeAsked:this.codeAsked,reportAnswered:this.reportAnswered,earlyWarning:this.earlyWarning,warningVariant:this.warningVariant,reminderVariant:this.reminderVariant};}
  override restore(value:unknown){
   const v=value as ReturnType<HarborSimpleFlow['snapshot']>;
   if(v?.version!==3){const ok=super.restore(value);if(ok)this.legacy=true;return ok;}
   if(!Array.isArray(v.accepted)||new Set(v.accepted).size!==v.accepted.length||v.accepted.some((id:string)=>!id.startsWith('L1-R28-')||!(id in HARBOR_TASKS)))return false;
   for(const k of ['greeted','kitStored','repairCompleted','backgroundRequested','explanationRequested','injuryHandled','reportAnswered','earlyWarning'])if(typeof v[k]!=='boolean')return false;
   // Saves from before 2026-11-03 lack codeRequested: the player tries the door again.
+  if(v.codeAsked!==undefined&&typeof v.codeAsked!=='boolean')return false;
   if(v.codeRequested!==undefined&&typeof v.codeRequested!=='boolean')return false;
   if(!Number.isInteger(v.impactCount)||v.impactCount<0||v.impactCount>2||!Number.isFinite(v.impactDelay)||!Number.isFinite(v.repairWait)||v.repairWait<0)return false;
   if(v.warningVariant!=null&&!['L1-R28-V03','L1-R28-V03-QUIET'].includes(v.warningVariant)||v.reminderVariant!=null&&!['L1-R28-V04R','L1-R28-V04R-STORED'].includes(v.reminderVariant))return false;
   const has=(id:string)=>v.accepted.includes(id);
   if(v.accepted.length&&!has('L1-R28-V01')||v.impactCount&&!has('L1-R28-V02A')||v.repairCompleted&&!has('L1-R28-V04')||has('L1-R28-V05')&&!v.repairCompleted||v.reportAnswered&&!has('L1-R28-V07')||v.injuryHandled&&!this.rescue.state.injured)return false;
-  this.warningVariant=v.warningVariant??null;this.reminderVariant=v.reminderVariant??null;this.codeRequested=v.codeRequested??false;
+  this.warningVariant=v.warningVariant??null;this.reminderVariant=v.reminderVariant??null;this.codeRequested=v.codeRequested??false;this.codeAsked=v.codeAsked??false;
   this.legacy=false;this.accepted.splice(0,this.accepted.length,...v.accepted);for(const k of ['greeted','impactCount','impactDelay','kitStored','repairCompleted','repairWait','backgroundRequested','explanationRequested','injuryHandled','reportAnswered','earlyWarning'] as const)(this as any)[k]=v[k];this.impactPlayed=v.impactCount>0;return true;
  }
 }

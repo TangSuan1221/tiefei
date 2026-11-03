@@ -9,7 +9,14 @@ import {validate} from '../src/story-pipeline/model';
 const r=new HarborRescue(),f=new HarborSimpleFlow(r),m=freshNarrative();
 assert.equal(f.pending,null);f.world.firstDoor=true;r.step(.1,{nearB:true,zone:'none',activeSonar:false});r.listen();
 const accept=()=>{const id=f.pending;assert.ok(id);assert.ok(f.accept(id));return id;};
-assert.equal(accept(),'L1-R28-V01');assert.equal(f.pending,null);f.say('收到，是总部让我来的',m,true,0);assert.equal(accept(),'L1-R28-V02');assert.equal(f.credential,false);assert.equal(f.pending,null,'code waits for the player to try the second door');f.say('第二道门怎么开',m,true,0);assert.equal(f.pending,null,'asking alone does not send the code');f.requestCode();assert.equal(accept(),'L1-R28-V02-AUTH');assert.ok(f.credential);
+assert.equal(accept(),'L1-R28-V01');f.say('收到，是总部让我来的',m,true,0);assert.equal(accept(),'L1-R28-V02');
+assert.match(f.objective,/前往第二道压力门/);
+f.say('能告诉我通行码吗',m,true,0);assert.equal(f.codeAsked,false);assert.equal(f.pending,null);
+f.requestCode();assert.equal(f.objective,'向艾里亚斯询问密码');assert.equal(f.pending,null,'door interaction must not send code before asking');
+const beforeAsk=new HarborSimpleFlow(r);assert.ok(beforeAsk.restore(f.snapshot()));beforeAsk.sync(f.world);assert.equal(beforeAsk.objective,'向艾里亚斯询问密码');
+f.say('能告诉我通行码吗',m,true,0);assert.ok(f.codeAsked);
+const afterAsk=new HarborSimpleFlow(r);assert.ok(afterAsk.restore(f.snapshot()));assert.ok(afterAsk.codeAsked);
+assert.equal(accept(),'L1-R28-V02-AUTH');assert.ok(f.credential);
 f.say('为什么出不来',m,true,0);assert.equal(accept(),'L1-R28-V02A');assert.equal(f.tick(.1),1);assert.equal(f.tick(.1),0);
 const restored=new HarborSimpleFlow(r);assert.ok(restored.restore(f.snapshot()));assert.equal(restored.tick(.1),0);
 assert.equal(f.tick(2),1);assert.equal(f.tick(2),0);assert.equal(accept(),'L1-R28-V03');assert.equal(f.pending,null);
@@ -39,7 +46,7 @@ for(const [id,t] of Object.entries(HARBOR_R28_TASKS)){assert.equal(t.line,t.spee
 const issues=validate(level01);assert.equal(issues.filter(i=>i.level==='error').length,0,JSON.stringify(issues));
 {
  const rescue=new HarborRescue(),flow=new HarborSimpleFlow(rescue);
- flow.world.firstDoor=true;flow.accept('L1-R28-V01');flow.identify();flow.accept('L1-R28-V02');flow.requestCode();flow.accept('L1-R28-V02-AUTH');flow.backgroundRequested=true;flow.accept('L1-R28-V02A');flow.tick(3);flow.tick(3);
+ flow.world.firstDoor=true;flow.accept('L1-R28-V01');flow.identify();flow.accept('L1-R28-V02');flow.requestCode();flow.say('门怎么开',m,true,0);flow.accept('L1-R28-V02-AUTH');flow.backgroundRequested=true;flow.accept('L1-R28-V02A');flow.tick(3);flow.tick(3);
  assert.equal(flow.pending,'L1-R28-V03');flow.world.active=false;
  assert.equal(flow.pending,'L1-R28-V03','power changes cannot replace an in-flight warning clip');
  const loaded=new HarborSimpleFlow(rescue);assert.ok(loaded.restore(flow.snapshot()));loaded.world={...flow.world};

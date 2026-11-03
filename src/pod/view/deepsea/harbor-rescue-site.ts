@@ -465,7 +465,7 @@ export class HarborRescueSite implements AuthoredSite {
    this.run.pilot.stop();this.run.navDriveEngaged=false;
    if(hit.door==='harbor.edge.C-B'&&!this.base.state.opened.includes(hit.door)){
     // The player tries the lock first; only then does Elias send the code.
-    if(!this.simpleFlow.credential){const first=!this.simpleFlow.codeRequested;this.simpleFlow.requestCode();this.closeDoorPanel=showHarborDoorPanel({locked:true,onClose:()=>{this.closeDoorPanel=null;if(first)this.feedback('门控请求已转发总调度室 · 等待艾里亚斯回应');}});return;}
+    if(!this.simpleFlow.credential){const first=!this.simpleFlow.codeRequested;this.simpleFlow.requestCode();this.closeDoorPanel=showHarborDoorPanel({locked:true,onClose:()=>{this.closeDoorPanel=null;if(first)this.feedback('罗温：或许我应该问问他密码');}});return;}
     this.closeDoorPanel=showHarborDoorPanel({onClose:()=>{this.closeDoorPanel=null;},submit:code=>{
      this.aimedCache=null;const now=this.aimedInterface();
      if(this.run.outcome.kind!=='alive'||!this.run.lit||!this.run.powered||this.run.blackout||this.run.shot.viewing||this.run.arm.phase!=='stowed'||now.door!==hit.door||now.distance>3.4)return '连接中断：请关闭面板，恢复供电并重新靠近门锁。';

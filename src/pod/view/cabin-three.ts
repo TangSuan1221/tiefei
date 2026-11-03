@@ -437,7 +437,19 @@ export class CabinThree {
             screen.hits.add({id:'sonar.deleteWaypoint',x:px,y:558,w:pw,h:42});
           }
           const input=sonarDeskState(run);c.fillStyle='#10180e';c.fillRect(0,SONAR_H,1024,720-SONAR_H);c.textAlign='left';c.textBaseline='middle';
-          input.fields.forEach((value,i)=>{const x=14+i*336,y=SONAR_H+10;c.strokeStyle=input.axis===i?'#d9d59c':'#526447';c.lineWidth=3;c.strokeRect(x,y,324,96);c.fillStyle=input.axis===i?'#fff0b0':'#b9d296';c.font='bold 58px monospace';c.fillText(COORD_AXES[i]+' '+(value||'_'),x+14,y+50,300);screen.hits.add({id:'sonar.axis.'+i,x,y,w:324,h:96});});
+          input.fields.forEach((value,i)=>{
+            const x=14+i*336,y=SONAR_H+10,selected=input.axis===i;
+            c.strokeStyle=selected?'#d9d59c':'#526447';c.lineWidth=3;c.strokeRect(x,y,324,96);
+            c.fillStyle=selected?'#fff0b0':'#b9d296';c.font='bold 58px monospace';
+            const label=COORD_AXES[i]+' '+(value||(selected?'':'_'));
+            // Reserve room for the caret even when a long coordinate compresses the text.
+            c.fillText(label,x+14,y+50,286);
+            if(selected&&(performance.now()-(input.caretResetAt??0))%1000<500){
+              const caretX=x+14+Math.min(286,c.measureText(label).width)+4;
+              c.fillRect(caretX,y+24,4,52);
+            }
+            screen.hits.add({id:'sonar.axis.'+i,x,y,w:324,h:96});
+          });
         }else{
           c.fillStyle='#d4a253';c.font='30px monospace';c.fillText('OPTICAL / RECORDER',55,70);
           c.fillStyle='#647749';c.font='26px monospace';c.fillText('DEPTH '+Math.round(run.depth)+' m',55,615);c.fillText('HULL '+Math.round(run.hull*100)+' %',55,657);

@@ -81,27 +81,3 @@ export function drawCommTab(ctx:CanvasRenderingContext2D,run:PodRun,time:number,
   const speech=u.editing?(u.draft||'请输入你想说的话…'):(u.spoken||'点击“通话”或按 M，随时讲话');
   layoutCJK(ctx,speech,930).slice(-1).forEach(line=>text(line,44,682,21,u.editing||u.spoken?BRIGHT:DIM,930));
 }
-
-const STYLE='@keyframes comm-alert-pulse{0%,100%{box-shadow:0 0 0 0 #f0bf7866}50%{box-shadow:0 0 0 10px #f0bf7800}}';
-/** Screen-space popup for an unanswered video call; clicking it (wired in session) opens the lab comm tab. */
-export class CommAlert {
-  readonly el=document.createElement('button');
-  private shown='';
-  constructor(root:HTMLElement){
-    const style=document.createElement('style');style.textContent=STYLE;root.append(style);
-    this.el.id='comm-alert';this.el.type='button';this.el.hidden=true;
-    this.el.style.cssText='position:fixed;top:2%;left:50%;transform:translateX(-50%);z-index:21;pointer-events:auto;display:grid;gap:4px;text-align:left;padding:12px 18px;border:1px solid #f0bf78;border-radius:4px;background:#0d1d16f2;color:#f0ddab;font:600 16px Microsoft YaHei,sans-serif;cursor:pointer;max-width:min(360px,90vw);animation:comm-alert-pulse 1.6s ease-in-out infinite';
-    root.append(this.el);
-  }
-  update(run:PodRun,onCommTab:boolean){
-    const call=run.outcome.kind==='alive'&&!onCommTab?incomingCall(run):null;
-    // Inline display:grid would override [hidden]; switch display explicitly.
-    this.el.hidden=!call;this.el.style.display=call?'grid':'none';
-    const key=call?call.id:'';if(key===this.shown)return;this.shown=key;
-    if(!call){this.el.replaceChildren();return;}
-    const {caller,title}=callParts(call),head=document.createElement('span'),body=document.createElement('span');
-    head.textContent='◉ 视频通讯 · '+caller;body.textContent=title+' · 点击前往分析台【通讯】接听';
-    body.style.cssText=`font:${cjk(14)};color:${TERMINAL_INK.text}`;
-    this.el.replaceChildren(head,body);
-  }
-}

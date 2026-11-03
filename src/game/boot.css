@@ -605,46 +605,47 @@ body:has(.crt-opening) #visor, body:has(.crt-opening) #bg-canvas {display:none;}
 .crt-hit:active::before {filter:brightness(1.25);}
 .crt-hit:disabled {cursor:not-allowed;background:rgba(0,18,8,.58);}
 .crt-hit:focus-visible {outline:1px solid #c4ff9f;outline-offset:4px;}
-.crt-scanlines {
-  position:absolute;inset:0;pointer-events:none;opacity:.14;
-  background:repeating-linear-gradient(0deg,transparent 0 2px,#001805 2px 3px);
-  animation:crt-scan 12s linear infinite;
-}
 /* One glass-only signal layer shared by the menu and loading screen.
    Artwork, housing and button hit areas remain stationary. */
 .crt-signal {
   position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;
   clip-path:polygon(8.1% 31%,8.5% 28%,10% 25.4%,13% 24%,20% 23.6%,30% 25%,36.5% 27.5%,38.5% 30%,39.3% 35%,40.6% 69%,40.2% 74%,38.8% 77%,34% 79.4%,24% 82%,15% 84%,12% 82%,10.5% 78%);
   backdrop-filter:brightness(1);
-  animation:crt-phosphor 6.7s linear infinite;
+
 }
-.crt-roll {position:absolute;inset:-30% 0 0;pointer-events:none;
-  background:linear-gradient(to bottom,transparent,rgba(168,255,164,.035) 45%,rgba(197,255,180,.075) 75%,rgba(0,15,5,.07) 88%,transparent);
-  height:20%;animation:crt-roll 9s linear infinite;}
-.crt-sync {position:absolute;left:0;right:0;top:42%;height:.65%;opacity:0;
-  background:linear-gradient(to bottom,#baffaa12,transparent);
-  backdrop-filter:blur(.45px) brightness(1.12);
-  animation:crt-sync 13.7s steps(1,end) infinite;}
-@keyframes crt-phosphor {
-  0%,100% {backdrop-filter:brightness(1);}
-  18% {backdrop-filter:brightness(.985);}
-  40% {backdrop-filter:brightness(1.018);}
-  41% {backdrop-filter:brightness(.992);}
-  43%,70% {backdrop-filter:brightness(1.008);}
-  88% {backdrop-filter:brightness(.98);}
+.crt-tear {
+  position:absolute;inset:0;opacity:0;pointer-events:none;
+  background:url('/assets/title/opening.png') 0 0 / 100% 100% no-repeat;
+  animation:crt-tear 4.7s steps(1,end) infinite;
 }
-@keyframes crt-roll {from {transform:translateY(0);}to {transform:translateY(700%);}}
-@keyframes crt-sync {
-  0%,63%,64.5%,100% {opacity:0;top:42%;}
-  63.3% {opacity:.65;top:42%;}
-  63.8% {opacity:.35;top:42.3%;}
-  64.1% {opacity:.5;top:61%;}
+/* Brief displaced image slices, separated by long stable intervals. */
+@keyframes crt-tear {
+  0%,14%,19%,53%,58%,100% {opacity:0;transform:none;}
+  14.5% {opacity:.9;clip-path:inset(34% 0 63%);transform:translateX(.32%);}
+  15.7% {opacity:.75;clip-path:inset(41% 0 58%);transform:translateX(-.22%);}
+  17% {opacity:.45;clip-path:inset(32% 0 66%);transform:translateX(.12%);}
+  54% {opacity:.8;clip-path:inset(46% 0 52%);transform:translateX(-.35%);}
+  55.3% {opacity:.55;clip-path:inset(37% 0 62.5%);transform:translateX(.23%);}
+  56.5% {opacity:.3;clip-path:inset(44% 0 55%);transform:translateX(-.1%);}
+}
+.crt-echo {animation-delay:-1.83s;animation-duration:6.13s;mix-blend-mode:screen;filter:blur(.65px);}
+.crt-interference {
+  position:absolute;inset:0;opacity:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,#b8ff9e18 3px 4px,transparent 4px 9px);
+  backdrop-filter:contrast(1.08) brightness(.96);
+  animation:crt-interference 5.37s steps(1,end) infinite;
+}
+@keyframes crt-interference {
+  0%,23%,27%,71%,75%,100% {opacity:0;}
+  23.5% {opacity:.45;clip-path:inset(30% 0 46%);}
+  24.8% {opacity:.2;clip-path:inset(62% 0 23%);}
+  26% {opacity:.35;clip-path:inset(43% 0 49%);}
+  72% {opacity:.35;clip-path:inset(36% 0 38%);}
+  73.2% {opacity:.18;clip-path:inset(27% 0 61%);}
 }
 .crt-still .crt-signal,.crt-still .crt-signal * {animation:none;}
-.crt-still .crt-roll,.crt-still .crt-sync {display:none;}
 @media(prefers-reduced-motion:reduce) {
   .crt-signal,.crt-signal * {animation:none!important;}
-  .crt-roll,.crt-sync {display:none;}
 }
 .crt-help {position:absolute;bottom:4%;right:4%;max-width:49%;color:#9acf9b;
   font:clamp(9px,1vw,14px)/1.7 var(--mono);letter-spacing:.12em;text-align:right;
@@ -661,10 +662,8 @@ body:has(.crt-opening) #visor, body:has(.crt-opening) #bg-canvas {display:none;}
   font:inherit;color:inherit;border:1px solid #4d7853;background:transparent;cursor:pointer;}
 .crt-options button:hover:not(:disabled),.crt-options button:focus-visible {background:#aeff88;color:#06220c;outline:none;}
 .crt-options button:disabled {opacity:.35;cursor:not-allowed;}
-.crt-still .crt-scanlines {animation:none;}
-@keyframes crt-scan {from {background-position:0 0;}to {background-position:0 30px;}}
 @keyframes crt-arrive {from {opacity:0;}to {opacity:1;}}
-@media(prefers-reduced-motion:reduce) {.crt-opening,.crt-scanlines {animation:none!important;}.crt-hit::before {transition:none;}}
+@media(prefers-reduced-motion:reduce) {.crt-opening {animation:none!important;}.crt-hit::before {transition:none;}}
 
 /* Loading stays above session construction, which replaces ui-root. */
 .crt-loading-overlay {position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#000;--load-progress:8%;}

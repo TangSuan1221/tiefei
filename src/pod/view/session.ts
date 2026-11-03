@@ -234,7 +234,6 @@ export class PodSession {
     window.addEventListener('beforeunload',this.saveCheckpoint);
     this.wireSpatialAudio();
     document.getElementById('cabin-interact')?.addEventListener('click',()=>{if(this.view.cabin.consoleInReach())this.enterConsole();else if(!this.run.at&&!this.syncInputBlock()&&this.run.outcome.kind==='alive'){void this.view.unlockAudio();this.run.walkTo('camera');this.keys.clear();}});
-    document.getElementById('comm-alert')?.addEventListener('click',()=>{if(this.syncInputBlock()||this.run.outcome.kind!=='alive')return;void this.view.unlockAudio();if(document.pointerLockElement)document.exitPointerLock();this.keys.clear();this.releaseStick();this.openComm();});
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('pointerdown', this.onPointer);

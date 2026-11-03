@@ -12,7 +12,7 @@ export function coordinateDatum(run:PodRun):number {
 }
 
 type RecordEntry={text:string;kind:string;frequency:number;recording?:string};
-type Desk={frequency:number;axis:number;fields:string[];target:number[]|null;page:'home'|'result'|'history';records:RecordEntry[];selected?:number;message:string};
+type Desk={frequency:number;axis:number;caretResetAt?:number;fields:string[];target:number[]|null;page:'home'|'result'|'history';records:RecordEntry[];selected?:number;message:string};
 const desks=new WeakMap<PodRun,Desk>();
 const compactPages=new WeakMap<PodRun,'nav'|'radio'>();
 const radioPages=new WeakMap<PodRun,{list:number;text:number}>();
@@ -29,7 +29,7 @@ export function sonarAction(run:PodRun,id:string):boolean {
  if(id==='sonar.compact.nav'||id==='sonar.compact.radio'){compactPages.set(run,id.endsWith('radio')?'radio':'nav');return true;}
  if(receiver?.autoReceive&&id.startsWith('sonar.radio.')){const pages=radioPages.get(run)??{list:0,text:0};radioPages.set(run,pages);if(id==='sonar.radio.prev')pages.list=Math.max(0,pages.list-1);if(id==='sonar.radio.next')pages.list++;if(id==='sonar.radio.textPrev')pages.text=Math.max(0,pages.text-1);if(id==='sonar.radio.textNext')pages.text++;if(id.startsWith('sonar.radio.open.')){s.selected=Number(id.slice(17));s.page='result';pages.text=0;}return true;}
  if(id.startsWith('sonar.tune.')){s.frequency=35+Math.max(0,Math.min(100,Number(id.slice(11))))/10;receiver?.setFrequency?.(s.frequency);return true;}
- if(id.startsWith('sonar.axis.')){s.axis=Number(id.at(-1));return true;}
+ if(id.startsWith('sonar.axis.')){s.axis=Number(id.at(-1));s.caretResetAt=performance.now();return true;}
  if(id==='sonar.deleteWaypoint'){
   const ok=receiver?.deleteSelectedWaypoint?.()??false;
   if(ok){s.target=receiver?.target?[...receiver.target]:null;s.message=s.target?'坐标点已删除 · 已切换至剩余坐标点':'坐标点已删除 · 暂无坐标点';}
@@ -40,6 +40,7 @@ export function sonarAction(run:PodRun,id:string):boolean {
   if(ok&&receiver?.target){s.target=[...receiver.target];s.message='已切换惯导航点';}return ok;
  }
  if(id.startsWith('sonar.key.')){
+  s.caretResetAt=performance.now();
   const key=id.slice(10);if(key==='clear')s.fields[s.axis]='';else if(key==='del')s.fields[s.axis]=s.fields[s.axis].slice(0,-1);else if(s.fields[s.axis].length<8)s.fields[s.axis]+=key;return true;
  }
  if(id==='sonar.save'){

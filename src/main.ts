@@ -51,7 +51,7 @@ function renderTitle(): void {
       <p class="crt-help" aria-live="polite">${livingEntry ? '第二关 · 生活区' : '接驳港 · 事故调查'} / ↑ ↓ 选择 · ENTER 确认${hasRun || hasCheckpointRecord ? '' : ' / 暂无存档'}</p>
       <dialog class="crt-options" aria-label="终端设置">
         <h2>终端设置</h2>
-        <label><input type="checkbox" id="crt-motion" checked /> 屏幕扫描效果</label>
+        <label><input type="checkbox" id="crt-motion" checked /> CRT 信号干扰</label>
         <button data-action="seed">指定调查种子</button>
         <button data-action="expedition">设施探索预览</button>
         <button data-action="archive" ${meta.cyclesPlayed ? '' : 'disabled'}>查看档案</button>
@@ -127,7 +127,7 @@ async function onMenu(id: string): Promise<void> {
 
 let enteringGame = false;
 function crtSignalLayers(): string {
-  return '<div class="crt-signal" aria-hidden="true"><div class="crt-scanlines"></div><div class="crt-roll"></div><div class="crt-sync"></div></div>';
+  return '<div class="crt-signal" aria-hidden="true"><div class="crt-tear"></div><div class="crt-tear crt-echo"></div><div class="crt-interference"></div></div>';
 }
 async function enterGame(resume: boolean): Promise<void> {
   if (enteringGame) return;
