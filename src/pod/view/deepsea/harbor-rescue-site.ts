@@ -7,7 +7,7 @@ import {labPlaybackRunning} from '../footage';
 import {isNoVideoMode} from '../gm';
 import {HarborSimpleFlow} from '../../sim/harbor-simple-flow';
 import {HarborTaskPlayer} from './harbor-task-player';
-import {HARBOR_TASKS,type HarborTaskId} from '../../content/harbor-task-videos';
+import {HARBOR_TASKS,harborCaller,type HarborTaskId} from '../../content/harbor-task-videos';
 import * as T from 'three';
 import {beginExtend,beginGrip,ARM_PHASE_CN} from '../../sim/manipulator';
 import {WindowLocks,type WindowTarget} from '../window-locks';
@@ -78,7 +78,7 @@ export class HarborRescueSite implements AuthoredSite {
   this.visual=createHarborRescueWorld(this.world,this.materials);this.world.colliders.push(...this.visual.solids,this.visual.gate.bounds);this.world.decorColliders.push(...this.visual.decor);
   this.world.walkable.push(new T.Box3(new T.Vector3(72,-1,1.6),new T.Vector3(82.2,5.5,26)));
   const self=this;
-  this.navigationConsole=new HarborRescueNavigation({run,position:this.position,entrySource:'艾里亚斯',entryCoordinates:[11,0,16],photoCoordinates:L.observe,signalPosition:L.elias,
+  this.navigationConsole=new HarborRescueNavigation({run,position:this.position,get entrySource(){return self.simplified&&!self.simpleFlow.legacy&&!self.simpleFlow.accepted.includes('L1-R28-V02')?'求救呼叫':'艾里亚斯';},entryCoordinates:[11,0,16],photoCoordinates:L.observe,signalPosition:L.elias,
    get signalAvailable(){return !self.simplified&&self.rescue.state.signal&&!self.rescue.state.departed;},get phase(){return self.objective;},
    get canReply(){return self.simplified?false:self.dialogue.replyAvailable;},get photoCoordinatesReleased(){return self.simplified?self.simpleFlow.canPhotograph:self.dialogue.photoUnlocked;},serialDialogue:true,
    onHeard:()=>{const r=this.rescue.listen();this.queue(...r.events);},onReply:()=>{const pick=this.suggestions[0];return !!pick&&this.radioSay(pick.text,pick.tag);},
@@ -203,7 +203,8 @@ export class HarborRescueSite implements AuthoredSite {
   }
   const tape=this.run.tapes.find(t=>t.id==='harbor.task.'+id);
   if(!tape||!isHarborTaskMedia(tape,id)||isHarborOpening(tape)&&!harborOpeningFinished(tape)||!this.simpleFlow.accept(id))return;
-  const line='艾里亚斯：'+HARBOR_TASKS[id].line;tape.analyzed=true;tape.report=['剧情任务录像 · 无需核验',line];
+  // Only a watched call reveals its subject in the archive.
+  const line='艾里亚斯：'+HARBOR_TASKS[id].line;tape.analyzed=true;tape.siteName=harborCaller(id)+' · '+HARBOR_TASKS[id].title;tape.report=['剧情任务录像 · 无需核验',line];
   this.navigationConsole.replied=this.rescue.state.replied;this.navigationConsole.recordDialogue(line);this.feedback(line);
   if(this.evidenceReady)this.run.campaign.record(0,'film');
  }
@@ -236,10 +237,10 @@ export class HarborRescueSite implements AuthoredSite {
   if(this.dialogue.stage!=='contact')return this.dialogue.objective;if(this.dialogue.busy)return '';if(s.heard)return '按住 M 键说话（或在输入框打字），回应艾里亚斯';if(s.signal)return '驶近求救载波，接收机自动收听';return this.entryReached?'穿过维修湾，沿通道驶向主港'+this.doorGuide():`输入万斯坐标 ${formatCoords([11,0,16])}，手动抵达A压力闸前`;}
  readonly coordinateDatum=HARBOR_DATUM_DEPTH;
  get pulseCostScale(){return this.rescue.state.powered?1:1/3;}
- get dialogueChoices(){if(this.simplified&&!this.simpleFlow.legacy)return this.simpleFlow.awaitingReport?['我已经确认关好了，可以走','请先等我核对']:['你失联很久了，总部不知道你的情况，就派了我下来。','为什么要关闭主动声纳？'];if(this.simplified)return this.simpleFlow.awaitingReport?(this.rescue.state.isolated?['关住了，可以走','先别走，我再核对一下']:['还没关住，先等','我不确定，等我再拍一次']):['你好，收到','主动声纳怎么关？','我会救你','重试录像'];return this.suggestions.map(x=>x.text);}
+ get dialogueChoices(){if(this.simplified&&!this.simpleFlow.legacy)return this.simpleFlow.awaitingReport?['我已经确认关好了，可以走','请先等我核对']:[...(this.simpleFlow.accepted.includes('L1-R28-V02')?['你失联很久了，总部不知道你的情况，就派了我下来。']:[]),...(this.simpleFlow.warningSeen?['为什么要关闭主动声纳？']:[])];if(this.simplified)return this.simpleFlow.awaitingReport?(this.rescue.state.isolated?['关住了，可以走','先别走，我再核对一下']:['还没关住，先等','我不确定，等我再拍一次']):['你好，收到','主动声纳怎么关？','我会救你','重试录像'];return this.suggestions.map(x=>x.text);}
  chooseDialogue(index:number){if(this.simplified){const text=this.dialogueChoices[index];return !!text&&this.radioSay(text);}const pick=this.suggestions[index];return !!pick&&this.radioSay(pick.text,pick.tag);}
  get harborActions(){return this.simplified&&!this.simpleFlow.legacy;}
- get mediaRetryable(){return this.simplified&&this.taskPlayer.retryable;}
+ get mediaRetryable(){return this.simplified&&!!this.taskPlayer?.retryable;}
  retryMedia(){const line=this.taskPlayer.retry();this.feedback(line);return line;}
  harborAction(action:string){
   if(!this.harborActions)return false;
@@ -397,7 +398,7 @@ export class HarborRescueSite implements AuthoredSite {
   if(this.simpleFlow.tick(dt,this.taskPlayer.waiting||!!this.simpleFlow.pending&&labPlaybackRunning(this.run))){
    if(this.simpleFlow.impactCount===1)this.pursuit.wake(this.position,this.run.heading);
    this.run.hull=Math.min(this.run.hull,this.simpleFlow.impactCount===1?.75:.5);this.run.onShake?.(.85);this.run.onCue?.('hull.crack',.9);
-   this.feedback(this.simpleFlow.impactCount===1?'艇壳受到猛烈撞击！':'第二次撞击！艇体受损，完整度50% · 关闭主动声纳电源');
+   this.feedback(this.simpleFlow.impactCount===1?'艇壳受到猛烈撞击！':'第二次撞击！艇体受损，完整度50%');
   }
   const firstTick=!this.started;if(firstTick)this.started=true;
   if(this.position.x>34&&this.position.z>20&&this.simpleFlow.takeImpact()){this.pursuit.wake(this.position,this.run.heading);this.run.onShake?.(.85);this.run.onCue?.('hull.crack',.9);this.feedback('（艇壳猛地一震，扶手撞上罗温的手腕。）罗温：什么东西撞上来了！');}
@@ -600,14 +601,14 @@ export class HarborRescueSite implements AuthoredSite {
  }
  captureEvidence(){const a=this.photoAssessment(),beat=this.performance();this.logPhotoDiagnostic('exposure');return this.rescue.capture('rescue-'+(++this.sequence),a.kind,a.ready,`${a.detail}；艇位 ${a.position.map(v=>v.toFixed(1)).join(' / ')}。${a.text}`+(beat.zh?`${PERFORMANCE}${beat.zh}`:''),this.elapsed,this.visible(this.pursuit.position.clone().add(new T.Vector3(0,.8,0)),40));}
  commitEvidence(value:unknown){this.rescue.commitCapture(value as RescueEvidence);}
- evidenceStatus(value:unknown){const task=(value as {harborTask?:HarborTaskId}|undefined)?.harborTask;if(task)return {accepted:this.simpleFlow.accepted.includes(task),next:this.objective};const e=value as RescueEvidence|undefined;return {accepted:!!e&&this.rescue.state.analyzed.includes(e.id)&&(e.kind!=='lure'||this.rescue.state.isolated||e.epoch===this.rescue.state.epoch&&this.rescue.state.lureConfirmed),next:this.objective};}
+ evidenceStatus(value:unknown){const task=(value as {harborTask?:HarborTaskId}|undefined)?.harborTask;if(task){const family=(id:string|null)=>id?.replace(/-(QUIET|STORED)$/,'');return {accepted:this.simpleFlow.accepted.includes(task),stale:!this.simpleFlow.accepted.includes(task)&&family(this.simpleFlow.pending)!==family(task),next:this.objective};}const e=value as RescueEvidence|undefined;return {accepted:!!e&&this.rescue.state.analyzed.includes(e.id)&&(e.kind!=='lure'||this.rescue.state.isolated||e.epoch===this.rescue.state.epoch&&this.rescue.state.lureConfirmed),next:this.objective};}
  analyzeEvidence(value:unknown){
   if(this.debugNoVideo&&!isNoVideoMode())return ['诊断进度不能转为正式证据；请新开正式游戏。'];
   if(this.simplified){const v=value as {capture:{harborTask?:HarborTaskId;generated?:boolean};media:{playable:boolean;source?:string;mediaId?:string}};
    if(v?.capture?.harborTask){const id=v.capture.harborTask,tape=this.run.tapes.find(t=>t.id===v.media?.mediaId);
-    if(this.simpleFlow.accepted.includes(id))return ['剧情任务录像无需核验；收到后已自动登记。','艾里亚斯：'+HARBOR_TASKS[id].line];
+    if(this.simpleFlow.accepted.includes(id))return ['剧情任务录像无需核验；完整播放后已登记。','艾里亚斯：'+HARBOR_TASKS[id].line];
     if(!v.media?.playable||!tape||!isHarborTaskMedia(tape,id)||isHarborOpening(tape)&&!harborOpeningFinished(tape)||!this.simpleFlow.accept(id))return ['任务视频无效、尚未到该阶段或已经核验；未改变进度。'];
-    this.navigationConsole.replied=this.rescue.state.replied;const t=HARBOR_TASKS[id];this.navigationConsole.recordDialogue('艾里亚斯：'+t.line);this.feedback('艾里亚斯：'+t.line);return ['艾里亚斯：'+t.line,this.simpleFlow.objective];
+    tape.siteName=harborCaller(id)+' · '+HARBOR_TASKS[id].title;this.navigationConsole.replied=this.rescue.state.replied;const t=HARBOR_TASKS[id];this.navigationConsole.recordDialogue('艾里亚斯：'+t.line);this.feedback('艾里亚斯：'+t.line);return ['艾里亚斯：'+t.line,this.simpleFlow.objective];
    }
    if(v?.media?.source!=='generated-video')return ['首关正式摄影需要已生成的可播放录像；本地帧或GM描述不授予通关证据。'];
   }

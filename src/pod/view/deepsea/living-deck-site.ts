@@ -30,6 +30,7 @@ import {LivingTaskPlayer} from './living-task-player';
 import {LIVING_TASKS,livingTaskLine,type LivingTaskId} from '../../content/living-task-videos';
 import {isNoVideoMode} from '../gm';
 import {hasRemotePlaylist} from '../footage';
+import {harborOpeningFinished} from '../../sim/harbor-opening';
 
 /** Surface depth of deck −1 world y=0. GAP: provisional, not yet fixed in level-metrics. */
 export const LIVING_DATUM_DEPTH=1040;
@@ -695,9 +696,9 @@ export class LivingDeckSite implements AuthoredSite {
  }
  commitEvidence(capture:unknown){const e=capture as SurveyCapture;if(!e?.survey)return;this.survey.commit(e);if(this.pendingCaptureId===e.id)this.pendingCaptureId=null;}
  finishCapture(){}
- evidenceStatus(capture:unknown){const e=capture as SurveyCapture&{livingTask?:LivingTaskId;generated?:boolean;code?:string};return {accepted:e?.livingTask?e.generated===true&&this.survey.accepted.includes(e.livingTask)&&(e.livingTask!=='L2-S06'||e.code===this.survey.code):!!e?.survey&&this.survey.analyzed.includes(e.id),next:this.objective};}
+ evidenceStatus(capture:unknown){const e=capture as SurveyCapture&{livingTask?:LivingTaskId;generated?:boolean;code?:string};return {accepted:e?.livingTask?e.generated===true&&this.survey.accepted.includes(e.livingTask)&&(e.livingTask!=='L2-S06'||e.code===this.survey.code):!!e?.survey&&this.survey.analyzed.includes(e.id),stale:!!e?.livingTask&&!this.survey.accepted.includes(e.livingTask)&&this.survey.pending!==e.livingTask,next:this.objective};}
  isEvidenceMediaReady(mediaId:string){const tape=this.run.tapes.find(t=>t.id===mediaId);return !!tape&&tape.videoResult==='video'&&!!tape.cacheKey&&hasRemotePlaylist(tape.cacheKey);}
- describeEvidence(capture:unknown){const c=capture as SurveyCapture&{livingTask?:LivingTaskId};return c?.livingTask?'艾里亚斯 · '+LIVING_TASKS[c.livingTask].title:c?.survey?!c.valid||!c.lit?'未确认底片 · '+this.evidenceFailure(c):c.target==='manual'?'供水操作说明':`生物调查 ${Number(c.target)+1}`:'未核验的录像';}
+ describeEvidence(capture:unknown){const c=capture as SurveyCapture&{livingTask?:LivingTaskId};return c?.livingTask?'艾里亚斯 · '+(this.survey.accepted.includes(c.livingTask)?LIVING_TASKS[c.livingTask].title:'视频通讯'):c?.survey?!c.valid||!c.lit?'未确认底片 · '+this.evidenceFailure(c):c.target==='manual'?'供水操作说明':`生物调查 ${Number(c.target)+1}`:'未核验的录像';}
  get cargoManifest(){return [
   ...(this.survey.camera&&!this.survey.shared?[{name:'移动摄像仪（待交接）',quantity:1}]:[]),
   ...(this.survey.ballast?[{name:'下潜配重（已安装）',quantity:1}]:[])
@@ -714,8 +715,9 @@ export class LivingDeckSite implements AuthoredSite {
    this.refresh();if(this.evidenceReady)this.run.campaign.record(this.index,'film');return;
   }
   const tape=this.run.tapes.find(t=>t.id==='living.task.'+id),e=tape?.siteEvidence as {livingTask?:LivingTaskId;generated?:boolean;code?:string}|undefined;
-  if(!tape||tape.ready===false||tape.videoResult!=='video'||e?.livingTask!==id||!e?.generated||!tape.cacheKey?.startsWith('living-task:'+id+':')||!hasRemotePlaylist(tape.cacheKey)||id==='L2-S06'&&e?.code!==this.survey.code||!this.survey.acceptVideo(id))return;
-  const line='艾里亚斯：'+livingTaskLine(id,this.survey.code);tape.analyzed=true;tape.report=['剧情任务录像 · 无需核验',line];
+  if(!tape||tape.ready===false||tape.videoResult!=='video'||e?.livingTask!==id||!e?.generated||!tape.cacheKey?.startsWith('living-task:'+id+':')||!hasRemotePlaylist(tape.cacheKey)||!harborOpeningFinished(tape)||id==='L2-S06'&&e?.code!==this.survey.code||!this.survey.acceptVideo(id))return;
+  // Only a call watched to the end counts, and only then does the archive name its subject.
+  const line='艾里亚斯：'+livingTaskLine(id,this.survey.code);tape.analyzed=true;tape.siteName='艾里亚斯 · '+LIVING_TASKS[id].title;tape.report=['剧情任务录像 · 无需核验',line];
   this.navigationConsole.recordDialogue(line);this.feedback(line);this.refresh();
   if(this.evidenceReady)this.run.campaign.record(this.index,'film');
  }
@@ -725,11 +727,11 @@ export class LivingDeckSite implements AuthoredSite {
   if(!v?.capture||!v.media?.playable||v.media.source!=='generated-video')return ['需要生成并可播放的真实录像；本地感光帧不会授予正式进度。'];
   const id=v.capture.livingTask;
   if(id){
-   if(this.survey.accepted.includes(id))return ['剧情任务录像无需核验；收到后已自动登记。','艾里亚斯：'+livingTaskLine(id,this.survey.code)];
+   if(this.survey.accepted.includes(id))return ['剧情任务录像无需核验；完整播放后已登记。','艾里亚斯：'+livingTaskLine(id,this.survey.code)];
    if(!this.survey.accepted.includes(id)&&this.survey.pending!==id)return ['这卷是艾里亚斯较早的回传，现场进展已经越过它要求的事，不再作为任务核验。等待他按当前情况发来的新录像。',this.survey.objective];
    const tape=this.run.tapes.find(t=>t.id===v.media.mediaId);
-   if(!v.capture.generated||!tape||tape.videoResult!=='video'||JSON.stringify(tape.siteEvidence)!==JSON.stringify(v.capture)||!tape.cacheKey?.startsWith('living-task:'+id+':')||!hasRemotePlaylist(tape.cacheKey)||tape.id!=='living.task.'+id||id==='L2-S06'&&v.capture.code!==this.survey.code||!this.survey.acceptVideo(id))return ['此卷任务录像已核验、不可播放或不属于本局当前任务。'];
-   const line='艾里亚斯：'+livingTaskLine(id,this.survey.code);this.navigationConsole.recordDialogue(line);this.feedback(line);this.refresh();return [line,this.survey.objective];
+   if(!v.capture.generated||!tape||tape.videoResult!=='video'||JSON.stringify(tape.siteEvidence)!==JSON.stringify(v.capture)||!tape.cacheKey?.startsWith('living-task:'+id+':')||!hasRemotePlaylist(tape.cacheKey)||tape.id!=='living.task.'+id||!harborOpeningFinished(tape)||id==='L2-S06'&&v.capture.code!==this.survey.code||!this.survey.acceptVideo(id))return ['此卷任务录像未完整播放、已核验、不可播放或不属于本局当前任务。'];
+   tape.siteName='艾里亚斯 · '+LIVING_TASKS[id].title;const line='艾里亚斯：'+livingTaskLine(id,this.survey.code);this.navigationConsole.recordDialogue(line);this.feedback(line);this.refresh();return [line,this.survey.objective];
   }
   const film=this.run.tapes.find(t=>t.id===v.media.mediaId);
   if(!film||film.legId!==this.run.leg.id||film.videoResult!=='video'||JSON.stringify(film.siteEvidence)!==JSON.stringify(v.capture)||!film.cacheKey||!hasRemotePlaylist(film.cacheKey))return ['本卷底片尚无对应的可播放生成录像，请等待下载或重试。'];

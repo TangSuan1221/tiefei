@@ -98,7 +98,8 @@ export interface AuthoredSite {
   readonly recoveredDocument?:boolean;
   readonly cargoManifest?: readonly {name:string;quantity:number}[];
   readRecoveredDocument?():string[];
-  evidenceStatus?(capture:unknown):{accepted:boolean;next:string};
+  /** stale: a story call the world has moved past; it stays in the archive but stops ringing. */
+  evidenceStatus?(capture:unknown):{accepted:boolean;next:string;stale?:boolean};
   tick?(dt:number):void;
   restore?(snapshot:unknown):boolean;
   canCounter?(action:{kind:string}):boolean;

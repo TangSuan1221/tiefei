@@ -17,7 +17,11 @@ export function commUi(run:PodRun):CommUi {
 /** Oldest call still waiting to be answered. The opening call stays pending until fully watched, also after a reload. */
 export function incomingCall(run:PodRun):TapeRecord|null {
   const active=run.at==='lab'?commUi(run).active:null;
-  return run.tapes.find(t=>isVideoCall(t)&&t.ready!==false&&t.id!==active&&(t.callSeen!==true&&!t.analyzed||isHarborOpening(t)&&(!t.analyzed||run.authoredSite?.evidenceStatus?.(t.siteEvidence)?.accepted===false)))??null;
+  return run.tapes.find(t=>{
+    if(!isVideoCall(t)||t.ready===false||t.id===active)return false;
+    const status=run.authoredSite?.evidenceStatus?.(t.siteEvidence);
+    return t.callSeen!==true&&!t.analyzed&&!status?.stale||isHarborOpening(t)&&!status?.stale&&(!t.analyzed||status?.accepted===false);
+  })??null;
 }
 export function callParts(t:TapeRecord){
   const [caller,...rest]=t.siteName.split(' · ');

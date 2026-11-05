@@ -1,8 +1,9 @@
 import type {PodRun} from '../../sim/run';
-import {LIVING_TASKS,LIVING_TASK_REFERENCE,livingTaskPrompt,livingTaskSubtitles,type LivingTaskId} from '../../content/living-task-videos';
+import {LIVING_TASK_REFERENCE,livingTaskPrompt,livingTaskSubtitles,type LivingTaskId} from '../../content/living-task-videos';
 import {requestVideo,fetchVideoContent,VIDEO_ENABLED,failureLine} from '../../net/video';
-import {installRemotePlaylist,hasRemotePlaylist} from '../footage';
+import {installRemotePlaylist,hasRemotePlaylist,pauseHarborCallAway} from '../footage';
 import {isNoVideoMode} from '../gm';
+import {pendingCallName} from '../../sim/tape-channel';
 const STORE='ironlung.living.task-v1';
 const hash=(s:string)=>{let n=2166136261;for(const c of s)n=Math.imul(n^c.charCodeAt(0),16777619);return (n>>>0).toString(16);};
 const memory:Record<string,string>={};
@@ -34,6 +35,9 @@ export class LivingTaskPlayer {
  get retryable(){return this.failed&&!this.busy;}
  tick(id:LivingTaskId|null,code:string,injured=false,upcoming:readonly LivingTaskId[]=[]){
   if(this.disposed)return;
+  pauseHarborCallAway(this.run);
+  // Older saves named unwatched calls after their content.
+  for(const t of this.run.tapes)if(t.id.startsWith('living.task.')&&!t.analyzed&&t.siteName!==pendingCallName('艾里亚斯'))t.siteName=pendingCallName('艾里亚斯');
   this.wanted=id;
   if(isNoVideoMode()){this.abort.abort();this.prefetchAbort.abort();this.run.videoStatus='GM无视频诊断：剧情任务按文字自动推进，不授正式媒体证据、不保存正式进度';return;}
   // Player actions can overtake a request (camera handed over before S01 lands, valve reported before S04): drop it rather than deliver a stale order.
@@ -82,7 +86,7 @@ export class LivingTaskPlayer {
   else {const r=await requestVideo(prompt,this.abort.signal,frame,s=>{this.run.videoStatus=s;},10,'elias-selfie');if(!r.ok)throw Error(failureLine(r.fail));remember(key,r.videoId);video=r.blob;}
   if(this.disposed||isNoVideoMode()||this.wanted!==id)return;
   const frames=await installRemotePlaylist(key,this.run.leg.id,[video]);if(this.disposed||isNoVideoMode()||this.wanted!==id)return;
-  if(this.run.receiveRemoteTape({id:'living.task.'+id,siteName:'艾里亚斯 · '+LIVING_TASKS[id].title,frames,siteEvidence:{livingTask:id,generated:true,...(id==='L2-S06'?{code}: {})},videoResult:'video',cacheKey:key,subtitles:livingTaskSubtitles(id,code),note:'收到艾里亚斯自拍视频 · 已自动登记，可到分析台播放'}))this.run.videoStatus='艾里亚斯任务录像已收到';
+  if(this.run.receiveRemoteTape({id:'living.task.'+id,siteName:pendingCallName('艾里亚斯'),frames,siteEvidence:{livingTask:id,generated:true,...(id==='L2-S06'?{code}: {})},videoResult:'video',cacheKey:key,subtitles:livingTaskSubtitles(id,code),note:'艾里亚斯来电 · 到分析台【通讯】接听'}))this.run.videoStatus='艾里亚斯任务录像已收到';
  }
  dispose(){this.disposed=true;this.abort.abort();this.prefetchAbort.abort();}
 }

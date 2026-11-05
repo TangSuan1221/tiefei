@@ -416,10 +416,11 @@ export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:numbe
   if(run.shot.phase==='developing' && tape.id===`tape.${run.shot.token}` && !run.shot.pendingResult && !isNoVideoMode() && VIDEO_ENABLED)
     return notice('MiniMax 视频生成中',run.videoStatus);
   const opening=isHarborOpening(tape)&&(!tape.analyzed||run.authoredSite?.evidenceStatus?.(tape.siteEvidence)?.accepted===false);
-  if(opening&&(!harborOpeningOpened(tape)||run.at!=='lab'))return notice('接驳岗有呼叫','到【通讯】页签接听后播放');
+  if(opening&&(!harborOpeningOpened(tape)||run.at!=='lab'))return notice('视频通讯等待接听','到【通讯】页签接听后播放');
   const playlist=REMOTE_PLAYLISTS.get(tape.cacheKey??'');
   if(opening&&playlist&&playlist.index===playlist.reels.length-1&&playlist.reels[playlist.index]?.video.ended&&run.at==='lab'&&run.powered){
-    finishHarborCall(tape);run.analyzeTape();
+    // Chapter two registers a finished call on its own tick, without spending analysis power.
+    finishHarborCall(tape);if(!tape.id.startsWith('living.task.'))run.analyzeTape();
 
   }
 

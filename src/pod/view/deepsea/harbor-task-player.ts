@@ -1,9 +1,10 @@
 import {HARBOR_TASK_REFERENCES,HARBOR_REFERENCE_REVISION} from '../../content/harbor-video-references';
 import type {PodRun} from '../../sim/run';
-import {HARBOR_TASKS,HARBOR_TASK_REFERENCE,harborTaskPrompt,harborTaskSubtitles,harborSpeechParts,type HarborTaskId} from '../../content/harbor-task-videos';
+import {HARBOR_TASK_REFERENCE,harborCaller,harborTaskPrompt,harborTaskSubtitles,harborSpeechParts,type HarborTaskId} from '../../content/harbor-task-videos';
 import {requestVideo,fetchVideoContent,VIDEO_ENABLED} from '../../net/video';
 import {installRemotePlaylist,hasRemotePlaylist,pauseHarborCallAway} from '../footage';
 import {isNoVideoMode} from '../gm';
+import {pendingCallName} from '../../sim/tape-channel';
 import {HARBOR_LOCAL_VIDEOS as FIXED,harborLocalVideoKey,useHarborLocalVideo} from '../../content/harbor-local-videos';
 const STORE='ironlung.harbor.task-v1';
 const hash=(s:string)=>{let n=2166136261;for(const c of s)n=Math.imul(n^c.charCodeAt(0),16777619);return (n>>>0).toString(16);};
@@ -18,6 +19,8 @@ export class HarborTaskPlayer {
  tick(id:HarborTaskId|null,injured=false){
   if(this.disposed)return;
   pauseHarborCallAway(this.run);
+  // Older saves named unwatched calls after their content.
+  for(const t of this.run.tapes)if(t.id.startsWith('harbor.task.')&&!t.analyzed){const name=pendingCallName(harborCaller(t.id.slice(12) as HarborTaskId));if(t.siteName!==name)t.siteName=name;}
   const noVideo=isNoVideoMode();
   if(this.mode!==noVideo){this.mode=noVideo;this.abort.abort();this.failed=false;}
   if(this.busy)return;
@@ -37,17 +40,17 @@ export class HarborTaskPlayer {
  private async deliverFixed(id:HarborTaskId){
   if(!useHarborLocalVideo(id,isNoVideoMode()))return;
   const key=harborLocalVideoKey(id);
-  this.run.videoStatus='接收艾里亚斯任务录像';
+  this.run.videoStatus='接收视频通讯';
   const response=await fetch(FIXED[id]!,{signal:this.abort.signal});if(!response.ok)throw Error('本地任务录像读取失败');
   const frames=await installRemotePlaylist(key,this.run.leg.id,[await response.blob()]);if(this.disposed||!useHarborLocalVideo(id,isNoVideoMode()))return;
   const existing=this.run.tapes.find(t=>t.id==='harbor.task.'+id);if(existing){existing.cacheKey=key;existing.sensorFrames=frames;existing.subtitles=harborTaskSubtitles(id);existing.videoResult='video';existing.siteEvidence={harborTask:id,generated:false};}
-  this.run.receiveRemoteTape({id:'harbor.task.'+id,siteName:'艾里亚斯 · '+HARBOR_TASKS[id].title,frames,siteEvidence:{harborTask:id,generated:false},videoResult:'video',cacheKey:key,subtitles:harborTaskSubtitles(id),note:'收到艾里亚斯自拍视频 · 到通讯页接听'});
-  this.run.videoStatus='艾里亚斯任务录像已收到';
+  this.run.receiveRemoteTape({id:'harbor.task.'+id,siteName:pendingCallName(harborCaller(id)),frames,siteEvidence:{harborTask:id,generated:false},videoResult:'video',cacheKey:key,subtitles:harborTaskSubtitles(id),note:'收到视频呼叫 · 到分析台【通讯】接听'});
+  this.run.videoStatus='视频通讯已收到 · 到分析台【通讯】接听';
  }
  private async deliver(id:HarborTaskId,injured:boolean){
   if(useHarborLocalVideo(id,isNoVideoMode()))return this.deliverFixed(id);
   if(isNoVideoMode())return;
-  this.run.videoStatus='艾里亚斯 · 准备角色任务参考图';
+  this.run.videoStatus='视频通讯 · 准备参考图';
   const response=await fetch(HARBOR_TASK_REFERENCE,{signal:this.abort.signal});if(!response.ok||!response.headers.get('content-type')?.startsWith('image/'))throw Error('缺少艾里亚斯任务参考图');
   const blob=await response.blob();const frame=await new Promise<string>((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.onerror=()=>reject(Error('参考图读取失败'));r.readAsDataURL(blob);});
   const prompt=harborTaskPrompt(id,injured),key='harbor-task:'+id+':'+hash(prompt+frame+HARBOR_REFERENCE_REVISION),saved=read(),videos:Blob[]=[],ids:string[]=[];
@@ -71,7 +74,7 @@ export class HarborTaskPlayer {
   const frames=await installRemotePlaylist(key,this.run.leg.id,videos);if(this.disposed||isNoVideoMode())return;
   const existing=this.run.tapes.find(t=>t.id==='harbor.task.'+id);
   if(existing){existing.cacheKey=key;existing.sensorFrames=frames;existing.siteEvidence={harborTask:id,generated:true};existing.subtitles=harborTaskSubtitles(id);existing.videoResult='video';}
-  if(this.run.receiveRemoteTape({id:'harbor.task.'+id,siteName:'艾里亚斯 · '+HARBOR_TASKS[id].title,frames,siteEvidence:{harborTask:id,generated:true},videoResult:'video',cacheKey:key,subtitles:harborTaskSubtitles(id),note:id==='L1-E01'?'接驳岗有视频呼叫 · 到分析台接听':'收到艾里亚斯自拍视频 · 已自动登记，可到分析台播放'}))this.run.videoStatus='艾里亚斯任务录像已收到';
+  if(this.run.receiveRemoteTape({id:'harbor.task.'+id,siteName:pendingCallName(harborCaller(id)),frames,siteEvidence:{harborTask:id,generated:true},videoResult:'video',cacheKey:key,subtitles:harborTaskSubtitles(id),note:'收到视频呼叫 · 到分析台【通讯】接听'}))this.run.videoStatus='视频通讯已收到 · 到分析台【通讯】接听';
  }
  dispose(){this.disposed=true;this.abort.abort();}
 }

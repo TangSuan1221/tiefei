@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-level-metrics",
-  "revision": "2026-11-03-password-question-after-door",
+  "revision": "2026-11-05-video-before-task",
   "defaultRuntimeProfile": "main-authored",
   "documents": [
     {
@@ -246,6 +246,9 @@
     "tools/prologue-browser-check.mjs",
     "tools/prologue-save-check.mjs",
     "tools/prologue-pointer-check.mjs",
-    "tools/prologue-gear-check.mjs"
+    "tools/prologue-gear-check.mjs",
+    "tools/story-call-spoiler-check.ts",
+    "tools/story-call-neutral-browser-check.mjs",
+    "src/pod/sim/tape-channel.ts"
   ]
 }

@@ -57,3 +57,23 @@ IMPLEMENTED：V01/V02在两种模式下始终使用预制片；其余预制片�
 验证：类型检查、七片两种模式的本地浏览器选择与解码回归；生成路径使用替身，API拦截，不证明远端实际出片。适用MET-010/011/021/031/032；其余MET-001–044未改对应机制、剧情、尺寸或验收状态，既有缺口保留。
 
 补充验证：tools/harbor-fixed-task-gm-check.mjs 在GM和TEST_NORMAL=1两种模式通过真实V01/V02加速完整播放、提前核验拒绝、离台暂停及旧失败记录恢复；普通模式仍等待独立授权录像，GM缺授权成片沿用文字诊断。旧harbor-fixed-task-progress-check的CRT放大断言与当前界面不符，未将其报告为通过。
+
+## 2026-11-05 用户修订：先视频后任务（第一、二章）
+
+用户指出任务栏常提前剧透下一段视频。根因：objective 在视频未看（pending）时拼接了内部摘要标题 `title`，录像档案名在到达时也用了 `title`，另有数处任务和提示跑在对应视频前面。规则改为：pending 期间任务栏、来电提示与档案名只显示中性来电；任务文字只引用已接收（完整播放）视频给出的信息；完整播放后档案名才换成"来电者 · 标题"，方便回看。
+
+IMPLEMENTED（第一章 `src/pod/sim/harbor-simple-flow.ts`、`harbor-legacy-flow.ts`、`src/pod/view/deepsea/harbor-rescue-site.ts`、`harbor-task-player.ts`）：
+- 待接来电统一显示"收到视频呼叫"；V02 自报姓名之后显示"艾里亚斯来电"。档案名为"未知来源/艾里亚斯 · 视频通讯"，到达日志和接收状态也不点名、不说内容。
+- 删除"可询问艾里亚斯被困经过"；V03 之前撞击只写已发生的后果，不提前下"关闭主动声纳"指令；"通电会持续发声"仅在接收 V03A 后出现；"停稳摄影"仅在接收 V06 后出现；离开后先等回传，接收 V08 才给下潜指引。
+- V02 之前通话回复署名"呼叫者"，导航台接驳港来源显示"求救呼叫"；"为什么要关闭主动声纳？"在接收 V03 后才出现在回复选项里，"你失联很久了…"在接收 V02 后才出现。
+- 过期变体（如 V03/V03-QUIET）由 `evidenceStatus.stale` 标出，不再作为来电响铃。
+
+IMPLEMENTED（第二章 `src/pod/sim/living-survey.ts`、`src/pod/view/deepsea/living-deck-site.ts`、`living-task-player.ts`）：
+- 视频下载完成就自动登记的做法改为与第一章一致：须接听并完整播放才 acceptVideo，播完不扣分析电量；离开分析台暂停播放。此条覆盖 `docs/no-video-progression-fix-2026-10-27.md` 中第二章"下载即自动登记"的部分，GM 无视频模式文字推进保持不变。
+- "等待菌群消散回传""确认会合回传""等待会合回传"改为中性的"等待艾里亚斯回传"/"生活区末端会合点"；未接收视频的证据描述不显示标题。
+- 旧存档中已到达但未看的剧情录像会在 tick 时改为中性档案名。
+
+验证：`npm run typecheck` 通过；新增 `tools/story-call-spoiler-check.ts`（两章逐段 pending 时任务文字不含当前视频标题与关键内容词，V02 前不出现姓名）和 `tools/story-call-neutral-browser-check.mjs`（浏览器内用本地 V01 成片作替身：两章到达名中性、仅下载不推进、完整播放推进并改名、第二章播完不扣电、播完不再响铃）通过；harbor-r28、harbor-simple-flow、harbor-dialogue-order、living-survey、living-survey-intent-regression（断言更新为"艾里亚斯来电"）、living-survey-mixed-intent、comm-only-video-check 通过。主游戏预览新开局开第一道门后，任务栏、档案名、日志与接收状态均为中性。
+GAP：harbor-opening-call-check（"Opening door queues distress call"）、harbor-fixed-task-gm-check（GM 授权片断言）、living-survey-gm-flow-check（illegal teleport）在本次改动前的提交 c2232b0 上同样失败，属既有失败，未修；第二章真实生成视频未实测；未做全关真人连续游玩。
+
+MET 复核：MET-011 完整播放才授予事实（本次扩展到第二章）；MET-030 线索→看片→动作顺序由任务文字执行；MET-031 本节记录局部验证与缺口；MET-032 制作记录独立于正文；MET-033 人物先介绍再点名；MET-044 不要求输入指定文字。其余 MET-001–010、012–029、034–043 的几何、声纳、剧情与资源规则未改，既有缺口保留。
