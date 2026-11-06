@@ -937,11 +937,11 @@ function drawPositionReadout(ctx:CanvasRenderingContext2D,w:number,h:number,run:
   const c=displayCoords([p.x,p.y,p.z],site.coordinateDatum??run.depth+(site.elevation??0));
   ctx.save();ctx.textAlign='left';ctx.textBaseline='alphabetic';
   ctx.font=portholeFont(h*.022);
-  const x=w*.19,y=h*.43,valueX=x+h*.105;
+  const x=w*.26,y=h*.49,valueX=x+h*.105;
   // Fixed columns: IPix glyphs and spaces do not have equal advances.
-  const rows=[['X',c.x.toFixed(1)],['Y',c.y.toFixed(1)],['DEPTH',`${c.depth.toFixed(1)} m`]];
+  const rows=[['X',c.x.toFixed(1)],['Y',c.y.toFixed(1)],['Z',p.y.toFixed(1)],['DEPTH',`${c.depth.toFixed(1)} m`]];
   rows.forEach(([label,value],i)=>{
-    const baseline=y+i*h*.038;ctx.fillStyle=PORTHOLE_INK.text;
+    const baseline=y+i*h*.085;ctx.fillStyle=PORTHOLE_INK.text;
     instrumentText(ctx,label!,x,baseline);instrumentText(ctx,value!,valueX,baseline);
   });
   ctx.restore();

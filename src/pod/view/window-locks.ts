@@ -66,7 +66,7 @@ export class WindowLocks {
   const close=available.filter(t=>t.enabled&&t.bounds.distanceToPoint(origin)<=8);
   const lock=close.length?collectWindowLocks(camera,solids(),close)[0]:undefined;
   const progress=this.focus.update(lock?.focused?lock.id:undefined,performance.now());
-  const eased=1-Math.pow(1-progress,3),s=h/720,cx=w/2,cy=h/2;
+  const eased=1-Math.pow(1-progress,3),s=h/720,cx=w*.53,cy=h*.56;
   ctx.save();ctx.lineCap='butt';
   // The only standing instrument: paired side arcs and a split crosshair.
   // They settle inward and brighten as a reachable target is acquired.

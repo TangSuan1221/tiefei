@@ -1,3 +1,4 @@
+import {inferEliasReply,type EliasReplyContext} from '../../net/elias-reply';
 import {announceGeneratingCall,cancelGeneratingCall} from '../comm-desk';
 import {storyVideoDuration,VIDEO_DURATION_REVISION} from '../../content/video-duration';
 import {HARBOR_TASK_REFERENCES,HARBOR_REFERENCE_REVISION} from '../../content/harbor-video-references';
@@ -14,11 +15,11 @@ const hash=(s:string)=>{let n=2166136261;for(const c of s)n=Math.imul(n^c.charCo
 const read=():Record<string,string|string[]>=>{try{return JSON.parse(localStorage.getItem(STORE)??'{}');}catch{return {};}};
 /** Missing, failed or disabled media never advances the mission. */
 export class HarborTaskPlayer {
- private replies:{id:string;line:string;context:HarborTaskId;injured:boolean}[]=[];
- queueReply(line:string,context:HarborTaskId,injured:boolean){
+ private replies:{id:string;line:string;context:HarborTaskId;injured:boolean;reasoning?:EliasReplyContext;resolved?:boolean}[]=[];
+ queueReply(line:string,context:HarborTaskId,injured:boolean,reasoning?:EliasReplyContext){
   if(!line.trim())return;
   if(isNoVideoMode()||!VIDEO_ENABLED){this.run.videoStatus='自由通话视频未生成 · 视频服务未启用或处于无视频模式';return;}
-  this.replies.push({id:'harbor.reply.'+Date.now()+'.'+this.replies.length,line,context,injured});
+  this.replies.push({id:'harbor.reply.'+Date.now()+'.'+this.replies.length,line,context,injured,reasoning});
   this.run.videoStatus='自由通话回复已排队 · 等待视频回传';
  }
  private mode=isNoVideoMode();private busy=false;private disposed=false;private failed=false;private abort=new AbortController();
@@ -37,7 +38,7 @@ export class HarborTaskPlayer {
   if(this.abort.signal.aborted)this.abort=new AbortController();
   if(this.busy||this.failed)return;
   const reply=this.replies[0];
-  if(reply&&!noVideo&&VIDEO_ENABLED){this.start(async()=>{await this.deliver(reply.context,reply.injured,reply);this.replies.shift();});return;}
+  if(reply&&!noVideo&&VIDEO_ENABLED){this.start(async()=>{if(reply.reasoning&&!reply.resolved){announceGeneratingCall(this.run,reply.id,'艾里亚斯');reply.line=await inferEliasReply(reply.reasoning,this.abort.signal);reply.resolved=true;}await this.deliver(reply.context,reply.injured,reply);this.replies.shift();});return;}
   const selected=this.run.tapes.find(t=>t.id.startsWith('harbor.task.')&&t.cacheKey&&!hasRemotePlaylist(t.cacheKey))??this.run.selectedTape;
   if(selected&&useHarborLocalVideo(selected.id.slice('harbor.task.'.length),noVideo)&&(!selected.cacheKey?.startsWith('harbor-fixed:')||!hasRemotePlaylist(selected.cacheKey))){const fixedId=selected.id.slice('harbor.task.'.length) as HarborTaskId;if(FIXED[fixedId]){this.start(()=>this.deliverFixed(fixedId));return;}}
   if(noVideo){if(id&&useHarborLocalVideo(id,true)&&!this.run.tapes.some(t=>t.id==='harbor.task.'+id))this.start(()=>this.deliverFixed(id));return;}

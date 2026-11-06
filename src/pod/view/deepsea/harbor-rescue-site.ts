@@ -224,7 +224,14 @@ export class HarborRescueSite implements AuthoredSite {
     this.feedback(visibleLines.join('\n'));
     if(result.route==='reply'){
      const response=result.lines.slice(1).map(line=>line.replace(/^[^：]+：/,'')).join('');
-     this.taskPlayer.queueReply(response,this.simpleFlow.accepted.at(-1)??'L1-R28-V01',this.rescue.state.injured);
+     this.taskPlayer.queueReply(response,this.simpleFlow.accepted.at(-1)??'L1-R28-V01',this.rescue.state.injured,{
+      player:text.slice(0,240),objective:this.simpleFlow.objective,
+      heard:[...this.simpleFlow.accepted.map(id=>HARBOR_TASKS[id].speech),...this.run.tapes.filter(t=>t.id.startsWith('harbor.reply.')&&t.analyzed).map(t=>(t.subtitles??[]).map(s=>s.text).join(''))],
+      history:this.navigationConsole.radioRecords.filter(r=>r.kind==='voice').slice(-24).map(r=>r.text),
+      memory:structuredClone(this.run.narrativeMemory),
+      situation:{impacts:this.simpleFlow.impactCount,pulsing:this.activeNoise,injured:this.rescue.state.injured,departed:this.rescue.state.departed,repairCompleted:this.simpleFlow.repairCompleted},
+      actionReply:response
+     });
     }
    }
    return true;

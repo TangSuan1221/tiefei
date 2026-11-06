@@ -11,6 +11,27 @@ export default defineConfig(({ mode }) => {
   const key = env.LITELLM_KEY ?? '';
 
   return {
+    plugins: [{
+      name: 'elias-dialogue',
+      configureServer(server) {
+        server.middlewares.use('/api/dialogue/chat/completions', async (req, res) => {
+          res.setHeader('Content-Type', 'application/json');
+          if(req.method !== 'POST'){res.statusCode=405;res.end('{}');return;}
+          try {
+            let raw='';
+            for await (const chunk of req){raw+=chunk;if(raw.length>64000)throw Error('Request too large');}
+            const body=JSON.parse(raw);
+            const upstream=await fetch(VIDEO_UPSTREAM+'/v1/chat/completions',{
+              method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${key}`},
+              body:JSON.stringify({model:env.ELIAS_REPLY_MODEL || 'gpt-4.1',messages:body.messages,max_tokens:450}),
+              signal:AbortSignal.timeout(45000)
+            });
+            res.statusCode=upstream.status;
+            res.end(upstream.ok?await upstream.text():JSON.stringify({error:'Dialogue service unavailable'}));
+          }catch{res.statusCode=502;res.end(JSON.stringify({error:'Dialogue service unavailable'}));}
+        });
+      }
+    }],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

@@ -425,6 +425,8 @@ export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:numbe
 
   }
 
+  // A heard free reply is dialogue memory only, never photographic evidence or mission progress.
+  if(tape.id.startsWith('harbor.reply.')&&playlist&&playlist.index===playlist.reels.length-1&&playlist.reels[playlist.index]?.video.ended&&run.at==='lab'&&run.powered)tape.analyzed=true;
   if(playlist?.reels[playlist.index]?.video.ended&&playlist.index<playlist.reels.length-1){playlist.index++;playlist.reels[playlist.index].video.currentTime=0;}
   const reel=playlist?.reels[playlist.index]??REELS.get(tape.cacheKey??tape.legId);
   if(reel&&reel.video.readyState>=2){
