@@ -1,5 +1,5 @@
 /** User supplied chapter-one assets, 2026-11-02. Never use these as evidence. */
-export const HARBOR_REFERENCE_REVISION='2026-11-02-v1';
+export const HARBOR_REFERENCE_REVISION='2026-11-06-creature-v3-prefetch';
 export const HARBOR_REFERENCES={
  character:'/assets/harbor/references/elias-character.png',
  story:'/assets/harbor/references/elias-story.png',

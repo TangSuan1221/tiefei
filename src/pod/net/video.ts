@@ -1,3 +1,4 @@
+import {videoDuration,type VideoKind} from '../content/video-duration';
 /**
  * 视频生成客户端。
  * ============================================================================
@@ -106,6 +107,7 @@ export type VideoResult =
 interface VideoJob {
   id: string;
   status: 'queued' | 'in_progress' | 'processing' | 'completed' | 'failed' | string;
+  progress?: number;
   error?: { message?: string } | null;
 }
 
@@ -147,7 +149,8 @@ const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
  * 因为调用方（view/footage.ts）对每一种失败都有一句对应的游戏内台词，
  * 而 try/catch 里区分不出「key 不对」和「断网」。
  */
-export async function requestVideo(prompt: string, signal?: AbortSignal, keyframe?: string, progress?: (status: string) => void, duration:5|10=5, cameraMode:'fixed'|'elias-selfie'='fixed', continuation?:{resumeId?:string;onSubmitted?:(id:string)=>void;onTerminalFailure?:()=>void}, references:readonly VideoReference[]=[]): Promise<VideoResult> {
+export async function requestVideo(prompt: string, signal?: AbortSignal, keyframe?: string, progress?: (status: string) => void, duration:number=5, cameraMode:'fixed'|'elias-selfie'='fixed', continuation?:{resumeId?:string;onSubmitted?:(id:string)=>void;onTerminalFailure?:()=>void}, references:readonly VideoReference[]=[],kind:VideoKind='observation'): Promise<VideoResult> {
+  duration = videoDuration(kind,duration);
   prompt = lockVideoCamera(prompt,cameraMode);
   if (!VIDEO_ENABLED || isLocalNoVideoMode()) return { ok: false, fail: { kind: 'disabled' } };
 
@@ -212,7 +215,7 @@ export async function requestVideo(prompt: string, signal?: AbortSignal, keyfram
         return { ok: false, fail: { kind: 'generate', detail: await errorDetail(res) } };
       }
       job = (await res.json()) as VideoJob;
-      progress?.(job.status === 'completed' ? '生成完成 · 下载视频' : '远端生成中 · 请等待');
+      progress?.(job.status === 'completed' ? '生成完成 · 下载视频' : job.status === 'queued' ? '任务已受理 · 排队中' : '远端生成中' + (typeof job.progress==='number' && Number.isFinite(job.progress) && job.progress>=0 && job.progress<=100 ? ` · 生成进度 ${Math.floor(job.progress)}%` : ' · 请等待'));
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') throw e;
       return { ok: false, fail: { kind: 'network', detail: String(e) } };

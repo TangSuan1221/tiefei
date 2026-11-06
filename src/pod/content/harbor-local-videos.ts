@@ -8,5 +8,5 @@ export const HARBOR_LOCAL_VIDEOS:Readonly<Partial<Record<string,string>>> = Obje
 );
 export const harborLocalVideoKey=(id:string)=>'harbor-fixed:'+id+':2026-11-02';
 
-/** V01/V02 are always supplied; later supplied movies are diagnostic-only. */
-export const useHarborLocalVideo=(id:string,noVideo:boolean)=>!!HARBOR_LOCAL_VIDEOS[id]&&(noVideo||id==='L1-R28-V01'||id==='L1-R28-V02');
+/** Supplied task movies take precedence over generation in every playback mode. */
+export const useHarborLocalVideo=(id:string,_noVideo:boolean)=>!!HARBOR_LOCAL_VIDEOS[id];

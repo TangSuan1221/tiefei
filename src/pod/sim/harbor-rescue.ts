@@ -37,7 +37,7 @@ export class HarborRescue {
    // the strike clock only starts once that photograph is confirmed.
    const awaitingEntryPhoto=s.monsterInside&&!s.lureConfirmed;
    // Hull strikes and NPC encounters are separate physical outcomes.
-   if((s.warned||input.chapterOne&&s.replied)&&!s.isolated&&input.activeSonar&&!safeLure&&!awaitingEntryPhoto){s.noiseSeconds+=d;const strikes=Math.max(0,Math.floor((s.noiseSeconds-RESCUE_TIMING.noiseGrace)/RESCUE_TIMING.noiseStrike)+1);if(strikes>s.noiseStrikes){const damage=(strikes-s.noiseStrikes)*RESCUE_TIMING.damage;s.noiseStrikes=strikes;s.damageTotal+=damage;out.damage+=damage;out.events.push('怪物追着主动声纳撞击艇壳！立即关闭主动声纳电源。');}}
+   if((s.warned||input.chapterOne&&s.replied)&&!s.isolated&&input.activeSonar&&!safeLure&&!awaitingEntryPhoto){s.noiseSeconds+=d;const strikes=Math.max(0,Math.floor((s.noiseSeconds-RESCUE_TIMING.noiseGrace)/RESCUE_TIMING.noiseStrike)+1);if(strikes>s.noiseStrikes){const damage=(strikes-s.noiseStrikes)*RESCUE_TIMING.damage;s.noiseStrikes=strikes;s.damageTotal+=damage;out.damage+=damage;out.events.push('怪物追着主动声纳撞击艇壳！立即关闭主动声纳脉冲。');}}
    else {s.noiseSeconds=0;s.noiseStrikes=0;}
    if(s.departing&&!s.departed){
     // The jammed powered door remains in motion while the audible creature approaches.

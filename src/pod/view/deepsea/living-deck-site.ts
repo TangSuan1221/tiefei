@@ -1,3 +1,4 @@
+import {pendingMediaObjective} from '../../sim/tape-channel';
 import {livingStory,livingLine,partnerName} from '../../sim/living-story';
 import {validNarrative,freshNarrative,paySeed,receiveSafetyEvidence,type NarrativeMemory} from '../../sim/narrative-memory';
 import type {RescueEvidence} from '../../sim/harbor-rescue';
@@ -210,7 +211,7 @@ export class LivingDeckSite implements AuthoredSite {
  get micReady(){return true;}
  get mediaRetryable(){return this.taskPlayer.retryable;}
  retryMedia(){const line=this.taskPlayer.retry();this.feedback(line);return line;}
- private get activeNoise(){return this.run.powered&&this.run.activeSonarEnabled;}
+ private get activeNoise(){return this.run.sonarEmitting;}
  private nearItem(id:string,range=REACH){const item=ITEMS.get(id);return !!item&&this.boxBounds(id).distanceToPoint(this.position)<=range&&this.segmentClear(this.position,v3(item.position),this.boxBounds(id));}
  private diagnosticSay(text:string){
   // M opens the radio from any of the three shared cockpit screens and switches to nav.
@@ -250,7 +251,7 @@ export class LivingDeckSite implements AuthoredSite {
   if(this.ended)return END_TEXT;
   if(this.position.y>2&&livingSpaceAt(this.vec())==='S')return '抵达生活区入口井 · 先坐到驾驶台（W靠近，E就坐）\n按住 PageDown 下降至深度1040m；PageUp上升，Shift制动\n井底右前方黄色仪器匣：开探照灯，对准后靠近按 F 伸臂、再次 F 夹取，再 F 收回';
   const at=this.destination(),leg=at?this.nextDoor(at):null;
-  const task=this.localBallastStop()?'离开压载库前 · 机械臂收妥下潜配重，免得下潜前再折返':this.survey.objective;
+  const task=this.localBallastStop()?'离开压载库前 · 机械臂收妥下潜配重，免得下潜前再折返':this.survey.pending?pendingMediaObjective(this.run.tapes.find(t=>t.id==='living.task.'+this.survey.pending),hasRemotePlaylist,this.mediaRetryable):this.survey.objective;
   return (isNoVideoMode()?'【GM无视频】剧情自动推进；怪物底片在分析台按 3 诊断\n':'')+task+(at?'\n导航坐标 '+formatCoords(at,LIVING_DATUM_DEPTH):'')+(leg?'\n下一段：'+leg.name:'');
  }
  private localBallastStop(){return !this.survey.pending&&(!this.survey.helpSeen||this.survey.helpReplied)&&!this.survey.ballast&&this.survey.photos.includes(1)&&livingSpaceAt(this.vec())==='R4';}

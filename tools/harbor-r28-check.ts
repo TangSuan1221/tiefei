@@ -17,12 +17,23 @@ const beforeAsk=new HarborSimpleFlow(r);assert.ok(beforeAsk.restore(f.snapshot()
 f.say('能告诉我通行码吗',m,true,0);assert.ok(f.codeAsked);
 const afterAsk=new HarborSimpleFlow(r);assert.ok(afterAsk.restore(f.snapshot()));assert.ok(afterAsk.codeAsked);
 assert.equal(accept(),'L1-R28-V02-AUTH');assert.ok(f.credential);
-f.say('为什么出不来',m,true,0);assert.equal(accept(),'L1-R28-V02A');assert.equal(f.tick(.1),1);assert.equal(f.tick(.1),0);
+f.say('为什么出不来',m,true,0);assert.equal(accept(),'L1-R28-V02A');assert.equal(f.tick(.1),0);f.world.secondDoor=true;assert.equal(f.tick(.1),1);assert.equal(f.tick(.1),0);
 const restored=new HarborSimpleFlow(r);assert.ok(restored.restore(f.snapshot()));assert.equal(restored.tick(.1),0);
-assert.equal(f.tick(2),1);assert.equal(f.tick(2),0);assert.equal(accept(),'L1-R28-V03');assert.equal(f.pending,null);
+assert.equal(f.tick(2),1);assert.equal(f.tick(2),0);assert.equal(f.pending,null);f.say('什么撞了我的艇',m,true,0);assert.equal(accept(),'L1-R28-V03');assert.equal(f.pending,null);
 f.world.active=false;assert.equal(accept(),'L1-R28-V04');f.tick(90);assert.equal(accept(),'L1-R28-V04R');assert.equal(f.finishRepair(),false);
 f.kitStored=true;f.world.kit=true;assert.ok(f.finishRepair());r.interact('power');assert.equal(accept(),'L1-R28-V05');
-r.interact('observe');r.step(.1,{nearB:true,zone:'lure',activeSonar:true,monsterInside:true});assert.equal(accept(),'L1-R28-V06');
+r.interact('observe');f.world.inCargo=true;f.world.active=true;
+assert.match(f.objective,/等待声源越过闸口/);
+f.world.active=false;assert.match(f.objective,/声源尚未入仓/);assert.equal(f.pending,null);
+r.step(.1,{nearB:true,zone:'lure',activeSonar:true,monsterInside:true});
+f.world.active=true;assert.equal(f.pending,null);assert.match(f.objective,/停止主动声纳脉冲/);
+f.world.active=false;assert.equal(f.pending,'L1-R28-V06');
+// A call already triggered must survive power changes during generation/playback and reload.
+f.world.active=true;assert.equal(f.pending,'L1-R28-V06');
+const entryReload=new HarborSimpleFlow(r);assert.ok(entryReload.restore(f.snapshot()));entryReload.sync(f.world);
+assert.equal(entryReload.pending,'L1-R28-V06');assert.ok(entryReload.accept('L1-R28-V06'));
+assert.equal(accept(),'L1-R28-V06');f.world.active=false;assert.match(f.objective,/停稳收臂/);
+f.world.inCargo=false;
 const film=(id:string,kind:'lure'|'gate')=>{const e=r.capture(id,kind,true,undefined,0,true);r.commitCapture(e);return e;};
 const entry=film('entry','lure');assert.ok(f.entryCaptured);assert.equal(f.entryAnalyzed,false);f.world.atExit=true;assert.equal(accept(),'L1-R28-V07');
 r.interact('observe',false,true);assert.ok(r.state.isolated);r.analyze(entry);assert.ok(f.entryAnalyzed,'entry may be analyzed after safe exit and closure');r.analyze(film('gate','gate'));
@@ -46,7 +57,7 @@ for(const [id,t] of Object.entries(HARBOR_R28_TASKS)){assert.equal(t.line,t.spee
 const issues=validate(level01);assert.equal(issues.filter(i=>i.level==='error').length,0,JSON.stringify(issues));
 {
  const rescue=new HarborRescue(),flow=new HarborSimpleFlow(rescue);
- flow.world.firstDoor=true;flow.accept('L1-R28-V01');flow.identify();flow.accept('L1-R28-V02');flow.requestCode();flow.say('门怎么开',m,true,0);flow.accept('L1-R28-V02-AUTH');flow.backgroundRequested=true;flow.accept('L1-R28-V02A');flow.tick(3);flow.tick(3);
+ flow.world.firstDoor=true;flow.accept('L1-R28-V01');flow.identify();flow.accept('L1-R28-V02');flow.requestCode();flow.say('门怎么开',m,true,0);flow.accept('L1-R28-V02-AUTH');flow.backgroundRequested=true;flow.accept('L1-R28-V02A');flow.world.secondDoor=true;flow.tick(3);flow.tick(3);flow.say('什么撞了我',m,true,0);
  assert.equal(flow.pending,'L1-R28-V03');flow.world.active=false;
  assert.equal(flow.pending,'L1-R28-V03','power changes cannot replace an in-flight warning clip');
  const loaded=new HarborSimpleFlow(rescue);assert.ok(loaded.restore(flow.snapshot()));loaded.world={...flow.world};

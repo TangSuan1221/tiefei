@@ -1,29 +1,71 @@
 import * as THREE from 'three';
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { PodRun } from '../sim/run';
 
+/** Key travel (m) along the panel normal (Blender Z -> glTF Y); the cap sits 3.5 mm above its stem. */
+const TRAVEL=.0032;
 
-/** Dedicated physical coordinate console; each cap routes to the existing nav action. */
+/**
+ * Dedicated physical coordinate keypad (Blender asset `navigation-keyboard.glb`,
+ * source `tools/blender/build-navigation-keyboard.py`). Each cap routes to the existing
+ * sonar action through `userData.control`. Caps travel down on press and spring back on
+ * release; `press()` reports the stroke so the caller can voice it.
+ */
 export function buildNavigationKeyboard(scene:THREE.Scene,textures:THREE.Texture[]){
- // Match the navigation CRT's yaw so the key rows sit level in its close-up.
- const root=new THREE.Group();root.name='navigation-keyboard';root.userData.deviceSide='nav';root.position.set(-.60+Math.sin(.55)*.08,1.02,-1.43+Math.cos(.55)*.08);root.rotation.order='YXZ';root.rotation.set(-.78,.12,0);root.scale.setScalar(.88);scene.add(root);
- const metal=new THREE.MeshStandardMaterial({color:0xb4b2a0,roughness:.92,metalness:.35});
- const cap=new THREE.MeshStandardMaterial({color:0x3f443a,roughness:.87,metalness:.05});
- const box=(w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material)=>{const o=new THREE.Mesh(new RoundedBoxGeometry(w,h,d,2,.003),mat);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;root.add(o);return o;};
- box(.37,.253,.025,0,-.026,0,metal);
- const recess=new THREE.MeshStandardMaterial({color:0x121713,roughness:1});
- box(.345,.226,.005,0,-.026,.028,recess);
- box(.370,.008,.008,0,-.145,.029,metal);
- for(const x of [-.174,.174])for(const y of [-.14,.088]){const screw=new THREE.Mesh(new THREE.CylinderGeometry(.004,.004,.002,12),new THREE.MeshStandardMaterial({color:0x777669,metalness:.6,roughness:.6}));screw.rotation.x=Math.PI/2;screw.position.set(x,y,.027);root.add(screw);}
-
- // Mount entirely behind the tilted face; a horizontal shelf intersected the bottom row.
- const bracket=box(.30,.19,.018,0,-.026,-.024,metal);bracket.name='navigation-keyboard-rear-mount';
- const paint=document.createElement('canvas');paint.width=512;paint.height=512;const g=paint.getContext('2d')!;g.fillStyle='#858777';g.fillRect(0,0,512,512);let seed=981;const rnd=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};for(let i=0;i<900;i++){g.fillStyle=i%3?'rgba(22,19,13,.24)':'rgba(175,165,134,.18)';g.fillRect(rnd()*512,rnd()*512,1+rnd()*5,1+rnd()*2);}const wear=new THREE.CanvasTexture(paint);wear.colorSpace=THREE.SRGBColorSpace;textures.push(wear);metal.map=wear;metal.bumpMap=wear;metal.bumpScale=.0005;
- const label=(text:string,w:number,h:number,x:number,y:number,z:number)=>{const c=document.createElement('canvas');c.width=256;c.height=96;const ctx=c.getContext('2d')!;ctx.fillStyle='#c3baa0';ctx.font='400 52px Microsoft YaHei';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,128,48,246);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;textures.push(t);const o=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:t,transparent:true,roughness:1,emissive:0xffffff,emissiveMap:t,emissiveIntensity:.06,depthWrite:false}));o.position.set(x,y,z);o.raycast=()=>{};root.add(o);};
- const key=(id:string,text:string,x:number,y:number,w=.058)=>{const o=box(w,.045,.010,x,y+.025,.036,cap.clone());o.name=id;o.userData.control=id;o.userData.station='nav';label(text,w*.82,.030,x,y+.025,.042);return o;};
- ['1','2','3','4','5','6','7','8','9','-','0','.'].forEach((k,i)=>key('sonar.key.'+k,k,-.139+i%3*.066,.028-Math.floor(i/3)*.052));
- key('sonar.key.del','退格',.086,.028,.102);key('sonar.key.clear','清空',.086,-.024,.102);key('sonar.save','写入',.086,-.076,.102);
- key('nav.active','电源',.053,-.128,.058);key('nav.ping1','脉冲',.119,-.128,.058);
- return (_run:PodRun)=>{};
+ // Directly under the nav CRT (terminal('nav',[-.53,1.38,-1.42],.42,…) in cabin-three.ts),
+ // sharing its 0.42 rad yaw so the keypad faces the same way as the screen.
+ const yaw=.42;
+ const root=new THREE.Group();root.name='navigation-keyboard';root.userData.deviceSide='nav';
+ root.position.set(-.53+Math.sin(yaw)*.06,.905,-1.42+Math.cos(yaw)*.06);root.rotation.set(0,yaw,0);root.scale.setScalar(.88);scene.add(root);
+ type Cap={mesh:THREE.Mesh;rest:number;depth:number;target:number;material:THREE.MeshStandardMaterial;releaseAt:number};
+ const caps:Cap[]=[];
+ let down:Cap|null=null;
+ new GLTFLoader().loadAsync('/assets/deepsea/navigation-keyboard.glb').then(gltf=>{
+  const shared=new Map<THREE.Material,THREE.MeshStandardMaterial>();
+  gltf.scene.traverse(o=>{
+   if(!(o instanceof THREE.Mesh))return;
+   o.castShadow=o.receiveShadow=true;
+   const m=o.material as THREE.MeshStandardMaterial;
+   for(const t of [m.map,m.roughnessMap,m.metalnessMap,m.aoMap,m.normalMap])if(t&&!textures.includes(t))textures.push(t);
+   if(!o.userData.control){
+    // Decor-only parts must not intercept picking on the caps behind them.
+    if(!/frame|bezel|plate|stem/.test(o.name))o.raycast=()=>{};
+    return;
+   }
+   // Per-cap material so hover/press can lift one key without touching its neighbours.
+   const own=m.clone();own.emissive.setHex(0x3a2a1c);own.emissiveIntensity=0;shared.set(m,own);o.material=own;
+   o.userData.station='nav';
+   caps.push({mesh:o,rest:o.position.y,depth:0,target:0,material:own,releaseAt:0});
+  });
+  root.add(gltf.scene);root.userData.loaded=true;
+ }).catch(error=>{root.userData.loadError=String(error);console.warn('Navigation keyboard asset:',error);});
+ const capOf=(control:string)=>caps.find(c=>c.mesh.userData.control===control);
+ let last=performance.now();
+ return {
+  root,
+  /** Physical stroke for one control; returns false when no cap carries it. */
+  press(control:string,hold=true):boolean{
+   const cap=capOf(control);if(!cap)return false;
+   if(down&&down!==cap)down.target=0;
+   cap.target=1;cap.releaseAt=hold?Infinity:performance.now()+70;down=hold?cap:null;return true;
+  },
+  /** Releases the held cap; returns its control id so the release can be voiced. */
+  release():string|null{
+   const cap=down;down=null;if(!cap)return null;
+   // Hold the bottom briefly so a fast click still shows the full stroke.
+   cap.releaseAt=performance.now()+40;return cap.mesh.userData.control;
+  },
+  update(_run:PodRun,hovered?:string){
+   const now=performance.now(),dt=Math.min(.05,(now-last)/1000);last=now;
+   for(const cap of caps){
+    if(cap.target&&now>=cap.releaseAt)cap.target=0;
+    // Fast bottom-out, slightly slower spring return with a touch of overshoot.
+    const k=cap.target?1-Math.exp(-dt*90):1-Math.exp(-dt*38);
+    cap.depth+=(cap.target-cap.depth)*k;
+    if(!cap.target&&cap.depth<.002)cap.depth=0;
+    cap.mesh.position.y=cap.rest-cap.depth*TRAVEL;
+    cap.material.emissiveIntensity=hovered===cap.mesh.userData.control?.35:0;
+   }
+  },
+ };
 }
-

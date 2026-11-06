@@ -1,5 +1,5 @@
 import {Box3,PerspectiveCamera,Ray,Vector3} from 'three';
-import {CRT_FONT,PHOSPHOR,fineStroke,phosphorText} from './crt-hud';
+import {portholeFont,portholeText,PORTHOLE_INK} from './crt-hud';
 
 export interface WindowTarget {id:string;bounds:Box3;reach:number;enabled:boolean;verifiedDistance?:number;label?:string}
 export interface WindowLock {rect:[number,number,number,number];kind:'obstacle'|'target';focused:boolean;id?:string;distance?:number;label?:string}
@@ -77,32 +77,25 @@ export class WindowLocks {
    ctx.moveTo(cx+Math.cos(a-spread)*r,cy+Math.sin(a-spread)*r);ctx.arc(cx,cy,r,a-spread,a+spread);
   }
   for(const side of [-1,1]){ctx.moveTo(cx+side*12*s,cy);ctx.lineTo(cx+side*r2,cy);}
-  fineStroke(ctx,alpha,s);
+  ctx.strokeStyle=PORTHOLE_INK.text;ctx.globalAlpha=alpha;ctx.lineWidth=s;ctx.shadowColor=PORTHOLE_INK.glow;ctx.shadowBlur=5*s;ctx.stroke();ctx.globalAlpha=1;
   if(!lock){ctx.restore();return;}
-  // Name plate under the reticle: hazard-hatched strip, name, then a pale range bar.
-  const name=lock.label??'',range=`${lock.distance!.toFixed(1)} m`;
-  let nameSize=24*s;ctx.font=`${nameSize}px ${CRT_FONT.pixel}`;
-  const maxW=w*.6;let nameW=ctx.measureText(name).width;
-  if(nameW>maxW-24*s){nameSize*=(maxW-24*s)/nameW;ctx.font=`${nameSize}px ${CRT_FONT.pixel}`;nameW=ctx.measureText(name).width;}
-  const tw=Math.min(maxW,Math.max(220*s,nameW+32*s)),x=cx-tw/2;
-  let y=cy+r2+26*s;
-  const hatch=7*s;
-  ctx.save();ctx.beginPath();ctx.rect(x,y,tw,hatch);ctx.clip();
-  ctx.fillStyle='rgba(0,6,3,.7)';ctx.fillRect(x,y,tw,hatch);
-  ctx.strokeStyle=`rgba(226,236,229,${.45+.45*eased})`;ctx.lineWidth=1.6*s;ctx.beginPath();
-  // The hatch fills left to right while focus settles.
-  const fill=lock.focused?tw*eased:0;
-  for(let hx=x-hatch;hx<x+Math.max(fill,tw*.18);hx+=5*s){ctx.moveTo(hx,y+hatch);ctx.lineTo(hx+hatch,y);}
-  ctx.stroke();ctx.restore();
-  y+=hatch;
+  // Reverse-video name strip uses the same ink as the other window instruments.
+  const name=lock.label??'',range=`${lock.distance!.toFixed(1)}m`;
+  let nameSize=28*s;ctx.font=portholeFont(nameSize);
+  const maxW=w*.6,nameW=ctx.measureText(name).width;
+  if(nameW>maxW){nameSize*=maxW/nameW;ctx.font=portholeFont(nameSize);}
+  const y=cy+r2+40*s;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  const fittedNameW=ctx.measureText(name).width;
+  ctx.font=portholeFont(26*s);
+  const plateW=Math.max(fittedNameW,ctx.measureText(range).width)+28*s;
+  ctx.shadowBlur=0;
   if(name){
-   const nh=30*s;ctx.fillStyle='rgba(0,6,3,.72)';ctx.fillRect(x,y,tw,nh);
-   ctx.textAlign='center';ctx.textBaseline='middle';
-   phosphorText(ctx,name,cx,y+nh/2+s,PHOSPHOR.tagInk);y+=nh;
+   ctx.fillStyle=PORTHOLE_INK.text;
+   ctx.fillRect(cx-plateW/2,y-19*s,plateW,38*s);
+   ctx.fillStyle=PORTHOLE_INK.dark;ctx.font=portholeFont(nameSize);ctx.fillText(name,cx,y);
   }
-  const bh=24*s;ctx.fillStyle='rgba(226,236,229,.9)';ctx.fillRect(x,y+2*s,tw,bh);
-  ctx.font=`${21*s}px ${CRT_FONT.mono}`;ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillStyle='#18231c';ctx.fillText(range,cx,y+2*s+bh/2+s);
+  ctx.font=portholeFont(26*s);portholeText(ctx,range,cx,y+(name?38*s:0));
   ctx.restore();
  }
 }

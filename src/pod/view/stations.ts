@@ -832,7 +832,7 @@ function drawCamera(
     const status=shot.phase==='exposing'?`曝光中 · ${shot.exposeLeft.toFixed(1)}s`
       :shot.phase==='developing'?'冲洗中 · 可继续驾驶'
       :shot.phase==='failed'?'视频未生成 · 分析台查阅'
-      :shot.phase==='ready'?'片盒有记录 · 分析台核验'
+      :shot.phase==='ready'?''
       :run.mode==='alert'?'舱外异响 · 留意声源与推进噪声':'';
     ctx.save();ctx.shadowColor='#659d43';ctx.shadowBlur=2;
     ctx.fillStyle='#b6e889';ctx.font=cjk(Math.max(12,h*.019),500);ctx.textAlign='left';
@@ -1681,7 +1681,6 @@ function cameraDriveControls(run: PodRun): Control[] {
 
 export function stationControls(run: PodRun, id: StationId): Control[] {
   if(['nav'].includes(id))return [
-    {id:'nav.active',key:'2',label:'主动声纳电源'},
     {id:'nav.ping1',key:'3',label:run.sonarPulseEnabled?'停止脉冲':'开启脉冲'},
     {id:'sonar.analyze',key:'c',label:'分析频带'},
     {id:'sonar.play',key:'p',label:'播放录存'},
@@ -1865,7 +1864,6 @@ export function stationControls(run: PodRun, id: StationId): Control[] {
       const atCharge = site && run.volume?.nodes.find((n) => n.id === run.volumeAt)?.role === 'charge';
       return filterControls([
         { id: 'nav.ping0', key: '1', label: '被动聆听', hint: '只报方位 · 无距离' },
-        { id: 'nav.active', key: '2', label: run.activeSonarEnabled?'关闭主动声纳':'开启主动声纳', hint: run.sonarEmitting?'正在发射脉冲':'仅通电不发声', state: run.activeSonarEnabled?'danger':undefined },
         { id: 'nav.ping1', key: '3', label: run.sonarPulseEnabled?'停止脉冲':'开启脉冲', hint: run.activeSonarEnabled?'测距 · 有噪声':'先开启主动声纳', state: run.activeSonarEnabled?undefined:'disabled' },
         { id: 'nav.ping2', key: 'Q', label: '全功率', hint: run.activeSonarEnabled?'整条沟都听见':'先开启主动声纳', state: run.activeSonarEnabled?'danger':'disabled' },
         { id: 'nav.left', key: 'A', label: '航向 −5°', hint: '' },
@@ -2030,9 +2028,6 @@ export function performControl(run: PodRun, actionId: string): boolean {
       return true;
     case 'nav.ping0':
       run.ping(0);
-      return true;
-    case 'nav.active':
-      run.toggleActiveSonar();
       return true;
     case 'nav.ping1':
       run.toggleSonarPulses();

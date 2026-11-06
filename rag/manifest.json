@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "ironlung-level-metrics",
-  "revision": "2026-11-05-video-before-task",
+  "revision": "2026-11-06-prefabricated-video-first",
   "defaultRuntimeProfile": "main-authored",
   "documents": [
     {
@@ -11,6 +11,9 @@
     }
   ],
   "evidenceFiles": [
+    "tools/sonar-always-on-check.ts",
+    "tools/harbor-input-routing-check.ts",
+    "tools/comm-reconnect-check.mjs",
     "docs/helm-reference-art-2026-11-03.md",
     "src/pod/view/cabin-helm-materials.ts",
     "src/pod/view/cabin-porthole-art.ts",
@@ -247,8 +250,24 @@
     "tools/prologue-save-check.mjs",
     "tools/prologue-pointer-check.mjs",
     "tools/prologue-gear-check.mjs",
+    "src/pod/content/vance-voice.json",
+    "src/pod/view/vance-voice.ts",
+    "tools/generate-vance-voice.py",
+    "tools/vance-voice-check.mjs",
+    "docs/vance-voice-2026-11-05.md",
     "tools/story-call-spoiler-check.ts",
     "tools/story-call-neutral-browser-check.mjs",
-    "src/pod/sim/tape-channel.ts"
+    "src/pod/sim/tape-channel.ts",
+    "src/pod/content/vance-performance.json",
+    "src/pod/content/video-duration.ts",
+    "docs/video-duration-2026-11-06.md",
+    "tools/harbor-whole-call-check.mjs",
+    "tools/harbor-location-check.ts",
+    "docs/comm-layout-2026-11-06.md",
+    "tools/comm-layout-check.mjs",
+    "src/pod/view/comm-incoming.ts",
+    "tools/comm-desk-alert-check.mjs",
+    "tools/comm-receiving-check.mjs",
+    "tools/comm-early-answer-check.mjs"
   ]
 }

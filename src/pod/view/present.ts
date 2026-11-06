@@ -332,7 +332,7 @@ export class PodView {
         const fs=Math.max(16,h*.023);ctx.shadowColor='#000';ctx.shadowBlur=5;
         lines.forEach((s,i)=>ctx.fillText(s,w*.14,h*.975-(lines.length-1-i)*fs*1.45));ctx.shadowBlur=0;
       }
-      if(run.authoredSite.managesNarrative&&!(run.authoredSite.index===1&&this.cabin.zoomedDevice))drawTacticalObjective(ctx,run,w,h);
+      if(run.authoredSite.managesNarrative&&this.cabin.zoomedDevice!=='lab'&&!(run.authoredSite.index===1&&this.cabin.zoomedDevice))drawTacticalObjective(ctx,run,w,h);
       return;
     }
 

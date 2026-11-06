@@ -12,7 +12,7 @@ export const LIVING_TASKS = {
 } as const;
 export type LivingTaskId=keyof typeof LIVING_TASKS;
 export const LIVING_TASK_REFERENCE='/assets/harbor/elias-task-reference.png';
-/** Subtitles are the exact SPEECH text the model voices (VR-116). */
+/** Chinese localized subtitles preserve the source meaning; generated Elias audio is English. */
 export const livingTaskSubtitles=(id:LivingTaskId,code:string)=>subtitleLines('艾里亚斯',LIVING_TASKS[id].speech.replace('{code}',code));
 export function livingTaskLine(id:LivingTaskId,code:string){return LIVING_TASKS[id].line+(id==='L2-S06'?' 本局授权编号：'+code+'。':'');}
 export function livingTaskPrompt(id:LivingTaskId,code:string,injured=false){const t=LIVING_TASKS[id];return lockVideoCamera([
@@ -20,7 +20,7 @@ export function livingTaskPrompt(id:LivingTaskId,code:string,injured=false){cons
  'IDENTITY: Worn yellow sealed diving helmet, black drysuit, tan harness. The visor is an opaque black mirrored surface throughout every frame, never transparent or opened. No eyes, nose, mouth, skin or face can be visible, even while he speaks. Speech is helmet radio audio; do not reveal lips for lip sync. Never reveal identity or skin anomalies.',
  'LOCATION: Flooded living-deck personnel passage, human-sized infrastructure. All his travel exists only in this remote video, never a live level.',
  'ACTION: '+t.action+(injured?' Preserve minor shoulder injury, cautious arm movement.':' He is exhausted but able to move.'),
- 'SPEECH: Natural brief Mandarin: '+t.speech.replace('{code}',code.split('').join('，')),
+ 'SPEECH SOURCE (Chinese localization): Render the following meaning faithfully in natural spoken English only: '+t.speech.replace('{code}',code.split('').join('，')),
  id==='L2-S06'?'AUTHORIZATION NUMBER: '+code+'. Read these exact four digits; no different number.':'',
  'No generated subtitles. Exact coordinates, transcript and verified authorization number appear in the game interface. No unrequested creatures, cuts or third-person camera.'
  ].join('\n'),'elias-selfie');}

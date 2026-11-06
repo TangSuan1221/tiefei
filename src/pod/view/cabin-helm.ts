@@ -121,14 +121,13 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
   // patches together; keep the animated slider coordinates local to its track.
   const controlsDeck=new THREE.Group();controlsDeck.name="helm-controls-deck";
   controlsDeck.position.y=.055;panel.add(controlsDeck);
-  plate(controlsDeck, '转送', -.67, -.055, .083, .12, .028, true);
   plate(controlsDeck, '档位', -.53, -.205, .083, .10, .028, true);
   const throttle=new THREE.Group();throttle.name='helm-throttle';throttle.userData.control='helm.throttle';controlsDeck.add(throttle);
   box(throttle,.052,.355,.008,-.53,-.015,.086,metal);
   box(throttle,.024,.32,.009,-.53,-.015,.092,recess);
   for(const y of [-.18,.15])screw(throttle,-.53,y,.094);
   for(let i=0;i<13;i++)box(throttle,i%3===0?.019:.010,.002,.002,-.555,.135-i*.025,.089,metal);
-  ['0','I','II','III'].forEach((label,i)=>plate(throttle,label,-.59,-.145+i*.095,.091,.045,.024,true));
+  ['0','I','II','III'].forEach((label,i)=>plate(throttle,label,-.47,-.145+i*.095,.091,.045,.024,true));
   const slider=box(throttle,.042,.035,.025,-.53,-.015,.104,metal);
   slider.name='helm-throttle-grip';
   // Move the complete mechanism up/right; thrust animation remains local to its mount.
@@ -147,15 +146,17 @@ export function buildIndustrialHelm(scene: THREE.Scene, stick: THREE.Group, keys
   bootProfile.push(new THREE.Vector2(.022,.114));
   const boot=mesh(stickMount,new THREE.LatheGeometry(bootProfile,64),rubber,-.57,0,.102);
   boot.name='helm-stick-boot';boot.rotation.x=Math.PI/2;
-  stick.position.set(-.57, 0, .08); stick.userData.control = 'helm.stick'; stickMount.add(stick);
-  mesh(stick, new THREE.SphereGeometry(.031, 20, 12), metal, 0, 0, .082);
-  const shaftStart=new THREE.Vector3(0,0,.110),shaftEnd=new THREE.Vector3(-.0115,-.0086,.162);
+  // Pivot at the boot's narrow opening, rather than sliding the shaft through
+  // the stationary bellows. The ball joint stays seated at every input angle.
+  stick.position.set(-.57, 0, .208); stick.userData.control = 'helm.stick'; stickMount.add(stick);
+  mesh(stick, new THREE.SphereGeometry(.024, 20, 12), metal, 0, 0, 0);
+  const shaftStart=new THREE.Vector3(0,0,0),shaftEnd=new THREE.Vector3(-.0115,-.0086,.115);
   const shaftDirection=shaftEnd.clone().sub(shaftStart),shaftMid=shaftStart.clone().add(shaftEnd).multiplyScalar(.5);
   const shaft=mesh(stick,new THREE.CylinderGeometry(.014,.018,shaftDirection.length(),32),rubber,shaftMid.x,shaftMid.y,shaftMid.z);
   shaft.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),shaftDirection.normalize());
-  ring(stick,.020,.004,-.009,-.0068,.151,rubber);
-  mesh(stick,new THREE.SphereGeometry(.043,40,24),gripRubber,-.0115,-.0086,.186).name='helm-stick-grip';
-  ring(stick,.025,.002,-.009,-.0068,.151,rubber);
+  ring(stick,.020,.004,-.009,-.0068,.104,rubber);
+  mesh(stick,new THREE.SphereGeometry(.058,40,24),gripRubber,-.0115,-.0086,.149).name='helm-stick-grip';
+  ring(stick,.025,.002,-.009,-.0068,.104,rubber);
   // Flange is also a usable joystick target, without an invisible blocking hitbox.
   for (const o of stickMount.children) if (o.position.x === -.57) o.userData.control = 'helm.stick';
 

@@ -8,6 +8,7 @@ type TransmitOptions = {
   choices: readonly string[];
   prefill?: string;
   transcribing?: boolean;
+  inline?: boolean;
   onSend: (text: string) => void;
   onChoose: (index: number) => void;
   onClose: () => void;
@@ -31,6 +32,10 @@ const CSS = `
 #radio-tx .chips button:hover,#radio-tx .chips button:focus{background:#2a1f0c;border-color:#f0c477;outline:none}
 #radio-tx .hint{margin-top:10px;font-size:13px;color:#98783c;display:flex;justify-content:space-between}
 @keyframes radio-tx-blink{to{visibility:hidden}}
+#radio-tx.inline{left:5vw;bottom:7vh;transform:none;width:1px;height:1px;padding:0;border:0;box-shadow:none;opacity:.01;overflow:hidden}
+/* Keep a real editing area inside the clipped host. A zero-width content box
+   makes Chromium reset the caret to zero after insertion (reversing typing). */
+#radio-tx.inline input{width:640px;min-width:640px;direction:ltr;text-align:left}
 `;
 
 export class RadioTransmit {
@@ -41,6 +46,11 @@ export class RadioTransmit {
   private opts: TransmitOptions | null = null;
 
   get open(): boolean { return !!this.root; }
+  focus(): void { this.input?.focus({preventScroll:true}); }
+  submit():void {
+    const text=this.input?.value.replace(/\s+/g,' ').trim();if(!text)return;
+    const send=this.opts?.onSend;this.close(false);send?.(text);
+  }
 
   show(opts: TransmitOptions): void {
     this.close(false);
@@ -49,7 +59,8 @@ export class RadioTransmit {
     }
     this.opts = opts; this.dirty = false;
     const root = document.createElement('div'); root.id = 'radio-tx';
-    // Keep the native editor visible and clickable for Chinese IME and focus recovery.
+    if(opts.inline&&!opts.choices.length)root.classList.add('inline');
+    // Inline mode mirrors native editing on the CRT; retain a real input for Chinese IME.
     root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '无线电发射 · ' + opts.target);
     const header = document.createElement('header');
     const carrier = document.createElement('span'); carrier.className = 'carrier';
@@ -67,9 +78,7 @@ export class RadioTransmit {
       if (e.key === 'Escape') { e.preventDefault(); this.close(); return; }
       if (e.key !== 'Enter' || e.isComposing || e.keyCode === 229) return;
       e.preventDefault();
-      const text = input.value.replace(/\s+/g, ' ').trim();
-      if (!text) return;
-      const send = this.opts?.onSend; this.close(false); send?.(text);
+      this.submit();
     });
     input.addEventListener('keyup', (e) => e.stopPropagation());
     this.input = input; root.append(input);

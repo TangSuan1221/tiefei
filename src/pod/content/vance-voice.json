@@ -1,0 +1,22 @@
+{
+  "voice": "en-US-ChristopherNeural",
+  "playbackRate": 1.2,
+  "rate": "+0%",
+  "rates": ["+0%", "+3%", "+2%", "-4%", "+1%", "+3%", "+2%", "+0%", "+3%", "-2%", "+0%", "-3%", "-2%"],
+  "revision": "2026-11-06-dramatic",
+  "lines": [
+    "Vance here. I'm your surface controller. I'll be overseeing the dive. The tow cable's just come free. Ahead of you — the harbor maintenance corridor. Look at the nav console on your left. Log the entrance. X, eleven. Y, sixteen. Depth, one thousand and twelve meters. That third field is depth. Bigger number, deeper water.",
+    "Got the position. That's for reference — it won't steer the boat for you. Switch on your searchlight. Take a look past the bow.",
+    "Wall lights are still on. Looks like the way into the harbor is clear. Stay where you are and try the gears. Then back to one. Changing gear won't move you on its own.",
+    "Easy. Bring her forward. We're in no hurry to get inside. I need to know those thrusters still respond under pressure.",
+    "Good. Now back her up a little. You've got room out here. Past that door... you won't have much.",
+    "You've got clearance overhead. Try the vertical thrusters. No need to raise the bow.",
+    "Back down now. Same depth as before. Depth and bow pitch — two separate controls. Keep that in mind.",
+    "Bring the bow up. Sweep the light across the ceiling. Just a few degrees.",
+    "And bring the bow down. Eyes back on the passage.",
+    "Level her out. Back to the entrance depth. Don't keep pushing with the nose down — you'll hit the floor.",
+    "That pressure door ahead. That's your way in. The waypoint gets you to it; for the arm, watch the distance on the door marker. Ease off as you approach. Can't see clearly? Stop. Get your bearings first. Left and right on the stick to turn.",
+    "Hold there. Don't push the bow into the door. Put the claw on the door control. Once it's open... wait for the arm to come all the way back.",
+    "Door's open. Arm's back. Rowan... you're clear to head in. I'll be on the surface channel. Anything comes up, call me."
+  ]
+}

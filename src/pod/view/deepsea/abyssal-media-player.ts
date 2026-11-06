@@ -1,3 +1,4 @@
+import {VIDEO_DURATION_REVISION} from '../../content/video-duration';
 import {abyssalVideoAuthorized} from '../../net/abyssal-video-authorization';
 import type {AbyssalLabSite} from './abyssal-lab-site';
 import {composeAbyssMedia} from '../../content/abyssal-media';
@@ -45,14 +46,14 @@ export class AbyssalMediaPlayer {
    return;
   }
   if(this.abort.signal.aborted)this.abort=new AbortController();
-  const tape=this.site.run.selectedTape,key=tape?.cacheKey;
+  const tape=this.site.run.tapes.find(t=>t.cacheKey?.startsWith('abyss:')&&!hasRemotePlaylist(t.cacheKey)&&!this.failed.has(t.cacheKey))??this.site.run.selectedTape,key=tape?.cacheKey;
   if(tape&&!this.busy&&!this.disposed&&VIDEO_ENABLED&&abyssalVideoAuthorized()&&key?.startsWith('abyss:')&&!hasRemotePlaylist(key)&&!this.failed.has(key)){
    const ids=read()[key];
    if(ids?.length){this.busy=true;void Promise.all(ids.map(async id=>{const r=await fetchVideoContent(id,this.abort.signal);if(!r.ok)throw Error('已保存录像暂不可下载');return r.blob;})).then(blobs=>this.disposed||isNoVideoMode()?undefined:installRemotePlaylist(key,tape.legId,blobs)).catch(error=>{if(isNoVideoMode()||this.disposed)return;this.failed.set(key,String(error));this.site.run.videoStatus='已保存录像下载失败；在分析台【通讯】点击“重新接收”再试';}).finally(()=>{this.busy=false;});return;}
   }
   if(this.busy||this.disposed||!VIDEO_ENABLED||isNoVideoMode()||!abyssalVideoAuthorized())return;
   const request=this.site.pendingMedia.find(r=>r.kind==='elias'&&!this.failed.has(r.shotId));if(!request)return;
-  this.busy=true;this.activeShot=request.shotId;this.report(request.shotId,`${request.shotId} · 正在准备地点首帧`);void this.deliver(request.shotId).catch(error=>{if(isNoVideoMode()||this.disposed)return;this.failed.set(request.shotId,String(error));this.site.run.videoStatus=String(error);this.site.run.pushLog(`录像 ${request.shotId} 未完成：${String(error)}。在分析台【通讯】点击“重新接收”可继续，已完成的片段会优先复用。`,'system');}).finally(()=>{this.busy=false;this.activeShot=null;});
+  this.busy=true;this.activeShot=request.shotId;this.report(request.shotId,`${request.shotId} · 正在准备地点首帧`);void this.deliver(request.shotId).catch(error=>{if(isNoVideoMode()||this.disposed)return;this.failed.set(request.shotId,String(error));this.site.run.videoStatus=String(error);this.site.run.pushLog(`录像 ${request.shotId} 未完成：${String(error)}。在分析台【通讯】点击“重新接收”可继续，已完成的录像会优先复用。`,'system');}).finally(()=>{this.busy=false;this.activeShot=null;});
  }
  private deliverDebug(shotId:string){
   const request=this.site.pendingMedia.find(r=>r.shotId===shotId),frozen=new StoryRuntime(this.site.story.pipeline);
@@ -75,24 +76,22 @@ export class AbyssalMediaPlayer {
  private async deliver(shotId:string){
   const site=this.site,request=site.pendingMedia.find(r=>r.shotId===shotId),frozen=new StoryRuntime(site.story.pipeline);
   if(!request?.snapshot||!frozen.restore(request.snapshot))throw Error('录像缺少有效拍摄快照，请重新发送');
-  const parts=composeAbyssMedia(frozen,shotId);if(!parts.length)throw Error('缺少录像提示词 '+shotId);
-  // Freeze both performance and all first frames before starting a billable request.
-  const frames=await Promise.all(parts.map(p=>plate(p.plate)));
-  const key='abyss:'+shotId+':'+hash(JSON.stringify(parts.map((p,i)=>[p.prompt,p.cameraMode,p.plate,frames[i]])));
-  const saved=read(),ids=saved[key]??[],blobs:Blob[]=[];
-  for(let i=0;i<parts.length;i++){
-   if(this.disposed||isNoVideoMode())return;
-   if(ids[i]){this.report(shotId,`${shotId} ${i+1}/${parts.length} · 正在下载已生成片段`);const existing=await fetchVideoContent(ids[i],this.abort.signal);if(existing.ok){blobs.push(existing.blob);continue;}throw Error('已生成录像暂时无法下载；稍后重试，不重新计费');}
-   const p=parts[i];this.report(shotId,`${shotId} ${i+1}/${parts.length} · 生成中`);
-   const result=await requestVideo(p.prompt,this.abort.signal,frames[i],s=>this.report(shotId,`${shotId} ${i+1}/${parts.length} · ${s}`),p.duration,p.cameraMode);
+  const [p]=composeAbyssMedia(frozen,shotId);if(!p)throw Error('缺少录像提示词 '+shotId);
+  const frame=await plate(p.plate);
+  const key='abyss:'+shotId+':'+VIDEO_DURATION_REVISION+':'+hash(JSON.stringify([p.prompt,p.duration,p.cameraMode,p.plate,frame]));
+  const saved=read();let video:Blob;
+  if(saved[key]?.length===1){
+   const existing=await fetchVideoContent(saved[key][0],this.abort.signal);if(!existing.ok)throw Error('已生成录像暂时无法下载；稍后重试，不重新计费');video=existing.blob;
+  }else{
+   const result=await requestVideo(p.prompt,this.abort.signal,frame,s=>this.report(shotId,`${shotId} · ${s}`),p.duration,p.cameraMode,undefined,[],'story');
    if(!result.ok)throw Error(failureLine(result.fail));
-   ids[i]=result.videoId;saved[key]=ids;localStorage.setItem(STORE,JSON.stringify(saved));blobs.push(result.blob);
+   saved[key]=[result.videoId];localStorage.setItem(STORE,JSON.stringify(saved));video=result.blob;
   }
   if(this.disposed||isNoVideoMode())return;
   this.report(shotId,`${shotId} · 正在解码并校验录像`);
-  const samples=await installRemotePlaylist(key,site.run.leg.id,blobs);
+  const samples=await installRemotePlaylist(key,site.run.leg.id,[video]);
   if(this.disposed||isNoVideoMode())return;
-  site.run.receiveRemoteTape({id:'abyss.remote.'+shotId,siteName:site.story.pipeline.shots.find(s=>s.id===shotId)?.title??shotId,frames:samples,siteEvidence:{shotId,generated:true},videoResult:'video',cacheKey:key,subtitles:frozen.performance(shotId).flatMap(p=>p.hit?.dialogue?dialogueSubtitles(p.hit.dialogue):[]),note:`艾里亚斯传回${parts.length}段录像。到分析台播放并核验。`});
+  site.run.receiveRemoteTape({id:'abyss.remote.'+shotId,siteName:site.story.pipeline.shots.find(s=>s.id===shotId)?.title??shotId,frames:samples,siteEvidence:{shotId,generated:true},videoResult:'video',cacheKey:key,subtitles:frozen.performance(shotId).flatMap(p=>p.hit?.dialogue?dialogueSubtitles(p.hit.dialogue):[]),note:'艾里亚斯传回一条完整录像。到分析台播放并核验。'});
   site.deliverMedia(shotId,key);site.run.videoStatus='艾里亚斯录像已收到';
  }
  dispose(){this.disposed=true;this.abort.abort();}

@@ -57,6 +57,9 @@ export const CUES: Record<string, CueFn> = {
     return 0.08;
   },
   'ui.type': (s) => click({ ...s, detune: s.detune }, 0.85, 0.055),
+  // 导航台实体键：按下与松开分开发声，真实按键的两半
+  'key.down': (s) => keyStroke(s, true),
+  'key.up': (s) => keyStroke(s, false),
   'ui.page': (s) => hiss(s, 'highpass', 2400, 900, 0.8, 0.13, 0.16, 0.005),
   'ui.confirm-irreversible': (s) => {
     // 不可逆选项：故意难听，让手指在按下前犹豫 0.3 秒
@@ -902,6 +905,73 @@ function motorGrip(s: SynthCtx, tier: 0 | 1 | 2): number {
   return dur;
 }
 
+/**
+ * 一次机械键程的一半。
+ *
+ * 真实按键听起来不是一个「咔」，而是几件东西几毫秒内先后响：
+ *   按下 —— 簧片越过触点的脆响（3–6 kHz，2 ms）→ 键帽撞底的闷击（键帽与开关座的
+ *          低频共振，200–900 Hz）→ 金属面板被敲一下的短暂余振。
+ *   松开 —— 弹簧把键帽顶回上限位：更轻、更高、更短，常带一次细小的回弹。
+ * 宽键（detune < 0）多一根平衡杆：撞底更沉，带一点钢丝的沙沙抖动。
+ * 每次都随机抖动时差与共振频率，连按十下不会是同一个采样。
+ */
+function keyStroke(s: SynthCtx, down: boolean): number {
+  const { ctx, t, rng } = s;
+  const wide = s.detune < 0;
+  const out = gainNode(ctx, s.gain);
+  const p = panner(ctx, s.pan);
+  out.connect(p);
+  p.connect(s.dest);
+  p.connect(s.send);
+  const noise = getScratchNoise(ctx);
+  const burst = (at: number, type: BiquadFilterType, freq: number, q: number, peak: number, decay: number) => {
+    const nz = noiseSource(ctx, noise, rng.float(0.9, 1.15));
+    const f = filt(ctx, type, freq, q);
+    const g = gainNode(ctx, 0);
+    hit(g.gain, at, peak, decay, 0.0006);
+    nz.connect(f).connect(g).connect(out);
+    const offset = rng.float(0, 1.6);
+    nz.start(at, offset);
+    nz.stop(at + decay + 0.05);
+  };
+  const mode = (at: number, freq: number, peak: number, decay: number) => {
+    const o = osc(ctx, 'sine', freq);
+    const g = gainNode(ctx, 0);
+    hit(g.gain, at, peak, decay, 0.0008);
+    o.connect(g).connect(out);
+    o.start(at);
+    o.stop(at + decay + 0.05);
+  };
+  const j = () => rng.float(0.93, 1.07);
+  if (down) {
+    // 簧片脆响
+    burst(t, 'bandpass', 4600 * j(), 1.6, 0.42, 0.006);
+    burst(t + 0.0012, 'highpass', 7000, 0.7, 0.12, 0.004);
+    // 键程 ~3 mm，撞底在 7–11 ms 后
+    const bottom = t + rng.float(0.007, 0.011) + (wide ? 0.003 : 0);
+    burst(bottom, 'lowpass', (wide ? 1500 : 2100) * j(), 0.8, wide ? 0.62 : 0.5, wide ? 0.03 : 0.022);
+    burst(bottom, 'bandpass', (wide ? 380 : 520) * j(), 6, 0.55, wide ? 0.06 : 0.045);
+    mode(bottom, (wide ? 240 : 310) * j(), wide ? 0.3 : 0.22, wide ? 0.07 : 0.05);
+    burst(bottom + 0.0006, 'bandpass', 1250 * j(), 9, 0.22, 0.03);
+    // 铸件面板的短促余振（非谐分音，极轻）
+    for (const r of [1, 1.62, 2.43]) mode(bottom, 1880 * r * j(), 0.025 / r, 0.09 / r);
+    if (wide) burst(bottom + 0.004, 'bandpass', 3200 * j(), 3, 0.07, 0.035);
+    cleanup(ctx, out, bottom + 0.4);
+    return bottom - t + 0.1;
+  }
+  // 弹簧回弹：键帽撞上限位
+  const top = t + rng.float(0.004, 0.007);
+  burst(t, 'bandpass', 3800 * j(), 1.4, 0.12, 0.004);
+  burst(top, 'bandpass', (wide ? 900 : 1150) * j(), 4, 0.3, 0.02);
+  burst(top, 'highpass', 2600 * j(), 0.8, 0.16, 0.008);
+  mode(top, (wide ? 520 : 640) * j(), 0.08, 0.025);
+  // 细小回弹
+  burst(top + rng.float(0.012, 0.018), 'bandpass', 1500 * j(), 3, 0.06, 0.01);
+  if (wide) burst(top + 0.003, 'bandpass', 3400 * j(), 3, 0.05, 0.03);
+  cleanup(ctx, out, top + 0.35);
+  return top - t + 0.05;
+}
+
 /** 供美术圣经与评审使用的元数据表 */
 export const CUE_META: readonly CueMeta[] = [
   { id: 'ui.hover', cn: '界面掠过', synth: '带通噪声瞬态', category: 'ui' },
@@ -910,6 +980,8 @@ export const CUE_META: readonly CueMeta[] = [
   { id: 'ui.error', cn: '界面拒绝', synth: '双段低方波', category: 'ui' },
   { id: 'ui.toggle', cn: '拨动开关', synth: '双瞬态咔哒', category: 'ui' },
   { id: 'ui.type', cn: '逐字打印', synth: '高频瞬态', category: 'ui' },
+  { id: 'key.down', cn: '实体键按下', synth: '簧片带通瞬态 + 撞底低通噪声与键帽共振 + 面板非谐余振', category: 'ui' },
+  { id: 'key.up', cn: '实体键松开', synth: '弹簧回弹上限位：中频共振短击 + 细小回弹', category: 'ui' },
   { id: 'ui.page', cn: '翻页', synth: '高通噪声扫描', category: 'ui' },
   { id: 'ui.confirm-irreversible', cn: '不可逆确认', synth: '下行锯齿 + 非谐钟', category: 'ui' },
   { id: 'sonar.passive', cn: '被动聆听', synth: '窄带噪声缓入缓出', category: 'sonar' },

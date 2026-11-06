@@ -2,14 +2,14 @@
   "result": {
     "animated": true,
     "video": [
-      1920,
-      1080,
-      15.072
+      1280,
+      720,
+      9.874621
     ],
     "pausedStable": true,
-    "litFraction": 0.8894787379972565,
-    "cutMax": 2,
-    "meanMs": 0.12333333492279053
+    "litFraction": 0.7824279835390946,
+    "cutMax": 1,
+    "meanMs": 0.02666666656732559
   },
   "errors": []
 }

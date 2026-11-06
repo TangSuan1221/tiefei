@@ -1,0 +1,14 @@
+{
+  "result": {
+    "waiting": true,
+    "animated": true,
+    "waitsForMedia": true,
+    "realProgress": true,
+    "unknownProgress": true
+  },
+  "continuation": {
+    "resumed": true,
+    "noEarlyEvidence": true,
+    "hangupNeedsAnswer": true
+  }
+}

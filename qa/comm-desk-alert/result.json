@@ -1,0 +1,8 @@
+{
+  "localOnly": true,
+  "onlyAnswer": true,
+  "cannotDismiss": true,
+  "cannotSwitch": true,
+  "hitMatches": true,
+  "restored": true
+}

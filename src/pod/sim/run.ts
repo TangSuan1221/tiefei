@@ -1,4 +1,5 @@
 import { isVideoCall } from './tape-channel';
+import {HARBOR_REFERENCE_REVISION} from '../content/harbor-video-references';
 import {isHarborOpening,harborOpeningFinished} from './harbor-opening';
 import {videoPolicy,videoContextKey,type VideoContext} from '../content/video-policy';
 import {freshNarrative} from './narrative-memory';
@@ -488,7 +489,8 @@ export interface ShotRuntime {
  */
 export interface FootageRequest {
   harborCreatureReference?:boolean;
-  duration?:5|10;
+  duration?:number;
+  kind?:'observation'|'story';
   allowed?:boolean;
   prefetch?:boolean;
   keyframe?: string;
@@ -714,15 +716,16 @@ export class PodRun {
 
   // --- 噪音 ---------------------------------------------------------------
   noise = 0.05;
-  /** 主动声纳换能器总电源。被动阵列不依赖它。 */
-  activeSonarEnabled = false;
+  /** 声纳电源常开；保留写入入口兼容旧存档，旧关电状态不再生效。 */
+  get activeSonarEnabled(){return true;}
+  set activeSonarEnabled(_value:boolean){}
   sonarPulseEnabled = false;
   private sonarPulseLeft = 0;
   get sonarEmitting(){return this.powered && this.activeSonarEnabled && (this.sonarPulseEnabled || this.sonarPulseLeft > 0);}
   stopSonarPulses(){this.sonarPulseEnabled=false;this.sonarPulseLeft=0;}
   toggleSonarPulses(){
     if(this.sonarPulseEnabled){this.stopSonarPulses();this.pushLog('脉冲已停止，声纳保持通电。','system');return;}
-    if(!this.powered || !this.activeSonarEnabled){this.pushLog('先开启声纳电源，再开启脉冲。','system');return;}
+    if(!this.powered || !this.activeSonarEnabled){this.pushLog('艇载供电不足，无法开启脉冲。','system');return;}
     this.sonarPulseEnabled=true;this.ping(1);
   }
 
@@ -928,7 +931,7 @@ export class PodRun {
   private videoWarmBusy=false;
   private videoWarmAttempted=new Set<string>();
   private videoPose(){const p=this.authoredSite?.position;return [p?.x,p?.y,p?.z,this.heading,this.pitch,this.camPan,this.camTilt,this.camZoom,this.lit];}
-  private videoKey(c:VideoContext){return 'authored-video-v3:'+videoContextKey(c,this.videoPose());}
+  private videoKey(c:VideoContext){return 'authored-video-v3:'+videoContextKey(c,this.videoPose())+(this.authoredSite?.index===0&&c.monsters.length?':'+HARBOR_REFERENCE_REVISION:'');}
   private warmStoryVideo(dt:number){
     if(this.prologue?.active)return;
     this.videoWarmPoll+=dt;if(this.videoWarmPoll<.5)return;dt=this.videoWarmPoll;this.videoWarmPoll=0;
@@ -944,7 +947,7 @@ export class PodRun {
     let keyframe:string|undefined;try{keyframe=this.captureKeyframe?.();}catch{return;}if(!keyframe)return;
     this.videoWarmAttempted.add(branch);this.videoWarmBusy=true;
     const prompt=buildFootagePrompt({...this.captureFootage('identify'),videoContext:c});
-    this.footageSink({cacheKey:key,legId:this.leg.id,keyframe,prompt,fallbackPrompt:prompt,duration:10,allowed:true,prefetch:true,token:-1,settle:()=>{this.videoWarmBusy=false;}});
+    this.footageSink({cacheKey:key,legId:this.leg.id,keyframe,prompt,fallbackPrompt:prompt,...videoPolicy(c),harborCreatureReference:this.authoredSite?.index===0&&!!c.monsters.length,prefetch:true,token:-1,settle:()=>{this.videoWarmBusy=false;}});
   }
   videoStatus = '本地底片 · 未连接视频服务';
   /** View-owned synchronous shutter snapshot; no DOM dependency in simulation. */
@@ -1782,11 +1785,6 @@ export class PodRun {
       this.onCue?.('ui.error', 0.6);
       return;
     }
-    if (power > 0 && !this.activeSonarEnabled) {
-      this.pushLog('主动声纳尚未通电。先打开换能器电源。', 'system');
-      this.onCue?.('ui.error', 0.6);
-      return;
-    }
     const cost = periodic ? .3 : [2, 4, 6][power];
     if(this.legIndex===0 && power>0) this.openingScanned=true;
     const noise = [0.04, 0.42, 0.95][power];
@@ -1809,23 +1807,8 @@ export class PodRun {
     }
   }
 
-  toggleActiveSonar(): void {
-    if (!this.powered && !this.activeSonarEnabled) {
-      this.pushLog('没有电。主动声纳换能器无法启动。', 'bad');
-      this.onCue?.('ui.error', 0.6);
-      return;
-    }
-    this.activeSonarEnabled = !this.activeSonarEnabled;
-    this.onCue?.('ui.toggle', 0.65);
-    if (this.activeSonarEnabled) {
-      this.power = clamp01(this.power - 0.006);
-
-      this.pushLog('主动声纳已通电，持续发声，可能吸引生物。脉冲更新地形和距离；需要静默时关闭声纳电源，被动监听仍可用。', 'bad');
-    } else {
-      this.stopSonarPulses();
-      this.pushLog('主动声纳已断电。被动阵列仍在监听。', 'system');
-    }
-  }
+  /** Compatibility only: sonar power is permanently enabled. */
+  toggleActiveSonar(): void {}
 
   /**
    * 站点的阴影地图。

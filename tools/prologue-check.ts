@@ -7,6 +7,18 @@ import {createExpeditionWorld} from '../src/pod/view/deepsea/expedition-world';
 import {harborHullClear} from '../src/pod/sim/harbor-navigation';
 const p=new Prologue();
 const s:PrologueSample={target:null,lamp:false,gear:0,speed:0,x:11,y:0,z:-36,pitch:0,pitchRate:0,verticalSpeed:0,doorReach:false,doorOpen:false,armStowed:true};
+// User's screenshot: nearly level, stopped, but half a metre below target used to be rejected.
+for(const pose of [{pitch:-.3,y:-.5,pitchRate:0,verticalSpeed:0},{pitch:3,y:1,pitchRate:.6,verticalSpeed:.12},{pitch:-3,y:-1,pitchRate:-.6,verticalSpeed:-.12}]){
+ const teaching=new Prologue();teaching.step=9;
+ const sample={...s,...pose},before={...sample};
+ assert(teaching.tick(.05,sample),'roughly level and within one metre should pass');
+ assert.equal(teaching.step,10);assert.deepEqual(sample,before,'teaching must not snap the physical pose');
+}
+for(const pose of [{pitch:3.1},{y:1.1},{y:-1.1},{pitchRate:1.1},{verticalSpeed:.21}]){
+ const teaching=new Prologue();teaching.step=9;
+ assert(!teaching.tick(.05,{...s,...pose}),'still reject wrong depth, tilt or active movement');
+ assert.equal(teaching.step,9);
+}
 const tick=()=>p.tick(.05,s);
 for(let i=0;i<1000;i++)tick();assert.equal(p.step,0,'waiting cannot complete input');
 s.target=[11,16,1012];tick();assert.equal(p.step,0,'screen values are not world coordinates');

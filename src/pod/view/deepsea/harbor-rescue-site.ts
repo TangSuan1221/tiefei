@@ -1,9 +1,11 @@
+import {pendingMediaObjective} from '../../sim/tape-channel';
 import {Prologue} from '../../sim/prologue';
+import {VanceVoice} from '../vance-voice';
 import {useHarborLocalVideo} from '../../content/harbor-local-videos';
 import {showHarborDoorPanel} from './harbor-door-panel';
 import {HARBOR_DOOR_CODE} from '../../content/harbor-door-code';
 import {isHarborOpening,harborOpeningFinished,isHarborTaskMedia} from '../../sim/harbor-opening';
-import {labPlaybackRunning} from '../footage';
+import {hasRemotePlaylist,labPlaybackRunning} from '../footage';
 import {isNoVideoMode} from '../gm';
 import {HarborSimpleFlow} from '../../sim/harbor-simple-flow';
 import {HarborTaskPlayer} from './harbor-task-player';
@@ -101,11 +103,10 @@ export class HarborRescueSite implements AuthoredSite {
  }
  private prologueAnnounced=-1;
  /** Vance's line stays on screen while it is voiced; the instruction overlay waits for storyCaptionLeft to run out. */
- private prologueVoice:SpeechSynthesisUtterance|null=null;private prologueHold=0;
+ private prologueVoice=new VanceVoice();
  private tickPrologue(dt:number){
+  if(this.prologueVoice.tick(dt,isAudioMuted()))this.run.storyCaptionLeft=Math.max(this.run.storyCaptionLeft,.6);
   const p=this.run.prologue;if(!p?.active)return false;
-  this.prologueHold=Math.max(0,this.prologueHold-dt);
-  if(this.prologueVoice&&this.prologueHold>0)this.run.storyCaptionLeft=Math.max(this.run.storyCaptionLeft,.6);
   const hit=this.aimedInterface();
   p.tick(dt,{target:sonarDeskState(this.run).target,lamp:this.run.lit,gear:this.run.throttle,gearSettled:!this.run.throttleDragging,speed:this.run.pilot.speed,
    x:this.position.x,y:this.position.y,z:this.position.z,pitch:this.run.pitch,pitchRate:this.run.pilot.pitchRate,verticalSpeed:this.run.pilot.verticalSpeed,
@@ -114,11 +115,10 @@ export class HarborRescueSite implements AuthoredSite {
   if(p.step!==this.prologueAnnounced){
    this.prologueAnnounced=p.step;
    const line=p.active?'万斯：'+p.beat[2]:'万斯：门开了，机械臂已收妥。罗温，继续进港。我留在陆地频道，有情况随时联系。';
-   // Reading time when silent; speech can extend it until the utterance ends, capped in case the browser never reports the end.
+   // Chinese reading time when silent; the English recording extends it until playback ends.
    const read=Math.max(3,line.length*.14+1.2);
-   this.run.storyCaption=line;this.run.storyCaptionLeft=p.active?read:20;this.prologueHold=read+8;this.prologueVoice=null;this.run.pushLog(line,'system');
-   if(!isAudioMuted()&&typeof window!=='undefined'&&'speechSynthesis' in window){window.speechSynthesis.cancel();const voice=new SpeechSynthesisUtterance(line);voice.lang='zh-CN';
-    voice.onend=voice.onerror=()=>{if(this.prologueVoice===voice)this.prologueVoice=null;};this.prologueVoice=voice;window.speechSynthesis.speak(voice);}
+   this.run.storyCaption=line;this.run.storyCaptionLeft=p.active?read:20;this.prologueVoice.stop();this.run.pushLog(line,'system');
+   if(!isAudioMuted())this.prologueVoice.play(p.step);
   }
   this.navigationConsole.tick(dt);this.syncVisual();
   return true;
@@ -212,7 +212,23 @@ export class HarborRescueSite implements AuthoredSite {
  radioSay(text:string,tag?:string){
   if(this.simplified&&/^诊断(?:核验任务|分析底片)$/.test(text.trim()))return this.diagnosticSay(text.trim());
   if(this.debugNoVideo&&!isNoVideoMode()){this.feedback('此局含GM诊断进度：请恢复无视频模式，或新开正式游戏。');return false;}
-  if(this.simplified){if(/^\s*(重试录像|retry)\s*$/i.test(text))this.feedback(this.taskPlayer.retry());else {const lines=this.simpleFlow.say(text,this.run.narrativeMemory,this.activeNoise,this.elapsed);if(!lines.length)return false;for(const line of lines)this.navigationConsole.recordDialogue(line);this.feedback(lines.join('\n'));}return true;}
+  if(this.simplified){
+   if(/^\s*(重试录像|retry)\s*$/i.test(text))this.feedback(this.taskPlayer.retry());
+   else {
+    const result=this.simpleFlow.routeSay(text,this.run.narrativeMemory,this.activeNoise,this.elapsed);
+    if(result.route==='empty')return false;
+    // NPC speech belongs to the generated call and its playback subtitles.
+    // Never reveal it in feedback or navigation history while media is pending.
+    const visibleLines=result.lines.slice(0,1);
+    for(const line of visibleLines)this.navigationConsole.recordDialogue(line);
+    this.feedback(visibleLines.join('\n'));
+    if(result.route==='reply'){
+     const response=result.lines.slice(1).map(line=>line.replace(/^[^：]+：/,'')).join('');
+     this.taskPlayer.queueReply(response,this.simpleFlow.accepted.at(-1)??'L1-R28-V01',this.rescue.state.injured);
+    }
+   }
+   return true;
+  }
   text=text.replace(/\s+/g,' ').trim().slice(0,80);if(text&&!/[。！？…，,.!?—~）)]$/.test(text))text+=/(吗|呢|什么|哪|怎么|多久|谁|为什么|几)$/.test(text)?'？':'。';const id=this.micWindow;
   if(!id){this.feedback('频道里只有底噪，没有人回答。');return false;}
   if(this.narrativeSay(text,id))return true;
@@ -231,7 +247,7 @@ export class HarborRescueSite implements AuthoredSite {
   if(this.dialogue.stage==='intro'&&!s.replied){this.rescue.reply();this.navigationConsole.replied=true;}
   return true;
  }
- get objective(){if(this.debugNoVideo&&!isNoVideoMode())return 'GM诊断进度已暂停 · 恢复无视频模式或新开正式游戏';if(this.simplified)return (isNoVideoMode()?'【GM无视频 · 非正式存档】有预制片需观看，无成片任务文字推进；怪物底片在分析台按 3 诊断 · ':'')+this.simpleFlow.objective;const s=this.rescue.state;if(s.failed)return '救援失败 · 读取检查点';if(s.complete)return '救援完成 · 坐在操作台按 B 下潜到-1层';
+ get objective(){if(this.debugNoVideo&&!isNoVideoMode())return 'GM诊断进度已暂停 · 恢复无视频模式或新开正式游戏';if(this.simplified)return (isNoVideoMode()?'【GM无视频 · 非正式存档】有预制片需观看，无成片任务文字推进；怪物底片在分析台按 3 诊断 · ':'')+(this.simpleFlow.pending?pendingMediaObjective(this.run.tapes.find(t=>t.id==='harbor.task.'+this.simpleFlow.pending),hasRemotePlaylist,this.mediaRetryable):this.simpleFlow.objective);const s=this.rescue.state;if(s.failed)return '救援失败 · 读取检查点';if(s.complete)return '救援完成 · 坐在操作台按 B 下潜到-1层';
   if(this.run.power<.25&&this.zone()!=='power')return `电量低（${Math.round(this.run.power*100)}%）· 先回02配电箱，驶入3米内自动充电`+this.powerGuide();
   if(s.powered&&!s.gateOpen&&!s.isolated&&['lureBrief','lure','closeBrief','close'].includes(this.dialogue.stage))return '货仓闸门已落下 · 回桥头01面板按F重新开闸，再驶入03货舱'+this.guide(new T.Vector3(...L.observe),'01面板');
   if(this.dialogue.stage!=='contact')return this.dialogue.objective;if(this.dialogue.busy)return '';if(s.heard)return '按住 M 键说话（或在输入框打字），回应艾里亚斯';if(s.signal)return '驶近求救载波，接收机自动收听';return this.entryReached?'穿过维修湾，沿通道驶向主港'+this.doorGuide():`输入万斯坐标 ${formatCoords([11,0,16])}，手动抵达A压力闸前`;}
@@ -239,6 +255,7 @@ export class HarborRescueSite implements AuthoredSite {
  get pulseCostScale(){return this.rescue.state.powered?1:1/3;}
  get dialogueChoices(){if(this.simplified&&!this.simpleFlow.legacy)return this.simpleFlow.awaitingReport?['我已经确认关好了，可以走','请先等我核对']:[...(this.simpleFlow.accepted.includes('L1-R28-V02')?['你失联很久了，总部不知道你的情况，就派了我下来。']:[]),...(this.simpleFlow.warningSeen?['为什么要关闭主动声纳？']:[])];if(this.simplified)return this.simpleFlow.awaitingReport?(this.rescue.state.isolated?['关住了，可以走','先别走，我再核对一下']:['还没关住，先等','我不确定，等我再拍一次']):['你好，收到','主动声纳怎么关？','我会救你','重试录像'];return this.suggestions.map(x=>x.text);}
  chooseDialogue(index:number){if(this.simplified){const text=this.dialogueChoices[index];return !!text&&this.radioSay(text);}const pick=this.suggestions[index];return !!pick&&this.radioSay(pick.text,pick.tag);}
+ get cargoManifest(){return this.simpleFlow.kitStored?[{name:this.simpleFlow.repairCompleted?'维修工具（已完成维修）':'维修工具',quantity:1}]:[];}
  get harborActions(){return this.simplified&&!this.simpleFlow.legacy;}
  get mediaRetryable(){return this.simplified&&!!this.taskPlayer?.retryable;}
  retryMedia(){const line=this.taskPlayer.retry();this.feedback(line);return line;}
@@ -250,6 +267,7 @@ export class HarborRescueSite implements AuthoredSite {
   if(action==='hold'){this.rescue.stopDeparture();this.simpleFlow.reportAnswered=false;this.feedback('已通知艾里亚斯留在门后等待');return true;}
   if(action==='report'){this.feedback(this.simpleFlow.reportEvidence()?'核验结果片已推送 · 艾里亚斯开始通过人员通道':'请先完成当前隔离结果与入仓录像核验，再推送');return true;}
   if(action==='repair'){
+   if(this.simpleFlow.repairCompleted)return false;
    if(this.run.arm.phase!=='stowed'||Math.abs(this.run.pilot.speed)>.05){this.feedback('先停稳并收回机械臂');return true;}
    this.simpleFlow.world.kit=this.simpleFlow.kitStored;
    if(!this.simpleFlow.finishRepair()){this.feedback('先到02岸电恢复台取出维修工具并收妥');return true;}
@@ -286,7 +304,7 @@ export class HarborRescueSite implements AuthoredSite {
   return ` · ${label}在${side}${Math.hypot(dx,dz).toFixed(0)}米（航向${bearing.toFixed(0)}°）`;
  }
  private queue(...text:string[]){for(const line of text)this.dialogue.enqueue(line);}
- private feedback(text:string){if(this.simplified)text=text.replace(/先停止脉冲|立即停止脉冲|停止脉冲|停发主动脉冲/g,'关闭主动声纳电源').replace('屏幕可保持通电','被动声纳仍常开');this.run.pushLog(text,'system');if(this.dialogue.busy)return;this.run.storyCaption=text;this.run.storyCaptionLeft=Math.max(4,Math.min(12,text.length*.13));}
+ private feedback(text:string){this.run.pushLog(text,'system');if(this.dialogue.busy)return;this.run.storyCaption=text;this.run.storyCaptionLeft=Math.max(4,Math.min(12,text.length*.13));}
  private windowLocks=new WindowLocks();
  resetWindowFocus(){this.windowLocks.reset();}
  drawWindowLocks(ctx:CanvasRenderingContext2D,w:number,h:number){
@@ -353,7 +371,7 @@ export class HarborRescueSite implements AuthoredSite {
   if(this.tickPrologue(dt))return;
   if(!this.simplified&&!this.started){this.started=true;this.queue('（导航资料附带一段旧留言。）','生活区值班员周岑：这里是生活区值班室。隔离门保持关闭，后来的人请先核对管线记录。','万斯：坐标发你了，在导航台上。过气闸走维修湾那条缝——全队只有你的艇挤得进去。','万斯：缝里开声纳，不然你会亲那面墙。过了门就关——你那块电池的检修单是我签的。……签的时候我没见过电池。岸电在里面。慢点开，罗温。我盯着你的点。');}
   if(!this.simplified&&!this.entryReached&&this.navigationConsole.target&&this.navigationConsole.target.every((v,i)=>Math.abs(v-[11,0,16][i])<.1)&&this.position.distanceTo(new T.Vector3(11,0,16))<=3){this.entryReached=true;this.feedback('万斯：门就在你正前方。门框应力计三天前报过一次撞击。……不是水压。别停，慢慢靠。');}
-  if(this.run.power<.1&&this.run.activeSonarEnabled&&!this.rescue.state.powered){this.run.toggleActiveSonar();this.feedback('低压保护：主动声纳自动断电，余电留给推进。被动声纳照常。'+this.powerGuide().slice(3));}
+  if(this.run.power<.1&&this.run.sonarPulseEnabled&&!this.rescue.state.powered){this.run.stopSonarPulses();this.feedback('低压保护：主动声纳自动停止脉冲，余电留给推进。被动声纳照常。'+this.powerGuide().slice(3));}
   if(this.zone()==='power'&&this.run.power<.95&&!this.run.blackout){this.run.power=1;this.feedback('岸电接上：艇载电池充满。');}
   if(this.run.power<.03&&!this.run.blackout&&this.elapsed-this.reserveAt>30){this.reserveAt=this.elapsed;this.run.power=.15;this.run.onCue?.('ui.error',.6);
    this.feedback('应急储备接入：仪表和推进保住了，余电只够开回02配电箱。'+this.powerGuide().slice(3));}
@@ -398,7 +416,7 @@ export class HarborRescueSite implements AuthoredSite {
   if(this.simpleFlow.tick(dt,this.taskPlayer.waiting||!!this.simpleFlow.pending&&labPlaybackRunning(this.run))){
    if(this.simpleFlow.impactCount===1)this.pursuit.wake(this.position,this.run.heading);
    this.run.hull=Math.min(this.run.hull,this.simpleFlow.impactCount===1?.75:.5);this.run.onShake?.(.85);this.run.onCue?.('hull.crack',.9);
-   this.feedback(this.simpleFlow.impactCount===1?'艇壳受到猛烈撞击！':'第二次撞击！艇体受损，完整度50%');
+   this.feedback('罗温：有东西猛烈撞击潜艇……是什么？');
   }
   const firstTick=!this.started;if(firstTick)this.started=true;
   if(this.position.x>34&&this.position.z>20&&this.simpleFlow.takeImpact()){this.pursuit.wake(this.position,this.run.heading);this.run.onShake?.(.85);this.run.onCue?.('hull.crack',.9);this.feedback('（艇壳猛地一震，扶手撞上罗温的手腕。）罗温：什么东西撞上来了！');}
@@ -493,7 +511,7 @@ export class HarborRescueSite implements AuthoredSite {
  }
  armEvent(kind:'grip'|'stowed',id?:string){
   if(!this.facilityArm)return this.base.armEvent(kind,id);
-  if(kind==='stowed'){if(this.kitPending){this.kitPending=false;this.simpleFlow.kitStored=true;this.feedback('维修工具已收妥 · 到分析台通讯页执行修复铁鲸');}this.facilityArm=null;this.base.setExternalArmAnchor(null);return true;}
+  if(kind==='stowed'){if(this.kitPending){this.kitPending=false;this.simpleFlow.kitStored=true;this.feedback('维修工具已收妥 · 按3打开分析台 → 仓库 → 使用维修工具');}this.facilityArm=null;this.base.setExternalArmAnchor(null);return true;}
   if(id!=='harbor.facility.operation')return false;
   if(this.facilityArm.done)return true;
   this.aimedCache=null;const hit=this.aimedInterface();
@@ -630,7 +648,7 @@ export class HarborRescueSite implements AuthoredSite {
   if(!recording){this.liveFrameKey=key;this.liveFrameRevision=this.aimVisualRevision;queueMicrotask(()=>{this.liveFrameKey='';});}
  }
  private trackedThreat=false;
- private get activeNoise(){return this.simplified?this.run.powered&&this.run.activeSonarEnabled:this.run.sonarEmitting;}
+ private get activeNoise(){return this.run.sonarEmitting;}
  private detectedThreatDistance(){
   if(this.simplified){const target=this.pursuit.position,d=target.distanceTo(this.position);if(!this.pursuit.awake||!this.activeNoise||d>24||d<.1)return null;const ray=new T.Ray(this.position,target.clone().sub(this.position).normalize());return this.solids().some(b=>{if(b.containsPoint(target))return false;const hit=ray.intersectBox(b,new T.Vector3());return hit&&hit.distanceTo(this.position)<d-.2;})?null:d;}
   if(!this.rescue.state.warned||this.rescue.state.failed){this.trackedThreat=false;return null;}
@@ -679,5 +697,5 @@ export class HarborRescueSite implements AuthoredSite {
   }
   this.ambienceLeft=Number.isFinite(s.ambienceLeft)?Math.max(0,s.ambienceLeft):4;this.ambienceBeat=Number.isInteger(s.ambienceBeat)?Math.max(0,s.ambienceBeat):0;
   this.run.storyCaption=this.dialogue.currentLine;this.run.storyCaptionLeft=this.dialogue.currentSeconds;this.started=true;this.pursuit.awake=!this.simplified||this.simpleFlow.impactPlayed;this.syncVisual();return true;}
- dispose(){this.run.prologue=null;this.closeDoorPanel?.();this.taskPlayer.dispose();if(typeof window!=='undefined'&&'speechSynthesis'in window)window.speechSynthesis.cancel();this.visual.dispose();this.base.dispose();this.materials.dispose();this.referenceMaterials.dispose();}
+ dispose(){this.prologueVoice.stop();this.run.prologue=null;this.closeDoorPanel?.();this.taskPlayer.dispose();if(typeof window!=='undefined'&&'speechSynthesis'in window)window.speechSynthesis.cancel();this.visual.dispose();this.base.dispose();this.materials.dispose();this.referenceMaterials.dispose();}
 }

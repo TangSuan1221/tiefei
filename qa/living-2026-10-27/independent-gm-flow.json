@@ -22,19 +22,18 @@
         "complete": false,
         "photos": [],
         "accepted": [
-          "L2-S01",
           "L2-S02"
         ],
         "captures": [],
         "analyzed": [],
-        "elapsed": 14.800199999999938,
+        "elapsed": 14.883399999999947,
         "closedAt": null,
         "nudged": false,
-        "pickupNudged": false,
+        "called": false,
         "trust": 0,
         "rewarded": [],
         "pendingCapture": null,
-        "code": "5311",
+        "code": "2669",
         "version": 1
       },
       "pos": [
@@ -42,7 +41,7 @@
         0,
         9.378679656440358
       ],
-      "feedback": "【GM诊断 · 非真实录像 · 禁写正式存档】收到了，镜头还好。公司把下潜权限绑在调查影像上。你查机修间01，X53、Y24；压载库02，X108、Y26；中庭03，X166、Y60，都是1040米附近。我查人员侧第四处。被动声纳一有靠近的动静，先找稳得住的机位，开灯拍下来，在分析台确认公司收件。漏一处，下面的门就不开。修补材料在机修间，配重在压载库，顺路取。别为了交差把艇撞穿。",
+      "feedback": "【GM无视频 · 非真实录像 · 禁写正式存档】艾里亚斯：收到了，镜头还好。公司把下潜权限绑在调查影像上。你查机修间01，X53、Y24；压载库02，X108、Y26；中庭03，X166、Y60，都是1040米附近。我查人员侧第四处。这些是调查区域，别光拍门牌和设备。舷窗里未必看得见它们，按被动声纳的方位转过去，停稳、开灯取景，再去分析台看回片。声源会动，别守着旧方向等。漏一处，下面的门就不开。机修间有修补材料、备用电池和氧烛，收妥后在生命维持台按需用。配重在压载库，顺路取。别为了交差把艇撞穿。",
       "shot": "idle"
     },
     {
@@ -65,11 +64,8 @@
         "reunionReached": false,
         "ballast": false,
         "complete": false,
-        "photos": [
-          0
-        ],
+        "photos": [],
         "accepted": [
-          "L2-S01",
           "L2-S02"
         ],
         "captures": [
@@ -78,20 +74,19 @@
             "id": "living.shot.1",
             "target": 0,
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           }
         ],
-        "analyzed": [
-          "living.shot.1"
-        ],
-        "elapsed": 19.883599999999817,
+        "analyzed": [],
+        "elapsed": 19.916599999999836,
         "closedAt": null,
         "nudged": false,
-        "pickupNudged": false,
+        "called": false,
         "trust": 0,
         "rewarded": [],
         "pendingCapture": null,
-        "code": "5311",
+        "code": "2669",
         "version": 1
       },
       "pos": [
@@ -99,7 +94,7 @@
         0,
         27
       ],
-      "feedback": "【GM诊断】底片核验完成。机修间01 X53 Y24、压载库02 X108 Y26，深度1040m · 开灯摄影并确认收件",
+      "feedback": "需选择本关实际完成曝光的底片；未就绪的录像请先等待。",
       "shot": "developing"
     },
     {
@@ -122,12 +117,8 @@
         "reunionReached": false,
         "ballast": false,
         "complete": false,
-        "photos": [
-          0,
-          1
-        ],
+        "photos": [],
         "accepted": [
-          "L2-S01",
           "L2-S02"
         ],
         "captures": [
@@ -136,28 +127,27 @@
             "id": "living.shot.1",
             "target": 0,
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           },
           {
             "survey": true,
             "id": "living.shot.2",
             "target": 1,
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           }
         ],
-        "analyzed": [
-          "living.shot.1",
-          "living.shot.2"
-        ],
-        "elapsed": 25.06689999999966,
+        "analyzed": [],
+        "elapsed": 25.183199999999715,
         "closedAt": null,
         "nudged": false,
-        "pickupNudged": false,
+        "called": false,
         "trust": 0,
         "rewarded": [],
         "pendingCapture": null,
-        "code": "5311",
+        "code": "2669",
         "version": 1
       },
       "pos": [
@@ -165,7 +155,7 @@
         0,
         19.07179676972449
       ],
-      "feedback": "【GM诊断】底片核验完成。分析台播放并核验艾里亚斯任务录像 · 失败可重试",
+      "feedback": "需选择本关实际完成曝光的底片；未就绪的录像请先等待。",
       "shot": "developing"
     },
     {
@@ -174,9 +164,9 @@
         "camera": true,
         "shared": true,
         "briefed": true,
-        "helpSeen": true,
-        "helpReplied": true,
-        "manual": true,
+        "helpSeen": false,
+        "helpReplied": false,
+        "manual": false,
         "valve": false,
         "reported": false,
         "clearSeen": false,
@@ -188,14 +178,9 @@
         "reunionReached": false,
         "ballast": false,
         "complete": false,
-        "photos": [
-          0,
-          1
-        ],
+        "photos": [],
         "accepted": [
-          "L2-S01",
-          "L2-S02",
-          "L2-S03"
+          "L2-S02"
         ],
         "captures": [
           {
@@ -203,36 +188,35 @@
             "id": "living.shot.1",
             "target": 0,
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           },
           {
             "survey": true,
             "id": "living.shot.2",
             "target": 1,
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           },
           {
             "survey": true,
             "id": "living.shot.3",
             "target": "manual",
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           }
         ],
-        "analyzed": [
-          "living.shot.1",
-          "living.shot.2",
-          "living.shot.3"
-        ],
-        "elapsed": 30.217299999999568,
+        "analyzed": [],
+        "elapsed": 30.39929999999963,
         "closedAt": null,
         "nudged": false,
-        "pickupNudged": false,
+        "called": false,
         "trust": 0,
         "rewarded": [],
         "pendingCapture": null,
-        "code": "5311",
+        "code": "2669",
         "version": 1
       },
       "pos": [
@@ -240,7 +224,7 @@
         0,
         13.5
       ],
-      "feedback": "【GM诊断】底片核验完成。说明牌旁 · 操作含硫温水支路S（V-2）",
+      "feedback": "需选择本关实际完成曝光的底片；未就绪的录像请先等待。",
       "shot": "developing"
     },
     {
@@ -249,30 +233,23 @@
         "camera": true,
         "shared": true,
         "briefed": true,
-        "helpSeen": true,
-        "helpReplied": true,
-        "manual": true,
-        "valve": true,
-        "reported": true,
-        "clearSeen": true,
+        "helpSeen": false,
+        "helpReplied": false,
+        "manual": false,
+        "valve": false,
+        "reported": false,
+        "clearSeen": false,
         "doorSeen": true,
-        "askedCode": true,
-        "codeSeen": true,
-        "unlocked": true,
+        "askedCode": false,
+        "codeSeen": false,
+        "unlocked": false,
         "reunion": false,
         "reunionReached": false,
         "ballast": false,
         "complete": false,
-        "photos": [
-          0,
-          1
-        ],
+        "photos": [],
         "accepted": [
-          "L2-S01",
-          "L2-S02",
-          "L2-S03",
-          "L2-S05",
-          "L2-S06"
+          "L2-S02"
         ],
         "captures": [
           {
@@ -280,38 +257,35 @@
             "id": "living.shot.1",
             "target": 0,
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           },
           {
             "survey": true,
             "id": "living.shot.2",
             "target": 1,
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           },
           {
             "survey": true,
             "id": "living.shot.3",
             "target": "manual",
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           }
         ],
-        "analyzed": [
-          "living.shot.1",
-          "living.shot.2",
-          "living.shot.3"
-        ],
-        "elapsed": 34.28369999999959,
-        "closedAt": 30.217299999999568,
+        "analyzed": [],
+        "elapsed": 32.249299999999636,
+        "closedAt": null,
         "nudged": false,
-        "pickupNudged": false,
-        "trust": 1,
-        "rewarded": [
-          "report"
-        ],
+        "called": false,
+        "trust": 0,
+        "rewarded": [],
         "pendingCapture": null,
-        "code": "5311",
+        "code": "2669",
         "version": 1
       },
       "pos": [
@@ -319,7 +293,7 @@
         0,
         37.32707048273345
       ],
-      "feedback": "密码核验通过，隔离门正在开启。",
+      "feedback": "03闸门锁住了。先完成前两处调查，并确认艾里亚斯通路恢复。",
       "shot": "ready"
     },
     {
@@ -328,31 +302,23 @@
         "camera": true,
         "shared": true,
         "briefed": true,
-        "helpSeen": true,
-        "helpReplied": true,
-        "manual": true,
-        "valve": true,
-        "reported": true,
-        "clearSeen": true,
+        "helpSeen": false,
+        "helpReplied": false,
+        "manual": false,
+        "valve": false,
+        "reported": false,
+        "clearSeen": false,
         "doorSeen": true,
-        "askedCode": true,
-        "codeSeen": true,
-        "unlocked": true,
+        "askedCode": false,
+        "codeSeen": false,
+        "unlocked": false,
         "reunion": false,
         "reunionReached": false,
         "ballast": false,
         "complete": false,
-        "photos": [
-          0,
-          1,
-          2
-        ],
+        "photos": [],
         "accepted": [
-          "L2-S01",
-          "L2-S02",
-          "L2-S03",
-          "L2-S05",
-          "L2-S06"
+          "L2-S02"
         ],
         "captures": [
           {
@@ -360,46 +326,35 @@
             "id": "living.shot.1",
             "target": 0,
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           },
           {
             "survey": true,
             "id": "living.shot.2",
             "target": 1,
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           },
           {
             "survey": true,
             "id": "living.shot.3",
             "target": "manual",
             "valid": true,
-            "lit": true
-          },
-          {
-            "survey": true,
-            "id": "living.shot.4",
-            "target": 2,
-            "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           }
         ],
-        "analyzed": [
-          "living.shot.1",
-          "living.shot.2",
-          "living.shot.3",
-          "living.shot.4"
-        ],
-        "elapsed": 39.30079999999978,
-        "closedAt": 30.217299999999568,
+        "analyzed": [],
+        "elapsed": 37.24939999999989,
+        "closedAt": null,
         "nudged": false,
-        "pickupNudged": false,
-        "trust": 1,
-        "rewarded": [
-          "report"
-        ],
+        "called": false,
+        "trust": 0,
+        "rewarded": [],
         "pendingCapture": null,
-        "code": "5311",
+        "code": "2669",
         "version": 1
       },
       "pos": [
@@ -407,7 +362,7 @@
         0,
         68
       ],
-      "feedback": "【GM诊断】底片核验完成。F闸门 X188 Y52 · 确认会合回传",
+      "feedback": "需选择本关实际完成曝光的底片；未就绪的录像请先等待。",
       "shot": "developing"
     },
     {
@@ -416,32 +371,23 @@
         "camera": true,
         "shared": true,
         "briefed": true,
-        "helpSeen": true,
-        "helpReplied": true,
-        "manual": true,
-        "valve": true,
-        "reported": true,
-        "clearSeen": true,
+        "helpSeen": false,
+        "helpReplied": false,
+        "manual": false,
+        "valve": false,
+        "reported": false,
+        "clearSeen": false,
         "doorSeen": true,
-        "askedCode": true,
-        "codeSeen": true,
-        "unlocked": true,
-        "reunion": true,
+        "askedCode": false,
+        "codeSeen": false,
+        "unlocked": false,
+        "reunion": false,
         "reunionReached": true,
         "ballast": true,
         "complete": false,
-        "photos": [
-          0,
-          1,
-          2
-        ],
+        "photos": [],
         "accepted": [
-          "L2-S01",
-          "L2-S02",
-          "L2-S03",
-          "L2-S05",
-          "L2-S06",
-          "L2-S07"
+          "L2-S02"
         ],
         "captures": [
           {
@@ -449,46 +395,35 @@
             "id": "living.shot.1",
             "target": 0,
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           },
           {
             "survey": true,
             "id": "living.shot.2",
             "target": 1,
             "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           },
           {
             "survey": true,
             "id": "living.shot.3",
             "target": "manual",
             "valid": true,
-            "lit": true
-          },
-          {
-            "survey": true,
-            "id": "living.shot.4",
-            "target": 2,
-            "valid": true,
-            "lit": true
+            "lit": true,
+            "diagnostic": ""
           }
         ],
-        "analyzed": [
-          "living.shot.1",
-          "living.shot.2",
-          "living.shot.3",
-          "living.shot.4"
-        ],
-        "elapsed": 54.35090000000029,
-        "closedAt": 30.217299999999568,
+        "analyzed": [],
+        "elapsed": 52.39930000000077,
+        "closedAt": null,
         "nudged": false,
-        "pickupNudged": false,
-        "trust": 1,
-        "rewarded": [
-          "report"
-        ],
+        "called": false,
+        "trust": 0,
+        "rewarded": [],
         "pendingCapture": null,
-        "code": "5311",
+        "code": "2669",
         "version": 1
       },
       "pos": [
@@ -496,104 +431,11 @@
         0,
         45.6
       ],
-      "feedback": "【GM诊断 · 非真实录像 · 禁写正式存档】我到了，F闸门人员侧。第四处影像已经交了，你那三份也收到回执了。隔着门听见你的推进器，我才敢松口气。保持头盔密封，下面还不知道是什么。我走并行人员梯，你从东边下潜井下去，下一层接应。配重装好再降，频道别断。",
+      "feedback": "已到F闸门，调查回执尚未齐全。",
       "shot": "ready"
     },
     {
-      "label": "exit",
-      "survey": {
-        "camera": true,
-        "shared": true,
-        "briefed": true,
-        "helpSeen": true,
-        "helpReplied": true,
-        "manual": true,
-        "valve": true,
-        "reported": true,
-        "clearSeen": true,
-        "doorSeen": true,
-        "askedCode": true,
-        "codeSeen": true,
-        "unlocked": true,
-        "reunion": true,
-        "reunionReached": true,
-        "ballast": true,
-        "complete": true,
-        "photos": [
-          0,
-          1,
-          2
-        ],
-        "accepted": [
-          "L2-S01",
-          "L2-S02",
-          "L2-S03",
-          "L2-S05",
-          "L2-S06",
-          "L2-S07"
-        ],
-        "captures": [
-          {
-            "survey": true,
-            "id": "living.shot.1",
-            "target": 0,
-            "valid": true,
-            "lit": true
-          },
-          {
-            "survey": true,
-            "id": "living.shot.2",
-            "target": 1,
-            "valid": true,
-            "lit": true
-          },
-          {
-            "survey": true,
-            "id": "living.shot.3",
-            "target": "manual",
-            "valid": true,
-            "lit": true
-          },
-          {
-            "survey": true,
-            "id": "living.shot.4",
-            "target": 2,
-            "valid": true,
-            "lit": true
-          }
-        ],
-        "analyzed": [
-          "living.shot.1",
-          "living.shot.2",
-          "living.shot.3",
-          "living.shot.4"
-        ],
-        "elapsed": 54.36750000000028,
-        "closedAt": 30.217299999999568,
-        "nudged": false,
-        "pickupNudged": false,
-        "trust": 1,
-        "rewarded": [
-          "report"
-        ],
-        "pendingCapture": null,
-        "code": "5311",
-        "version": 1
-      },
-      "pos": [
-        208,
-        -39,
-        68
-      ],
-      "feedback": "配重与下潜权限核验通过，进入下一层。",
-      "shot": "ready"
-    },
-    {
-      "gmOff": {
-        "complete": false,
-        "capture": null,
-        "gm": true
-      }
+      "error": "Error: illegal teleport 208,-39,68"
     }
   ],
   "errors": [],

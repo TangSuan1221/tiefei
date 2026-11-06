@@ -12,7 +12,7 @@ export function drawTacticalObjective(ctx:CanvasRenderingContext2D,run:PodRun,w:
   const fs=Math.max(17,Math.min(living?21:25,h*.028)),pad=16,cw=Math.min(living?440:500,w*.36),x=w-cw-20,y=26;
   ctx.save();ctx.font=cjk(fs,500);ctx.textAlign='left';ctx.textBaseline='top';
   const lines=value.split('\n').flatMap(line=>layoutCJK(ctx,line,cw-pad*2));
-  const status=living?[`艇壳 ${Math.round(run.hull*100)}% · 电量 ${Math.round(run.power*100)}%`,...(run.powered&&run.activeSonarEnabled?['主动声纳通电 · 持续发声']:[]),...(run.hull<.85?['修补：停车，Esc 回舱内 → 1 生命维持']:[])]:[];
+  const status=living?[`艇壳 ${Math.round(run.hull*100)}% · 电量 ${Math.round(run.power*100)}%`,...(run.sonarEmitting?['主动脉冲 · 持续发声']:[]),...(run.hull<.85?['修补：停车，Esc 回舱内 → 1 生命维持']:[])]:[];
   const lh=fs*1.5,height=pad*2+fs*1.7+lines.length*lh+status.length*lh+(status.length?10:0);
   ctx.shadowColor='#000';ctx.shadowBlur=18;ctx.fillStyle='#061412db';ctx.fillRect(x,y,cw,height);ctx.shadowBlur=0;
   ctx.strokeStyle='#649c8170';ctx.strokeRect(x+.5,y+.5,cw-1,height-1);

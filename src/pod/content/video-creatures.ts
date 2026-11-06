@@ -1,18 +1,17 @@
 import type {CreatureType} from './living-deck-layout';
 
 /**
- * Generated-footage appearance, text only. Reference frames never contain these
- * creature models, so this text is the sole authority for what the video model draws.
+ * Generated-footage appearance. Environment captures exclude creature models;
+ * the harbor anatomy sheet is authoritative for its appearance.
  * Keep docs/video-prompts (VR-110) and src/narrative-lab/prompt-library.json in step.
  */
 export type VideoCreatureKind = 'harbor' | CreatureType;
 
 export const VIDEO_CREATURES: Record<VideoCreatureKind, string> = {
  harbor:
-  'abyssal Lovecraftian deep-sea organism that was once roughly human-sized. Pressure-softened, translucent bone-pale skin with dark veins visible beneath; scraps of grey work overalls are sunk into the flesh. ' +
-  'Twisted narrow torso and disproportionately long arms ending in three long webbed fingers joined by filmy fin membranes. Ragged translucent fin rays run down its spine; gill slits along the neck and ribs slowly open and close. ' +
-  'It has no legs: the lower body tapers into a soft, boneless, fin-fringed trailing mass. The head droops forward; the face is slack and eerily calm, with small clouded deep-sea eyes. ' +
-  'It hangs in the water and glides, or pulls itself along steel with its long hands; it never stands, walks or crawls.',
+  'Match the supplied Harbor creature anatomy reference: one fused mass of multiple human-like heads, dark reddish organic tissue, trailing organic strands intertwined with industrial hoses and metal fittings. ' +
+  'The multiple views depict the same individual, not a group. Preserve the reference silhouette and materials; no single-headed humanoid torso, long paired arms, webbed fingers, dorsal fins or fish tail. ' +
+  'It floats and drifts underwater with trailing strands; preserve only the recorded action, scale and occlusion. Do not infer its origin or identity.',
  lumen:
   'abyssal Lovecraftian deep-sea organism grown from a human resident. Elongated pale humanoid upper body in a drifting, waterlogged robe; faint pale bioluminescent points glow beneath translucent skin. ' +
   'Below the waist the legs have dissolved into long soft trailing tissue that ripples like a jellyfish margin. Its face always turns toward the strongest light. It floats upright and drifts slowly; it never walks.',
@@ -27,5 +26,5 @@ export const VIDEO_CREATURES: Record<VideoCreatureKind, string> = {
 };
 
 export function videoCreatureSubject(kind: VideoCreatureKind, label: string): string {
- return `${label}: ${VIDEO_CREATURES[kind]} Generate it in the recorded scene; it is intentionally absent from the reference image.`;
+ return `${label}: ${VIDEO_CREATURES[kind]} Generate it in the recorded scene; it is intentionally absent from the environment image. Any supplied anatomy sheet remains authoritative.`;
 }

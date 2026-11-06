@@ -1,3 +1,4 @@
+import {videoDuration,VIDEO_DURATION_REVISION} from '../content/video-duration';
 import {useHarborLocalVideo} from '../content/harbor-local-videos';
 import {HARBOR_CREATURE_REFERENCES,HARBOR_REFERENCE_REVISION} from '../content/harbor-video-references';
 import { isVideoCall, commUi } from './comm-desk';
@@ -270,7 +271,7 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
   const { legId, token, settle } = req;
   const cacheKey=req.cacheKey;
   // Preserve the playback key; version only the persisted remote lookup below.
-  const remoteKey=cacheKey+(req.harborCreatureReference?':'+HARBOR_REFERENCE_REVISION:'');
+  const remoteKey=cacheKey+':'+VIDEO_DURATION_REVISION+':'+videoDuration(req.kind??'observation',req.duration)+(req.harborCreatureReference?':'+HARBOR_REFERENCE_REVISION:'');
   if(req.allowed===false){settle(token,false,'附近没有怪物；保留机载录像，未提交视频生成。');return;}
   const status=(text:string)=>{if(!req.prefetch&&run.shot.token===token)run.videoStatus=text;};
 
@@ -306,7 +307,7 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
       }
       result = await requestVideo(req.prompt, undefined, req.keyframe, status => {
         if (!req.prefetch&&run.shot.token === token) run.videoStatus = status;
-      }, req.duration??5,'fixed',undefined,req.harborCreatureReference?HARBOR_CREATURE_REFERENCES:[]);
+      }, req.duration??5,'fixed',undefined,req.harborCreatureReference?HARBOR_CREATURE_REFERENCES:[],req.kind);
     }
 
     // 3b. 被内容审核拦了：拿不含怪物的那一版再试一次。
@@ -315,7 +316,7 @@ async function handle(run: PodRun, req: FootageRequest): Promise<void> {
     //     环境总比什么都没有好，而「那东西刚好没进这一卷」在世界观里成立。
     if (!result.ok && result.fail.kind === 'filtered' && req.fallbackPrompt !== req.prompt && !req.prompt.includes('Template: attack.')) {
       console.warn('[footage] 改用保留异常痕迹、不含身体的录像模板', result.fail.detail);
-      const retry = await requestVideo(req.fallbackPrompt, undefined, req.keyframe, undefined, req.duration??5);
+      const retry = await requestVideo(req.fallbackPrompt, undefined, req.keyframe, undefined, req.duration??5,'fixed',undefined,[],req.kind);
       if (retry.ok) {
         result = retry;
         creatureMissing = true;
@@ -428,18 +429,18 @@ export function drawLabRecording(ctx:CanvasRenderingContext2D,run:PodRun,w:numbe
   const reel=playlist?.reels[playlist.index]??REELS.get(tape.cacheKey??tape.legId);
   if(reel&&reel.video.readyState>=2){
     if(localPlayback?.paused)reel.video.pause();
-    present(reel.video,!localPlayback?.paused);
+    present(reel.video,!localPlayback?.paused&&!commUi(run).connecting);
     const cues=subtitleCues(tape,playlist?.reels??[reel]),offset=reelOffset(playlist?.reels??[reel],reel);
     const elapsed=offset+reel.video.currentTime;
     if(run.labVideoExpanded){
       const scale=Math.min(w/reel.video.videoWidth,h/reel.video.videoHeight);
       const vw=reel.video.videoWidth*scale,vh=reel.video.videoHeight*scale;
       ctx.fillStyle='#020406';ctx.fillRect(0,0,w,h);
-      drawCctvSignal(ctx,w,h,reel.video,{time:performance.now()/1000,corruption:reel.video.ended?1:0});
+      drawCctvSignal(ctx,w,h,reel.video,{time:performance.now()/1000,corruption:reel.video.ended||commUi(run).connecting?1:0});
       drawVideoSubtitle(ctx,cues,elapsed,(w-vw)/2,(h-vh)/2,vw,vh);
       return '监控录像 · 等比放大';
     }
-    drawFootageFrame(ctx,w,h,reel.video,{time:performance.now()/1000,corruption:reel.video.ended?1:0,light:1});
+    drawFootageFrame(ctx,w,h,reel.video,{time:performance.now()/1000,corruption:reel.video.ended||commUi(run).connecting?1:0,light:1});
     const subtitleScale=Math.min(w/reel.video.videoWidth,h/reel.video.videoHeight);
     const subtitleW=reel.video.videoWidth*subtitleScale,subtitleH=reel.video.videoHeight*subtitleScale;
     drawVideoSubtitle(ctx,cues,elapsed,(w-subtitleW)/2,(h-subtitleH)/2,subtitleW,subtitleH);

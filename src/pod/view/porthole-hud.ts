@@ -9,8 +9,7 @@ import { drawPortholeReadouts } from './creature';
 /** Live window instruments only; never colour or modify the exterior feed. */
 export function drawPortholeHud(ctx: CanvasRenderingContext2D, w: number, h: number, run: PodRun): void {
   if (run.shot.viewing) return;
-  drawPortholeReadouts(ctx, w, h, run);
   // A faint, irregular phosphor shimmer rather than a strobing flicker.
-  const flicker = .93 + Math.sin(run.clock * 41) * .035 + Math.sin(run.clock * 7.3) * .025;
-  withPhosphorLayer(ctx, w, h, flicker, g => run.authoredSite?.drawWindowLocks?.(g, w, h));
+  const flicker = .99 + Math.sin(run.clock * 7.3) * .01;
+  withPhosphorLayer(ctx, w, h, flicker, g => {drawPortholeReadouts(g,w,h,run);run.authoredSite?.drawWindowLocks?.(g,w,h);});
 }

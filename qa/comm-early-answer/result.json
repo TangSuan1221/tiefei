@@ -1,0 +1,11 @@
+{
+  "ringsBeforeMedia": true,
+  "answered": true,
+  "connecting": true,
+  "waitsForMedia": true,
+  "resumes": true,
+  "cancelled": true,
+  "hangupNeedsAnswer": true,
+  "replyDoesNotRing": true,
+  "replyResumes": true
+}

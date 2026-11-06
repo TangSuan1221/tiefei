@@ -1,0 +1,182 @@
+{
+  "keys": [
+    {
+      "id": "sonar.key.1",
+      "x": 730.5424872241285,
+      "y": 553.9850131552392,
+      "pick": "desk:nav:sonar.key.1",
+      "inFrame": true,
+      "rest": 0.013799998909235
+    },
+    {
+      "id": "sonar.key.2",
+      "x": 767.9746784267185,
+      "y": 553.9850131512708,
+      "pick": "desk:nav:sonar.key.2",
+      "inFrame": true,
+      "rest": 0.013799998909235
+    },
+    {
+      "id": "sonar.key.3",
+      "x": 805.4068712920541,
+      "y": 553.9850131473021,
+      "pick": "desk:nav:sonar.key.3",
+      "inFrame": true,
+      "rest": 0.013799998909235
+    },
+    {
+      "id": "sonar.key.4",
+      "x": 728.917954925357,
+      "y": 590.7024076511348,
+      "pick": "desk:nav:sonar.key.4",
+      "inFrame": true,
+      "rest": 0.013799997046589851
+    },
+    {
+      "id": "sonar.key.5",
+      "x": 767.225642604959,
+      "y": 590.702407646242,
+      "pick": "desk:nav:sonar.key.5",
+      "inFrame": true,
+      "rest": 0.013799997046589851
+    },
+    {
+      "id": "sonar.key.6",
+      "x": 805.5333320726434,
+      "y": 590.7024076206033,
+      "pick": "desk:nav:sonar.key.6",
+      "inFrame": true,
+      "rest": 0.013799997046589851
+    },
+    {
+      "id": "sonar.key.7",
+      "x": 727.2156111231322,
+      "y": 629.1784808586988,
+      "pick": "desk:nav:sonar.key.7",
+      "inFrame": true,
+      "rest": 0.013799997046589851
+    },
+    {
+      "id": "sonar.key.8",
+      "x": 766.4407296173796,
+      "y": 629.1784808530267,
+      "pick": "desk:nav:sonar.key.8",
+      "inFrame": true,
+      "rest": 0.013799997046589851
+    },
+    {
+      "id": "sonar.key.9",
+      "x": 805.6658499312496,
+      "y": 629.1784808288404,
+      "pick": "desk:nav:sonar.key.9",
+      "inFrame": true,
+      "rest": 0.013799997046589851
+    },
+    {
+      "id": "sonar.key.-",
+      "x": 725.4297274456663,
+      "y": 669.5427057181232,
+      "pick": "desk:nav:sonar.key.-",
+      "inFrame": true,
+      "rest": 0.013799998909235
+    },
+    {
+      "id": "sonar.key.0",
+      "x": 765.6172983360134,
+      "y": 669.542705697045,
+      "pick": "desk:nav:sonar.key.0",
+      "inFrame": true,
+      "rest": 0.013799998909235
+    },
+    {
+      "id": "sonar.key..",
+      "x": 805.8048710058109,
+      "y": 669.5427056789206,
+      "pick": "desk:nav:sonar.key..",
+      "inFrame": true,
+      "rest": 0.013799998909235
+    },
+    {
+      "id": "sonar.key.del",
+      "x": 856.1482877493193,
+      "y": 553.9850130286936,
+      "pick": "desk:nav:sonar.key.del",
+      "inFrame": true,
+      "rest": 0.013799998909235
+    },
+    {
+      "id": "sonar.key.clear",
+      "x": 857.4615324931832,
+      "y": 590.7024075438658,
+      "pick": "desk:nav:sonar.key.clear",
+      "inFrame": true,
+      "rest": 0.013799997046589851
+    },
+    {
+      "id": "sonar.next",
+      "x": 858.8376787881648,
+      "y": 629.1784807590615,
+      "pick": "desk:nav:sonar.next",
+      "inFrame": true,
+      "rest": 0.013799997046589851
+    },
+    {
+      "id": "sonar.save",
+      "x": 860.2813573611792,
+      "y": 669.5427056431988,
+      "pick": "desk:nav:sonar.save",
+      "inFrame": true,
+      "rest": 0.013799998909235
+    }
+  ],
+  "rest": 0.013799997046589851,
+  "pressed": 0.010599998236242494,
+  "back": 0.013799997046589851,
+  "fields": [
+    "11",
+    "16",
+    "1012"
+  ],
+  "cues": [
+    "ui.hover",
+    "key.down",
+    "key.up",
+    "ui.hover",
+    "key.down",
+    "key.up",
+    "ui.hover",
+    "key.down",
+    "key.up",
+    "ui.hover",
+    "key.down",
+    "key.up",
+    "key.down",
+    "key.up",
+    "ui.hover",
+    "key.down",
+    "key.up",
+    "ui.hover",
+    "key.down",
+    "key.up",
+    "ui.hover",
+    "key.down",
+    "key.up",
+    "ui.hover",
+    "key.down",
+    "key.up",
+    "ui.hover",
+    "key.down",
+    "key.up",
+    "ui.hover",
+    "key.down",
+    "key.up",
+    "water.drip",
+    "ui.hover",
+    "key.down",
+    "key.up",
+    "ui.hover",
+    "key.down",
+    "key.up"
+  ],
+  "errors": []
+}

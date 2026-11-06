@@ -11,6 +11,7 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
  /** The player has tried the second door; its controller forwards the request to Elias. */
  codeRequested=false;
  codeAsked=false;
+ private entryBriefRequested=false;
  private warningVariant:HarborTaskId|null=null;
  private reminderVariant:HarborTaskId|null=null;
  private has(id:string){return this.accepted.includes(id as HarborTaskId);}
@@ -28,15 +29,16 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
   if(!this.greeted)return null;
   if(!this.has('L1-R28-V02'))return 'L1-R28-V02';
   if(!this.has('L1-R28-V02-AUTH'))return this.codeRequested&&this.codeAsked?'L1-R28-V02-AUTH':null;
-  if(!this.has('L1-R28-V02A'))return this.backgroundRequested||this.world.secondDoor?'L1-R28-V02A':null;
-  if(!this.warningSeen)return this.impactCount===2||this.earlyWarning?(this.warningVariant??=this.world.active?'L1-R28-V03':'L1-R28-V03-QUIET'):null;
+  if(!this.has('L1-R28-V02A')&&this.backgroundRequested)return 'L1-R28-V02A';
+  if(!this.warningSeen)return this.earlyWarning?(this.warningVariant??='L1-R28-V03'):null;
   if(this.explanationRequested&&!this.has('L1-R28-V03A'))return 'L1-R28-V03A';
   if(this.impactCount<2||this.world.active&&!this.repairBriefSeen)return null;
   if(!this.repairBriefSeen)return 'L1-R28-V04';
   if(!this.repairCompleted)return this.repairWait>=90&&!this.has('L1-R28-V04R')&&!this.has('L1-R28-V04R-STORED')?(this.reminderVariant??=this.world.kit?'L1-R28-V04R-STORED':'L1-R28-V04R'):null;
   if(!this.has('L1-R28-V05'))return 'L1-R28-V05';
   if(s.injured&&!this.injuryHandled&&!this.has('L1-R28-V07R'))return 'L1-R28-V07R';
-  if(s.monsterInside&&!this.world.active&&!this.has('L1-R28-V06'))return 'L1-R28-V06';
+  if(s.monsterInside&&!this.world.active)this.entryBriefRequested=true;
+  if(this.entryBriefRequested&&!this.has('L1-R28-V06'))return 'L1-R28-V06';
   if(this.entryCaptured&&this.world.atExit&&!this.world.inCargo&&!this.has('L1-R28-V07'))return 'L1-R28-V07';
   if(s.departed&&s.isolated&&s.verified&&this.entryAnalyzed&&this.reportAnswered&&!this.has('L1-R28-V08')&&!this.has('L1-R28-V08-INJURED'))return s.injured?'L1-R28-V08-INJURED':'L1-R28-V08';
   return null;
@@ -54,7 +56,7 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
  }
  tick(dt:number,mediaBusy=false){
   if(this.legacy)return 0;let strikes=0;
-  if(this.has('L1-R28-V02A')&&this.impactCount<2){this.impactDelay-=dt;if(this.impactDelay<=0){this.impactCount++;this.impactPlayed=true;this.impactDelay=2;strikes=1;}}
+  if(this.world.secondDoor&&this.credential&&this.impactCount<2){this.impactDelay-=dt;if(this.impactDelay<=0){this.impactCount++;this.impactPlayed=true;this.impactDelay=2;strikes=1;}}
   if(this.repairBriefSeen&&!this.repairCompleted&&!mediaBusy)this.repairWait+=dt;return strikes;
  }
  override takeImpact(){return this.legacy?super.takeImpact():false;}
@@ -65,6 +67,12 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
  override get canPhotograph(){return this.legacy?super.canPhotograph:this.has('L1-R28-V06');}
  override get canHelp(){return this.legacy?super.canHelp:this.has('L1-R28-V05');}
  override get awaitingReport(){return this.legacy?super.awaitingReport:this.has('L1-R28-V07')&&!this.reportAnswered;}
+ /** One input has one media owner. Pending includes queued, generating and unwatched story calls. */
+ routeSay(raw:string,m:NarrativeMemory,active:boolean,at:number){
+  const lines=this.say(raw,m,active,at);
+  const task=this.pending;
+  return {lines,task,route:!lines.length?'empty':task?'mainline':'reply'} as const;
+ }
  override say(raw:string,m:NarrativeMemory,active:boolean,at:number){
   if(this.legacy)return super.say(raw,m,active,at);
   const text=raw.replace(/[\u0000-\u001f]/g,' ').trim().slice(0,240);if(!text)return [];
@@ -74,10 +82,18 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
   if(/先别|别出|不要出|等等|等我|先等|停下|退回|不确定|不安全|没(?:有)?(?:关|锁|封|成功|完成)|没好|还没|尚未|未关|不能走|别走|不要走|又开|开着|再开|hold|wait|unsafe|not\s+(?:safe|closed|ready|done)|don't\s+(?:go|leave)|stop/i.test(text)){
    this.rescue.stopDeparture();this.reportAnswered=false;m.lastOrder='hold';return reply('好，我先留在门后。你确认好了再叫我。');
   }
+  // A route question may mention a door; answer its destination before the generic door/password branch.
+  // These are existing submarine waypoints, never invented coordinates inside the video-only personnel room.
+  if(/在哪|在那[里儿]|哪里|哪儿|什么位置|你.{0,8}位置|坐标|座标|怎么.*(?:找你|到你|去你)|去哪里找|怎么走|带路|where|location|coordinates?|how.*(?:reach|find|get to).*you/i.test(text)){
+   if(this.rescue.state.departed)return reply('我已经离开总调度室，正沿人员通道下行。你到下潜控制点X60、Y27，深度1012米，操作01控制台，再下潜到生活区，目标深度1040米。我们在生活区末端的密码闸门会合，不用回总调度室找我。');
+   const target=HARBOR_TASKS['L1-R28-V04'].target;
+   const route=this.world.secondDoor?'你已经过了第二道压力门，沿主港水道驶向这个点，靠近恢复台时减速。':this.credential?'先沿维修弯道到第二道压力门，用已经收到的密码开门，再沿主港水道驶向这个点。':'先沿维修弯道到第二道压力门，靠近门锁查看面板；如果需要密码，再联系我。开门后沿主港水道驶向这个点。';
+   return reply(`我被困在主港总调度室，人员门后面。你先到主港的岸电恢复台：X${target[0]}、Y${target[2]}，深度${1012-target[1]}米。这是潜艇的接近点，不是房间内部。${route}把这个坐标记在导航台，沿通道走，别直冲墙。人员门铁鲸进不来，我们先通过频道联系。`);
+  }
   if(this.has('L1-R28-V02')&&!this.credential&&/密码|口令|通行码|数字|怎么.*(?:开|进|过)|门|password|code|door/i.test(text)){if(this.codeRequested)this.codeAsked=true;return reply(this.codeRequested?'我在终端上看到你的开门请求了，这就发给你。':'第二道门的门控在你那边。你先到门边看看面板怎么说。');}
-  if(!this.has('L1-R28-V02A')&&this.credential){this.backgroundRequested=true;return reply('我给你说说刚到这里时发生的事。');}
-  if(this.impactCount>0&&!this.warningSeen)this.earlyWarning=true;
-  if(this.warningSeen&&/声[纳呐]|声音|追声|sonar|why|什么.*(?:怪物|东西)|(?:怪物|东西).*什么/i.test(text)){this.explanationRequested=true;return reply('我把知道的情况发给你，先留意主动声纳电源。');}
+  if(this.impactCount>0&&!this.warningSeen&&/撞|碰|冲击|袭击|攻击|什么|啥|怎么回事|发生|东西|怪物|hit|bump|impact|attack|what|creature/i.test(text)){this.earlyWarning=true;return reply('我听见了，这就回传给你。');}
+  if(!this.has('L1-R28-V02A')&&this.credential&&/发生.*什么|怎么回事|(?:为什么|怎么).*(?:出不来|被困)|经历|失联|总部|派.*(?:我|下来)|怎么.*(?:这里|这儿)|what happened|background|sent me/i.test(text)){this.backgroundRequested=true;return reply('我给你说说刚到这里时发生的事。');}
+  if(this.warningSeen&&/声[纳呐]|声音|追声|sonar|why|什么.*(?:怪物|东西)|(?:怪物|东西).*什么/i.test(text)){this.explanationRequested=true;return reply('我把知道的情况发给你，先留意主动声纳脉冲。');}
   if(/对不起|抱歉/.test(text))return reply('我听到了。先确认闸门，后面的事我们慢慢说。');
   if(/[?？]|吗|如果|等会|将要|准备|打算|应该|可能|似乎/.test(text))return reply('我看不到货舱那边。你是已经确认它在里面，还是还需要我等？');
   if(this.awaitingReport&&/关|锁|封|妥|完成|成功|搞定|安全|走吧|可以走|出来|closed|safe|done/i.test(text)){
@@ -92,25 +108,31 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
   if(s.complete)return '首关完成 · 操作台按 B 下潜至生活区深度1040米';
   if(!this.world.firstDoor)return '打开第一道压力门 · 入口X11 Y16 深度1012米 · 对准门靠近至3.4米内，按F一次开门';
   // Objectives only restate videos already watched; an unwatched call shows who is calling, never what it says. Elias names himself in V02.
-  if(this.pending)return (this.has('L1-R28-V02')?'艾里亚斯来电':'收到视频呼叫')+' · 分析台【通讯】接听并完整播放；失败可点“重新接收”';
+  if(this.pending)return '视频呼叫接入中 · 分析台【通讯】接听后等待信号连接';
   if(!this.greeted)return '回应求救呼叫 · 自由通话或在分析台【通讯】发送任务身份资料';
   if(!this.credential&&!this.codeAsked&&this.codeRequested)return '向艾里亚斯询问密码';
   if(!this.credential)return '前往第二道压力门 · 沿维修弯道到门边，对准门锁靠近至3.4米内按F查看门控';
-  if(!this.has('L1-R28-V02A'))return '第二道门密码已接收 · 回到门边按F，在门控面板拨好密码并解锁';
-  if(!this.warningSeen)return '艇壳受到撞击';
-  if(this.impactCount<2)return '艇壳受到撞击 · 关闭主动声纳电源';
-  if(!this.repairBriefSeen)return '立即关闭主动声纳电源'+(this.has('L1-R28-V03A')?' · 通电会持续发声':'');
-  if(!this.repairCompleted)return this.world.kit?'维修工具已收妥 · 在分析台【通讯】执行修复铁鲸':'前往X42 Y28 深度1012米岸电恢复台 · 对准恢复台按F，机械臂取出维修工具并自动收回';
+  if(!this.world.secondDoor&&this.impactCount===0)return '第二道门密码已接收 · 回到门边按F，在门控面板拨好密码并解锁';
+  if(!this.warningSeen)return this.impactCount>0?'询问艾利亚斯潜水艇被什么撞击':'进入主港';
+  if(this.impactCount<2)return '艇壳受到撞击 · 关闭主动声纳脉冲';
+  if(!this.repairBriefSeen)return '立即关闭主动声纳脉冲'+(this.has('L1-R28-V03A')?' · 开启脉冲会持续发声':'');
+  if(!this.repairCompleted)return this.world.kit?'维修工具已收妥 · 按3打开分析台 →【仓库】→ 使用维修工具':'前往X42 Y28 深度1012米岸电恢复台 · 对准恢复台按F，机械臂取出维修工具并自动收回';
   if(s.departed)return this.has('L1-R28-V08')||this.has('L1-R28-V08-INJURED')?'前往下潜控制点X60 Y27 深度1012米 · 操作01确认，按B下潜至生活区1040米':'艾里亚斯已离开总调度室 · 等待他的回传';
   if(s.departing)return '艾里亚斯正在经过人员通道 · 危险变化时随时叫停';
   if(s.isolated&&!s.verified)return '拍摄关闭的闸门与仓内目标，在分析台核验隔离结果 · 控制点X60 Y27 深度1012米';
   if(s.isolated&&!this.entryAnalyzed)return '在分析台核验入仓录像 · 上传资料将封存等待上行';
   if(this.awaitingReport&&s.isolated)return '确认隔离结果后自由报告，或在通讯页推送核验结果片';
   if(!s.gateOpen&&!s.isolated)return '总任务：封闭货舱 · 控制点X60 Y27 深度1012米\n当前步骤：先打开货舱闸门，再潜入X77 Y7 深度1011米';
-  if(!this.entryCaptured)return '总任务：封闭货舱 · 关闸点X60 Y27 深度1012米\n当前步骤：潜入X77 Y7 深度1011米，开主动声纳诱导；它靠近后立即关电'+(this.canPhotograph?'、停稳摄影':'');
+  if(!this.entryCaptured){
+   const title='总任务：封闭货舱 · 关闸点X60 Y27 深度1012米\n当前步骤：';
+   if(s.monsterInside&&this.world.active)return title+'声源已进入货舱 · 停止主动声纳脉冲';
+   if(s.monsterInside&&this.canPhotograph)return title+'主动脉冲已停止 · 停稳收臂，朝仓内目标摄影，再到分析台核验';
+   if(!this.world.inCargo)return title+'潜入X77 Y7 深度1011米的货舱内部，再开启主动声纳诱导';
+   return title+(this.world.active?'保持仓内诱导，等待声源越过闸口；入仓后关闭主动声纳脉冲':'声源尚未入仓 · 开启主动声纳继续诱导，入仓后停止脉冲');
+  }
   return '第三任务：悄悄退出货舱，回X60 Y27 深度1012米，在01控制台关闸 · 显影期间可以撤离';
  }
- override snapshot():any{return this.legacy?super.snapshot():{version:3,accepted:[...this.accepted],greeted:this.greeted,impactCount:this.impactCount,impactDelay:this.impactDelay,kitStored:this.kitStored,repairCompleted:this.repairCompleted,repairWait:this.repairWait,backgroundRequested:this.backgroundRequested,explanationRequested:this.explanationRequested,injuryHandled:this.injuryHandled,codeRequested:this.codeRequested,codeAsked:this.codeAsked,reportAnswered:this.reportAnswered,earlyWarning:this.earlyWarning,warningVariant:this.warningVariant,reminderVariant:this.reminderVariant};}
+ override snapshot():any{return this.legacy?super.snapshot():{version:3,entryBriefRequested:this.entryBriefRequested,accepted:[...this.accepted],greeted:this.greeted,impactCount:this.impactCount,impactDelay:this.impactDelay,kitStored:this.kitStored,repairCompleted:this.repairCompleted,repairWait:this.repairWait,backgroundRequested:this.backgroundRequested,explanationRequested:this.explanationRequested,injuryHandled:this.injuryHandled,codeRequested:this.codeRequested,codeAsked:this.codeAsked,reportAnswered:this.reportAnswered,earlyWarning:this.earlyWarning,warningVariant:this.warningVariant,reminderVariant:this.reminderVariant};}
  override restore(value:unknown){
   const v=value as ReturnType<HarborSimpleFlow['snapshot']>;
   if(v?.version!==3){const ok=super.restore(value);if(ok)this.legacy=true;return ok;}
@@ -122,7 +144,9 @@ export class HarborSimpleFlow extends HarborLegacyFlow {
   if(!Number.isInteger(v.impactCount)||v.impactCount<0||v.impactCount>2||!Number.isFinite(v.impactDelay)||!Number.isFinite(v.repairWait)||v.repairWait<0)return false;
   if(v.warningVariant!=null&&!['L1-R28-V03','L1-R28-V03-QUIET'].includes(v.warningVariant)||v.reminderVariant!=null&&!['L1-R28-V04R','L1-R28-V04R-STORED'].includes(v.reminderVariant))return false;
   const has=(id:string)=>v.accepted.includes(id);
-  if(v.accepted.length&&!has('L1-R28-V01')||v.impactCount&&!has('L1-R28-V02A')||v.repairCompleted&&!has('L1-R28-V04')||has('L1-R28-V05')&&!v.repairCompleted||v.reportAnswered&&!has('L1-R28-V07')||v.injuryHandled&&!this.rescue.state.injured)return false;
+  if(v.accepted.length&&!has('L1-R28-V01')||v.impactCount&&!has('L1-R28-V02-AUTH')||v.repairCompleted&&!has('L1-R28-V04')||has('L1-R28-V05')&&!v.repairCompleted||v.reportAnswered&&!has('L1-R28-V07')||v.injuryHandled&&!this.rescue.state.injured)return false;
+  if(v.entryBriefRequested!==undefined&&typeof v.entryBriefRequested!=='boolean')return false;
+  this.entryBriefRequested=v.entryBriefRequested??false;
   this.warningVariant=v.warningVariant??null;this.reminderVariant=v.reminderVariant??null;this.codeRequested=v.codeRequested??false;this.codeAsked=v.codeAsked??false;
   this.legacy=false;this.accepted.splice(0,this.accepted.length,...v.accepted);for(const k of ['greeted','impactCount','impactDelay','kitStored','repairCompleted','repairWait','backgroundRequested','explanationRequested','injuryHandled','reportAnswered','earlyWarning'] as const)(this as any)[k]=v[k];this.impactPlayed=v.impactCount>0;return true;
  }

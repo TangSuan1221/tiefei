@@ -1,3 +1,4 @@
+import {labDeskState} from './lab-desk';
 import type {PodRun} from '../sim/run';
 
 const TYPE_RATE=26;// characters per second for the instruction typewriter
@@ -6,7 +7,9 @@ let typed={key:'',at:0};
 /** Quiet white floating instruction; not burned into photography or the CRT.
  *  Vance speaks first; the one-line instruction types in only after his caption has finished. */
 export function drawPrologue(ctx:CanvasRenderingContext2D,run:PodRun,w:number,h:number){
- const p=run.prologue;if(!p?.active)return;
+ const p=run.prologue;
+ const repair=run.authoredSite?.cargoManifest?.some(item=>item.name==='维修工具');
+ if(!p?.active){if(!repair)return;const hint=run.at!=='lab'?'按 3 打开分析台，使用刚收妥的维修工具':labDeskState(run).tab!=='cargo'?'点击分析台上方【03 仓库】，查看维修工具':'点击【使用维修工具 · 修复铁鲸】，修复受损艇体';const now=performance.now();if(typed.key!==hint)typed={key:hint,at:now};ctx.save();ctx.textAlign='center';ctx.font=`400 ${Math.max(14,Math.min(25,w/55))}px Microsoft YaHei`;ctx.fillStyle='#f1f0e9';ctx.shadowColor='#000';ctx.shadowBlur=7;ctx.fillText([...hint].slice(0,Math.floor((now-typed.at)/1000*TYPE_RATE)).join(''),w/2,h*.09,w*.9);ctx.restore();return;}
  ctx.save();ctx.textAlign='center';ctx.textBaseline='top';ctx.shadowColor='#000';ctx.shadowBlur=7;
  const size=Math.max(17,Math.min(27,w/52));
  function lines(text:string,y:number,fontSize:number,width:number){
@@ -28,11 +31,13 @@ export function drawPrologue(ctx:CanvasRenderingContext2D,run:PodRun,w:number,h:
  const speaking=run.storyCaptionLeft>0&&!!run.storyCaption;
  if(speaking){
   const narration='陆地频道 · 万斯：'+p.beat[2];
-  ctx.fillStyle='#e3e0d6';
+  const captionSize=Math.max(24,Math.min(44,w/40));
+  ctx.fillStyle='#f5f3ec';
+  ctx.lineJoin='round';
   // Measure first so the complete voiced line stays on screen at narrow aspect ratios.
-  ctx.font=`400 ${size*.78}px "Microsoft YaHei", sans-serif`;
-  let rows=1,row='';for(const c of narration){if(ctx.measureText(row+c).width>w*.76){rows++;row='';}row+=c;}
-  lines(narration,h*.95-rows*size*.78*1.5,size*.78,w*.76);
+  ctx.font=`400 ${captionSize}px "Microsoft YaHei", sans-serif`;
+  let rows=1,row='';for(const c of narration){if(ctx.measureText(row+c).width>w*.84){rows++;row='';}row+=c;}
+  lines(narration,h*.94-rows*captionSize*1.5,captionSize,w*.84);
   typed={key:'',at:0};ctx.restore();return;
  }
  const hint=run.at?(p.step===1&&p.lampObservation>0?'探照灯已开启，观察舷窗外被照亮的长廊':p.beat[3]):'按 2 返回驾驶台，继续航前检查';

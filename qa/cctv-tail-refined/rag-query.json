@@ -1,0 +1,24 @@
+{
+  "query": "尾帧 信号重连中",
+  "mode": "local-lexical-bm25",
+  "results": [
+    {
+      "id": "MET-006",
+      "title": "MET-006 摄像视点、视场与无遮挡",
+      "status": "IMPLEMENTED / REQUIRED",
+      "runtimeProfile": "main-authored",
+      "scopeNote": "主游戏为默认范围；条目正文中标明的首关、独立探索和历史模式例外必须一并引用。",
+      "source": "docs/level-metrics.md",
+      "line": 71,
+      "endLine": 94,
+      "references": [
+        "src/pod/content/harbor-video-references.ts",
+        "docs/harbor-video-references-2026-11-02.md",
+        "src/pod/view/deepsea/pod-expedition.ts",
+        "src/pod/view/camera-room.ts"
+      ],
+      "content": "2026-11-04 用户尾帧参考与续接修订（IMPLEMENTED 本地渲染及浏览器回归 / GAP 连续人工实玩）：完成视频的尾帧按用户电流紊乱参考采用横向同步撕裂、RGB偏移、扫描线、滚动亮噪带与细雪花；仅改变显示，不改原视频和证据。停留在分析台视角且未挂断时，发送自由发言保留旧画面、叠加“信号重连中”，新回片直接接续；离开分析台视角或挂断清除自动接续资格，再次来片需接听。验证 tools/comm-reconnect-check.mjs 覆盖等待、自动接续、挂断、离开返回；tools/cctv-tail-refined-check.mjs 覆盖渲染、动画、切片残影并输出 qa/cctv-tail-refined 预览。类型检查通过，未调用生成API。此次不重写剧情，其余MET尺寸、输入、证据、声纳与碰撞要求不变；视觉参考一致性仍以用户审阅及实际素材为准。\n\n\n2026-11-04 用户修订（IMPLEMENTED 提示词接线 / GAP 实际声线验收）：MiniMax 3 中艾里亚斯发言统一为英语、成年男性低沉男中音、轻微沙哑及中性美式口音，各片保持声线一致。共用 fixed-camera.ts 在任务提示词与网络提交边界加入 ELIAS VOICE 约束，覆盖自拍及含 Elias 的固定镜头；首二关任务和首关自由回复的中文文本作为语义来源，要求忠实翻译英语，数字逐位朗读，界面保留中文译文。本条覆盖这些生成通讯原先的普通话配音及“中文字幕逐字等于配音”要求。不重新生成已有本地影片或已收存档；提示词约束不等于音色克隆，实际英语、语音身份与译文对应仍须实片验收。未改剧情、尺寸、碰撞、声纳、输入与证据门槛；其余MET适用性不变，未声称完成全关验收。\n\n\n2026-11-02 第一章用户参考图接线（IMPLEMENTED 客户端 / GAP 上游实片）：`src/pod/content/harbor-video-references.ts` 登记用户第一章目录的四张PNG。艾里亚斯实时任务采用剧情图为主参考，追加角色图与总调度室场景图；安全通道仅借场景材质，不强制回到调度室。第一章实际曝光快照存在怪物时追加接驳岗怪物外形图，保留实际机位与现场事实；无怪物回退不追加怪物图。每图以 `content[].role=reference_image` 内嵌提交，缺图阻止提交，不使用首尾帧角色。原有V01/V02本地成片保留。素材只规定外观，不能提供剧情证据、暴露身份或改写Panacea。记录见 `docs/harbor-video-references-2026-11-02.md`。\n\n2026-10-12 用户固定镜头要求（提示词接线IMPLEMENTED / 实际生成效果GAP）：每卷生成视频全程固定相机位置、旋转、焦距与构图，禁止漂移、跟拍、推拉、变焦、重构图、受击震动与切镜。主游戏、叙事提示词与最终requestVideo入口共用 src/pod/content/fixed-camera.ts；删除旧支架漂移、scene.motion运镜和camera jolt。规则见 docs/video-prompts/structured-prompt-standard.md 的VR-111；tools/fixed-video-camera-check.mjs验证模拟网络payload，无真实生成调用。\n\n\n2026-10-11 用户强制参考图要求（REQUIRED / NPC接线GAP）：每次视频生成同次上传剧情触发现场截图。玩家拍摄/行动取玩家实际位置和摄影状态；艾里亚斯自身剧情取其触发时坐标锚定的已登记场景摄像机，不复用玩家视角。机位偏移/朝向/FOV必须显式配置并遵守遮挡；不新增玩家远端摄影权限。缺图、NPC机位缺失或快照不一致拒绝生成，不回退纯文生。规范 docs/video-prompts/runtime-reference-contract.md；机器规则 src/pod/content/video-reference-policy.json。玩家首帧已有部分接线，NPC分流与统一底层拦截尚待实现，不冒称规范落盘等于功能完成。\n\n\n状态：IMPLEMENTED / REQUIRED。关键词：摄像头 视点 FOV 观察孔 穿墙 云台。\n\n主游戏相机位置等于当前驾驶位置；当前主游戏垂直视场 `64/camZoom` 度，基础倍率1时64°。云台在艇朝向上叠加角度，不是可脱离艇体移动的摄影头。旧camera-room光心也明确没有安装偏移。不得以“相机在夹层里、玩家在外面”解释同一固定摄像头的特殊视线。\n\n每个关键机位必须登记位置、朝向、倍率、目标尺寸、遮挡体、光照、证据内容、返回时状态变化。机位只能经实际驾驶获得；所有关键物体和锁销必须落在真实视锥内，不能在结果片切成全知镜头。镜头参数上限不等于可读距离。\n\n依据：`src/pod/view/deepsea/pod-expedition.ts`（camera、pose）；`src/pod/view/camera-room.ts`（cameraEye）。",
+      "score": 15.208
+    }
+  ]
+}

@@ -18,16 +18,18 @@ export const HARBOR_TASKS = {
 export type HarborTaskId=keyof typeof HARBOR_TASKS;
 /** Elias names himself in V02; calls before that come from an unknown source. */
 export const harborCaller=(id:HarborTaskId)=>id==='L1-R28-V01'||id==='L1-R28-V02'||id==='L1-E01'?'未知来源':'艾里亚斯';
-/** Subtitles are the exact SPEECH text the model voices (VR-116). */
+/** Chinese localized subtitles preserve the source meaning; generated Elias audio is English. */
 export const harborTaskSubtitles=(id:HarborTaskId)=>subtitleLines('艾里亚斯',HARBOR_TASKS[id].speech);
 export const HARBOR_TASK_REFERENCE=HARBOR_REFERENCES.story;
-export function harborSpeechParts(id:HarborTaskId){const text=HARBOR_TASKS[id].speech;if(!id.startsWith('L1-R28-'))return [text];const parts:string[]=[];let part='';for(const clause of text.match(/[^，。！？；…]+[，。！？；…]*/g)??[text]){if(part.length+clause.length>36&&part){parts.push(part);part='';}part+=clause;}if(part)parts.push(part);return parts;}
-export function harborTaskPrompt(id:HarborTaskId,injured=false,part?:number){const t=HARBOR_TASKS[id];return lockVideoCamera([
+/** A communication is one complete generation, never sentence-sized clips. */
+export function harborSpeechParts(id:HarborTaskId){return [HARBOR_TASKS[id].speech];}
+export function harborTaskPrompt(id:HarborTaskId,injured=false,replySpeech?:string){const t=HARBOR_TASKS[id];return lockVideoCamera([
  'REFERENCE: Primary image is the Elias story portrait; additional images define his character equipment and dispatch room, not an exact opening composition. Use exactly one helmeted Elias; discard sheet layout, labels, white background and all unhelmeted views.',
  'IDENTITY: Worn yellow diving helmet, opaque dark visor, black diving drysuit, tan harness. Helmet stays sealed; no visible face or body anomaly.',
  'LOCATION: '+t.place+'. Dry floor, breathable air, normal gravity; no underwater particles or bubbles around Elias.',
- 'ACTION: '+t.action+(injured?' Preserve a minor shoulder injury and guarded arm movement; he can walk.':' No injury unless explicitly described in ACTION.'),
- 'SPEECH: Speak this Mandarin message naturally, without omitting or paraphrasing any words: '+(part===undefined?t.speech:harborSpeechParts(id)[part]),
+ 'ACTION: '+(replySpeech?'He answers over his helmet camera from his current location. Stay in place; do not perform a mission action or reenact the previous message.':t.action)+(injured?' Preserve a minor shoulder injury and guarded arm movement; he can walk.':' No injury unless explicitly described in ACTION.'),
+ 'SPEECH SOURCE (Chinese localization): Render the following meaning faithfully in natural spoken English only: '+(replySpeech??t.speech),
+ 'DELIVERY: One continuous complete message. Speak the supplied meaning once, in order; do not repeat lines, restart the message, or create separate parts.',
  'MESSAGE: No subtitles or text generated in the picture; the game displays the exact task and coordinates separately.',
  'No other characters, creature, hidden identity reveal, space setting or cinematic cut.'
  ].join('\n'),'elias-selfie');}

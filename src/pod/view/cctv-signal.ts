@@ -12,35 +12,28 @@ float luma(vec3 c){return dot(c,vec3(.299,.587,.114));}
 vec3 sampleAt(vec2 p){return texture2D(image,clamp(p,vec2(.001),vec2(.999))).rgb;}
 void main(){
  vec2 px=1./resolution;
- // Irregular packets with a soft attack and exponential recovery, separated by quiet holds.
- float cycle=floor(clock/4.7),phase=mod(clock,4.7);
- float onset=.7+hash(vec2(cycle,3.))*1.6;
- float age=phase-onset;
- float envelope=smoothstep(0.,.075,age)*exp(-max(age,0.)*5.5);
- float centerY=.12+.76*hash(vec2(cycle,8.));
- float band=exp(-pow((uv.y-centerY)/.028,2.));
- float packet=envelope*band*damage;
- float drift=(noise(vec2(uv.y*6.,clock*.32))-.5)*.32;
- float shift=drift+packet*(1.2+.8*sin(uv.y*160.));
- vec2 p=uv+vec2(shift*px.x,0.);
- vec3 center=sampleAt(p);
- // Luma retains full source detail; only colour has reduced transmission bandwidth.
- float y=luma(center);
- vec3 left=sampleAt(p-vec2(px.x*(.65+packet*1.5),0.));
- vec3 right=sampleAt(p+vec2(px.x*.65,0.));
- vec3 chroma=(left-vec3(luma(left)))*.22+(right-vec3(luma(right)))*.22+(center-vec3(y))*.56;
- vec3 colour=vec3(y)+chroma*.97;
- colour=mix(colour,texture2D(history,uv).rgb,trail);
- // Fine, temporally interpolated sensor grain, strongest in shadows. No block noise.
- float tick=clock*30.,blend=smoothstep(0.,1.,fract(tick));
+ // Tail-frame analogue sync loss: broad horizontal tears plus fine moving RF snow.
+ float tick=floor(clock*18.);
+ float row=floor(uv.y*72.);
+ float burst=step(.64,hash(vec2(row,tick)));
+ float roll=fract(uv.y+clock*.11);
+ float tracking=1.-smoothstep(.025,.09,abs(roll-.48));
+ float shift=damage*(burst*(hash(vec2(row,tick+4.))-.5)*.18
+   +tracking*.055*sin(uv.y*260.+tick)+.003*sin(uv.y*950.+clock*31.));
+ vec2 p=vec2(fract(uv.x+shift),uv.y);
+ float split=px.x*(.5+damage*(2.5+burst*7.+tracking*5.));
+ vec3 colour=vec3(sampleAt(p+vec2(split,0.)).r,sampleAt(p).g,sampleAt(p-vec2(split,0.)).b);
+ float y=luma(colour);
+ colour=mix(colour,vec3(y*.83,y*1.04,y*1.08),damage*.34);
  vec2 cell=floor(uv*resolution);
- float grain=mix(hash(cell+vec2(mod(floor(tick),193.),17.)),hash(cell+vec2(mod(floor(tick)+1.,193.),17.)),blend)-.5;
- colour+=grain*(.006+.014*pow(1.-y,2.))*(1.+damage*.55);
- // Broad travelling hum and fine line noise are distinct frequency layers.
- float hum=sin(uv.y*13.-clock*.48)*sin(uv.y*4.+clock*.19);
- float line=noise(vec2(uv.y*resolution.y*.5,clock*8.))-.5;
- colour*=1.+damage*(hum*.009+line*.008-packet*.035);
- colour*=1.-.004*(.5+.5*cos(uv.y*resolution.y*3.14159265));
+ float snow=hash(cell+vec2(tick*13.,tick*7.));
+ float streak=hash(vec2(floor(uv.x*resolution.x/7.),floor(uv.y*resolution.y/2.))+tick);
+ float broken=step(.55,streak)*burst;
+ colour=mix(colour,vec3(.72,.9,.94),damage*(broken*.52+tracking*step(.63,snow)*.65));
+ colour+=(snow-.5)*(.012+damage*.26);
+ colour*=1.-damage*burst*step(.73,hash(vec2(row,tick+8.)))*.8;
+ colour*=1.-(.015+damage*.24)*(.5+.5*cos(uv.y*resolution.y*3.14159265));
+ colour=mix(colour,texture2D(history,uv).rgb,trail);
  vec2 edge=uv*2.-1.;colour*=1.-.025*pow(dot(edge,edge)*.5,2.);
  gl_FragColor=vec4(clamp(colour,0.,1.),1.);
 }`;

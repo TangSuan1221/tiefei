@@ -23,3 +23,12 @@
 - 两款 OFL 文本均未声明保留字体名。子集文件名加 `-porthole` 后缀以示为修改版。
 - 子集方式：fontTools `pyftsubset`，输出 woff2。VT323 仅保留 ASCII 与 `°±·×—…←↑→↓`；Fusion Pixel 保留 GB2312 一级汉字（3755字）、ASCII、常用全角标点，以及子集时 `src/**/*.ts` 出现的全部汉字。
 - 注册与字体栈在 `src/pod/view/crt-hud.ts`。像素字按 12px 整数倍（24/36px）使用最清晰。
+
+## IPix — live porthole (2026-11-06)
+
+IPix.ttf: IPix Regular, Copyright (c) 2019, zengsadi. Full font, 6864 mapped characters.
+Author: https://purestudio.itch.io/ipix
+Download mirror: https://www.zku.net/fonts-27700.html
+File: https://www.zku.net/public/uploads/zitiFile/2020-03-12/5e69f74e98ae5.ttf
+Author states HZK16 origins and uncertain public-domain status; this asset is not labelled SIL OFL here.
+Used by porthole target labels, distance, heading, pitch and X/Y/DEPTH. Missing degree sign uses the existing fallback face.

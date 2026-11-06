@@ -1,0 +1,35 @@
+{
+  "query": "生成开始即来电 信号连接中",
+  "mode": "local-lexical-bm25",
+  "results": [
+    {
+      "id": "MET-006",
+      "title": "MET-006 摄像视点、视场与无遮挡",
+      "status": "IMPLEMENTED / REQUIRED",
+      "runtimeProfile": "main-authored",
+      "scopeNote": "主游戏为默认范围；条目正文中标明的首关、独立探索和历史模式例外必须一并引用。",
+      "source": "docs/level-metrics.md",
+      "line": 75,
+      "endLine": 114,
+      "references": [
+        "src/pod/view/lab-desk.ts",
+        "src/pod/view/comm-desk.ts",
+        "tools/comm-desk-alert-check.mjs",
+        "docs/comm-layout-2026-11-06.md",
+        "src/pod/view/comm-incoming.ts",
+        "src/pod/view/radio-transmit.ts",
+        "tools/comm-layout-check.mjs",
+        "src/pod/content/vance-voice.json",
+        "src/pod/view/vance-voice.ts",
+        "src/pod/content/vance-performance.json",
+        "docs/vance-voice-2026-11-05.md",
+        "src/pod/content/harbor-video-references.ts",
+        "docs/harbor-video-references-2026-11-02.md",
+        "src/pod/view/deepsea/pod-expedition.ts",
+        "src/pod/view/camera-room.ts"
+      ],
+      "content": "2026-11-06 生成开始即来电修订（IMPLEMENTED / GAP 真实生成端到端人工体验）：首、二关当前剧情通话在开始准备/生成时显示原分析台接听UI；玩家可先接听，在“信号连接中”动效中等待，可播放后直接播放，无需再次接听。待生成邀请仅存于临时UI，不写入录像证据或存档；失败允许重新接收，作废任务取消邀请，挂断后成片仍需接听。已接通通话内的回复延续现有续播。第二关尚未到剧情触发点的预生成保持静默，避免提前透露后续任务。本条覆盖下文“就绪新呼叫”才提醒的时点，媒体可播放检查及完整观看证据门槛保留。验证 tools/comm-early-answer-check.mjs；全MET适用性：006/007/010/011/013/021/030/031/033/034涉及呈现、等待、存档与证据时序；001—005、008—009、012、014—020、022—029、032、035—044的物理、剧情、声纳、装饰碰撞与自由输入规则不变。未调用真实视频生成API，不以测试代替全关实玩。\n\n2026-11-06 接收动效与同通话续播修订（IMPLEMENTED / GAP 连续人工实玩）：玩家在已接通的分析台通讯中回复后，原视频区显示“信号接收中”的循环信号条、扫描光带及省略号，不显示虚构百分比。同频道新回片通过媒体可播放检查后直接续播，不弹出再次接听UI；挂断或离开通讯视角取消续接，独立新呼叫仍使用分析台原UI提醒。本条覆盖下文“不自动接通回片”。完整播放后证据登记保持不变。实现 comm-desk.ts、lab-desk.ts；回归 tools/comm-receiving-check.mjs。全MET适用性：涉及MET-006/007/030/031/033/034的呈现及时序，其余MET-001至044尺寸、碰撞、声纳、输入、剧情正典未修改。\n\n2026-11-06 分析台全屏来电纠正（IMPLEMENTED / GAP 连续人工实玩）：“全屏”仅指游戏内分析台的实体CRT屏幕，沿用原通讯UI，禁止用覆盖电脑/游戏窗口的DOM弹层。就绪新呼叫自动占满分析台屏幕，接听后恢复原页签与正常通讯播放；只阻止该屏幕内切页/忽略，其他工位与驾驶不受全局锁定。不自动接通回片。保留媒体就绪、人物信号源及完整播放证据门槛。实现 `src/pod/view/lab-desk.ts`、`src/pod/view/comm-desk.ts`；验证 `tools/comm-desk-alert-check.mjs`。全MET适用性：本次仅MET-006/007呈现及局部交互修正，其余MET-001至044的物理、剧情、证据、声纳与自由输入规则不变。\n\n2026-11-06通讯剪影修订（IMPLEMENTED）：用户要求正常人物比例与下方来电信号源。字符头肩用统一尺寸比例绘制，预留信号源文字行；首次为“未知”，接听过同一人物后后续来电为“艾利亚斯”，忽略不计接听。此最新指示替代通讯页旧的按任务编号匿名逻辑；不改变影片正文、播放完成和证据门槛。实现与全MET适用性见 `docs/comm-layout-2026-11-06.md`。\n\n2026-11-06 通讯页参考重构（IMPLEMENTED 页面与交互 / GAP 参考图主观验收）：按用户绿色CRT参考重排04通讯：顶部来电状态及历史下拉、全宽主画面、底部原位自由输入与接听/回复、忽略/挂断。M按来电状态接听或回复；忽略不授予已看事实，历史可重新接听；中文IME保留。匿名字符轮廓不作为证据，实际视频保留原色与完整画幅，callMediaReady及已播放门槛不放宽。实现 `src/pod/view/comm-desk.ts`、`src/pod/view/comm-incoming.ts`、`src/pod/view/lab-desk.ts`、`src/pod/view/radio-transmit.ts`，验证 `tools/comm-layout-check.mjs`，记录与全部MET适用性见 `docs/comm-layout-2026-11-06.md`。三轮视觉对照不等于像素完全一致或全关验收。\n\n2026-11-06 万斯语速后续修订（IMPLEMENTED / GAP 主观听感）：用户指出Christopher版偏慢，现行13段统一以1.2倍播放，显式保持音高，沿用现有音频和逐段表演节奏；字幕仍随实际播放结束释放。配置 `src/pod/content/vance-voice.json` 的playbackRate，播放接线 `src/pod/view/vance-voice.ts`；未重新上传或生成配音。仅调整播放速度，其余MET规则与剧情事实不变。\n\n2026-11-06 万斯去朗读腔修订（IMPLEMENTED 音频替换 / GAP 电影感听感）：覆盖下方Andrew版本。依用户要求，序章13句改用Christopher英语男声及口语化句式，逐段语速-4%至+3%，资源版本2026-11-06-dramatic；保留中文字幕、坐标/深度与原教学含义。`src/pod/content/vance-voice.json`为运行时源，`src/pod/content/vance-performance.json`仅是角色表演制作意图，Edge接口不支持其情绪指令，不声称已实现演员级表演。用户已单独授权新版台词发送微软生成及替换。播放器和物理/叙事规则不变；验证与全部MET适用性复核见 `docs/vance-voice-2026-11-05.md` 最新节。\n\n2026-11-05 万斯英语配音修订（IMPLEMENTED 本地播放接线 / GAP 主观音色验收）：依用户最新要求，现行序章万斯采用拟真的英语成年男声，保留中文字幕。13句译稿在 `src/pod/content/vance-voice.json`，由用户明确授权后发送微软Edge TTS，采用Andrew神经男声生成本地MP3，游戏不再为序章调用浏览器默认中文朗读。`src/pod/view/vance-voice.ts` 管理切句、静音、退出与播放期间字幕保持；失败保留字幕，不退回机械系统语音。此要求适用于现行序章教学，不扩展万斯在后续主线的出场，也不恢复旧人物剧情。生成与验证记录见 `docs/vance-voice-2026-11-05.md`。本次只改配音及字幕计时；MET-001至044的物理尺寸、自由输入、摄影证据、Panacea、分路、声纳与碰撞规则不变，不以解码测试证明拟真听感或全关可玩性。\n\n2026-11-04 用户尾帧参考与续接修订（IMPLEMENTED 本地渲染及浏览器回归 / GAP 连续人工实玩）：完成视频的尾帧按用户电流紊乱参考采用横向同步撕裂、RGB偏移、扫描线、滚动亮噪带与细雪花；仅改变显示，不改原视频和证据。停留在分析台视角且未挂断时，发送自由发言保留旧画面、叠加“信号重连中”，新回片直接接续；离开分析台视角或挂断清除自动接续资格，再次来片需接听。验证 tools/comm-reconnect-check.mjs 覆盖等待、自动接续、挂断、离开返回；tools/cctv-tail-refined-check.mjs 覆盖渲染、动画、切片残影并输出 qa/cctv-tail-refined 预览。类型检查通过，未调用生成API。此次不重写剧情，其余MET尺寸、输入、证据、声纳与碰撞要求不变；视觉参考一致性仍以用户审阅及实际素材为准。\n\n\n2026-11-04 用户修订（IMPLEMENTED 提示词接线 / GAP 实际声线验收）：MiniMax 3 中艾里亚斯发言统一为英语、成年男性低沉男中音、轻微沙哑及中性美式口音，各片保持声线一致。共用 fixed-camera.ts 在任务提示词与网络提交边界加入 ELIAS VOICE 约束，覆盖自拍及含 Elias 的固定镜头；首二关任务和首关自由回复的中文文本作为语义来源，要求忠实翻译英语，数字逐位朗读，界面保留中文译文。本条覆盖这些生成通讯原先的普通话配音及“中文字幕逐字等于配音”要求。不重新生成已有本地影片或已收存档；提示词约束不等于音色克隆，实际英语、语音身份与译文对应仍须实片验收。未改剧情、尺寸、碰撞、声纳、输入与证据门槛；其余MET适用性不变，未声称完成全关验收。\n\n\n2026-11-02 第一章用户参考图接线（IMPLEMENTED 客户端 / GAP 上游实片）：`src/pod/content/harbor-video-references.ts` 登记用户第一章目录的四张PNG。艾里亚斯实时任务采用剧情图为主参考，追加角色图与总调度室场景图；安全通道仅借场景材质，不强制回到调度室。第一章实际曝光快照存在怪物时追加接驳岗怪物外形图，保留实际机位与现场事实；无怪物回退不追加怪物图。每图以 `content[].role=reference_image` 内嵌提交，缺图阻止提交，不使用首尾帧角色。原有V01/V02本地成片保留。素材只规定外观，不能提供剧情证据、暴露身份或改写Panacea。记录见 `docs/harbor-video-references-2026-11-02.md`。\n\n2026-10-12 用户固定镜头要求（提示词接线IMPLEMENTED / 实际生成效果GAP）：每卷生成视频全程固定相机位置、旋转、焦距与构图，禁止漂移、跟拍、推拉、变焦、重构图、受击震动与切镜。主游戏、叙事提示词与最终requestVideo入口共用 src/pod/content/fixed-camera.ts；删除旧支架漂移、scene.motion运镜和camera jolt。规则见 docs/video-prompts/structured-prompt-standard.md 的VR-111；tools/fixed-video-camera-check.mjs验证模拟网络payload，无真实生成调用。\n\n\n2026-10-11 用户强制参考图要求（REQUIRED / NPC接线GAP）：每次视频生成同次上传剧情触发现场截图。玩家拍摄/行动取玩家实际位置和摄影状态；艾里亚斯自身剧情取其触发时坐标锚定的已登记场景摄像机，不复用玩家视角。机位偏移/朝向/FOV必须显式配置并遵守遮挡；不新增玩家远端摄影权限。缺图、NPC机位缺失或快照不一致拒绝生成，不回退纯文生。规范 docs/video-prompts/runtime-reference-contract.md；机器规则 src/pod/content/video-reference-policy.json。玩家首帧已有部分接线，NPC分流与统一底层拦截尚待实现，不冒称规范落盘等于功能完成。\n\n\n状态：IMPLEMENTED / REQUIRED。关键词：摄像头 视点 FOV 观察孔 穿墙 云台。\n\n主游戏相机位置等于当前驾驶位置；当前主游戏垂直视场 `64/camZoom` 度，基础倍率1时64°。云台在艇朝向上叠加角度，不是可脱离艇体移动的摄影头。旧camera-room光心也明确没有安装偏移。不得以“相机在夹层里、玩家在外面”解释同一固定摄像头的特殊视线。\n\n每个关键机位必须登记位置、朝向、倍率、目标尺寸、遮挡体、光照、证据内容、返回时状态变化。机位只能经实际驾驶获得；所有关键物体和锁销必须落在真实视锥内，不能在结果片切成全知镜头。镜头参数上限不等于可读距离。\n\n依据：`src/pod/view/deepsea/pod-expedition.ts`（camera、pose）；`src/pod/view/camera-room.ts`（cameraEye）。",
+      "score": 22.8722
+    }
+  ]
+}

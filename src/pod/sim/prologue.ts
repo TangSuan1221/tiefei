@@ -1,3 +1,5 @@
+/** Teaching tolerances, not precision docking limits; never changes the physical hull or pose. */
+export const PROLOGUE_LEVEL_TOLERANCE={pitch:3,depth:1,pitchRate:1,verticalSpeed:.2} as const;
 /** Progress is earned from instrument/physical state, never from a timer or dialogue password. */
 export const PROLOGUE_STEPS = [
   ['航前校准', 'nav', '我是陆地指挥员万斯，负责这次下潜。拖缆刚刚脱开，前面是进港检修长廊。先看左手导航台，把入口的位置记下来：X 11，Y 16，深度 1012。第三格是深度，数值越大越深。', '在导航台依次录入 X 11、Y 16、DEPTH 1012，点“写入”（辅助：数字键 / Tab / Enter）'],
@@ -9,7 +11,7 @@ export const PROLOGUE_STEPS = [
   ['下潜', 'nav.pitchDown', '再回到刚才的深度。注意，浮沉和艇首俯仰是两套操作。', '按住“下降”按钮，下潜至少 0.5 米（辅助：PageDown）'],
   ['抬头', 'drive.up', '调整艇首，让探照灯扫过长廊顶板。只试一点角度。', '按住“抬头”按钮，艇首上抬至少 4°（辅助：I）'],
   ['低头', 'drive.down', '再压低艇首，把视线放回通道。', '按住“低头”按钮，艇首下压至少 4°（辅助：K）'],
-  ['回正与定深', 'window', '把艇首放平，回到入口的深度。别带着低头角度一直推，会碰到底板。', '俯仰回正到 0°，深度调回 1012 米，松手等艇身稳定'],
+  ['回正与定深', 'window', '把艇首放平，回到入口的深度。别带着低头角度一直推，会碰到底板。', `艇首大致放平（±${PROLOGUE_LEVEL_TOLERANCE.pitch}°），深度 1012±${PROLOGUE_LEVEL_TOLERANCE.depth} 米，松开俯仰和升降即可`],
   ['驶向入口', 'window', '前面那道压力门就是入口。航点只带你到门前，机械臂要看门牌上的距离。靠近前把速度降下来；如果看不清，就停下来再判断。操纵杆左右拨是转向。', '对准压力门驶近，门牌距离 3.4 米内按“制动”停稳（辅助：J / L / 空格 / Shift）'],
   ['机械臂作业', 'arm.extend', '先别拿艇首顶门。让机械爪接触门控，看到门打开后，等它完全收回来。', '对准门控点击“机械臂操作”，等它收回（辅助：F，C 取消）'],
 ] as const;
@@ -34,7 +36,7 @@ export class Prologue {
       s.speed<-.05&&Math.hypot(s.x-a[0],s.z-a[2])>=.5,
       s.y-a[1]>=.5,a[1]-s.y>=.5,
       a[3]-s.pitch>=4,s.pitch-a[3]>=4,
-      Math.abs(s.pitch)<.6&&Math.abs(s.y)<.25&&Math.abs(s.pitchRate)<.2&&Math.abs(s.verticalSpeed)<.05,
+      Math.abs(s.pitch)<=PROLOGUE_LEVEL_TOLERANCE.pitch&&Math.abs(s.y)<=PROLOGUE_LEVEL_TOLERANCE.depth&&Math.abs(s.pitchRate)<=PROLOGUE_LEVEL_TOLERANCE.pitchRate&&Math.abs(s.verticalSpeed)<=PROLOGUE_LEVEL_TOLERANCE.verticalSpeed,
       s.doorReach&&Math.abs(s.speed)<.08,
       s.doorOpen&&s.armStowed,
     ][this.step];

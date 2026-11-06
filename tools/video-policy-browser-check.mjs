@@ -36,7 +36,7 @@ try {
   return {denied,warm,joined,cached,ordinary,mismatch,padded,reported,invalid};
  });
  console.log(JSON.stringify({durations:posts.map(p=>p.duration),results}));
- assert.equal(posts.length,6);assert.deepEqual(posts.map(p=>p.duration),[10,5,10,5,5,5]);
+ assert.equal(posts.length,6);assert.deepEqual(posts.map(p=>p.duration),[5,5,5,5,5,5]);
  assert.equal(results.denied[1],false);for(const k of ['warm','joined','cached','ordinary','mismatch','padded','reported'])assert.equal(results[k][1],true,k);
- assert.equal(results.invalid[1],false);console.log('PASS mocked video transport: no empty-scene charge, 10s/5s POST, prefetch join/cache one POST, accepts encoded duration variation including 5.14s/5.184s; rejects invalid media duration');
+ assert.equal(results.invalid[1],false);console.log('PASS mocked video transport: no empty-scene charge, all photography POSTs forced to 5s, prefetch join/cache one POST, accepts encoded duration variation including 5.14s/5.184s; rejects invalid media duration');
 }finally{await browser.close();}

@@ -1,3 +1,4 @@
+import {syncCommView} from './comm-desk';
 import { crtFont, TERMINAL_INK } from './crt-hud';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -60,7 +61,7 @@ export class CabinThree {
   private impactAge=10;
   private impactStrength=0;
   impact(amount:number){this.impactAge=0;this.impactStrength=Math.min(1,Math.max(amount,this.impactStrength*.4));}
-  private updateNavigationKeyboard:((run:PodRun)=>void)|undefined;
+  private navKeyboard:ReturnType<typeof buildNavigationKeyboard>|undefined;
   private updateActiveControls:((run:PodRun,hovered?:string)=>void)|undefined;
   private helmKeys:THREE.Mesh[]=[];
   private helmLabels:THREE.Texture[]=[];
@@ -208,7 +209,7 @@ export class CabinThree {
       frontBounce.position.set(.05,-.32,.32);
       helmPanel.add(frontBounce);
     }
-    this.updateNavigationKeyboard=buildNavigationKeyboard(this.scene,this.helmLabels);
+    this.navKeyboard=buildNavigationKeyboard(this.scene,this.helmLabels);
   }
 
   private build() {
@@ -255,7 +256,7 @@ export class CabinThree {
     // 通话与视频通讯在分析台【通讯】页签。
     // 驾驶视角（座位 0,1.36,-.62，FOV65）下整块声纳屏须落在舷窗外框与画面左缘之间：
     // 缩小并向操作员侧偏转，驾驶时无需转头即可读图。
-    this.terminal('nav',[-.53,1.46,-1.42],.42,.30,.24,true);
+    this.terminal('nav',[-.53,1.38,-1.42],.42,.30,.24,true);
     this.terminal('lab',[.72,1.45,-1.35],-.12,.54,.43);
 
     // Tank rack, taped supply crate, film magazines and electrical service boxes.
@@ -324,9 +325,10 @@ export class CabinThree {
       if(['camera','nav','lab'].includes(target.id)) {
         // One operator position: the side instruments only change gaze/optical focus.
         pos.set(0,1.36,-.62);
-        if(target.id==='camera')look.set(0,1.35,-1.57);
+        if(target.id==='camera')target.mesh.getWorldPosition(look);
       }
     }
+    syncCommView(run,run.at==='lab'&&this.deviceZoom==='lab');
     if(target&&this.manualLook)look.copy(pos).add(new THREE.Vector3(-Math.sin(this.yaw)*Math.cos(this.pitch),Math.sin(this.pitch),-Math.cos(this.yaw)*Math.cos(this.pitch)));
     if(this.deviceZoom==='nav'){
       // Frame the active sonar screen head-on along its own normal, with the
@@ -347,7 +349,7 @@ export class CabinThree {
       if(focus==='nav'){
         const nav=this.screens.find(s=>s.id==='nav')!;nav.mesh.getWorldPosition(look);look.y-=.17;
         pos.copy(look).addScaledVector(new THREE.Vector3(0,0,1).applyQuaternion(nav.group.quaternion),Math.max(.94,.70/this.camera.aspect));
-      }else if(focus==='window')look.set(0,1.35,-1.57);
+      }else if(focus==='window')this.screens.find(s=>s.id==='camera')!.mesh.getWorldPosition(look);
       else {
         let control:THREE.Object3D|undefined=this.helmKeys.find(k=>k.userData.control===focus);
         if(!control)this.scene.traverse(o=>{if(!control&&o.userData.control===focus)control=o;});
@@ -361,7 +363,7 @@ export class CabinThree {
     this.camera.position.lerp(pos,k);this.look.lerp(look,k);
     this.camera.lookAt(this.look);
     this.helmStick.rotation.y=this.helmInput.yaw*.26;
-    this.helmStick.position.y=this.helmInput.thrust*.13;
+    this.helmStick.rotation.x=-this.helmInput.thrust*.26;
     const throttleGrip=this.scene.getObjectByName('helm-throttle-grip');
     if(throttleGrip)throttleGrip.position.y=-.145+run.throttle*.095;
     // Only the small helm light needs a new shadow when its controls move.
@@ -396,7 +398,7 @@ export class CabinThree {
       lamp.emissiveIntensity=collected?.55:i===run.campaign.chapter?.15+.10*Math.sin(view.time*2):0;
     });
     this.flood.position.y=.015+run.flood*.65+Math.sin(view.time*1.7)*run.flood*.006;
-    this.updateNavigationKeyboard?.(run);
+    this.navKeyboard?.update(run,hoveredControl);
     this.updateActiveControls?.(run,hoveredControl);
     this.frame++;
     for(const [index,screen] of this.screens.entries()) {
@@ -547,6 +549,10 @@ export class CabinThree {
     if(this.focused && this.focusedFace===screen.id) return screen.hits.pick(hit.uv.x*1024,(1-hit.uv.y)*ch);
     return `station:${screen.id}`;
   }
+
+  /** Physical keypad stroke; false when the control has no cap on the nav keypad. */
+  pressKey(control:string,hold=true){return this.navKeyboard?.press(control,hold)??false;}
+  releaseKey(){return this.navKeyboard?.release()??null;}
 
   selectFace(id: string) {
     if(id.startsWith('station:')) this.preferredFace=id.slice(8) as StationId;

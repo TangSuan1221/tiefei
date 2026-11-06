@@ -18,7 +18,7 @@ import { HarborRescueSite } from './deepsea/harbor-rescue-site';
 import { sonarAction } from './sonar-desk';
 import { sonarDeskState } from './sonar-desk';
 import { labDeskAction, labDeskState } from './lab-desk';
-import { commUi } from './comm-desk';
+import { commUi, beginCommTransmission, incomingCall } from './comm-desk';
 import { PushToTalk, RadioTransmit } from './radio-transmit';
 import { bindGm, closeGmConsole, closePromptPanel, isGmConsoleOpen } from './gm';
 import { installFootageSink } from './footage';
@@ -217,10 +217,24 @@ export class PodSession {
     if(id==='back'){this.view.cabin.releaseToAisle();this.walkedInCabin=false;}
     if(id==='site.interact'){this.run.authoredSite?.interact();return;}
     this.view.cabin.selectFace(id);
+    const physical=this.strikeKeypad(id);
     const ok=performControl(this.run,id);
     if(this.run.at && document.pointerLockElement) document.exitPointerLock();
     this.keys.clear();
-    this.view.audio.cue(ok?'ui.select':'ui.error',{gain:.4});
+    if(!physical||!ok)this.view.audio.cue(ok?'ui.select':'ui.error',{gain:physical?.22:.4});
+  }
+
+  /** Mechanical press on the nav keypad: the cap bottoms out and is voiced like a real switch.
+   *  `hold` keeps it down until pointer/key release, which voices the spring return. */
+  private strikeKeypad(id:string,hold=true):boolean {
+    if(!this.view.cabin.pressKey(id,hold))return false;
+    this.view.audio.cue('key.down',{gain:.62,detune:/^sonar\.(key\.(del|clear)|next|save)$/.test(id)?-1:0,pan:-.35});
+    if(!hold)setTimeout(()=>this.view.audio.cue('key.up',{gain:.5,pan:-.35}),85+Math.random()*30);
+    return true;
+  }
+  private releaseKeypad():void {
+    const id=this.view.cabin.releaseKey();
+    if(id)this.view.audio.cue('key.up',{gain:.5,detune:/^sonar\.(key\.(del|clear)|next|save)$/.test(id)?-1:0,pan:-.35});
   }
 
   constructor(
@@ -238,8 +252,8 @@ export class PodSession {
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('pointerdown', this.onPointer);
     window.addEventListener('pointermove', this.onMove);
-    window.addEventListener('pointerup', () => { this.dragLook = false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick(); });
-    window.addEventListener('pointercancel', () => {this.dragLook=false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick();});
+    window.addEventListener('pointerup', () => { this.dragLook = false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick();this.releaseKeypad(); });
+    window.addEventListener('pointercancel', () => {this.dragLook=false;this.sonarDrag=false;this.heldPilot=null;this.releaseStick();this.releaseKeypad();});
     window.addEventListener('contextmenu', e => {
       if((e.target===this.canvas || e.target===document.getElementById('ui-root'))) e.preventDefault();
     });
@@ -370,6 +384,7 @@ export class PodSession {
     if(e.key==='Escape' && document.getElementById('campaign-journal')) {
       document.getElementById('campaign-journal')!.remove();this.keys.clear();return;
     }
+    if(!editing&&e.key==='Escape'&&this.run.at==='lab'&&commUi(this.run).archiveOpen){e.preventDefault();commUi(this.run).archiveOpen=false;return;}
     const movementKey = /^Key[WASD]$/.test(e.code);
     const interactKey=e.code==='KeyE';
     const facilityKey=e.code==='KeyF';
@@ -389,14 +404,15 @@ export class PodSession {
     void this.view.unlockAudio();
     const key = interactKey?'e':facilityKey?'f':e.key.toLowerCase();
     if (isGmConsoleOpen()) return;
-    if((this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab')&&key==='m'){e.preventDefault();const back=this.run.at;this.openComm();this.openTransmit(false,back);return;}
+    if((this.run.at==='camera'||this.run.at==='nav'||this.run.at==='lab')&&key==='m'){e.preventDefault();const back=this.run.at;this.openComm();if(incomingCall(this.run))performControl(this.run,'lab.comm.answer');else this.openTransmit(false,back);return;}
     // During coordinate instruction, hardware digits must not switch stations or engage drive.
     if(this.run.prologue?.active&&this.run.prologue.step===0&&this.run.at){
       const digit=/^[0-9.\-]$/.test(key);
       if(digit||['backspace','delete','tab','enter'].includes(key)){
         e.preventDefault();
-        const desk=sonarDeskState(this.run);
-        sonarAction(this.run,digit?'sonar.key.'+key:key==='tab'?'sonar.axis.'+((desk.axis+1)%3):key==='enter'?'sonar.save':key==='delete'?'sonar.key.clear':'sonar.key.del');
+        const action=digit?'sonar.key.'+key:key==='tab'?'sonar.next':key==='enter'?'sonar.save':key==='delete'?'sonar.key.clear':'sonar.key.del';
+        this.strikeKeypad(action,false);
+        sonarAction(this.run,action);
         return;
       }
     }
@@ -483,6 +499,15 @@ export class PodSession {
 
   private sonarDrag=false;
   private onPointer = (e: PointerEvent): void => {
+    // The native IME editor owns keyboard focus; the two visible CRT buttons still work.
+    if(this.tx.open&&(e.target===this.canvas||e.target===document.getElementById('ui-root'))){
+      e.preventDefault(); // Keep native editing focus after the canvas pointer event.
+      const action=this.deskAction(this.view.pick(e.clientX,e.clientY));
+      if(action==='lab.comm.talk')this.tx.submit();
+      else if(action==='lab.comm.hangup'||action==='lab.comm.dismiss'){this.tx.close();this.useTerminal(action);}
+      else this.tx.focus();
+      return;
+    }
     if (this.syncInputBlock()) return;
     this.keys.clear();
     void this.view.unlockAudio();
@@ -516,7 +541,8 @@ export class PodSession {
     }
     const id = this.deskAction(picked);
     if(id?.startsWith('sonar.tune.'))this.sonarDrag=true;
-    if(id==='lab.comm.talk'){this.openComm();this.openTransmit(false);return;}
+    if(id==='lab.comm.edit'||id==='lab.comm.talk'){e.preventDefault();this.openComm();this.openTransmit(false);return;}
+    if(id==='lab.comm.hangup'||id==='lab.comm.dismiss')this.tx.close();
     if(id==='helm.stick'||id==='helm.throttle'){this.stickDrag={x:e.clientX,y:e.clientY,throttle:id==='helm.throttle'};this.run.throttleDragging=id==='helm.throttle';return;}
     if(id==='helm.brake'){this.heldPilot='helm.brake';return;}
     if(id==='nav.thrust'){this.toggleNavDrive();return;}
@@ -581,6 +607,7 @@ export class PodSession {
   }
   /** Free-speech radio for sites that implement radioSay; returns whether the transmit panel opened. */
   private openTransmit(transcribing:boolean,back?:StationId):boolean {
+    if(!this.run.powered||commUi(this.run).connecting)return false;
     const site=this.run.authoredSite;
     if(this.tx.open)return true;
     // Deck two: M borrows the lab seat only for the call, then returns to the station it came from.
@@ -591,9 +618,9 @@ export class PodSession {
     const ui=commUi(this.run),choices:string[]=site?.index===2?[...(site.dialogueChoices??[])]:[];
     const prefill='';ui.editing=true;ui.draft='';
     const done=(ok:boolean)=>{this.ptt.abort();sonarDeskState(this.run).message=ok?'已发言':'';this.view.audio.cue(ok?'ui.select':'ui.error',{gain:.4});};
-    this.tx.show({target,choices,prefill,transcribing,
+    this.tx.show({target,choices,prefill,transcribing,inline:true,
       onDraft:text=>{ui.draft=text;},
-      onSend:text=>{ui.editing=false;ui.spoken=text;ui.draft='';this.run.pushLog('罗温：'+text,'system');const s=this.run.authoredSite;if(s?.radioSay&&s.micTarget&&s.micReady!==false)s.radioSay(text);done(true);restore();},
+      onSend:text=>{ui.editing=false;ui.spoken=text;ui.draft='';beginCommTransmission(this.run);labDeskState(this.run).tab='comm';this.run.pushLog('罗温：'+text,'system');const s=this.run.authoredSite;if(s?.radioSay&&s.micTarget&&s.micReady!==false)s.radioSay(text);done(true);restore();},
       onChoose:i=>{const s=this.run.authoredSite;done(!!s?.chooseDialogue?.(i));},
       onClose:()=>{ui.editing=false;ui.draft='';this.ptt.abort();this.keys.clear();restore();},
     });

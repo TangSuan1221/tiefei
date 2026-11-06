@@ -1,3 +1,5 @@
+import {callMediaReady} from '../../sim/tape-channel';
+import {hasRemotePlaylist} from '../footage';
 import {isNoVideoMode} from '../gm';
 import {abyssalVideoAuthorized} from '../../net/abyssal-video-authorization';
 import {prewarmAbyssalMaterials} from './abyssal-prewarm';
@@ -57,7 +59,7 @@ export class AbyssalLabSite implements AuthoredSite {
   const shot=unread??pending?.shotId??(stage?expected[stage.id]:undefined);
   if(shot&&!this.analyzed.includes(shot)){
    const number=shot.replace('L3-E','').replace(/^0/,'');
-   const delivered=this.deliveredMedia.has(shot)&&this.run.tapes.some(t=>t.ready!==false&&t.videoResult==='video'&&!t.creatureMissing&&(t.siteEvidence as {shotId?:string})?.shotId===shot);
+   const delivered=this.deliveredMedia.has(shot)&&this.run.tapes.some(t=>callMediaReady(t,hasRemotePlaylist)&&(t.siteEvidence as {shotId?:string})?.shotId===shot);
    if(delivered)return `艾里亚斯第${number}卷已收到 · 在分析台选择该卷，完整看片并分析`;
    const media=this.media.status(shot);
    if(media.phase==='failed')return `艾里亚斯第${number}卷未完成 · 到分析台【通讯】点击“重新接收” · ${media.message.slice(0,70)}`;

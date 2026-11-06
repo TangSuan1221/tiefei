@@ -30,6 +30,8 @@ export function sonarAction(run:PodRun,id:string):boolean {
  if(receiver?.autoReceive&&id.startsWith('sonar.radio.')){const pages=radioPages.get(run)??{list:0,text:0};radioPages.set(run,pages);if(id==='sonar.radio.prev')pages.list=Math.max(0,pages.list-1);if(id==='sonar.radio.next')pages.list++;if(id==='sonar.radio.textPrev')pages.text=Math.max(0,pages.text-1);if(id==='sonar.radio.textNext')pages.text++;if(id.startsWith('sonar.radio.open.')){s.selected=Number(id.slice(17));s.page='result';pages.text=0;}return true;}
  if(id.startsWith('sonar.tune.')){s.frequency=35+Math.max(0,Math.min(100,Number(id.slice(11))))/10;receiver?.setFrequency?.(s.frequency);return true;}
  if(id.startsWith('sonar.axis.')){s.axis=Number(id.at(-1));s.caretResetAt=performance.now();return true;}
+ // Physical 写入 key: commit the field being typed and move the caret to the next axis.
+ if(id==='sonar.next'){s.axis=(s.axis+1)%COORD_AXES.length;s.caretResetAt=performance.now();return true;}
  if(id==='sonar.deleteWaypoint'){
   const ok=receiver?.deleteSelectedWaypoint?.()??false;
   if(ok){s.target=receiver?.target?[...receiver.target]:null;s.message=s.target?'坐标点已删除 · 已切换至剩余坐标点':'坐标点已删除 · 暂无坐标点';}
@@ -96,10 +98,9 @@ export function drawSonarDesk(ctx:CanvasRenderingContext2D,run:PodRun,x:number,y
  const keys=['1','2','3','4','5','6','7','8','9','-','0','.'];keys.forEach((k,i)=>button('sonar.key.'+k,k,582+i%3*64,144+Math.floor(i/3)*40,56));
  button('sonar.key.del','退格',786,144,94);button('sonar.key.clear','清空',890,144,98);
  button('sonar.save','写入航点',786,184,202);
- button('nav.active',run.activeSonarEnabled?'关闭主动声纳':'开启主动声纳',786,224,202);
  button('nav.ping1',run.sonarPulseEnabled?'停止脉冲':'开启脉冲',786,264,202);
  if(r?.target&&r.deleteSelectedWaypoint)button('sonar.deleteWaypoint','删除当前坐标点',786,306,202);
- text(run.activeSonarEnabled?(run.sonarEmitting?'脉冲中 · 吸引生物':'静默 · 保留回波'):'电源 OFF',586,328,16,'#e3ba76');
+ text(run.sonarEmitting?'脉冲发射中 · 持续发声':'脉冲停止 · 被动监听常开',586,328,16,'#e3ba76');
  screen(20,374,530,256);screen(568,374,436,256);
  text('03 被动监听 / 频率—时间瀑布图',36,395);
  if(r?.drawWaterfall){ctx.save();ctx.translate(36,420);r.drawWaterfall(ctx,496,176);ctx.restore();}

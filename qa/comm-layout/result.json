@@ -1,0 +1,70 @@
+{
+  "first": [
+    {
+      "id": "lab.comm.answer",
+      "rect": {
+        "id": "lab.comm.answer",
+        "x": 920.5,
+        "y": 861.1111111111111,
+        "w": 420,
+        "h": 100
+      }
+    },
+    {
+      "id": "lab.comm.dismiss",
+      "rect": {
+        "id": "lab.comm.dismiss",
+        "x": 1361.5,
+        "y": 861.1111111111111,
+        "w": 381.5,
+        "h": 100
+      }
+    },
+    {
+      "id": "lab.comm.archiveToggle",
+      "rect": {
+        "id": "lab.comm.archiveToggle",
+        "x": 1428,
+        "y": 183.33333333333334,
+        "w": 315,
+        "h": 58.333333333333336
+      }
+    },
+    {
+      "id": "lab.comm.edit",
+      "rect": {
+        "id": "lab.comm.edit",
+        "x": 49,
+        "y": 844.4444444444445,
+        "w": 833,
+        "h": 122.22222222222223
+      }
+    }
+  ],
+  "result": {
+    "menuAboveVideo": true,
+    "ignored": true,
+    "recoverable": true,
+    "answered": true,
+    "fullscreen": true,
+    "held": true,
+    "continued": true,
+    "hungUp": true,
+    "initiallyUnknown": true,
+    "subsequentNamed": true
+  },
+  "input": {
+    "sent": "你在哪儿？",
+    "draft": "你在哪儿？",
+    "closed": true
+  },
+  "physical": {
+    "mAnswers": true,
+    "mOpensReply": true,
+    "mouseOpensEditor": true,
+    "keyboardTyping": true,
+    "clickDraftDoesNotSend": true,
+    "mouseHangupWhileEditing": true,
+    "escapeCancels": true
+  }
+}

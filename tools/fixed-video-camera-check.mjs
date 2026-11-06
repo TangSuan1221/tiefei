@@ -3,8 +3,9 @@ import {createRequire} from 'node:module';
 import {readFileSync} from 'node:fs';
 const require=createRequire(import.meta.url);
 const ts=require('typescript');
-const source=readFileSync('src/pod/content/elias-video-atoms.ts','utf8')+'\n'+readFileSync('src/pod/net/no-video-mode.ts','utf8')+'\n'+readFileSync('src/pod/content/fixed-camera.ts','utf8').replace(/import \{ELIAS_SELFIE_CONTRACT\} from '[^']+';/,'')+'\n'+readFileSync('src/pod/net/video.ts','utf8').replace(/import \{lockVideoCamera\} from '[^']+';/,'').replace(/import \{isLocalNoVideoMode\} from '[^']+';/,'').replaceAll('import.meta.env','({VITE_VIDEO_ENABLED:"1"})');
-const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+const source=readFileSync('src/pod/net/video-references.ts','utf8')+'\n'+readFileSync('src/pod/content/elias-video-atoms.ts','utf8')+'\n'+readFileSync('src/pod/net/no-video-mode.ts','utf8')+'\n'+readFileSync('src/pod/content/fixed-camera.ts','utf8').replace(/import \{ELIAS_SELFIE_CONTRACT\} from '[^']+';/,'')+'\n'+readFileSync('src/pod/net/video.ts','utf8').replace(/import \{lockVideoCamera\} from '[^']+';/,'').replace(/import \{isLocalNoVideoMode\} from '[^']+';/,'').replace(/import \{[^}]+\} from '\.\/video-references';/,'').replaceAll('import.meta.env','({VITE_VIDEO_ENABLED:"1"})');
+const durationSource=readFileSync('src/pod/content/video-duration.ts','utf8');
+const compiled=ts.transpileModule(durationSource+'\n'+source.replace(/^import .*video-duration.*;$/gm,''),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
 const {requestVideo}=await import('data:text/javascript;base64,'+Buffer.from(compiled).toString('base64'));
 const originalFetch=globalThis.fetch,originalWindow=globalThis.window;const bodies=[];
 const events=new EventTarget();globalThis.window={addEventListener:events.addEventListener.bind(events),removeEventListener:events.removeEventListener.bind(events),setInterval};
@@ -16,8 +17,11 @@ try{
  for(const body of bodies){assert.match(body.prompt,/CAMERA LOCK:/);assert.match(body.prompt,/No pan, tilt, roll, dolly, tracking, orbit, zoom/);assert.match(body.prompt,/impact jolt/);assert.equal(body.prompt.split('CAMERA LOCK:').length-1,1);}
  const count=bodies.length;
  await requestVideo('Elias gives a task.',undefined,'data:image/png;base64,BBBB',undefined,10,'elias-selfie');
- const selfie=bodies.at(-1);assert.match(selfie.prompt,/ELIAS SELFIE CAMERA/);assert.doesNotMatch(selfie.prompt,/CAMERA LOCK:|exact opening frame/);assert.equal(selfie.content[0].image_url.url,'data:image/png;base64,BBBB');
- await requestVideo('Elias gives a task.',undefined,undefined,undefined,10,'elias-selfie');assert.equal(bodies.length,count+1,'missing task reference must not submit');
+ const selfie=bodies.at(-1);assert.match(selfie.prompt,/ELIAS VOICE:.*English only.*adult male low baritone/);assert.equal(selfie.prompt.split('ELIAS VOICE:').length-1,1);
+ await requestVideo(selfie.prompt,undefined,'data:image/png;base64,BBBB',undefined,10,'elias-selfie');assert.equal(bodies.at(-1).prompt.split('ELIAS VOICE:').length-1,1);
+ await requestVideo('Elias speaks through a fallen camera.');assert.match(bodies.at(-1).prompt,/ELIAS VOICE:/);assert.match(bodies.at(-1).prompt,/CAMERA LOCK:/);
+ assert.doesNotMatch(bodies[0].prompt,/ELIAS VOICE:/);assert.match(selfie.prompt,/ELIAS SELFIE CAMERA/);assert.doesNotMatch(selfie.prompt,/CAMERA LOCK:|exact opening frame/);assert.equal(selfie.content[0].image_url.url,'data:image/png;base64,BBBB');
+ await requestVideo('Elias gives a task.',undefined,undefined,undefined,10,'elias-selfie');assert.equal(bodies.length,count+3,'missing task reference must not submit');
  assert.equal(bodies[0].content[0].image_url.url,'data:image/png;base64,AAAA');
  assert(!readFileSync('src/pod/content/footage.ts','utf8').includes('drifting a few degrees'));
  assert(!readFileSync('src/pod/content/footage-director.ts','utf8').includes('One short camera jolt'));

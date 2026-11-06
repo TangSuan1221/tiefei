@@ -23,6 +23,7 @@ try{
  return {animated,video:[v.videoWidth,v.videoHeight,v.duration],pausedStable,litFraction:lit/(720*405),cutMax,meanMs:samples.reduce((a,b)=>a+b)/samples.length};
  });
  assert.equal(result.pausedStable,true);assert.equal(result.animated,true);assert.ok(result.litFraction>.1);assert.ok(result.cutMax<12,'previous clip leaked across a cut');assert.deepEqual(errors,[]);
+ await page.evaluate(async()=>{const {drawCctvSignal}=await import('/src/pod/view/cctv-signal.ts');const v=document.createElement('video');v.muted=true;v.src='/cctv-fixture.mp4';await new Promise(r=>v.onloadeddata=r);v.currentTime=v.duration-.04;await new Promise(r=>v.onseeked=r);const g=document.getElementById('pair').getContext('2d');g.save();g.translate(720,0);drawCctvSignal(g,720,810,v,{time:3.2,corruption:1});g.restore();});
  await page.screenshot({path:dir+'/comparison.png'});
  const recording=await page.evaluate(async()=>{
   const {drawCctvSignal}=await import('/src/pod/view/cctv-signal.ts');const canvas=document.getElementById('pair'),g=canvas.getContext('2d');

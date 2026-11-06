@@ -1,3 +1,4 @@
+import {portholeFont,PORTHOLE_INK,portholeText} from './crt-hud';
 /**
  * 舱外摄像头的程序化影像。
  * ============================================================================
@@ -898,23 +899,8 @@ function drawVideoNoise(
  * 方位刻度带：镜头实际朝向 = 艇首航向 + 云台偏转。转向时刻度滚动，
  * 中央指针下就是当前朝向；右侧给俯仰角。
  */
-/** Small neutral backing is confined to instruments; the optical image is untouched elsewhere. */
-function instrumentBacking(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number):void {
-  ctx.save();ctx.shadowBlur=0;
-  const g=ctx.createLinearGradient(x,y,x+w,y);
-  g.addColorStop(0,'rgba(2,7,6,0)');g.addColorStop(.14,'rgba(2,7,6,.58)');
-  g.addColorStop(.86,'rgba(2,7,6,.58)');g.addColorStop(1,'rgba(2,7,6,0)');
-  ctx.fillStyle=g;
-  const rows=24;
-  for(let i=0;i<rows;i++){
-    const t=(i+.5)/rows;ctx.globalAlpha=Math.min(1,t/.16,(1-t)/.16);
-    ctx.fillRect(x,y+h*i/rows,w,h/rows+.2);
-  }
-  ctx.restore();
-}
 function instrumentText(ctx:CanvasRenderingContext2D,text:string,x:number,y:number):void {
-  ctx.save();ctx.shadowColor='rgba(0,0,0,.95)';ctx.shadowBlur=2;ctx.shadowOffsetY=1;
-  ctx.fillText(text,x,y);ctx.restore();
+  portholeText(ctx,text,x,y,String(ctx.fillStyle));
 }
 function drawHeadingTape(ctx:CanvasRenderingContext2D,w:number,h:number,run:PodRun):void {
   const mid=w*.5,left=w*.24,right=w*.76,base=h*.18,span=90;
@@ -922,27 +908,26 @@ function drawHeadingTape(ctx:CanvasRenderingContext2D,w:number,h:number,run:PodR
   const pitch=run.pitch+run.camTilt*180/Math.PI;
   const cardinal:Record<number,string>={0:'N',90:'E',180:'S',270:'W'};
   ctx.save();ctx.shadowBlur=0;
-  instrumentBacking(ctx,left-h*.025,base-h*.09,right-left+h*.05,h*.15);
   ctx.textAlign='center';ctx.textBaseline='alphabetic';
   // One dominant reading; subdued scale labels avoid the former boxed double header.
-  ctx.font=`500 ${h*.038}px "Consolas",monospace`;ctx.fillStyle='#d3edbb';
+  ctx.font=portholeFont(h*.038);ctx.fillStyle=PORTHOLE_INK.text;
   instrumentText(ctx,`${String(Math.round(heading)%360).padStart(3,'0')}°`,mid,base-h*.043);
-  ctx.lineWidth=1;ctx.strokeStyle='rgba(170,208,145,.32)';
+  ctx.lineWidth=1;ctx.strokeStyle=PORTHOLE_INK.line(.18);
   ctx.beginPath();ctx.moveTo(left,base);ctx.lineTo(right,base);ctx.stroke();
   for(let d=Math.ceil((heading-span/2)/5)*5;d<=heading+span/2;d+=5){
     const x=mid+(d-heading)*(right-left)/span,norm=(d%360+360)%360;
     const major=norm%15===0,fade=1-Math.abs(x-mid)/((right-left)/2)*.75;
-    ctx.strokeStyle=`rgba(177,215,151,${fade*(major?.8:.42)})`;
+    ctx.strokeStyle=PORTHOLE_INK.line(fade*(major?.95:.7));
     ctx.beginPath();ctx.moveTo(x,base);ctx.lineTo(x,base-h*(major?.018:.009));ctx.stroke();
     if(major&&Math.abs(x-mid)>h*.075){
-      ctx.font=`${h*(cardinal[norm]?.025:.018)}px "Consolas",monospace`;
-      ctx.fillStyle=`rgba(191,220,171,${fade})`;
+      ctx.font=portholeFont(h*(cardinal[norm]?.025:.018));
+      ctx.fillStyle=PORTHOLE_INK.text;
       instrumentText(ctx,cardinal[norm]??String(norm).padStart(3,'0'),x,base-h*.028);
     }
   }
-  ctx.strokeStyle='#c6e8aa';ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.moveTo(mid-h*.008,base+h*.015);ctx.lineTo(mid,base+h*.004);ctx.lineTo(mid+h*.008,base+h*.015);ctx.stroke();
-  ctx.font=`${h*.020}px "Consolas","Microsoft YaHei",monospace`;ctx.fillStyle='#9db78a';
+  ctx.fillStyle=PORTHOLE_INK.text;
+  ctx.beginPath();ctx.moveTo(mid-h*.010,base+h*.004);ctx.lineTo(mid+h*.010,base+h*.004);ctx.lineTo(mid,base+h*.025);ctx.closePath();ctx.fill();
+  ctx.font=portholeFont(h*.020);ctx.fillStyle=PORTHOLE_INK.text;
   instrumentText(ctx,`俯仰  ${pitch>=0?'+':''}${pitch.toFixed(0)}°`,mid,base+h*.047);
   ctx.restore();
 }
@@ -951,10 +936,14 @@ function drawPositionReadout(ctx:CanvasRenderingContext2D,w:number,h:number,run:
   const site=run.authoredSite,p=site?.position;if(!site||!p)return;
   const c=displayCoords([p.x,p.y,p.z],site.coordinateDatum??run.depth+(site.elevation??0));
   ctx.save();ctx.textAlign='left';ctx.textBaseline='alphabetic';
-  ctx.font=`${h*.022}px "Consolas",monospace`;
-  const x=w*.215,y=h*.38;
-  const rows=[`X     ${c.x.toFixed(1)}`,`Y     ${c.y.toFixed(1)}`,`DEPTH ${c.depth.toFixed(1)} m`];
-  rows.forEach((text,i)=>{ctx.fillStyle=i===2?'#c3d6b3':'#a6b69b';instrumentText(ctx,text,x,y+i*h*.038);});
+  ctx.font=portholeFont(h*.022);
+  const x=w*.19,y=h*.43,valueX=x+h*.105;
+  // Fixed columns: IPix glyphs and spaces do not have equal advances.
+  const rows=[['X',c.x.toFixed(1)],['Y',c.y.toFixed(1)],['DEPTH',`${c.depth.toFixed(1)} m`]];
+  rows.forEach(([label,value],i)=>{
+    const baseline=y+i*h*.038;ctx.fillStyle=PORTHOLE_INK.text;
+    instrumentText(ctx,label!,x,baseline);instrumentText(ctx,value!,valueX,baseline);
+  });
   ctx.restore();
 }
 

@@ -5,6 +5,8 @@
 
 状态总览：提示词已写（REQUIRED）。第三关场景、艾里亚斯机位截图、录像回复链路都还没做（NOT_IMPLEMENTED）。没有生成过任何一段真实视频，画面效果未验证。
 
+2026-11-06 当前执行规则：同一镜头ID只生成一条完整录像；下列历史“段”仅是有序动作素材，不再分别提交。剧情按内容选择时长且不超过15秒，玩家摄影5秒；完整提示词上限7000字符。E10使用能覆盖人物、手术台、头盔架和阀门的单一固定机位，保留抓住、摘盔、无气泡、戴回头盔及开阀的顺序；历史分段机位和各段0–10秒时间轴不再是运行契约。实际整条演出尚待实片验收。
+
 ## VR-301 本关录像怎么拼
 
 状态：REQUIRED。关键词：第三关 艾里亚斯 探头 录像回复 分段 固定机位 拼装 字幕。
@@ -13,7 +15,7 @@
 
 | 类型 | 谁拍的 | 每段时长 | 正文上限 |
 |---|---|---|---|
-| elias-story | 艾里亚斯的摄像探头 | 10秒 | 3600字符 |
+| elias-story | 艾里亚斯的摄像探头 | 按内容选择，≤15秒，整条一次生成 | 7000字符 |
 | player-capture / player-action | 罗温潜艇的固定摄像头 | 5秒 | 2200字符 |
 
 上限按最终提交的全文计算，包括网络层参考图说明与所选自拍／固定机位条款（`src/pod/content/fixed-camera.ts`）。
@@ -42,11 +44,11 @@
 | 21 竖井检修平台 | VP-316 |
 
 ```probe-prefix
-SHOT CONTRACT: a continuous ten-second Elias mission selfie. Use the supplied task image for the same diver, equipment, location and evidence; reframe as his handheld self-recording. Follow the selected performance and authored outcome only.
+SHOT CONTRACT: a continuous Elias mission selfie. Use the supplied task image for the same diver, equipment, location and evidence; reframe as his handheld self-recording. Follow the selected performance and authored outcome only.
 ```
 
 ```fallen-probe-prefix
-SHOT CONTRACT: a continuous ten-second recording from the same probe after it has fallen onto the floor during the authored incident. Use the supplied operating-table task reference. No added observer or new event.
+SHOT CONTRACT: a continuous recording from the same probe after it has fallen onto the floor during the authored incident. Use the supplied operating-table task reference. No added observer or new event.
 ```
 
 ```pod-prefix

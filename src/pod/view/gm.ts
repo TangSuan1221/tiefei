@@ -15,6 +15,7 @@
 import type { PodRun } from '../sim/run';
 import {isAudioMuted,setAudioMuted} from '../../audio/mute';
 import {createExpedition} from '../content/expedition';
+import {previewHarborCreature} from './gm-creature-preview';
 
 const FLAG_KEY = 'ironlung.gm.novideo';
 
@@ -72,6 +73,7 @@ function setNoVideo(on: boolean): string {
 
 const HELP = [
   'GM 指令',
+  '  怪物试拍             第一章当前机位＋怪物参考图，真实生成新片并直接播放；不计剧情证据',
   '  静音 [开|关]         关闭全部音效与台词朗读，保留字幕；刷新后记住设置',
   '  进入关卡 1—7        直接进入指定关卡（测试会话，不覆盖正式存档）',
   '  无视频模式 [开|关]   首二关分析台诊断，第三关合成片；不请求视频',
@@ -100,6 +102,10 @@ export function executeGm(raw: string): string {
   const parts = text.split(/\s+/);
   const name = parts[0] ?? '';
   const arg = (parts[1] ?? '').toLowerCase();
+  if(['怪物试拍','试拍怪物'].includes(name)){
+    const run=hook?.run();const result=run?previewHarborCreature(run):'请先开始游戏。';
+    echo(result);if(result.startsWith('GM · 已开始'))closeGmConsole();return result;
+  }
   if(name==='静音'||name.toLowerCase()==='mute'){
     if(arg&&!['开','关','on','off','1','0','true','false'].includes(arg)){const result='用法：静音 开 / 静音 关';echo(result);return result;}
     setAudioMuted(arg?['开','on','1','true'].includes(arg):!isAudioMuted());
@@ -173,6 +179,7 @@ function ensureGmApi(): void {
       无视频模式: (on?: boolean) => setNoVideo(on ?? !isNoVideoMode()),
       noVideo: (on?: boolean) => setNoVideo(on ?? !isNoVideoMode()),
       help: () => executeGm('help'),
+      怪物试拍: ()=>executeGm('怪物试拍'),
       静音: (on?:boolean)=>executeGm('静音'+(on===undefined?'':on?' 开':' 关')),
       不断电: (on?:boolean)=>executeGm('不断电'+(on===undefined?'':on?' 开':' 关')),
       潜艇状态: ()=>executeGm('潜艇状态'),
@@ -303,6 +310,7 @@ function ensureConsole(): HTMLElement {
   box.className = 'gm-console hidden';
   box.innerHTML = `
     <header>GM 测试菜单 · Esc / F10 收起</header>
+    <div class="gm-actions"><button type="button" data-gm="怪物试拍">怪物试拍（真实生成新片）</button></div>
     <div class="gm-actions"><button type="button" data-gm="静音" aria-pressed="false">静音：关</button></div>
     <div class="gm-actions"><button type="button" data-gm="怪物入侵">怪物入侵</button><button type="button" data-gm="杀死怪物">杀死周围怪物</button><button type="button" data-gm="无视频模式">切换无视频模式</button><button type="button" data-close>收起</button></div>
     <div class="gm-actions"><button type="button" data-gm="不断电">不断电：关</button><button type="button" data-gm="补满电量">补满电量</button><button type="button" data-gm="修复艇壳">修复艇壳</button><button type="button" data-gm="补充氧气">补充氧气</button><button type="button" data-gm="排水">排水</button><button type="button" data-gm="全面整备">全面整备</button><button type="button" data-gm="潜艇状态">潜艇状态</button><button type="button" data-gm="help">指令帮助</button></div>

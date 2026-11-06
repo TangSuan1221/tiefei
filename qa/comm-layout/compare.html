@@ -1,0 +1,6 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>通讯页参考对照</title>
+<style>body{margin:24px;background:#071008;color:#bee5ad;font:16px system-ui}a{color:inherit}header{display:flex;gap:24px;align-items:center;flex-wrap:wrap}input{width:260px}main{position:relative;margin-top:20px;aspect-ratio:5504/3072;width:100%;background:black}main img{position:absolute;inset:0;width:100%;height:100%}#actual{opacity:.5}p{color:#8cad83}</style>
+<header><b>通讯页 · 用户参考 / 实际渲染</b><label>叠加：参考 <input id="blend" type="range" min="0" max="100" value="50"> 实际</label><a href="04-physical-incoming.png">舱内来电</a><a href="05-physical-input.png">舱内输入</a><a href="02-history.png">历史菜单</a></header>
+<p>滑到左侧查看参考，右侧查看实际。中间叠加对比区域比例、边距和文字位置。字符人像逐帧变化；实际影片保持原色与完整画幅。</p>
+<main><img src="reference.png" alt="用户参考"><img id="actual" src="01-incoming.png" alt="实际终端渲染"></main>
+<script>document.querySelector('#blend').oninput=e=>document.querySelector('#actual').style.opacity=e.target.value/100;</script></html>
